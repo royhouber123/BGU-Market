@@ -1,5 +1,5 @@
 package market.domain;
-
+import  java.util.*;
 import market.domain.store.Store;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +12,7 @@ class StoreUnitTests {
     private final int founderID = 1;
     private final int ownerA = 2;
     private final int ownerB = 3;
-// begin - assign Owner tests
+// -------------------------begin----------- assign Owner ------------------
     @BeforeEach
     void setUp() {
         store = new Store(100, "TestStore", founderID);
@@ -47,5 +47,71 @@ class StoreUnitTests {
         });
         assertTrue(exception.getMessage().contains("already a owner"), "Expected error for already an owner");
     }
-    // end - assign Owner tests
-}
+    // -------------------------end ---------------- assign Owner -----------------
+
+
+    //-----------------------------begin--------------remove owner---------------------
+        private final int ownerC = 4;
+
+        @Test
+        void testRemoveOwnerRecursiveSuccess() throws Exception {
+            // Build hierarchy: founder → A → B → C
+            store.addNewOwner(founderID, ownerA);
+            store.addNewOwner(ownerA, ownerB);
+            store.addNewOwner(ownerB, ownerC);
+
+            List<Integer> removed = store.removeOwner(founderID, ownerA);
+
+            assertTrue(removed.contains(ownerA));
+            assertTrue(removed.contains(ownerB));
+            assertTrue(removed.contains(ownerC));
+
+            // All should no longer be owners
+            assertFalse(store.isOwner(ownerA));
+            assertFalse(store.isOwner(ownerB));
+            assertFalse(store.isOwner(ownerC));
+        }
+
+        @Test
+        void testRemoveOwnerWhenIdNotOwner() throws Exception {
+            store.addNewOwner(founderID, ownerA);
+
+            Exception ex = assertThrows(Exception.class, () -> {
+                store.removeOwner(ownerA, founderID);
+            });
+
+            assertTrue(ex.getMessage().contains("is the FOUNDER"));
+        }
+
+        @Test
+        void testRemoveOwnerWhenToRemoveNotOwner() {
+            Exception ex = assertThrows(Exception.class, () -> {
+                store.removeOwner(founderID, ownerA); // ownerA hasn't been added yet
+            });
+
+            assertTrue(ex.getMessage().contains("is not a owner"));
+        }
+
+        @Test
+        void testCannotRemoveFounder() {
+            Exception ex = assertThrows(Exception.class, () -> {
+                store.removeOwner(founderID, founderID);
+            });
+
+            assertTrue(ex.getMessage().contains("is the FOUNDER"));
+        }
+
+        @Test
+        void testRemoveOwnerNotAssignedByCaller() throws Exception {
+            store.addNewOwner(founderID, ownerA);
+            store.addNewOwner(ownerA, ownerB);
+
+            Exception ex = assertThrows(Exception.class, () -> {
+                store.removeOwner(founderID, ownerB); // founder didn't assign B
+            });
+
+            assertTrue(ex.getMessage().contains("didn't assign"));
+        }
+    }
+
+

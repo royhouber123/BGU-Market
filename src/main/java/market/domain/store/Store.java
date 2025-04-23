@@ -2,6 +2,7 @@ package market.domain.store;
 
 import jdk.jshell.spi.ExecutionControl;
 
+import java.net.StandardSocketOptions;
 import java.util.*;
 
 public class Store {
@@ -102,6 +103,65 @@ retruns if 'id' is an owner of the store
 
     public int getFounderID(){
         return founderID;
+    }
+
+
+    public List<Integer> getOwnerAssigments(int id){
+        return ownerToAssignedOwners.get(id);
+    }
+
+
+/*
+removes the owner and all the people he assigned recursivly and returns a list of all the removed people
+ */
+    public List<Integer> removeOwner(int id, int toRemove) throws Exception {
+        List<Integer> res = new ArrayList<>();
+        if (!isOwner(id)){
+            throw new Exception(id +" is not a owner of store:"+ storeID);
+        }
+        if (!isOwner(toRemove)){
+            throw new Exception(toRemove +" is not a owner of store:"+ storeID);
+        }
+        if (toRemove == getFounderID()){
+            throw new Exception(toRemove +" is the FOUNDER of store:"+ storeID+ " can't remove him");
+        }
+        if (ownerToWhoAssignedHim.get(toRemove)!= id){
+            throw new Exception(id +" didn't assign " + toRemove + " to be owner of store:"+ storeID);
+        }
+        Queue<Integer> queue = new ArrayDeque<>();
+        queue.add(toRemove);
+        while(!queue.isEmpty()){
+            int next = queue.remove();
+            //add to remove list
+            res.add(next);
+            List<Integer> assigments = getOwnerAssigments(next);
+
+            //enter the owners he assigned to the queue
+            for (int a:assigments){
+                queue.add(a);
+            }
+            //remove him
+
+            ownerToAssignedOwners.get(OwnerAssignedBy(next)).remove(Integer.valueOf(next));
+            ownerToWhoAssignedHim.remove(next);
+
+
+            if (ownerToAssignedManagers.get(next)!= null){
+                //remove the managers he assign
+                for (int a: ownerToAssignedManagers.get(next)){
+                    res.add(a);
+                }
+                ownerToAssignedManagers.remove(next);
+            }
+
+
+        }
+        for (int o:res){
+            if (isOwner(o)){
+                ownerToAssignedOwners.remove(o);
+            }
+        }
+        return res;
     }
 
 
