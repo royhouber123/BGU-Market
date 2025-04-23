@@ -1,5 +1,8 @@
 package market.application;
 import market.domain.store.*;
+
+import java.util.List;
+
 public class StoreService {
     private IStoreRepository storeRepository;
     private int storeIDs =1;
@@ -69,4 +72,24 @@ assumes aggreement by 'apointerID''s appointer
         return "success";
     }
 
+
+
+    /*
+    removes 'toRemove' and all the people he assigned
+     */
+    public String removeOwner(int id, int toRemove, int storeID){
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null)
+                throw new Exception("store doesn't exist");
+            List<Integer> removedWorkers =  s.removeOwner(id,toRemove);
+            for (int i:removedWorkers ){
+                //TODO: need to change data on those ussers
+            }
+        }
+        catch (Exception e){
+            return e.getMessage();
+        }
+        return "succeed";
+    }
 }
