@@ -1,8 +1,11 @@
 package market.domain.store;
 
+import jdk.jshell.spi.ExecutionControl;
+
 import java.util.*;
 
 public class Store {
+    private int storeID;
     private String name;
     boolean active;
 
@@ -23,13 +26,14 @@ public class Store {
     private List<String> products; //TODO: change to Product objects!
 
 
-    public Store(String name, int founderID) throws IllegalArgumentException {
+    public Store(int storeID,String name, int founderID) throws IllegalArgumentException {
         // ? - do we need store type
 
         if(!isValidName(name)){
             //LOG - error
             throw new IllegalArgumentException("market.domain.store.Store name illegal!");
         }
+        this.storeID=storeID;
         this.name = name;
         this.products = new ArrayList<>();
         this.active = true;
@@ -50,10 +54,55 @@ public class Store {
 //        this.owners.add(founderID);
     }
 
+
+
     /*
         validates there are no illegal characters
      */
+    //TODO:
     private boolean isValidName(String name) {
         return true;
     }
+
+/*
+adds a new owner to the store
+ */
+    public boolean addNewOwner(int appointerID, int newOwnerID) throws Exception {
+       if (!isOwner(appointerID))
+           throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+
+        if (isOwner(newOwnerID))
+            throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
+
+        ownerToAssignedOwners.get(appointerID).add(newOwnerID);
+        ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
+        ownerToWhoAssignedHim.put(newOwnerID,appointerID);
+        return true;
+    }
+
+
+
+/*
+retruns if 'id' is an owner of the store
+ */
+    public boolean isOwner(int id){
+        return ownerToAssignedOwners.containsKey(id);
+    }
+
+    /*
+    returns the owner's id which assigned "id"
+    returns -1 if no one assigned him
+     */
+    public int OwnerAssignedBy(int id){
+        if (ownerToWhoAssignedHim.containsKey(id)){
+            return ownerToWhoAssignedHim.get(id);
+        }
+        return -1;
+    }
+
+    public int getFounderID(){
+        return founderID;
+    }
+
+
 }
