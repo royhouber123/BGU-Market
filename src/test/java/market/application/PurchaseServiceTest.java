@@ -113,7 +113,7 @@ public class PurchaseServiceTest {
         StoreBag bag = new StoreBag(storeId, Map.of("pD1", item));
         ShoppingCart cart = new ShoppingCart(List.of(bag));
 
-        // StoreService with a DiscountPolicy that applies 20% off
+        // market.application.StoreService with a DiscountPolicy that applies 20% off
         StoreService discountStoreService = new StoreService() {
             @Override
             public Store getStoreById(String storeId) {

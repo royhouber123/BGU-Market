@@ -1,3 +1,5 @@
+package market.domain.store;
+
 public interface IStoreRepository {
     public Store getStore(String storeName);
     public void addStore(Store store);

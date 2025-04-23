@@ -1,3 +1,5 @@
+package market.application;
+
 public class StoreService {
     private IStoreRepository storeRepository;
 

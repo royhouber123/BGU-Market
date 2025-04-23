@@ -1,4 +1,5 @@
-import java.lang.reflect.Array;
+package market.domain.store;
+
 import java.util.*;
 
 public class Store {
@@ -27,7 +28,7 @@ public class Store {
 
         if(!isValidName(name)){
             //LOG - error
-            throw new IllegalArgumentException("Store name illegal!");
+            throw new IllegalArgumentException("market.domain.store.Store name illegal!");
         }
         this.name = name;
         this.products = new ArrayList<>();
