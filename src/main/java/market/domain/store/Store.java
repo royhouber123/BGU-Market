@@ -4,6 +4,8 @@ import jdk.jshell.spi.ExecutionControl;
 
 import java.net.StandardSocketOptions;
 import java.util.*;
+import java.util.stream.*;
+
 
 public class Store {
     private int storeID;
@@ -131,15 +133,21 @@ public class Store {
         return false;
     }
 
-    public Manager getManager(int id){
-        for(List<Manager> l :this.ownerToAssignedManagers.values()){
-            for (Manager m : l){
-                if(m.getID()==id){
-                    return m;
-                }
+    private Manager getManager(int id){
+        for (Manager m : getAllManagers()){
+            if(m.getID()==id){
+                return m;
             }
         }
         return null;
+    }
+
+    private List<Manager> getAllManagers(){
+        List<Manager> managers = new ArrayList<>();
+        for(List<Manager> l :this.ownerToAssignedManagers.values()){
+            managers.addAll(l);
+        }
+        return managers;
     }
 
     /*
@@ -216,6 +224,28 @@ public class Store {
         return res;
     }
 
+    /*
+    if the user called is an owner,
+    returns a hashmap.
+    key - worker (manager or owner)
+    value - set(permissions_values).   if manager
+            NULL.                      if owner
+     */
+    public HashMap<Integer, Set<Integer>> getPositionsInStore(Integer requestUser) throws Exception{
+        if(!isOwner(requestUser))
+            throw new Exception("User " + requestUser.toString() + " is not an owner!");
+
+        HashMap<Integer, Set<Integer>> workerToPermission = new HashMap<>();
+        for(Integer owner : this.ownerToWhoAssignedHim.keySet()){
+            workerToPermission.put(owner, null);
+        }
+
+        for(Manager m : getAllManagers()){
+            Set<Permission> ps = m.getPermissions();
+            workerToPermission.put(m.getID(), ps.stream().map(Permission::getCode).collect(Collectors.toSet()));
+        }
+        return workerToPermission;
+    }
 
 
 
@@ -249,6 +279,8 @@ public class Store {
 
         int id;
         int apointedBy;
+
+
         private Set<Permission> permissions;
 
         public Manager(int id, int apointedBy){
@@ -275,6 +307,10 @@ public class Store {
 
         public boolean hasPermission(Permission permission){
             return permissions.contains(permission);
+        }
+
+        public Set<Permission> getPermissions() {
+            return permissions;
         }
 
     }
