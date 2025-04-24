@@ -19,7 +19,7 @@ public class Store {
 
     //TODO: implement manager interface (probably state design pattern) with appropriate permissions
 
-    private HashMap<Integer, List<Integer>> ownerToAssignedManagers;
+    private HashMap<Integer, List<Manager>> ownerToAssignedManagers;
 
     // ? - do we need store type
 
@@ -39,8 +39,6 @@ public class Store {
         this.products = new ArrayList<>();
         this.active = true;
 
-//        this.managers = new HashMap<>();
-//        this.owners = new ArrayList<>();
         this.ownerToWhoAssignedHim = new HashMap<>();
         this.ownerToAssignedOwners = new HashMap<>();
         this.ownerToAssignedManagers = new HashMap<>();
@@ -50,9 +48,6 @@ public class Store {
         this.ownerToAssignedOwners.put(founderID, new ArrayList<>());
         this.ownerToAssignedManagers.put(founderID, new ArrayList<>());
 
-
-//        this.managers.put(founderID, new ArrayList<>());
-//        this.owners.add(founderID);
     }
 
 
@@ -65,9 +60,9 @@ public class Store {
         return true;
     }
 
-/*
-adds a new owner to the store
- */
+    /*
+    adds a new owner to the store
+     */
     public boolean addNewOwner(int appointerID, int newOwnerID) throws Exception {
        if (!isOwner(appointerID))
            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
@@ -78,16 +73,73 @@ adds a new owner to the store
         ownerToAssignedOwners.get(appointerID).add(newOwnerID);
         ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
         ownerToWhoAssignedHim.put(newOwnerID,appointerID);
+        ownerToAssignedManagers.put(newOwnerID,new ArrayList<>());
+        return true;
+    }
+
+    public boolean addNewManager(int appointerID, int newManagerID) throws Exception {
+        if (!isOwner(appointerID))
+            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+
+        if (isManager(newManagerID))
+            throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
+
+        Manager newManager = new Manager(newManagerID, appointerID);
+        ownerToAssignedManagers.get(appointerID).add(newManager);
+        return true;
+    }
+
+
+    /*
+    adds permision to manager.
+    managerID has to be manager. appointerID must be the owner appointed managerID, and permmisionID has to be legal.
+
+     */
+    public boolean addPermissionToManager( int managerID, int appointerID, int permissionID) throws Exception {
+        if(!isOwner(appointerID))
+            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+        if(!isManager(managerID))
+            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+
+        Manager manager = getManager(managerID);
+        Permission p = Permission.fromCode(permissionID); //if invalid code, exception is thrown here
+
+        manager.addPermission(p,appointerID); //if appointer is not the real one, throws here
         return true;
     }
 
 
 
-/*
-retruns if 'id' is an owner of the store
- */
+    /*
+    retruns true if 'id' is an owner of the store
+     */
     public boolean isOwner(int id){
         return ownerToAssignedOwners.containsKey(id);
+    }
+
+    /*
+    retruns true if 'id' is a manager of the store
+     */
+    public boolean isManager(int id){
+        for(List<Manager> l :this.ownerToAssignedManagers.values()){
+            for (Manager m : l){
+                if(m.getID()==id){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Manager getManager(int id){
+        for(List<Manager> l :this.ownerToAssignedManagers.values()){
+            for (Manager m : l){
+                if(m.getID()==id){
+                    return m;
+                }
+            }
+        }
+        return null;
     }
 
     /*
@@ -111,9 +163,9 @@ retruns if 'id' is an owner of the store
     }
 
 
-/*
-removes the owner and all the people he assigned recursivly and returns a list of all the removed people
- */
+    /*
+    removes the owner and all the people he assigned recursivly and returns a list of all the removed people
+     */
     public List<Integer> removeOwner(int id, int toRemove) throws Exception {
         List<Integer> res = new ArrayList<>();
         if (!isOwner(id)){
@@ -148,8 +200,8 @@ removes the owner and all the people he assigned recursivly and returns a list o
 
             if (ownerToAssignedManagers.get(next)!= null){
                 //remove the managers he assign
-                for (int a: ownerToAssignedManagers.get(next)){
-                    res.add(a);
+                for (Manager a: ownerToAssignedManagers.get(next)){
+                    res.add(a.getID());
                 }
                 ownerToAssignedManagers.remove(next);
             }
@@ -164,5 +216,67 @@ removes the owner and all the people he assigned recursivly and returns a list o
         return res;
     }
 
+
+
+
+    enum Permission{
+        VIEW_ONLY(0),
+        EDIT_PRODUCTS(1),
+        EDIT_POLICIES(2);
+
+        private final int code;
+
+        Permission(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        // Reverse lookup
+        public static Permission fromCode(int code) throws IllegalArgumentException {
+            for (Permission p : Permission.values()) {
+                if (p.getCode() == code) {
+                    return p;
+                }
+            }
+            throw new IllegalArgumentException("Invalid permission code: " + code);
+        }
+    }
+
+    class Manager{
+
+        int id;
+        int apointedBy;
+        private Set<Permission> permissions;
+
+        public Manager(int id, int apointedBy){
+            this.id = id;
+            this.apointedBy = apointedBy;
+            permissions = new HashSet<>();
+            permissions.add(Permission.VIEW_ONLY);
+        }
+
+        public boolean addPermission(Permission permission, int byWho) throws Exception {
+            if(byWho != apointedBy){
+                throw new Exception("user " + byWho + " cant add permission to manager " + this.id + " because he is not his appointer");
+            }
+            permissions.add(permission);
+            return true;
+        }
+
+        public int getApointedBy() {
+            return apointedBy;
+        }
+        public int getID() {
+            return id;
+        }
+
+        public boolean hasPermission(Permission permission){
+            return permissions.contains(permission);
+        }
+
+    }
 
 }
