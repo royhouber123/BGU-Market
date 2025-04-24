@@ -1,12 +1,16 @@
 package market.domain.store;
 
-import jdk.jshell.spi.ExecutionControl;
-
-import java.net.StandardSocketOptions;
 import java.util.*;
 import java.util.stream.*;
 
 
+
+/**
+ * Represents a store with a hierarchical role-based structure of owners and managers.
+ * Owners can assign other owners and managers, and manage product-related permissions.
+ * Managers can be granted specific permissions (such as editing products or policies).
+ * Products are managed through an injected {@link IStoreProductsManager} interface.
+ */
 public class Store {
     private int storeID;
     private String name;
@@ -26,7 +30,7 @@ public class Store {
     // ? - do we need store type
 
 
-    private List<String> products; //TODO: change to Product objects!
+    private IStoreProductsManager storeProductsManager;
 
 
     public Store(int storeID,String name, int founderID) throws IllegalArgumentException {
@@ -38,7 +42,7 @@ public class Store {
         }
         this.storeID=storeID;
         this.name = name;
-        this.products = new ArrayList<>();
+        this.storeProductsManager = new StoreProductManager();
         this.active = true;
 
         this.ownerToWhoAssignedHim = new HashMap<>();
@@ -62,8 +66,14 @@ public class Store {
         return true;
     }
 
-    /*
-    adds a new owner to the store
+    /**
+     * Adds a new owner to the store, assigned by an existing owner.
+     * The new owner will be tracked in the ownership hierarchy.
+     *
+     * @param appointerID  ID of the current owner assigning the new owner.
+     * @param newOwnerID   ID of the user to be added as a new owner.
+     * @return {@code true} if the new owner was successfully added.
+     * @throws Exception if the appointer is not an owner, or if the new owner is already registered as an owner.
      */
     public boolean addNewOwner(int appointerID, int newOwnerID) throws Exception {
        if (!isOwner(appointerID))
@@ -79,6 +89,16 @@ public class Store {
         return true;
     }
 
+
+    /**
+     * Adds a new manager to the store, assigned by an existing owner.
+     * The manager will initially have no permissions until assigned explicitly.
+     *
+     * @param appointerID    ID of the current owner assigning the new manager.
+     * @param newManagerID   ID of the user to be added as a new manager.
+     * @return {@code true} if the manager was successfully added.
+     * @throws Exception if the appointer is not an owner, or if the new manager is already registered as a manager.
+     */
     public boolean addNewManager(int appointerID, int newManagerID) throws Exception {
         if (!isOwner(appointerID))
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
@@ -92,10 +112,16 @@ public class Store {
     }
 
 
-    /*
-    adds permision to manager.
-    managerID has to be manager. appointerID must be the owner appointed managerID, and permmisionID has to be legal.
-
+    /**
+     * Grants a specific permission to a manager.
+     * The permission can only be assigned by the owner who originally appointed the manager.
+     *
+     * @param managerID     ID of the manager receiving the new permission.
+     * @param appointerID   ID of the owner who assigned the manager and is now granting permission.
+     * @param permissionID  Integer code representing the permission to assign (must be valid in {@link Permission} enum).
+     * @return {@code true} if the permission was added successfully.
+     * @throws Exception if the appointer is not an owner, the manager ID is not valid, the permission code is invalid,
+     *                   or if the appointer is not the one who originally assigned the manager.
      */
     public boolean addPermissionToManager( int managerID, int appointerID, int permissionID) throws Exception {
         if(!isOwner(appointerID))
@@ -112,15 +138,21 @@ public class Store {
 
 
 
-    /*
-    retruns true if 'id' is an owner of the store
+    /**
+     * Checks whether a given user ID corresponds to an owner of the store.
+     *
+     * @param id ID of the user to check.
+     * @return {@code true} if the user is an owner of the store; {@code false} otherwise.
      */
     public boolean isOwner(int id){
         return ownerToAssignedOwners.containsKey(id);
     }
 
-    /*
-    retruns true if 'id' is a manager of the store
+    /**
+     * Checks whether a given user ID corresponds to a manager of the store.
+     *
+     * @param id ID of the user to check.
+     * @return {@code true} if the user is a manager of the store; {@code false} otherwise.
      */
     public boolean isManager(int id){
         for(List<Manager> l :this.ownerToAssignedManagers.values()){
@@ -133,6 +165,12 @@ public class Store {
         return false;
     }
 
+    /**
+     * Retrieves the {@link Manager} object associated with a given user ID.
+     *
+     * @param id ID of the manager to retrieve.
+     * @return The {@link Manager} instance if found; {@code null} otherwise.
+     */
     private Manager getManager(int id){
         for (Manager m : getAllManagers()){
             if(m.getID()==id){
@@ -142,6 +180,11 @@ public class Store {
         return null;
     }
 
+    /**
+     * Collects and returns a list of all managers assigned in the store.
+     *
+     * @return A list of all {@link Manager} instances currently assigned to the store.
+     */
     private List<Manager> getAllManagers(){
         List<Manager> managers = new ArrayList<>();
         for(List<Manager> l :this.ownerToAssignedManagers.values()){
@@ -150,9 +193,11 @@ public class Store {
         return managers;
     }
 
-    /*
-    returns the owner's id which assigned "id"
-    returns -1 if no one assigned him
+    /**
+     * Returns the ID of the owner who appointed the specified user as an owner.
+     *
+     * @param id ID of the user whose appointer is being queried.
+     * @return The ID of the owner who assigned this user, or {@code -1} if the user has no recorded appointer.
      */
     public int OwnerAssignedBy(int id){
         if (ownerToWhoAssignedHim.containsKey(id)){
@@ -161,18 +206,39 @@ public class Store {
         return -1;
     }
 
+    /**
+     * Returns the ID of the founder of the store.
+     * The founder is the original creator of the store and cannot be removed as an owner.
+     *
+     * @return The user ID of the store's founder.
+     */
     public int getFounderID(){
         return founderID;
     }
 
-
+    /**
+     * Retrieves a list of owner IDs that were directly assigned by the specified owner.
+     *
+     * @param id ID of the owner whose assigned owners are requested.
+     * @return A list of user IDs representing owners assigned by this user, or {@code null} if the user is not in the map.
+     */
     public List<Integer> getOwnerAssigments(int id){
         return ownerToAssignedOwners.get(id);
     }
 
 
-    /*
-    removes the owner and all the people he assigned recursivly and returns a list of all the removed people
+    /**
+     * Removes an owner and all owners and managers they assigned recursively.
+     * This method performs a cascading removal: if an owner is removed, all of their assigned owners and managers are removed too.
+     *
+     * @param id        ID of the owner performing the removal.
+     * @param toRemove  ID of the owner to be removed.
+     * @return A list of all user IDs (owners and managers) that were removed.
+     * @throws Exception If:
+     *                   - {@code id} is not an owner,
+     *                   - {@code toRemove} is not an owner,
+     *                   - {@code toRemove} is the founder,
+     *                   - {@code id} is not the one who assigned {@code toRemove}.
      */
     public List<Integer> removeOwner(int id, int toRemove) throws Exception {
         List<Integer> res = new ArrayList<>();
@@ -249,7 +315,158 @@ public class Store {
 
 
 
-    enum Permission{
+    /**
+     * Adds a new product to the store's inventory.
+     * The user must have permission to edit products (either an owner or a manager with {@code EDIT_PRODUCTS} permission).
+     *
+     * @param userID      ID of the user attempting to add the product.
+     * @param productName Name of the product to add.
+     * @param category     Product category.
+     * @param quantity     Quantity of the product to add.
+     * @param price        Price per unit.
+     * @return {@code true} if the product was added successfully, {@code false} otherwise.
+     * @throws Exception if the user lacks permission to add products.
+     */
+    public boolean addNewProduct(int userID, String productName, String category, int quantity, int price) throws Exception {
+        if(!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have a permission to ADD product!");
+        return storeProductsManager.addProduct(productName,price,category,quantity);
+    }
+
+
+    /**
+     * Removes a product from the store.
+     * The user must have permission to edit products (either an owner or a manager with {@code EDIT_PRODUCTS} permission).
+     *
+     * @param userID      ID of the user attempting to remove the product.
+     * @param productName Name of the product to remove.
+     * @return {@code true} if the product was successfully removed, {@code false} otherwise.
+     * @throws Exception if the user lacks permission to remove products.
+     */
+    public boolean removeProduct(int userID, String productName) throws Exception {
+        if(!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have a permission to REMOVE product!");
+        return storeProductsManager.removeProduct(productName);
+    }
+
+
+    /**
+     * Reduces the quantity of a specific product in the store.
+     * The user must have permission to edit products (either an owner or a manager with {@code EDIT_PRODUCTS} permission).
+     *
+     * @param userID      ID of the user attempting to reduce the product quantity.
+     * @param productName Name of the product whose quantity is to be reduced.
+     * @param howMuch     Amount to reduce from the current product quantity.
+     * @return {@code true} if the quantity was reduced successfully, {@code false} otherwise (e.g., if not enough stock).
+     * @throws Exception if the user does not have permission to edit products.
+     */
+    public boolean reduceProductQuantity(int userID, String productName,int howMuch) throws Exception {
+        if(!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have a permission to REDUCE QUANTITY of product!");
+        return storeProductsManager.reduceProductQuantity(productName,howMuch);
+    }
+
+    /**
+     * Updates the quantity of a specific product in the store.
+     * The user must have permission to edit products.
+     *
+     * @param userID      ID of the user attempting the update.
+     * @param productName Name of the product to update.
+     * @param howMuch     The new quantity to set or change to.
+     * @return {@code true} if the quantity was updated successfully; {@code false} otherwise.
+     * @throws Exception if the user lacks permission to update product quantities.
+     */
+    public boolean updateProductQuantity(int userID, String productName, int howMuch) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to UPDATE QUANTITY of product!");
+        return storeProductsManager.updateQuantity(productName, howMuch);
+    }
+
+    /**
+     * Adds a new product category to the store.
+     * The user must have permission to edit products.
+     *
+     * @param userID  ID of the user attempting to add the category.
+     * @param catName Name of the category to add.
+     * @return {@code true} if the category was added successfully; {@code false} if it already exists.
+     * @throws Exception if the user lacks permission to add categories.
+     */
+    public boolean addCategory(int userID, String catName) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to ADD CATEGORY!");
+        return storeProductsManager.addCategory(catName);
+    }
+
+    /**
+     * Retrieves a product by its name.
+     * No special permission is required.
+     *
+     * @param productName Name of the product to retrieve.
+     * @return The {@link Product} object if found; {@code null} if not found.
+     */
+    public Product getProduct(String productName) {
+        return storeProductsManager.getProduct(productName);
+    }
+
+    /**
+     * Retrieves all products within a specific category.
+     * No special permission is required.
+     *
+     * @param catName Name of the category.
+     * @return A list of {@link Product} objects in the specified category, or an empty list if none are found.
+     */
+    public List<Product> getCategoryProducts(String catName) {
+        return storeProductsManager.getCategoryProducts(catName);
+    }
+
+    /**
+     * Moves a product to a different category.
+     * The user must have permission to edit products.
+     *
+     * @param userID      ID of the user performing the move.
+     * @param productName Name of the product to move.
+     * @param catName     Target category name.
+     * @return {@code true} if the product was moved successfully; {@code false} otherwise.
+     * @throws Exception if the user lacks permission to move products.
+     */
+    public boolean moveProductToCategory(int userID, String productName, String catName) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to MOVE PRODUCT to category!");
+        return storeProductsManager.moveProductToCategory(productName, catName);
+    }
+
+    /**
+     * Updates the price of a specific product.
+     * The user must have permission to edit products.
+     *
+     * @param userID      ID of the user attempting to update the price.
+     * @param productName Name of the product.
+     * @param newPrice    New price to set for the product.
+     * @return {@code true} if the price was updated successfully; {@code false} otherwise.
+     * @throws Exception if the user lacks permission to update product prices.
+     */
+    public boolean updateProductPrice(int userID, String productName, int newPrice) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to UPDATE PRICE of product!");
+        return storeProductsManager.updateProductPrice(productName, newPrice);
+    }
+
+
+
+    /**
+     * Checks whether a user has permission to edit store products.
+     * A user has permission if they are an owner or a manager with {@code EDIT_PRODUCTS} permission.
+     *
+     * @param userID ID of the user to check.
+     * @return {@code true} if the user has permission to edit products, {@code false} otherwise.
+     */
+    public boolean checkProductsPermission(int userID){
+        return isOwner(userID) || (isManager(userID) && getManager(userID).hasPermission(Permission.EDIT_PRODUCTS));
+    }
+
+
+
+    public enum Permission{
         VIEW_ONLY(0),
         EDIT_PRODUCTS(1),
         EDIT_POLICIES(2);
