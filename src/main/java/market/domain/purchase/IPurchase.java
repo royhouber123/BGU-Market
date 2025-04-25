@@ -1,7 +1,7 @@
 package market.domain.purchase;
 
-import market.model.Purchase;
-import market.model.ShoppingCart;
+import market.domain.user.ShoppingCart;
+
 
 public interface IPurchase {
     /**
@@ -13,5 +13,5 @@ public interface IPurchase {
      * @param contactInfo     contact info of the buyer
      * @return a Purchase object representing the completed transaction
      */
-    Purchase purchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo);
+    //Purchase purchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo);
 }
