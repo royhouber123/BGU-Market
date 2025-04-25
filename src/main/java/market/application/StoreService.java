@@ -257,4 +257,9 @@ assumes aggreement by 'apointerID''s appointer
         return "succeed";
     }
 
+
+    public Boolean checkAndUpdateStock(int storeID, int productID, int quantity) {
+        //TODO: implement this method to check and update stock
+        return true;
+    }
 }
