@@ -6,6 +6,9 @@ private String name;
 private int quantity;
 private int price;
 
+//Rate 
+private int rate;
+
 
 
 }
