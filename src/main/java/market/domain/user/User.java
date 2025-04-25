@@ -2,16 +2,16 @@ package market.domain.user;
 
 public class User {
     
-    private String userId;
+    private String userName;
     private ShoppingCart shoppingCart;
 
-    public User(String userId) {
-        this.userId = userId;
+    public User(String userName) {
+        this.userName = userName;
         this.shoppingCart = new ShoppingCart();
     }
 
-    public String getUserId() {
-        return userId;
+    public String getuserName() {
+        return userName;
     }
 
     public ShoppingCart getShoppingCart() {
@@ -24,5 +24,9 @@ public class User {
 
     public void removeProductFromCart(String storeId, String productId,  int quantity) {
         shoppingCart.removeProduct(storeId, productId, quantity);
+    }
+
+    public void clearCart(){
+        this.shoppingCart = new ShoppingCart();
     }
 }

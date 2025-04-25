@@ -15,8 +15,8 @@ public class Subscriber extends User {
     public static record StoreRoleKey(String storeId, String roleName) {}
     private final Map<StoreRoleKey, Role> roles;
 
-    public Subscriber(String userId) {
-        super(userId);
+    public Subscriber(String userName) {
+        super(userName);
         this.shippingAddress = "";
         this.roles = new HashMap<Subscriber.StoreRoleKey,Role>();
     }
@@ -55,7 +55,7 @@ public class Subscriber extends User {
         Role role = roles.get(key);
         if (role == null) {
             throw new Exception(
-                "User '" + this.getUserId() + "' is not '" + roleName + "' at store '" + storeId + "'");
+                "User '" + this.getuserName() + "' is not '" + roleName + "' at store '" + storeId + "'");
         }
         return role;
     }

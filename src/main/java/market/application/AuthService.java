@@ -45,7 +45,7 @@ public class AuthService {
         Date expiry = new Date(now.getTime() + accessTokenTtlMs);
 
         JwtBuilder builder = Jwts.builder()
-                .setSubject(user.getUserId())          
+                .setSubject(user.getuserName())          
                 .setIssuer("com.exmaple")
                 .setIssuedAt(now)
                 .setExpiration(expiry)
@@ -66,17 +66,17 @@ public class AuthService {
                 .compact();
     }
 
-    public String generateRefreshToken(String userId) {
+    public String generateRefreshToken(String userName) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + refreshTokenTtlMs);
         String token = Jwts.builder()
-            .setSubject(userId)
+            .setSubject(userName)
             .setIssuer("com.example.ecommerce")
             .setIssuedAt(now)
             .setExpiration(expiry)
             .signWith(this.refreshTokenKey, SignatureAlgorithm.HS256)
             .compact();
-        refreshTokenStore.put(token, userId);
+        refreshTokenStore.put(token, userName);
         return token;
     }
 
@@ -123,12 +123,25 @@ public class AuthService {
         User u = this.userRepository.isExist(username , password);
         if (u == null) throw new Exception("User not registered");
         String access  = generateAccessToken(u);
-        String refresh = generateRefreshToken(u.getUserId());
+        String refresh = generateRefreshToken(u.getuserName());
         return new AuthTokens(access, refresh);
     }
 
     /** Log out: revoke refresh-token and blacklist the access-token. */
     public void logout(String refreshToken, String accessToken) {
-        if (refreshToken != null) revokeRefreshToken(refreshToken);
+        // 1. Revoke the refresh token (if any)
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            revokeRefreshToken(refreshToken);
+        }
+    
+        // 2. Parse the access token, extract the username (subject)
+        Claims claims = parseAccessToken(accessToken);
+        String username = claims.getSubject();
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Invalid access token: subject is missing");
+        }
+    
+        // 3. Delete the user via the repository
+        userRepository.delete(username);
     }
 }
