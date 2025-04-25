@@ -25,8 +25,8 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
-    public User findById(String userId) {
-        return userMap.get(userId);
+    public User findById(String userName) {
+        return userMap.get(userName);
     }
 
     @Override
@@ -35,8 +35,8 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
-    public void delete(String userId) {
-        userMap.remove(userId);
+    public void delete(String userName) {
+        userMap.remove(userName);
     }
 
     @Override

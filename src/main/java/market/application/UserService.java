@@ -24,7 +24,7 @@ public class UserService {
     /**
      * Registers a new user with given ID.
      */
-    
+
     public void registerUser(String userName , String password) {
         userRepository.register(userName , password);
     }
@@ -32,15 +32,15 @@ public class UserService {
     /**
      * Retrieves an existing user by ID.
      */
-    public Optional<User> getUser(String userId) {
-        return Optional.ofNullable(userRepository.findById(userId));
+    public Optional<User> getUser(String userName) {
+        return Optional.ofNullable(userRepository.findById(userName));
     }
 
     /**
      * Adds a product to the specified user's cart.
      */
-    public void addProductToCart(String userId, String storeId, String productId, int quantity) {
-        User user = userRepository.findById(userId);
+    public void addProductToCart(String userName, String storeId, String productId, int quantity) {
+        User user = userRepository.findById(userName);
         if (user != null) {
             user.addProductToCart(storeId, productId, quantity);
         }
@@ -49,8 +49,8 @@ public class UserService {
     /**
      * Removes a product from the specified user's cart.
      */
-    public void removeProductFromCart(String userId, String storeId, String productId, int quantity) {
-        User user = userRepository.findById(userId);
+    public void removeProductFromCart(String userName, String storeId, String productId, int quantity) {
+        User user = userRepository.findById(userName);
         if (user != null) {
             user.removeProductFromCart(storeId, productId , quantity);
         }
@@ -59,8 +59,11 @@ public class UserService {
     /**
      * Deletes a user by ID.
      */
-    public void deleteUser(String userId) {
-        userRepository.delete(userId);
+    public void deleteUser(String userName) {
+        userRepository.delete(userName);
     }
 
+    public void clearCart(String userName){
+
+    }
 }
