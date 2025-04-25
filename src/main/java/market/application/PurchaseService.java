@@ -1,6 +1,8 @@
 package market.application;
 
 import market.domain.purchase.*;
+import market.domain.user.ShoppingCart;
+import market.domain.user.StoreBag;
 import market.model.*;
 import market.services.StoreService;
 import market.services.Store;
@@ -61,6 +63,15 @@ public class PurchaseService {
     public List<Purchase> getPurchasesByStore(String storeId) {
         return purchaseRepository.getPurchasesByStore(storeId);
     }
+
+
+    
+
+    //TODO
+    //PUBLIC VOID SUBMIT OFFER (USER_ID , PRICE)
+
+
+    
 
     private IPurchase selectStrategy(PurchaseType type) {
         return switch (type) {
