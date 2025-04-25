@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimerTask;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import market.model.*;
 
@@ -37,14 +40,18 @@ public class AuctionPurchase implements IPurchase {
     }
 
     /// Offer is a class that represents an offer made by a user
-    /// It contains the userId and the amount of the offer
+    /// It contains the userId, price, shipping address, and contact info
     private static class Offer {
         String userId;
-        double amount;
+        double price;
+        String shippingAddress;
+        String contactInfo;
     
-        Offer(String userId, double amount) {
+        Offer(String userId, double price, String shippingAddress, String contactInfo) {
             this.userId = userId;
-            this.amount = amount;
+            this.price = price;
+            this.shippingAddress = shippingAddress;
+            this.contactInfo = contactInfo;
         }
     }
 
@@ -65,13 +72,26 @@ public class AuctionPurchase implements IPurchase {
 
 
     /// When store opens auction
-    /// This method creates a new auction with the given storeId and productId
-    /// and sets the end time for the auction
+    /// This method takes storeId, productId, starting price, and end time in milliseconds
+    /// It creates a new auction and schedules it to close at the end time
+    /// It also initializes the offers list for that auction
     public static void openAuction(String storeId, String productId, double startingPrice, long endTimeMillis) {
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
         endTimes.put(key, endTimeMillis);
         startingPrices.put(key, startingPrice);
+        long delay = endTimeMillis - System.currentTimeMillis();
+        if (delay <= 0) return;
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    closeAuction(storeId, productId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, delay);
     }
 
 
@@ -79,23 +99,23 @@ public class AuctionPurchase implements IPurchase {
     /// When user submits an offer
     /// This method checks if the auction is active and if the offer is higher than the current maximum.
     /// If the offer is valid, it adds the offer to the list of offers for that auction.
-    public static void submitOffer(String storeId, String productId, String userId, double amount) {
-        AuctionKey key = new AuctionKey(storeId, productId);
-        long now = System.currentTimeMillis();
-        if (!endTimes.containsKey(key) || now > endTimes.get(key)) {
-            throw new RuntimeException("Auction is not active.");
-        }
-        List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
-        double currentMax = offerList.stream()
-                .mapToDouble(o -> o.amount)
-                .max()
-                .orElse(0);
-        if (amount <= currentMax) {
-            throw new RuntimeException("Offer must be higher than current maximum.");
-        }
-        offerList.add(new Offer(userId, amount));
-        offers.put(key, offerList);
+    public static void submitOffer(String storeId, String productId, String userId, double price, String shippingAddress, String contactInfo) {
+    AuctionKey key = new AuctionKey(storeId, productId);
+    long now = System.currentTimeMillis();
+    if (!endTimes.containsKey(key) || now > endTimes.get(key)) {
+        throw new RuntimeException("Auction is not active.");
     }
+    List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
+    double currentMax = offerList.stream()
+            .mapToDouble(o -> o.price)
+            .max()
+            .orElse(0);
+    if (price <= currentMax) {
+        throw new RuntimeException("Offer must be higher than current maximum.");
+    }
+    offerList.add(new Offer(userId, price, shippingAddress, contactInfo));
+    offers.put(key, offerList);
+}
 
 
 
@@ -108,7 +128,7 @@ public class AuctionPurchase implements IPurchase {
         status.put("startingPrice", startingPrice);
         List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
         double currentMax = offerList.stream()
-                .mapToDouble(o -> o.amount)
+                .mapToDouble(o -> o.price)
                 .max()
                 .orElse(startingPrice); // If no offers were placed, currentMax is the starting price
         status.put("currentMaxOffer", currentMax);
@@ -121,29 +141,53 @@ public class AuctionPurchase implements IPurchase {
 
 
 
-    /// When store closes auction??? when? and how?
-    /// This method returns the userId of the winning offer.
-    /// or null if no offers were placed.
-    /// It also removes the auction from the maps
-    public static String closeAuction(String storeId, String productId) {
+    /// When time ends for the auction
+    /// This method checks if the auction is active and if it is, it closes the auction.
+    /// It finds the winner by comparing the offers and creates a Purchase object for the winner.
+    /// It also removes the auction from the maps.
+    /// If no offers were placed, it indicates that the auction closed with no offers.
+    public static void closeAuction(String storeId, String productId) {
         AuctionKey key = new AuctionKey(storeId, productId);
         long now = System.currentTimeMillis();
-        if (!endTimes.containsKey(key))
-            throw new RuntimeException("Auction not found.");
-        if (now < endTimes.get(key))
-            throw new RuntimeException("Auction has not ended yet.");
+        if (!endTimes.containsKey(key)) {
+            System.out.println("Auction not found.");
+            return;
+        }
+        if (now < endTimes.get(key)) {
+            System.out.println("Auction has not ended yet.");
+            return;
+        }
         List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
         offers.remove(key);
         endTimes.remove(key);
+        startingPrices.remove(key);
         if (offerList.isEmpty()) {
-            return null; // No offers were placed so no one wins
+            System.out.println("Auction closed with no offers.");
+            return;
         }
-        return offerList.stream()
-                .max(Comparator.comparingDouble(o -> o.amount))
-                .map(o -> o.userId)
-                .orElse(null);
+        Offer winner = offerList.stream()
+                .max(Comparator.comparingDouble(o -> o.price))
+                .orElseThrow();
+        // For the winner, we need to create a Purchase object
+        CartItem item = new CartItem(
+                productId,
+                1,
+                winner.price,
+                0.0 // Assuming no discount for auction purchase
+        );
+        Map<String, CartItem> itemsMap = new HashMap<>();
+        itemsMap.put(productId, item);
+        StoreBag bag = new StoreBag(storeId, itemsMap);
+        ShoppingCart cart = new ShoppingCart(List.of(bag));
+        Purchase p = new AuctionPurchase().purchase(
+                        winner.userId,
+                        cart,
+                        winner.shippingAddress,
+                        winner.contactInfo
+                    );
     }
-
+    
+    
 
 
     @Override
