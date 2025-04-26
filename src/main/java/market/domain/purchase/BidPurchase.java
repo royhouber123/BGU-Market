@@ -195,6 +195,7 @@ public class BidPurchase implements IPurchase {
     }
 
 
+    
     /**
      * Accepts a counter-offer made by the store.
      * 
