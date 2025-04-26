@@ -510,6 +510,17 @@ public class Store {
         return isOwner(userID) || (isManager(userID) && getManager(userID).hasPermission(Permission.EDIT_PRODUCTS));
     }
 
+    public int getStoreID() {
+        return storeID;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isActive(){
+        return active;
+    }
 
 
     public enum Permission{
