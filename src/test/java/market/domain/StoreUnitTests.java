@@ -20,7 +20,7 @@ class StoreUnitTests {
     // ------------------------- Setup -------------------------
     @BeforeEach
     void setUp() {
-        store = new Store(100, "TestStore", founderID);
+        store = new Store("999", "TestStore", founderID);
     }
 
     // ------------------------- Owner Assignment Tests -------------------------
