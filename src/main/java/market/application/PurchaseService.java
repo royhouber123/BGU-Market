@@ -22,59 +22,78 @@ public class PurchaseService {
         this.purchaseRepository = purchaseRepository;
     }
 
-    // for regular purchase (without offer price)
-    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo, PurchaseType type) {
-        return executePurchase(userId, cart, shippingAddress, contactInfo, type, 0);        
-    }
-
-    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo, PurchaseType type, double offerPrice) {
-        switch (type) {
-            case REGULAR -> {
-                List<PurchasedProduct> purchasedItems = new ArrayList<>();
-                for (StoreBag bag : cart.getStoreBags()) {
-                    String storeId = bag.getStoreId();
-                    DiscountPolicy discountPolicy = storeService.getDiscountPolicy();
-                    PurchasePolicy purchasePolicies = storeService.getPurchasePolicies();
-                    for (Map.Entry<String, Integer> item : bag.getItems()) {
-                        String itemId = item.getKey();
-                        double unitPrice = StoreService.getProductPrice(storeId, itemId);
-                        if(purchasePolicies.validate(userId, itemId)) {
-                            throw new IllegalArgumentException("Purchase policy validation failed for item: " + itemId);
-                        }
-                        double discount = discountPolicy.getDiscount(userId, itemId);
-                        Integer quantity = item.getValue();
-                        PurchasedProduct product = new PurchasedProduct(itemId, storeId, quantity, unitPrice, discount);
-                        purchasedItems.add(product);
-                    }
+    // Regular Purchase:
+    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
+        List<PurchasedProduct> purchasedItems = new ArrayList<>();
+        for (StoreBag bag : cart.getStoreBags()) {
+            String storeId = bag.getStoreId();
+            DiscountPolicy discountPolicy = storeService.getDiscountPolicy();
+            PurchasePolicy purchasePolicies = storeService.getPurchasePolicies();
+            for (Map.Entry<String, Integer> item : bag.getItems()) {
+                String itemId = item.getKey();
+                double unitPrice = StoreService.getProductPrice(storeId, itemId);
+                if(purchasePolicies.validate(userId, itemId)) {
+                    throw new IllegalArgumentException("Purchase policy validation failed for item: " + itemId);
                 }
-                RegularPurchase regularPurchase = new RegularPurchase();
-                return regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo);
+                double discount = discountPolicy.getDiscount(userId, itemId);
+                Integer quantity = item.getValue();
+                PurchasedProduct product = new PurchasedProduct(itemId, storeId, quantity, unitPrice, discount);
+                purchasedItems.add(product);
             }
-            case AUCTION -> {
-                AuctionPurchase auctionPurchase = new AuctionPurchase();
-
-                StoreBag bag = cart.getStoreBags().get(0);
-                String storeId = bag.getStoreId();
-                String productId = bag.getItems().get(0).getProductId();
-        
-                AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
-            }
-            case BID -> {
-                BidPurchase bidPurchase = new BidPurchase();
-                StoreBag bag = cart.getStoreBags().get(0);
-                String storeId = bag.getStoreId();
-                String productId = bag.getItems().get(0).getProductId();
-                Set<String> approvers = storeService.getStoreOwners(storeId);
-                bidPurchase.submitBid(storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers);
-            }
-            case RAFFLE -> {
-                RafflePurchase rafflePurchase = new RafflePurchase();
-                return handleRafflePurchase(rafflePurchase, userId, cart, shippingAddress, contactInfo);
-            }
-            default -> return null;
         }
+        RegularPurchase regularPurchase = new RegularPurchase();
+        return regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo);
+    }
+    
+    // Auction Purchase:
+    public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+        AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
     }
 
+    public void openAuction(String storeId, String productId, double startingPrice, long endTimeMillis) {
+        AuctionPurchase.openAuction(storeId, productId, startingPrice, endTimeMillis);
+    }
+    
+    public Purchase closeAuction(String storeId, String productId) {
+        return AuctionPurchase.closeAuction(storeId, productId);
+    }
+    
+    public Map<String, Object> getAuctionStatus(String storeId, String productId) {
+        return AuctionPurchase.getAuctionStatus(storeId, productId);
+    }
+    
+    // Bid Purchase:
+    public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+        Set<String> approvers = storeService.getStoreOwners(storeId);
+        bidPurchase.submitBid(storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers);
+    }
+
+    public void approveBid(String storeId, String productId, String userId, String approverId) {
+        BidPurchase.approveBid(storeId, productId, userId, approverId);
+    }
+    
+    public void rejectBid(String storeId, String productId, String userId, String approverId) {
+        BidPurchase.rejectBid(storeId, productId, userId, approverId);
+    }
+    
+    public void proposeCounterBid(String storeId, String productId, String userId, double newAmount) {
+        BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
+    }
+    
+    public void acceptCounterOffer(String storeId, String productId, String userId) {
+        BidPurchase.acceptCounterOffer(storeId, productId, userId);
+    }
+    
+    public void declineCounterOffer(String storeId, String productId, String userId) {
+        BidPurchase.declineCounterOffer(storeId, productId, userId);
+    }
+    
+    public String getBidStatus(String storeId, String productId, String userId) {
+        return BidPurchase.getBidStatus(storeId, productId, userId);
+    }
+
+
+    // Get all purchases by user or store
     public List<Purchase> getPurchasesByUser(String userId) {
         return purchaseRepository.getPurchasesByUser(userId);
     }
@@ -83,9 +102,4 @@ public class PurchaseService {
         return purchaseRepository.getPurchasesByStore(storeId);
     }
 
-
-
-    private Purchase handleRafflePurchase(RafflePurchase rafflePurchase, String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
-        throw new UnsupportedOperationException("Raffle purchase flow not implemented yet.");
-    }
 }
