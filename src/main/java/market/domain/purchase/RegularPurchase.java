@@ -1,6 +1,6 @@
 package market.domain.purchase;
 
-import market.model.*;
+
 
 import java.util.ArrayList;
 import java.util.List;
