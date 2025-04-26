@@ -8,6 +8,11 @@ public class StoreService {
     private IStoreRepository storeRepository;
     private int storeIDs =1;
 
+    public StoreService(IStoreRepository storeRepository) {
+        this.storeRepository = storeRepository;
+        storeIDs = storeRepository.getNextStoreID();
+    }
+
     public void createStore(String storeName, int founderId) throws Exception {
         // ? - do we need store type
         if(storeRepository.containsStore(storeName)) {
@@ -20,7 +25,14 @@ public class StoreService {
         //LOG - store added
     }
 
+    public StoreDTO getStore(String storeName) throws Exception {
 
+        Store store = storeRepository.getStoreByName(storeName);
+        if(store == null) {
+            return null;
+        }
+        return new StoreDTO(store);
+    }
 
 
 /*
