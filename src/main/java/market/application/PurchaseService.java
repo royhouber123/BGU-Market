@@ -27,7 +27,7 @@ public class PurchaseService {
             String storeId = bag.getStoreId();
             DiscountPolicy discountPolicy = storeService.getDiscountPolicy();
             PurchasePolicy purchasePolicies = storeService.getPurchasePolicies();
-            for (Map.Entry<String, Integer> item : bag.getProducts()) {
+            for (Map.Entry<String, Integer> item : bag.getProducts().entrySet()) {
                 String itemId = item.getKey();
                 double unitPrice = StoreService.getProductPrice(storeId, itemId);
                 if(purchasePolicies.validate(userId, itemId)) {
