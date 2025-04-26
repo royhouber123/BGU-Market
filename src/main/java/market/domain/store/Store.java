@@ -136,6 +136,53 @@ public class Store {
         return true;
     }
 
+    /**
+     * Retrieves the set of permission codes granted to a specific manager in the store.
+     * The caller must be either an owner of the store or the manager themself.
+     *
+     * @param managerID   ID of the manager whose permissions are being requested.
+     * @param whoIsAsking ID of the user making the request (must be an owner or the manager).
+     * @return A {@link Set} of integer codes representing the manager's current permissions.
+     *         Each code corresponds to a value in the {@link Permission} enum.
+     * @throws IllegalArgumentException if the requesting user is neither an owner nor the manager.
+     * @throws Exception if the given manager ID does not correspond to a valid manager in this store.
+     */
+    public Set<Integer> getManagersPermmisions(int managerID, int whoIsAsking) throws Exception {
+        if(!isOwner(whoIsAsking) && !isManager(managerID))
+            throw new IllegalArgumentException("the user:"+whoIsAsking+" is not an owner or a manager of the store: "+storeID);
+        Manager manager = getManager(managerID);
+        if (manager == null)
+            throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
+        return manager.getPermissions().stream().map(Permission::getCode).collect(Collectors.toSet());
+    }
+
+
+    /**
+     * Removes a specific permission from a manager.
+     * Only the owner who originally appointed the manager can revoke permissions from them.
+     *
+     * @param managerID     ID of the manager whose permission is being revoked.
+     * @param permissionID  Integer code representing the permission to remove (must be valid in {@link Permission} enum).
+     * @param appointerID   ID of the owner who appointed the manager and is requesting to remove the permission.
+     * @return {@code true} if the permission was successfully removed.
+     * @throws Exception if the appointer is not an owner of the store, the manager ID is invalid,
+     *                   the permission code is invalid, or if the appointer is not the one who appointed the manager.
+     */
+    public boolean removePermissionFromManager(int managerID, int permissionID, int appointerID) throws Exception {
+        if (!isOwner(appointerID))
+            throw new Exception("The user: " + appointerID + " is not an owner of the store: " + storeID);
+
+        if (!isManager(managerID))
+            throw new Exception("The user: " + managerID + " is not a manager of the store: " + storeID);
+
+        Manager manager = getManager(managerID);
+        if (manager == null)
+            throw new Exception("Manager with ID " + managerID + " not found in store: " + storeID);
+
+        Permission permission = Permission.fromCode(permissionID); // throws if invalid
+
+        return manager.removePermission(permission, appointerID); // throws if appointer isn't authorized
+    }
 
 
     /**
@@ -511,8 +558,14 @@ public class Store {
             if(byWho != apointedBy){
                 throw new Exception("user " + byWho + " cant add permission to manager " + this.id + " because he is not his appointer");
             }
-            permissions.add(permission);
-            return true;
+            return permissions.add(permission);
+        }
+
+        public boolean removePermission(Permission permission, int byWho) throws Exception {
+            if(byWho != apointedBy){
+                throw new Exception("user " + byWho + " cant add permission to manager " + this.id + " because he is not his appointer");
+            }
+            return permissions.remove(permission);
         }
 
         public int getApointedBy() {

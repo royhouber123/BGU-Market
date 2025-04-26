@@ -93,6 +93,8 @@ assumes aggreement by 'apointerID''s appointer
         return "succeed";
     }
 
+    
+
 
     /**
      * Adds a new product to the specified store.
