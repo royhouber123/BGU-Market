@@ -2,6 +2,7 @@ package market.application;
 import market.domain.store.*;
 
 import java.util.List;
+import java.util.Set;
 
 public class StoreService {
     private IStoreRepository storeRepository;
@@ -92,6 +93,118 @@ assumes aggreement by 'apointerID''s appointer
         }
         return "succeed";
     }
+
+    /**
+     * Adds a new manager to the store by delegating to the business logic layer.
+     * Only an existing owner of the store can appoint a new manager.
+     *
+     * @param appointerID ID of the owner appointing the new manager.
+     * @param newManagerID ID of the user being assigned as a new manager.
+     * @param storeID ID of the store where the manager is being added.
+     * @return "success" if the manager was added successfully, "failed" if the operation was unsuccessful.
+     * @throws RuntimeException if the store does not exist, the appointer is not an owner,
+     *                           the new manager is already assigned, or any other business rule is violated.
+     */
+    public String addNewManager(int appointerID, int newManagerID, int storeID){
+        try{
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null){
+                throw new Exception("store doesn't exist");
+            }
+            if (s.addNewManager(appointerID,newManagerID)){
+                return "success";
+            }
+            else{
+                return "failed";
+            }
+
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    /**
+     * Grants a specific permission to a manager in the specified store.
+     * Only the owner who originally appointed the manager can grant permissions.
+     *
+     * @param managerID    ID of the manager receiving the new permission.
+     * @param appointerID  ID of the owner who appointed the manager and is now granting the permission.
+     * @param permissionID Integer code representing the permission to assign (must be valid in {@link Permission} enum).
+     * @param storeID      ID of the store where the manager belongs.
+     * @return "success" if the permission was successfully added, "failed" if the operation did not complete.
+     * @throws RuntimeException if the store does not exist, the appointer is not authorized,
+     *                           the manager is invalid, the permission code is invalid,
+     *                           or any other business rule violation occurs.
+     */
+    public String addPermissionToManager(int managerID, int appointerID, int permissionID, int storeID) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                throw new Exception("store doesn't exist");
+            }
+            if (s.addPermissionToManager(managerID, appointerID, permissionID)) {
+                return "success";
+            } else {
+                return "failed";
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Retrieves the set of permission codes assigned to a specific manager in a store.
+     * The requester must be either the store owner or a manager themself.
+     *
+     * @param managerID   ID of the manager whose permissions are being requested.
+     * @param whoIsAsking ID of the user making the request (must be an owner or the manager).
+     * @param storeID     ID of the store where the manager belongs.
+     * @return A {@link Set} of integer codes representing the manager's current permissions.
+     * @throws RuntimeException if the store does not exist, the requester is unauthorized,
+     *                           the manager is invalid, or any other business rule violation occurs.
+     */
+    public Set<Integer> getManagersPermissions(int managerID, int whoIsAsking, int storeID) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                throw new Exception("store doesn't exist");
+            }
+            return s.getManagersPermmisions(managerID, whoIsAsking);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Removes a specific permission from a manager in the specified store.
+     * Only the owner who originally appointed the manager can remove permissions.
+     *
+     * @param managerID    ID of the manager whose permission is being revoked.
+     * @param permissionID Integer code representing the permission to remove (must be valid in {@link Permission} enum).
+     * @param appointerID  ID of the owner who appointed the manager and is requesting to remove the permission.
+     * @param storeID      ID of the store where the manager belongs.
+     * @return "success" if the permission was successfully removed, "failed" if the operation did not complete.
+     * @throws RuntimeException if the store does not exist, the appointer is unauthorized,
+     *                           the manager ID is invalid, the permission code is invalid,
+     *                           or any other business rule violation occurs.
+     */
+    public String removePermissionFromManager(int managerID, int permissionID, int appointerID, int storeID) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                throw new Exception("store doesn't exist");
+            }
+            if (s.removePermissionFromManager(managerID, permissionID, appointerID)) {
+                return "success";
+            } else {
+                return "failed";
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
 
     /**
