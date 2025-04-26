@@ -2,8 +2,8 @@ package market.application;
 
 import market.domain.policy.*;
 import market.domain.purchase.*;
+import market.domain.user.*;
 import market.infrastructure.InMemoryPurchaseRepository;
-import market.model.*;
 import market.services.Store;
 import market.services.StoreService;
 import org.junit.jupiter.api.BeforeEach;

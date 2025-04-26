@@ -1,6 +1,6 @@
 package support;
 
-import market.model.Product;
+import market.domain.product.Product;
 import java.util.List;
 
 public interface Bridge {

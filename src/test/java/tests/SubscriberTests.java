@@ -1,6 +1,6 @@
 package tests;
 
-import market.model.ShoppingCart;
+import market.domain.user.ShoppingCart;
 import support.AcceptanceTestBase;
 
 import org.junit.jupiter.api.Test;

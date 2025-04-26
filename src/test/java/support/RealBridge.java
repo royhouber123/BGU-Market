@@ -5,9 +5,8 @@ import market.application.StoreService;
 import market.application.AuthenticationService;
 import market.application.PaymentService;
 import market.application.ShipmentService;
-import market.model.Product;
-import market.model.ShoppingCart;
-
+import market.domain.Store;
+import market.domain.user.ShoppingCart;
 import java.util.List;
 
 public class RealBridge implements Bridge {
