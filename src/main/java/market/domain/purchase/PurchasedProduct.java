@@ -33,7 +33,7 @@ public class PurchasedProduct {
     }
 
     public double getTotalPrice() {
-        return unitPrice*quantity*(1-discount/100);
+        return unitPrice * quantity * (1-discount/100);
     }
 
     public double getDiscount() {
