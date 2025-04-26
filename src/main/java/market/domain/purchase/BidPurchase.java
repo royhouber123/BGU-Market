@@ -30,7 +30,6 @@ public class BidPurchase implements IPurchase {
         }
     }
 
-
     private static class Bid {
         String userId;
         double price;
@@ -330,5 +329,6 @@ public class BidPurchase implements IPurchase {
                 0.0 // No discount in a bid purchase
         );
         return new Purchase(userId, List.of(product), product.getTotalPrice(), shippingAddress, contactInfo);
-    }
+    } 
+
 }
