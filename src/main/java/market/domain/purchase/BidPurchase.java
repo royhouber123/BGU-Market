@@ -127,7 +127,8 @@ public class BidPurchase implements IPurchase {
             if (bid.userId.equals(userId) && !bid.isRejected()) {
                 bid.approve(approverId);
                 if (bid.approved) {
-                    notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
+                    //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
+                    System.out.println("Bid approved for user: " + bid.userId);
                     // Call purchase directly with simple arguments
                     Purchase purchase = new BidPurchase().purchase(
                             bid.userId,
@@ -162,7 +163,8 @@ public class BidPurchase implements IPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId)) {
                 bid.reject(approverId);
-                notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been rejected.");
+                //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been rejected.");
+                System.out.println("Bid rejected for user: " + bid.userId);
                 return;
             }
         }
@@ -186,7 +188,8 @@ public class BidPurchase implements IPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && !bid.isRejected()) {
                 bid.proposeCounterOffer(newAmount);
-                notifyUserWithDelayIfNeeded(bid.userId, "Counter offer proposed: " + newAmount);
+                //notifyUserWithDelayIfNeeded(bid.userId, "Counter offer proposed: " + newAmount);
+                System.out.println("Counter offer proposed for user: " + bid.userId);
                 return;
             }
         }
@@ -212,7 +215,8 @@ public class BidPurchase implements IPurchase {
                 // Mark as approved automatically (no need for all approvals again)
                 bid.approved = true;
                 bid.counterOffered = false; // No longer a counter-offer
-                notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
+                //notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
+                System.out.println("Counter offer accepted for user: " + bid.userId);
                 // Complete purchase immediately
                 Purchase purchase = new BidPurchase().purchase(
                         bid.userId,
@@ -243,7 +247,8 @@ public class BidPurchase implements IPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && bid.counterOffered && !bid.rejected) {
                 bid.rejected = true; // Mark bid as rejected
-                notifyUserWithDelayIfNeeded(bid.userId, "You declined the counter-offer. The bid has been canceled.");
+                //notifyUserWithDelayIfNeeded(bid.userId, "You declined the counter-offer. The bid has been canceled.");
+                System.out.println("Bid canceled for user: " + bid.userId);
                 return;
             }
         }
@@ -286,13 +291,13 @@ public class BidPurchase implements IPurchase {
      * 
      * Called internally by: System (BidPurchase logic)
      */
-    private static void notifyUserWithDelayIfNeeded(String userId, String message) {
-        if (NotificationForPurchase.isUserOnline(userId)) {
-            NotificationForPurchase.notifyUser(userId, message);
-        } else {
-            pendingNotifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
-        }
-    }
+    // private static void notifyUserWithDelayIfNeeded(String userId, String message) {
+    //     if (NotificationForPurchase.isUserOnline(userId)) {
+    //         NotificationForPurchase.notifyUser(userId, message);
+    //     } else {
+    //         pendingNotifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
+    //     }
+    // }
 
 
     /**
@@ -303,13 +308,13 @@ public class BidPurchase implements IPurchase {
      * 
      * Called by: System (during user login)
      */
-    public static List<String> pullPendingNotifications(String userId) {
-        List<String> notifications = pendingNotifications.remove(userId);
-        if (notifications == null) {
-            return new ArrayList<>();
-        }
-        return notifications;
-    }
+    // public static List<String> pullPendingNotifications(String userId) {
+    //     List<String> notifications = pendingNotifications.remove(userId);
+    //     if (notifications == null) {
+    //         return new ArrayList<>();
+    //     }
+    //     return notifications;
+    // }
 
 
     /**
