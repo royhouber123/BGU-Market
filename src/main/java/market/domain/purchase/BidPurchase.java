@@ -1,11 +1,12 @@
 package market.domain.purchase;
 import market.domain.user.ShoppingCart;
 import market.domain.user.StoreBag;
+import market.domain.purchase.NotificationForPurchase;
 
 import java.util.*;
 
 
-public class BidPurchase implements IPurchase {
+public class BidPurchase {
     
     private static class BidKey {
         String storeId;

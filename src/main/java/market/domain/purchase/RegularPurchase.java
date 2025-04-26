@@ -1,13 +1,11 @@
 package market.domain.purchase;
 
-
-
+import market.domain.purchase.PurchasedProduct;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RegularPurchase implements IPurchase {
+public class RegularPurchase {
 
-    @Override
     public Purchase purchase(String userId, List<PurchasedProduct> purchasedItems, String shippingAddress, String contactInfo) {
         double total = 0.0;
 
