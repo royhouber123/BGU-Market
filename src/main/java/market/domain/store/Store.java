@@ -107,8 +107,7 @@ public class Store {
             throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
 
         Manager newManager = new Manager(newManagerID, appointerID);
-        ownerToAssignedManagers.get(appointerID).add(newManager);
-        return true;
+        return ownerToAssignedManagers.get(appointerID).add(newManager);
     }
 
 
