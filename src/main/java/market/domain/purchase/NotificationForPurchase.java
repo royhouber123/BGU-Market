@@ -1,3 +1,4 @@
+package market.domain.purchase;
 
 import java.util.Set;
 

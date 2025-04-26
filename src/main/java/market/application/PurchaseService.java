@@ -3,14 +3,12 @@ package market.application;
 import market.domain.purchase.*;
 import market.domain.user.ShoppingCart;
 import market.domain.user.StoreBag;
-import market.model.*;
-import market.services.StoreService;
-import market.services.Store;
+import market.application.StoreService;
+import market.domain.store.Store;
 import market.domain.policy.PurchasePolicy;
 import market.domain.policy.DiscountPolicy;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class PurchaseService {
 
@@ -25,15 +23,15 @@ public class PurchaseService {
     // Regular Purchase:
     public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
         List<PurchasedProduct> purchasedItems = new ArrayList<>();
-        for (StoreBag bag : cart.getStoreBags()) {
+        for (StoreBag bag : cart.getAllStoreBags()) {
             String storeId = bag.getStoreId();
             DiscountPolicy discountPolicy = storeService.getDiscountPolicy();
             PurchasePolicy purchasePolicies = storeService.getPurchasePolicies();
-            for (Map.Entry<String, Integer> item : bag.getItems()) {
+            for (Map.Entry<String, Integer> item : bag.getProducts()) {
                 String itemId = item.getKey();
                 double unitPrice = StoreService.getProductPrice(storeId, itemId);
                 if(purchasePolicies.validate(userId, itemId)) {
-                    throw new IllegalArgumentException("Purchase policy validation failed for item: " + itemId);
+                    throw new IllegalArgumentException("Purchase policy validation failed for item: " + Integer.parseInt(itemId));
                 }
                 double discount = discountPolicy.getDiscount(userId, itemId);
                 Integer quantity = item.getValue();
