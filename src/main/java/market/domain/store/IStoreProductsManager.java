@@ -3,87 +3,65 @@ package market.domain.store;
 import java.util.List;
 
 /**
- * Interface for managing products in a store.
- * This interface defines operations for adding, removing, updating, and querying products and categories within a store.
+ * Interface for managing listings in a store.
+ * This interface defines operations for adding, removing, updating, purchasing, and querying listings.
  */
 public interface IStoreProductsManager {
 
     /**
-     * Adds a new product to the store.
+     * Adds a new listing to the store's catalog.
      *
-     * @param name     Name of the product.
-     * @param price    Price of the product.
-     * @param category Category the product belongs to.
-     * @param quantity Initial stock quantity.
-     * @return {@code true} if the product was successfully added; {@code false} if the product already exists or failed to add.
+     * @param listing The listing to add.
+     * @return {@code true} if the listing was added successfully; {@code false} otherwise.
      */
-    boolean addProduct(String name, int price, String category, int quantity);
+    boolean addListing(Listing listing);
 
     /**
-     * Removes a product from the store.
+     * Removes a listing from the store based on its ID.
      *
-     * @param name Name of the product to remove.
-     * @return {@code true} if the product was successfully removed; {@code false} if the product was not found.
+     * @param listingId ID of the listing to remove.
+     * @return {@code true} if the listing was successfully removed; {@code false} otherwise.
      */
-    boolean removeProduct(String name);
+    boolean removeListing(String listingId);
 
     /**
-     * Reduces the quantity of a given product in the store.
+     * Retrieves a listing by its ID.
      *
-     * @param name    Name of the product.
-     * @param howMuch Quantity to reduce.
-     * @return {@code true} if the quantity was successfully reduced; {@code false} if the product doesn't exist or quantity is insufficient.
+     * @param listingId ID of the listing.
+     * @return The {@link Listing} if found; {@code null} otherwise.
      */
-    boolean reduceProductQuantity(String name, int howMuch);
+    Listing getListingById(String listingId);
 
     /**
-     * Updates the quantity of a product to a specific value.
+     * Retrieves all listings associated with a specific product name.
      *
-     * @param name    Name of the product.
-     * @param howMuch New quantity value.
-     * @return {@code true} if the update was successful; {@code false} otherwise.
+     * @param productName Name of the product.
+     * @return A list of {@link Listing} matching the product name.
      */
-    boolean updateQuantity(String name, int howMuch);
+    List<Listing> getListingsByProductName(String productName);
 
     /**
-     * Adds a new category to the store's catalog.
+     * Retrieves all listings associated with a specific product ID.
      *
-     * @param CatName Name of the category to add.
-     * @return {@code true} if the category was added successfully; {@code false} if the category already exists.
+     * @param productId ID of the product.
+     * @return A list of {@link Listing} matching the product ID.
      */
-    boolean addCategory(String CatName);
+    List<Listing> getListingsByProductId(String productId);
 
     /**
-     * Retrieves a product by its name.
+     * Retrieves all listings belonging to this store.
      *
-     * @param Name Name of the product to retrieve.
-     * @return The {@link Product} if found; {@code null} otherwise.
+     * @return A list of all {@link Listing} currently managed by the store.
      */
-    Product getProduct(String Name);
+    List<Listing> getAllListings();
 
     /**
-     * Retrieves all products under a specific category.
+     * Purchases a quantity of a product from a specific listing.
      *
-     * @param CatName Name of the category.
-     * @return A list of {@link Product} instances in the specified category. Returns an empty list if the category has no products.
+     * @param listingId ID of the listing to purchase from.
+     * @param quantity  Number of units to purchase.
+     * @return The result of the purchase attempt.
+     * @throws Exception If the listing does not exist or the purchase is invalid.
      */
-    List<Product> getCategoryProducts(String CatName);
-
-    /**
-     * Moves a product to a different category.
-     *
-     * @param product Name of the product to move.
-     * @param catName Target category name.
-     * @return {@code true} if the product was successfully moved; {@code false} otherwise.
-     */
-    boolean moveProductToCategory(String product, String catName);
-
-    /**
-     * Updates the price of a specific product.
-     *
-     * @param product  Name of the product.
-     * @param newPrice New price to assign.
-     * @return {@code true} if the price was updated successfully; {@code false} otherwise.
-     */
-    boolean updateProductPrice(String product, int newPrice);
+    boolean purchaseFromListing(String listingId, int quantity) throws Exception;
 }

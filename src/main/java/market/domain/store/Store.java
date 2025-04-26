@@ -1,5 +1,7 @@
 package market.domain.store;
 
+import market.domain.purchase.PurchaseType;
+
 import java.util.*;
 import java.util.stream.*;
 
@@ -12,7 +14,7 @@ import java.util.stream.*;
  * Products are managed through an injected {@link IStoreProductsManager} interface.
  */
 public class Store {
-    private int storeID;
+    private String storeID;
     private String name;
     boolean active;
 
@@ -33,7 +35,7 @@ public class Store {
     private IStoreProductsManager storeProductsManager;
 
 
-    public Store(int storeID,String name, int founderID) throws IllegalArgumentException {
+    public Store(String storeID,String name, int founderID) throws IllegalArgumentException {
         // ? - do we need store type
 
         if(!isValidName(name)){
@@ -42,7 +44,7 @@ public class Store {
         }
         this.storeID=storeID;
         this.name = name;
-        this.storeProductsManager = new StoreProductManager();
+        this.storeProductsManager = new StoreProductManager(storeID);
         this.active = true;
 
         this.ownerToWhoAssignedHim = new HashMap<>();
@@ -361,142 +363,74 @@ public class Store {
 
 
 
-    /**
-     * Adds a new product to the store's inventory.
-     * The user must have permission to edit products (either an owner or a manager with {@code EDIT_PRODUCTS} permission).
-     *
-     * @param userID      ID of the user attempting to add the product.
-     * @param productName Name of the product to add.
-     * @param category     Product category.
-     * @param quantity     Quantity of the product to add.
-     * @param price        Price per unit.
-     * @return {@code true} if the product was added successfully, {@code false} otherwise.
-     * @throws Exception if the user lacks permission to add products.
-     */
-    public boolean addNewProduct(int userID, String productName, String category, int quantity, int price) throws Exception {
-        if(!checkProductsPermission(userID))
-            throw new Exception("User " + userID + " doesn't have a permission to ADD product!");
-        return storeProductsManager.addProduct(productName,price,category,quantity);
-    }
 
 
     /**
-     * Removes a product from the store.
-     * The user must have permission to edit products (either an owner or a manager with {@code EDIT_PRODUCTS} permission).
-     *
-     * @param userID      ID of the user attempting to remove the product.
-     * @param productName Name of the product to remove.
-     * @return {@code true} if the product was successfully removed, {@code false} otherwise.
-     * @throws Exception if the user lacks permission to remove products.
-     */
-    public boolean removeProduct(int userID, String productName) throws Exception {
-        if(!checkProductsPermission(userID))
-            throw new Exception("User " + userID + " doesn't have a permission to REMOVE product!");
-        return storeProductsManager.removeProduct(productName);
-    }
-
-
-    /**
-     * Reduces the quantity of a specific product in the store.
-     * The user must have permission to edit products (either an owner or a manager with {@code EDIT_PRODUCTS} permission).
-     *
-     * @param userID      ID of the user attempting to reduce the product quantity.
-     * @param productName Name of the product whose quantity is to be reduced.
-     * @param howMuch     Amount to reduce from the current product quantity.
-     * @return {@code true} if the quantity was reduced successfully, {@code false} otherwise (e.g., if not enough stock).
-     * @throws Exception if the user does not have permission to edit products.
-     */
-    public boolean reduceProductQuantity(int userID, String productName,int howMuch) throws Exception {
-        if(!checkProductsPermission(userID))
-            throw new Exception("User " + userID + " doesn't have a permission to REDUCE QUANTITY of product!");
-        return storeProductsManager.reduceProductQuantity(productName,howMuch);
-    }
-
-    /**
-     * Updates the quantity of a specific product in the store.
+     * Adds a new listing to the store.
      * The user must have permission to edit products.
      *
-     * @param userID      ID of the user attempting the update.
-     * @param productName Name of the product to update.
-     * @param howMuch     The new quantity to set or change to.
-     * @return {@code true} if the quantity was updated successfully; {@code false} otherwise.
-     * @throws Exception if the user lacks permission to update product quantities.
+     * @param userID User ID trying to add.
+     * @param productId Product ID.
+     * @param productName Product name.
+     * @param productDescription Product description.
+     * @param quantity Quantity to sell.
+     * @param unitPrice Price per unit.
+     * @return {@code true} if listing was added successfully.
+     * @throws Exception if user lacks permission.
      */
-    public boolean updateProductQuantity(int userID, String productName, int howMuch) throws Exception {
+    public boolean addNewListing(int userID, String productId, String productName, String productDescription, int quantity, int unitPrice) throws Exception {
         if (!checkProductsPermission(userID))
-            throw new Exception("User " + userID + " doesn't have permission to UPDATE QUANTITY of product!");
-        return storeProductsManager.updateQuantity(productName, howMuch);
+            throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
+
+        Listing newListing = new Listing(
+                this.storeID,
+                productId,
+                productName,
+                productDescription,
+                quantity,
+                PurchaseType.REGULAR
+        );
+        return storeProductsManager.addListing(newListing);
     }
 
+
     /**
-     * Adds a new product category to the store.
-     * The user must have permission to edit products.
+     * Removes a listing from the store.
+     * User must have permission.
      *
-     * @param userID  ID of the user attempting to add the category.
-     * @param catName Name of the category to add.
-     * @return {@code true} if the category was added successfully; {@code false} if it already exists.
-     * @throws Exception if the user lacks permission to add categories.
+     * @param userID User attempting the removal.
+     * @param listingId ID of the listing to remove.
+     * @return {@code true} if successfully removed.
+     * @throws Exception if user lacks permission.
      */
-    public boolean addCategory(int userID, String catName) throws Exception {
+    public boolean removeListing(int userID, String listingId) throws Exception {
         if (!checkProductsPermission(userID))
-            throw new Exception("User " + userID + " doesn't have permission to ADD CATEGORY!");
-        return storeProductsManager.addCategory(catName);
+            throw new Exception("User " + userID + " doesn't have permission to REMOVE listing!");
+
+        return storeProductsManager.removeListing(listingId);
     }
 
     /**
-     * Retrieves a product by its name.
-     * No special permission is required.
+     * Purchases quantity from a specific listing.
      *
-     * @param productName Name of the product to retrieve.
-     * @return The {@link Product} object if found; {@code null} if not found.
+     * @param userID User attempting to buy.
+     * @param listingId ID of the listing.
+     * @param quantity Quantity to purchase.
+     * @return {@link PurchaseType} of the purchase attempt.
+     * @throws Exception if permission is missing or invalid.
      */
-    public Product getProduct(String productName) {
-        return storeProductsManager.getProduct(productName);
+    public boolean purchaseFromListing(int userID, String listingId, int quantity) throws Exception {
+        // Note: Maybe here you don't even need permission checking - depends if buying is free to any user
+        return storeProductsManager.purchaseFromListing(listingId, quantity);
     }
 
-    /**
-     * Retrieves all products within a specific category.
-     * No special permission is required.
-     *
-     * @param catName Name of the category.
-     * @return A list of {@link Product} objects in the specified category, or an empty list if none are found.
-     */
-    public List<Product> getCategoryProducts(String catName) {
-        return storeProductsManager.getCategoryProducts(catName);
+    public List<Listing> getListingsByProductName(String productName) {
+        return storeProductsManager.getListingsByProductName(productName);
     }
 
-    /**
-     * Moves a product to a different category.
-     * The user must have permission to edit products.
-     *
-     * @param userID      ID of the user performing the move.
-     * @param productName Name of the product to move.
-     * @param catName     Target category name.
-     * @return {@code true} if the product was moved successfully; {@code false} otherwise.
-     * @throws Exception if the user lacks permission to move products.
-     */
-    public boolean moveProductToCategory(int userID, String productName, String catName) throws Exception {
-        if (!checkProductsPermission(userID))
-            throw new Exception("User " + userID + " doesn't have permission to MOVE PRODUCT to category!");
-        return storeProductsManager.moveProductToCategory(productName, catName);
+    public List<Listing> getListingsByProductId(String productId) {
+        return storeProductsManager.getListingsByProductId(productId);
     }
-
-    /**
-     * Updates the price of a specific product.
-     * The user must have permission to edit products.
-     *
-     * @param userID      ID of the user attempting to update the price.
-     * @param productName Name of the product.
-     * @param newPrice    New price to set for the product.
-     * @return {@code true} if the price was updated successfully; {@code false} otherwise.
-     * @throws Exception if the user lacks permission to update product prices.
-     */
-    public boolean updateProductPrice(int userID, String productName, int newPrice) throws Exception {
-        if (!checkProductsPermission(userID))
-            throw new Exception("User " + userID + " doesn't have permission to UPDATE PRICE of product!");
-        return storeProductsManager.updateProductPrice(productName, newPrice);
-    }
-
 
 
     /**
