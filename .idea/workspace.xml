@@ -5,11 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c14fa780-cca1-4bc5-a595-f2c7b221c93e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/DiscountPolicyFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/PurchasePolicyFactory.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/market/application/StoreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/application/StoreService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Listing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Listing.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/test.iml" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/test.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/MaxItemsPurchasePolicy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/MaxItemsPurchasePolicy.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,18 +61,7 @@
     "Repository.Attach.JavaDocs": "false",
     "Repository.Attach.Sources": "false",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "store-price-calculation",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/tamirbadalbaev/local/sadna/BGU-Market",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
-  }
-}]]></component>
+    "RunOnceActivity.git.unshallow": "true",</component>
   <component name="RunManager">
     <configuration name="StoreUnitTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="test" />
@@ -111,13 +99,6 @@
       <workItem from="1745653490513" duration="207000" />
       <workItem from="1745653760496" duration="6523000" />
       <workItem from="1745740737978" duration="18850000" />
-      <workItem from="1745766244177" duration="64000" />
-      <workItem from="1745766317869" duration="66000" />
-      <workItem from="1745766386015" duration="197000" />
-      <workItem from="1745766586173" duration="15000" />
-      <workItem from="1745766678894" duration="195000" />
-      <workItem from="1745766879694" duration="30000" />
-      <workItem from="1745766926632" duration="50000" />
     </task>
     <servers />
   </component>
