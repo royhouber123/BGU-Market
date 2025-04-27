@@ -1,12 +1,16 @@
 package market.domain.purchase;
 import market.domain.user.ShoppingCart;
 import market.domain.user.StoreBag;
+import market.application.StoreService;
 import market.domain.purchase.NotificationForPurchase;
 
 import java.util.*;
 
 
 public class BidPurchase {
+
+    //to update and check stock
+    private static StoreService storeService;
     
     private static class BidKey {
         String storeId;
@@ -101,9 +105,10 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
-    public static void submitBid(String storeId, String productId, String userId, double amount,
+    public static void submitBid(StoreService service, String storeId, String productId, String userId, double amount,
                                  String shippingAddress, String contactInfo, Set<String> approvers) {
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
+        storeService=service;
         BidKey key = buildKey(storeId, productId);
         Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
@@ -121,7 +126,7 @@ public class BidPurchase {
      * 
      * Called by: Store owner or authorized manager
      */
-    public static void approveBid(String storeId, String productId, String userId, String approverId) {
+    public static void approveBid(String storeId, String productId, String listingId, String userId, String approverId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
         for (Bid bid : productBids) {
@@ -131,9 +136,14 @@ public class BidPurchase {
                     //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
                     System.out.println("Bid approved for user: " + bid.userId);
                     // Call purchase directly with simple arguments
+                    boolean updatedStock = storeService.checkAndUpdateStock(storeId, productId, 1);
+                    if (!updatedStock) {
+                        throw new RuntimeException("Failed to update stock for bid purchase.");
+                    }
                     Purchase purchase = new BidPurchase().purchase(
                             bid.userId,
                             storeId,
+                            listingId,
                             productId,
                             bid.price,
                             bid.shippingAddress,
@@ -206,7 +216,7 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public static void acceptCounterOffer(String storeId, String productId, String userId) {
+    public static void acceptCounterOffer(String storeId, String productId, String listingId, String userId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
         for (Bid bid : productBids) {
@@ -219,9 +229,14 @@ public class BidPurchase {
                 //notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
                 System.out.println("Counter offer accepted for user: " + bid.userId);
                 // Complete purchase immediately
+                boolean updatedStock = storeService.checkAndUpdateStock(storeId, productId, 1);
+                if (!updatedStock) {
+                    throw new RuntimeException("Failed to update stock for bid purchase.");
+                }
                 Purchase purchase = new BidPurchase().purchase(
                         bid.userId,
                         storeId,
+                        listingId,
                         productId,
                         bid.price,
                         bid.shippingAddress,
@@ -326,10 +341,11 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo) {
+    public Purchase purchase(String userId, String storeId, String listingId, String productId, double price, String shippingAddress, String contactInfo) {
         PurchasedProduct product = new PurchasedProduct(
                 productId,
                 storeId,
+                listingId,
                 1, // Always 1 in a bid purchase
                 price,
                 0.0 // No discount in a bid purchase

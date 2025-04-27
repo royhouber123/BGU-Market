@@ -387,6 +387,11 @@ assumes aggreement by 'apointerID''s appointer
         return 0.0;
     }
 
+    public String getProductListing(String storeID, String productID) {
+        //TODO: implement this method to get product listing
+        return null;
+    }
+
 
     public Boolean checkAndUpdateStock(String storeID, String productID, int quantity) {
         //TODO: implement this method to check and update stock
