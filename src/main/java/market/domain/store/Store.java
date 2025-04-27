@@ -1,6 +1,10 @@
 package market.domain.store;
 
 import market.domain.purchase.PurchaseType;
+import market.domain.store.Policies.DiscountCombinationType;
+import market.domain.store.Policies.DiscountPolicy;
+import market.domain.store.Policies.PolicyHandler;
+import market.domain.store.Policies.PurchasePolicy;
 
 import java.util.*;
 import java.util.stream.*;
@@ -25,14 +29,12 @@ public class Store {
     //every mangaer has a key in the dict.
     // if manager 1 assign manager 2, so manager2 in managers[manager1]
 
-    //TODO: implement manager interface (probably state design pattern) with appropriate permissions
-
     private HashMap<Integer, List<Manager>> ownerToAssignedManagers;
-
-    // ? - do we need store type
 
 
     private IStoreProductsManager storeProductsManager;
+
+    private PolicyHandler policyHandler;
 
 
     public Store(String storeID,String name, String founderID) throws IllegalArgumentException {
@@ -56,6 +58,7 @@ public class Store {
         this.ownerToAssignedOwners.put(founderID, new ArrayList<>());
         this.ownerToAssignedManagers.put(founderID, new ArrayList<>());
 
+        this.policyHandler = new PolicyHandler();
     }
 
 
@@ -338,7 +341,7 @@ public class Store {
         return res;
     }
 
-    /*
+    /**
     if the user called is an owner,
     returns a hashmap.
     key - worker (manager or owner)
@@ -422,8 +425,115 @@ public class Store {
      */
     public boolean purchaseFromListing(int userID, String listingId, int quantity) throws Exception {
         // Note: Maybe here you don't even need permission checking - depends if buying is free to any user
+        //TODO: check wtf is going on here
         return storeProductsManager.purchaseFromListing(listingId, quantity);
     }
+
+    public boolean canEditPolicies(int userID) throws Exception {
+        return isOwner(userID) || (isManager(userID) &&
+                getManager(userID).getPermissions().contains(Permission.EDIT_POLICIES));
+    }
+
+    /**
+     * Adds a new purchase policy to the store.
+     * Only users with {@code EDIT_POLICIES} permission can add policies.
+     *
+     * @param userID ID of the user attempting to add the policy.
+     * @param policy The {@link PurchasePolicy} to be added.
+     * @return {@code true} if the policy was successfully added.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean addPolicy(int userID, PurchasePolicy policy) throws Exception {
+        if(!canEditPolicies(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
+        }
+        policyHandler.addPurchasePolicy(policy);
+        return true;
+    }
+
+    /**
+     * Removes an existing purchase policy from the store.
+     * Only users with {@code EDIT_POLICIES} permission can remove policies.
+     *
+     * @param userID ID of the user attempting to remove the policy.
+     * @param policy The {@link PurchasePolicy} to be removed.
+     * @return {@code true} if the policy was successfully removed.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean removePolicy(int userID, PurchasePolicy policy) throws Exception {
+        if(!canEditPolicies(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
+        }
+        policyHandler.removePurchasePolicy(policy);
+        return true;
+    }
+
+    /**
+     * Retrieves the list of purchase policies defined in the store.
+     * Only owners and managers are allowed to view the current policies.
+     *
+     * @param userID ID of the user requesting the policies.
+     * @return A {@link List} of {@link PurchasePolicy} currently active in the store.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public List<PurchasePolicy> getPolicies(int userID) throws Exception {
+        if(!isManager(userID) || !isOwner(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to Get policy!");
+        }
+        return policyHandler.getPolicies();
+    }
+
+    /**
+     * Adds a new discount policy to the store.
+     * Only users with {@code EDIT_POLICIES} permission can add discount policies.
+     *
+     * @param userId ID of the user attempting to add the discount policy.
+     * @param discountPolicy The {@link DiscountPolicy} to be added.
+     * @return {@code true} if the discount policy was successfully added.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean addDiscount(int userId, DiscountPolicy discountPolicy) throws Exception {
+        if(!canEditPolicies(userId)){
+            throw new Exception("User " + userId + " doesn't have permission to ADD discount!");
+        }
+        policyHandler.addDiscountPolicy(discountPolicy);
+        return true;
+    }
+
+
+    /**
+     * Removes an existing discount policy from the store.
+     * Only users with {@code EDIT_POLICIES} permission can remove discount policies.
+     *
+     * @param userID ID of the user attempting to remove the discount policy.
+     * @param discountPolicy The {@link DiscountPolicy} to be removed.
+     * @return {@code true} if the discount policy was successfully removed.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean removeDiscount(int userID, DiscountPolicy discountPolicy) throws Exception {
+        if(!canEditPolicies(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to REMOVE discount!");
+        }
+        policyHandler.removeDiscountPolicy(discountPolicy);
+        return true;
+    }
+
+
+    /**
+     * Retrieves the list of discount policies defined in the store.
+     * Only owners and managers are allowed to view the current discount policies.
+     *
+     * @param userID ID of the user requesting the discount policies.
+     * @return A {@link List} of {@link DiscountPolicy} currently active in the store.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public List<DiscountPolicy> getDiscountPolicies(int userID) throws Exception {
+        if(!isManager(userID) || !isOwner(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to Get discount policies!");
+        }
+        return policyHandler.getDiscountPolicies();
+    }
+
 
     public List<Listing> getListingsByProductName(String productName) {
         return storeProductsManager.getListingsByProductName(productName);
