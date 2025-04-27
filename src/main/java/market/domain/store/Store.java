@@ -388,7 +388,8 @@ public class Store {
                 productName,
                 productDescription,
                 quantity,
-                PurchaseType.REGULAR
+                PurchaseType.REGULAR,
+                unitPrice
         );
         return storeProductsManager.addListing(newListing);
     }
@@ -432,6 +433,10 @@ public class Store {
         return storeProductsManager.getListingsByProductId(productId);
     }
 
+    public Listing getListing(String listingID) {
+        storeProductsManager.getListingById(listingID);
+    }
+
 
     /**
      * Checks whether a user has permission to edit store products.
@@ -444,7 +449,7 @@ public class Store {
         return isOwner(userID) || (isManager(userID) && getManager(userID).hasPermission(Permission.EDIT_PRODUCTS));
     }
 
-    public int getStoreID() {
+    public String getStoreID() {
         return storeID;
     }
 

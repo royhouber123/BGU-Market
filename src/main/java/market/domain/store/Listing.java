@@ -19,6 +19,7 @@ public class Listing {
     private final String productDescription;  // Product description
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
+    private int price;
 
     /**
      * Constructs a new Listing with an auto-generated listing ID.
@@ -30,7 +31,7 @@ public class Listing {
      * @param quantityAvailable    Quantity available.
      * @param purchaseType     Purchase behavior (regular, auction, bid).
      */
-    public Listing(String storeId, String productId, String productName, String productDescription, int quantityAvailable, PurchaseType purchaseType) {
+    public Listing(String storeId, String productId, String productName, String productDescription, int quantityAvailable, PurchaseType purchaseType, int price) {
         this.listingId = UUID.randomUUID().toString();
         this.storeId = storeId;
         this.productId = productId;
@@ -38,6 +39,7 @@ public class Listing {
         this.productDescription = productDescription;
         this.quantityAvailable = quantityAvailable;
         this.purchaseType = purchaseType;
+        this.price = price;
     }
 
     /**
@@ -59,6 +61,10 @@ public class Listing {
 
     public String getListingId() {
         return listingId;
+    }
+
+    public int getPrice() {
+        return price;
     }
 
     public String getStoreId() {

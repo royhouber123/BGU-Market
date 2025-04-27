@@ -19,7 +19,7 @@ public class StoreService {
             // LOG - error
             throw new Exception("The storeName '" + storeName + "' already exists");
         }
-        Store store = new Store(storeIDs,storeName, founderId);
+        Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
         storeIDs++;//Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
         //LOG - store added
@@ -141,7 +141,7 @@ assumes aggreement by 'apointerID''s appointer
      *
      * @param managerID    ID of the manager receiving the new permission.
      * @param appointerID  ID of the owner who appointed the manager and is now granting the permission.
-     * @param permissionID Integer code representing the permission to assign (must be valid in {@link Permission} enum).
+     * @param permissionID Integer code representing the permission to assign (must be valid in {Permission} enum).
      * @param storeID      ID of the store where the manager belongs.
      * @return "success" if the permission was successfully added, "failed" if the operation did not complete.
      * @throws RuntimeException if the store does not exist, the appointer is not authorized,
@@ -192,7 +192,7 @@ assumes aggreement by 'apointerID''s appointer
      * Only the owner who originally appointed the manager can remove permissions.
      *
      * @param managerID    ID of the manager whose permission is being revoked.
-     * @param permissionID Integer code representing the permission to remove (must be valid in {@link Permission} enum).
+     * @param permissionID Integer code representing the permission to remove (must be valid in { Permission} enum).
      * @param appointerID  ID of the owner who appointed the manager and is requesting to remove the permission.
      * @param storeID      ID of the store where the manager belongs.
      * @return "success" if the permission was successfully removed, "failed" if the operation did not complete.
@@ -219,30 +219,30 @@ assumes aggreement by 'apointerID''s appointer
 
 
 
-    /**
-     * Adds a new product to the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user attempting to add the product.
-     * @param storeID     ID of the target store.
-     * @param productName Name of the product to be added.
-     * @param category    Category of the product.
-     * @param quantity    Quantity of the product to add.
-     * @param price       Price per unit of the product.
-     * @return "succeed" if the product was added successfully; otherwise, returns an error message.
-     */
-    public String addNewProduct(int userID, int storeID, String productName, String category, int quantity, int price) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.addNewProduct(userID,productName,category,quantity,price);
-        }
-        catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
+//    /**
+//     * Adds a new product to the specified store.
+//     * Requires that the store exists and the user has permission to edit products.
+//     *
+//     * @param userID      ID of the user attempting to add the product.
+//     * @param storeID     ID of the target store.
+//     * @param productName Name of the product to be added.
+//     * @param category    Category of the product.
+//     * @param quantity    Quantity of the product to add.
+//     * @param price       Price per unit of the product.
+//     * @return "succeed" if the product was added successfully; otherwise, returns an error message.
+//     */
+//    public String addNewProduct(int userID, int storeID, String productName, String category, int quantity, int price) {
+//        try {
+//            Store s = storeRepository.getStoreByID(storeID);
+//            if (s == null)
+//                throw new Exception("store doesn't exist");
+//            s.addNewListing(userID,productName,category,quantity,price);
+//        }
+//        catch (Exception e) {
+//            return e.getMessage();
+//        }
+//        return "succeed";
+//    }
 
 
     /**
@@ -259,7 +259,7 @@ assumes aggreement by 'apointerID''s appointer
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("store doesn't exist");
-            s.removeProduct(userID,productName);
+            s.removeListing(userID,productName);
         }
         catch (Exception e) {
             return e.getMessage();
@@ -268,119 +268,119 @@ assumes aggreement by 'apointerID''s appointer
     }
 
 
-    /**
-     * Reduces the quantity of a specific product in the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user attempting to reduce the product quantity.
-     * @param storeID     ID of the store containing the product.
-     * @param productName Name of the product whose quantity is to be reduced.
-     * @param howMuch     Amount to reduce from the current quantity.
-     * @return "succeed" if the quantity was reduced successfully; otherwise, an error message.
-     */
-    public String reduceProductQuantity(int userID, int storeID, String productName, int howMuch){
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.reduceProductQuantity(userID,productName,howMuch);
-        }
-        catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
+//    /**
+//     * Reduces the quantity of a specific product in the specified store.
+//     * Requires that the store exists and the user has permission to edit products.
+//     *
+//     * @param userID      ID of the user attempting to reduce the product quantity.
+//     * @param storeID     ID of the store containing the product.
+//     * @param productName Name of the product whose quantity is to be reduced.
+//     * @param howMuch     Amount to reduce from the current quantity.
+//     * @return "succeed" if the quantity was reduced successfully; otherwise, an error message.
+//     */
+//    public String reduceProductQuantity(int userID, int storeID, String productName, int howMuch){
+//        try {
+//            Store s = storeRepository.getStoreByID(storeID);
+//            if (s == null)
+//                throw new Exception("store doesn't exist");
+//            s.reduceProductQuantity(userID,productName,howMuch);
+//        }
+//        catch (Exception e) {
+//            return e.getMessage();
+//        }
+//        return "succeed";
+//    }
 
 
-    /**
-     * Updates the quantity of a specific product in the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user performing the update.
-     * @param storeID     ID of the store where the product is located.
-     * @param productName Name of the product to update.
-     * @param howMuch     The new quantity or amount to update.
-     * @return "succeed" if the quantity was updated successfully; otherwise, an error message.
-     */
-    public String updateProductQuantity(int userID, int storeID, String productName, int howMuch) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.updateProductQuantity(userID, productName, howMuch);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
+//    /**
+//     * Updates the quantity of a specific product in the specified store.
+//     * Requires that the store exists and the user has permission to edit products.
+//     *
+//     * @param userID      ID of the user performing the update.
+//     * @param storeID     ID of the store where the product is located.
+//     * @param productName Name of the product to update.
+//     * @param howMuch     The new quantity or amount to update.
+//     * @return "succeed" if the quantity was updated successfully; otherwise, an error message.
+//     */
+//    public String updateProductQuantity(int userID, int storeID, String productName, int howMuch) {
+//        try {
+//            Store s = storeRepository.getStoreByID(storeID);
+//            if (s == null)
+//                throw new Exception("store doesn't exist");
+//            s.updateProductQuantity(userID, productName, howMuch);
+//        } catch (Exception e) {
+//            return e.getMessage();
+//        }
+//        return "succeed";
+//    }
 
 
-    /**
-     * Adds a new product category to the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID  ID of the user performing the operation.
-     * @param storeID ID of the store to which the category will be added.
-     * @param catName Name of the category to add.
-     * @return "succeed" if the category was added successfully; otherwise, an error message.
-     */
-    public String addCategory(int userID, int storeID, String catName) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.addCategory(userID, catName);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
+//    /**
+//     * Adds a new product category to the specified store.
+//     * Requires that the store exists and the user has permission to edit products.
+//     *
+//     * @param userID  ID of the user performing the operation.
+//     * @param storeID ID of the store to which the category will be added.
+//     * @param catName Name of the category to add.
+//     * @return "succeed" if the category was added successfully; otherwise, an error message.
+//     */
+//    public String addCategory(int userID, int storeID, String catName) {
+//        try {
+//            Store s = storeRepository.getStoreByID(storeID);
+//            if (s == null)
+//                throw new Exception("store doesn't exist");
+//            s.addCategory(userID, catName);
+//        } catch (Exception e) {
+//            return e.getMessage();
+//        }
+//        return "succeed";
+//    }
 
 
-    /**
-     * Moves a product to a different category within the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user performing the operation.
-     * @param storeID     ID of the store where the product resides.
-     * @param productName Name of the product to move.
-     * @param catName     Target category name.
-     * @return "succeed" if the product was moved successfully; otherwise, an error message.
-     */
-    public String moveProductToCategory(int userID, int storeID, String productName, String catName) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.moveProductToCategory(userID, productName, catName);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
+//    /**
+//     * Moves a product to a different category within the specified store.
+//     * Requires that the store exists and the user has permission to edit products.
+//     *
+//     * @param userID      ID of the user performing the operation.
+//     * @param storeID     ID of the store where the product resides.
+//     * @param productName Name of the product to move.
+//     * @param catName     Target category name.
+//     * @return "succeed" if the product was moved successfully; otherwise, an error message.
+//     */
+//    public String moveProductToCategory(int userID, int storeID, String productName, String catName) {
+//        try {
+//            Store s = storeRepository.getStoreByID(storeID);
+//            if (s == null)
+//                throw new Exception("store doesn't exist");
+//            s.moveProductToCategory(userID, productName, catName);
+//        } catch (Exception e) {
+//            return e.getMessage();
+//        }
+//        return "succeed";
+//    }
 
 
-    /**
-     * Updates the price of a product in the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user performing the update.
-     * @param storeID     ID of the store containing the product.
-     * @param productName Name of the product whose price is to be updated.
-     * @param newPrice    New price to set for the product.
-     * @return "succeed" if the price was updated successfully; otherwise, an error message.
-     */
-    public String updateProductPrice(int userID, int storeID, String productName, int newPrice) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.updateProductPrice(userID, productName, newPrice);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
+//    /**
+//     * Updates the price of a product in the specified store.
+//     * Requires that the store exists and the user has permission to edit products.
+//     *
+//     * @param userID      ID of the user performing the update.
+//     * @param storeID     ID of the store containing the product.
+//     * @param productName Name of the product whose price is to be updated.
+//     * @param newPrice    New price to set for the product.
+//     * @return "succeed" if the price was updated successfully; otherwise, an error message.
+//     */
+//    public String updateProductPrice(int userID, int storeID, String productName, int newPrice) {
+//        try {
+//            Store s = storeRepository.getStoreByID(storeID);
+//            if (s == null)
+//                throw new Exception("store doesn't exist");
+//            s.updateProductPrice(userID, productName, newPrice);
+//        } catch (Exception e) {
+//            return e.getMessage();
+//        }
+//        return "succeed";
+//    }
 
     public double getProductPrice(String storeID, String productID) {
         //TODO: implement this method to get product price
