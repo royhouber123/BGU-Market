@@ -432,7 +432,7 @@ public class Store {
         return storeProductsManager.purchaseFromListing(listingId, quantity);
     }
 
-    public boolean canEditPolicies(int userID) throws Exception {
+    public boolean canEditPolicies(String userID) throws Exception {
         return isOwner(userID) || (isManager(userID) &&
                 getManager(userID).getPermissions().contains(Permission.EDIT_POLICIES));
     }
@@ -446,7 +446,7 @@ public class Store {
      * @return {@code true} if the policy was successfully added.
      * @throws Exception if the user lacks the required permission.
      */
-    public boolean addPolicy(int userID, PurchasePolicy policy) throws Exception {
+    public boolean addPolicy(String userID, PurchasePolicy policy) throws Exception {
         if(!canEditPolicies(userID)){
             throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
         }
@@ -463,7 +463,7 @@ public class Store {
      * @return {@code true} if the policy was successfully removed.
      * @throws Exception if the user lacks the required permission.
      */
-    public boolean removePolicy(int userID, PurchasePolicy policy) throws Exception {
+    public boolean removePolicy(String userID, PurchasePolicy policy) throws Exception {
         if(!canEditPolicies(userID)){
             throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
         }
@@ -479,7 +479,7 @@ public class Store {
      * @return A {@link List} of {@link PurchasePolicy} currently active in the store.
      * @throws Exception if the user lacks the required permission.
      */
-    public List<PurchasePolicy> getPolicies(int userID) throws Exception {
+    public List<PurchasePolicy> getPolicies(String userID) throws Exception {
         if(!isManager(userID) || !isOwner(userID)){
             throw new Exception("User " + userID + " doesn't have permission to Get policy!");
         }
@@ -495,7 +495,7 @@ public class Store {
      * @return {@code true} if the discount policy was successfully added.
      * @throws Exception if the user lacks the required permission.
      */
-    public boolean addDiscount(int userId, DiscountPolicy discountPolicy) throws Exception {
+    public boolean addDiscount(String userId, DiscountPolicy discountPolicy) throws Exception {
         if(!canEditPolicies(userId)){
             throw new Exception("User " + userId + " doesn't have permission to ADD discount!");
         }
@@ -513,7 +513,7 @@ public class Store {
      * @return {@code true} if the discount policy was successfully removed.
      * @throws Exception if the user lacks the required permission.
      */
-    public boolean removeDiscount(int userID, DiscountPolicy discountPolicy) throws Exception {
+    public boolean removeDiscount(String userID, DiscountPolicy discountPolicy) throws Exception {
         if(!canEditPolicies(userID)){
             throw new Exception("User " + userID + " doesn't have permission to REMOVE discount!");
         }
@@ -530,7 +530,7 @@ public class Store {
      * @return A {@link List} of {@link DiscountPolicy} currently active in the store.
      * @throws Exception if the user lacks the required permission.
      */
-    public List<DiscountPolicy> getDiscountPolicies(int userID) throws Exception {
+    public List<DiscountPolicy> getDiscountPolicies(String userID) throws Exception {
         if(!isManager(userID) || !isOwner(userID)){
             throw new Exception("User " + userID + " doesn't have permission to Get discount policies!");
         }
