@@ -30,13 +30,20 @@ public class PurchaseService {
             for (Map.Entry<String, Integer> item : bag.getProducts().entrySet()) {
                 String itemId = item.getKey();
                 double unitPrice = StoreService.getProductPrice(storeId, itemId);
+                String listingId = storeService.getProductListing(storeId, itemId); 
                 if(purchasePolicies.validate(userId, itemId)) {
                     throw new IllegalArgumentException("Purchase policy validation failed for item: " + Integer.parseInt(itemId));
                 }
                 double discount = discountPolicy.getDiscount(userId, itemId);
                 Integer quantity = item.getValue();
-                PurchasedProduct product = new PurchasedProduct(itemId, storeId, quantity, unitPrice, discount);
+                PurchasedProduct product = new PurchasedProduct(itemId, storeId, listingId, quantity, unitPrice, discount);
                 purchasedItems.add(product);
+            }
+        }
+        for (PurchasedProduct product : purchasedItems) {
+            boolean updatedStock = storeService.checkAndUpdateStock(product.getStoreId(), product.getProductId(), product.getQuantity());
+            if (!updatedStock) {
+                throw new RuntimeException("Stock update failed for product: " + product.getProductId());
             }
         }
         RegularPurchase regularPurchase = new RegularPurchase();
@@ -48,12 +55,8 @@ public class PurchaseService {
         AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
     }
 
-    public void openAuction(String storeId, String productId, double startingPrice, long endTimeMillis) {
-        AuctionPurchase.openAuction(storeId, productId, startingPrice, endTimeMillis);
-    }
-    
-    public Purchase closeAuction(String storeId, String productId) {
-        return AuctionPurchase.closeAuction(storeId, productId);
+    public void openAuction(String storeId, String productId, String listingId, double startingPrice, long endTimeMillis) {
+        AuctionPurchase.openAuction(storeService, storeId, productId, listingId, startingPrice, endTimeMillis);
     }
     
     public Map<String, Object> getAuctionStatus(String storeId, String productId) {
@@ -63,11 +66,11 @@ public class PurchaseService {
     // Bid Purchase:
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
         Set<String> approvers = storeService.getStoreOwners(storeId);
-        bidPurchase.submitBid(storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers);
+        BidPurchase.submitBid(storeService, storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers);
     }
 
-    public void approveBid(String storeId, String productId, String userId, String approverId) {
-        BidPurchase.approveBid(storeId, productId, userId, approverId);
+    public void approveBid(String storeId, String productId, String listingId, String userId, String approverId) {
+        BidPurchase.approveBid(storeId, productId, listingId, userId, approverId);
     }
     
     public void rejectBid(String storeId, String productId, String userId, String approverId) {
@@ -78,8 +81,8 @@ public class PurchaseService {
         BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
     }
     
-    public void acceptCounterOffer(String storeId, String productId, String userId) {
-        BidPurchase.acceptCounterOffer(storeId, productId, userId);
+    public void acceptCounterOffer(String storeId, String productId, String listingId, String userId) {
+        BidPurchase.acceptCounterOffer(storeId, productId, listingId, userId);
     }
     
     public void declineCounterOffer(String storeId, String productId, String userId) {

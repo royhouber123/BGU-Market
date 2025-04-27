@@ -7,11 +7,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimerTask;
+
+import market.application.StoreService;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class AuctionPurchase implements IPurchase {
+public class AuctionPurchase {
+
+    //to update and check stock
+    private static StoreService storeService;
+
 
     /// AuctionKey is a combination of storeId and productId
     /// This is used to identify auctions uniquely
@@ -74,7 +81,8 @@ public class AuctionPurchase implements IPurchase {
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(String storeId, String productId, double startingPrice, long endTimeMillis) {
+    public static void openAuction(StoreService service, String storeId, String productId, String listingId, double startingPrice, long endTimeMillis) {
+        storeService = service;
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
         endTimes.put(key, endTimeMillis);
@@ -85,7 +93,7 @@ public class AuctionPurchase implements IPurchase {
             @Override
             public void run() {
                 try {
-                    closeAuction(storeId, productId);
+                    closeAuction(storeId, productId, listingId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -145,7 +153,7 @@ public class AuctionPurchase implements IPurchase {
     /// It finds the winner by comparing the offers and creates a Purchase object for the winner.
     /// It also removes the auction from the maps.
     /// If no offers were placed, it indicates that the auction closed with no offers.
-    public static Purchase closeAuction(String storeId, String productId) {
+    public static Purchase closeAuction(String storeId, String productId, String listingId) {
         AuctionKey key = new AuctionKey(storeId, productId);
         long now = System.currentTimeMillis();
         if (!endTimes.containsKey(key)) {
@@ -165,9 +173,14 @@ public class AuctionPurchase implements IPurchase {
         Offer winner = offerList.stream()
                 .max(Comparator.comparingDouble(o -> o.price))
                 .orElseThrow();
+        boolean updatedStock = storeService.checkAndUpdateStock(storeId, productId, 1);
+        if (!updatedStock) {
+            throw new RuntimeException("Failed to update stock for auction purchase.");
+        }
         Purchase p = new AuctionPurchase().purchase(
                         winner.userId,
                         storeId,
+                        listingId,
                         productId,
                         winner.price,
                         winner.shippingAddress,
@@ -177,15 +190,15 @@ public class AuctionPurchase implements IPurchase {
     }
     
     
-    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo) {
+    public Purchase purchase(String userId, String storeId, String listingId, String productId, double price, String shippingAddress, String contactInfo) {
         PurchasedProduct product = new PurchasedProduct(
                 productId,
                 storeId,
+                listingId,
                 1, //always 1 for auction purchase
                 price, // price is set when auction ends
                 0.0 // Assuming no discount for auction purchase
         );
         return new Purchase(userId, List.of(product), product.getTotalPrice(), shippingAddress, contactInfo);
-        ////להוריד סטוק
     }
 }
