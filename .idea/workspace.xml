@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c14fa780-cca1-4bc5-a595-f2c7b221c93e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/DiscountPolicyFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/PurchasePolicyFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/MaxItemsPurchasePolicy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/MaxItemsPurchasePolicy.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,7 +62,7 @@
     "Repository.Attach.Sources": "false",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "Policies-Factories",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -113,7 +116,7 @@
       <workItem from="1745485257290" duration="1186000" />
       <workItem from="1745653490513" duration="207000" />
       <workItem from="1745653760496" duration="6523000" />
-      <workItem from="1745740737978" duration="17296000" />
+      <workItem from="1745740737978" duration="18850000" />
     </task>
     <servers />
   </component>
