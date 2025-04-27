@@ -14,7 +14,21 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
     }
 
     public void addPolicy(DiscountPolicy policy) {
+        if(policies.contains(policy)) {
+            throw new IllegalArgumentException("Policy already exists");
+        }
         policies.add(policy);
+    }
+
+    public void removePolicy(DiscountPolicy policy) {
+        if(!policies.contains(policy)) {
+            throw new IllegalArgumentException("Policy does not exist");
+        }
+        policies.remove(policy);
+    }
+
+    public List<DiscountPolicy> getPolicies() {
+        return policies;
     }
 
     @Override
