@@ -5,15 +5,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ShoppingCart {
-    private Map<String, StoreBag> storeBags = new HashMap<>();
+    private Map<Integer, StoreBag> storeBags = new HashMap<>();
 
-    public boolean addProduct(String storeId, String productId,  int quantity) {
+    public ShoppingCart(){
+        this.storeBags = new HashMap<>();
+    }
+
+    public boolean addProduct(int storeId, String productId,  int quantity) {
         storeBags.computeIfAbsent(storeId, StoreBag::new)
                  .addProduct(productId , quantity);
         return true;
     }
 
-    public boolean removeProduct(String storeId, String productId,  int quantity) {
+    public boolean removeProduct(int storeId, String productId,  int quantity) {
         StoreBag bag = storeBags.get(storeId);
         if (bag != null) {
             bag.removeProduct(productId, quantity);
@@ -22,11 +26,15 @@ public class ShoppingCart {
         return false;
     }
 
-    public StoreBag getStoreBag(String storeId) {
+    public StoreBag getStoreBag(int storeId) {
         return storeBags.get(storeId);
     }
 
     public Collection<StoreBag> getAllStoreBags() {
         return Collections.unmodifiableCollection(storeBags.values());
+    }
+
+    public void clear(){
+        this.storeBags = new HashMap<>();
     }
 }

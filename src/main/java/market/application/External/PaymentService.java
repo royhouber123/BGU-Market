@@ -14,5 +14,14 @@ public class PaymentService {
 
         System.out.println("Refunding payment with ID: " + paymentId);
     }
+
+    public String getPaymentStatus(String paymentId) {
+        // Logic to get payment status
+        return "Payment status for ID: " + paymentId;
+    }
+    public void cancelPayment(String paymentId) {
+        // Logic to cancel payment
+        System.out.println("Cancelling payment with ID: " + paymentId);
+    }
     
 }

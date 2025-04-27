@@ -11,31 +11,49 @@ import org.mockito.Mock;
 import market.domain.user.IUserRepository;
 //import IStoreRepository
 import market.domain.store.IStoreRepository;
-;
+// import user repository
+import market.infrastracture.UserRepository;
+import market.infrastracture.StoreRepository;
+//import subscriber
+import market.domain.user.Subscriber;
 
 public abstract class AcceptanceTestBase {
 
-    protected Bridge bridge;
+    
     protected UserService userService;
     protected StoreService storeService;
     protected AuthService authService;
     protected PaymentService paymentService;
     protected ShipmentService shipmentService;
     
-    
-
     @BeforeEach
     void setup() {
       
-        
-        userService = new UserService(mock(IUserRepository.class));
-        storeService = new StoreService(mock(IStoreRepository.class)); // Use the real implementation
-        authService = mock(AuthService.class); // Use the real implementation
+        IUserRepository userRepository = new UserRepository();
+        userService = new UserService(userRepository);
+        authService = new AuthService(userRepository);
+        StoreRepository storerepo = new StoreRepository(); // Use the real implementation
+
+        storeService = new StoreService(storerepo); // Use the real implementation 
         paymentService = mock(PaymentService.class); // Mock external service
         shipmentService = mock(ShipmentService.class); // Mock external service
         
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
-        bridge = new RealBridge(userService, storeService, authService, paymentService, shipmentService);
+        
     }
+    /* 1️⃣  register a user and log in – returns the tokens */
+    protected AuthService.AuthTokens registarAndLogin(String userName) throws Exception {
+        userService.register(userName, "pw");
+        return authService.login(userName, "pw");
+    }
+
+
+    /* 2️⃣  create an empty store – returns the new store-ID */
+    protected int createStore(String userName, String storeName) throws Exception {
+        AuthService.AuthTokens auth = registarAndLogin("founder");
+        this.storeService.createStore(storeName, 1);
+        return storeService.getStore(storeName).getStoreID();
+    }
+  
 }

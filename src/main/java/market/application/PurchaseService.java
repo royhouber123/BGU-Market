@@ -64,6 +64,7 @@ public class PurchaseService {
     }
     
     // Bid Purchase:
+    //should return "bid successful" or "bid failed"
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
         Set<String> approvers = storeService.getStoreOwners(storeId);
         BidPurchase.submitBid(storeService, storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers);

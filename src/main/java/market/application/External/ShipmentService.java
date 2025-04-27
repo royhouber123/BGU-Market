@@ -15,5 +15,8 @@ public class ShipmentService {
         System.out.println("Cancelling shipment with tracking ID: " + trackingId);
     }
 
-
+    public String getShippingInfo(String trackingId) {
+        // Placeholder for getting shipping information based on tracking ID.
+        return "Shipping info for tracking ID: " + trackingId;
+    }
 }
