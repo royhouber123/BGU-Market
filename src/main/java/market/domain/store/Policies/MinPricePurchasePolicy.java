@@ -8,18 +8,26 @@ import java.util.Map;
 public class MinPricePurchasePolicy implements PurchasePolicy {
 
     int minPrice;
+    final Store store;
 
-    public MinPricePurchasePolicy(int minPrice) {
+    public MinPricePurchasePolicy(final Store store, int minPrice) {
+        if (minPrice < 0) {
+            throw new IllegalArgumentException("minPrice cannot be negative");
+        }
         this.minPrice = minPrice;
+        this.store = store;
     }
 
 
     @Override
-    public boolean isPurchaseAllowed(final Store store, Map<String, Integer> listings) {
+    public boolean isPurchaseAllowed(Map<String, Integer> listings) {
         Listing l;
-        int price = 0;
+        double price = 0;
         for (Map.Entry<String, Integer> entry : listings.entrySet()) {
             l = store.getListing(entry.getKey());
+            if(l == null) {
+                throw new IllegalArgumentException("Listing " + entry.getKey() + " not found");
+            }
             price += entry.getValue() * l.getPrice();
         }
         return price >= minPrice;

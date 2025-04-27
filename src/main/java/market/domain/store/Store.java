@@ -18,7 +18,7 @@ public class Store {
     private String name;
     boolean active;
 
-    int founderID;
+    String founderID;
 
     private HashMap<Integer,Integer> ownerToWhoAssignedHim;
     private HashMap<Integer, List<Integer>> ownerToAssignedOwners;
@@ -35,7 +35,7 @@ public class Store {
     private IStoreProductsManager storeProductsManager;
 
 
-    public Store(String storeID,String name, int founderID) throws IllegalArgumentException {
+    public Store(String storeID,String name, String founderID) throws IllegalArgumentException {
         // ? - do we need store type
 
         if(!isValidName(name)){
@@ -260,7 +260,7 @@ public class Store {
      *
      * @return The user ID of the store's founder.
      */
-    public int getFounderID(){
+    public String getFounderID(){
         return founderID;
     }
 
@@ -434,7 +434,7 @@ public class Store {
     }
 
     public Listing getListing(String listingID) {
-        storeProductsManager.getListingById(listingID);
+        return storeProductsManager.getListingById(listingID);
     }
 
 

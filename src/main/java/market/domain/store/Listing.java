@@ -19,7 +19,7 @@ public class Listing {
     private final String productDescription;  // Product description
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
-    private int price;
+    private double price;
 
     /**
      * Constructs a new Listing with an auto-generated listing ID.
@@ -63,7 +63,7 @@ public class Listing {
         return listingId;
     }
 
-    public int getPrice() {
+    public double getPrice() {
         return price;
     }
 
