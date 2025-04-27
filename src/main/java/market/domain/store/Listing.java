@@ -31,7 +31,7 @@ public class Listing {
      * @param quantityAvailable    Quantity available.
      * @param purchaseType     Purchase behavior (regular, auction, bid).
      */
-    public Listing(String storeId, String productId, String productName, String productDescription, int quantityAvailable, PurchaseType purchaseType, int price) {
+    public Listing(String storeId, String productId, String productName, String productDescription, int quantityAvailable, PurchaseType purchaseType, double price) {
         this.listingId = UUID.randomUUID().toString();
         this.storeId = storeId;
         this.productId = productId;

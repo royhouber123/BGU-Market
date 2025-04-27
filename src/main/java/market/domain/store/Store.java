@@ -161,7 +161,7 @@ public class Store {
         Manager manager = getManager(managerID);
         if (manager == null)
             throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
-        return manager.getPermissions().stream().map(Permission::getCode).collect(Collectors.toSet());
+        return manager.getPermissions().stream().map((perm)->(Integer)perm.getCode()).collect(Collectors.toSet());
     }
 
 
@@ -363,7 +363,7 @@ public class Store {
 
         for(Manager m : getAllManagers()){
             Set<Permission> ps = m.getPermissions();
-            workerToPermission.put(m.getID(), ps.stream().map(Permission::getCode).collect(Collectors.toSet()));
+            workerToPermission.put(m.getID(), ps.stream().map((perm) -> (Integer) perm.getCode()).collect(Collectors.toSet()));
         }
         return workerToPermission;
     }
@@ -385,7 +385,7 @@ public class Store {
      * @return {@code true} if listing was added successfully.
      * @throws Exception if user lacks permission.
      */
-    public boolean addNewListing(String userID, String productId, String productName, String productDescription, int quantity, int unitPrice) throws Exception {
+    public boolean addNewListing(String userID, String productId, String productName, String productDescription, int quantity, double unitPrice) throws Exception {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
 
@@ -535,6 +535,40 @@ public class Store {
             throw new Exception("User " + userID + " doesn't have permission to Get discount policies!");
         }
         return policyHandler.getDiscountPolicies();
+    }
+
+
+    public double calculateStoreBagWithDiscount(Map<String,Integer> prodsToQuantity){
+        return policyHandler.calculateDiscount(prodsToQuantity);
+    }
+
+    public double calculateStoreBagWithoutDiscount(Map<String,Integer> prodsToQuantity) throws Exception {
+        double result = 0.0;
+        Listing l;
+        for (Map.Entry<String, Integer> entry : prodsToQuantity.entrySet()) {
+            l = storeProductsManager.getListingById(entry.getKey());
+            if(l==null){
+                throw new Exception("Listing " + l + " not found");
+            }
+            result += l.getPrice() * entry.getValue();
+        }
+        return result;
+    }
+
+    public double ProductPrice(String prodId) throws Exception {
+        Listing l = storeProductsManager.getListingById(prodId);
+        if(l == null){
+            throw new Exception("Listing " + l + " not found");
+        }
+        return l.getPrice();
+    }
+
+    public double ProductPriceWithDiscount(String prodId) throws Exception{
+        double price = ProductPrice(prodId);
+        Map<String, Integer> map = new HashMap<>();
+        map.put(prodId,(Integer)1);
+        double discount = policyHandler.calculateDiscount(map);
+        return price - discount;
     }
 
 
