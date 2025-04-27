@@ -16,6 +16,10 @@ public class StoreBag {
         return storeId;
     }
 
+    public Map<String, Integer> getProducts() {
+        return products;
+    }
+
     public void addProduct(String productId, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity to add must be positive");

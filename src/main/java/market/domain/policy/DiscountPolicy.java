@@ -1,7 +1,6 @@
 package market.domain.policy;
+import market.domain.user.StoreBag;
 
-import market.model.ShoppingCart;
-import market.model.StoreBag;
 
 public interface DiscountPolicy {
     void apply(StoreBag bag);

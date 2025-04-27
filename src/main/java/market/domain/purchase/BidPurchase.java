@@ -1,11 +1,16 @@
 package market.domain.purchase;
 import market.domain.user.ShoppingCart;
 import market.domain.user.StoreBag;
+import market.application.StoreService;
+import market.domain.purchase.NotificationForPurchase;
 
 import java.util.*;
 
 
-public class BidPurchase implements IPurchase {
+public class BidPurchase {
+
+    //to update and check stock
+    private static StoreService storeService;
     
     private static class BidKey {
         String storeId;
@@ -100,9 +105,10 @@ public class BidPurchase implements IPurchase {
      * 
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
-    public static void submitBid(String storeId, String productId, String userId, double amount,
+    public static void submitBid(StoreService service, String storeId, String productId, String userId, double amount,
                                  String shippingAddress, String contactInfo, Set<String> approvers) {
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
+        storeService=service;
         BidKey key = buildKey(storeId, productId);
         Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
@@ -120,18 +126,24 @@ public class BidPurchase implements IPurchase {
      * 
      * Called by: Store owner or authorized manager
      */
-    public static void approveBid(String storeId, String productId, String userId, String approverId) {
+    public static void approveBid(String storeId, String productId, String listingId, String userId, String approverId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && !bid.isRejected()) {
                 bid.approve(approverId);
                 if (bid.approved) {
-                    notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
+                    //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
+                    System.out.println("Bid approved for user: " + bid.userId);
                     // Call purchase directly with simple arguments
+                    boolean updatedStock = storeService.checkAndUpdateStock(storeId, productId, 1);
+                    if (!updatedStock) {
+                        throw new RuntimeException("Failed to update stock for bid purchase.");
+                    }
                     Purchase purchase = new BidPurchase().purchase(
                             bid.userId,
                             storeId,
+                            listingId,
                             productId,
                             bid.price,
                             bid.shippingAddress,
@@ -162,7 +174,8 @@ public class BidPurchase implements IPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId)) {
                 bid.reject(approverId);
-                notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been rejected.");
+                //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been rejected.");
+                System.out.println("Bid rejected for user: " + bid.userId);
                 return;
             }
         }
@@ -186,7 +199,8 @@ public class BidPurchase implements IPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && !bid.isRejected()) {
                 bid.proposeCounterOffer(newAmount);
-                notifyUserWithDelayIfNeeded(bid.userId, "Counter offer proposed: " + newAmount);
+                //notifyUserWithDelayIfNeeded(bid.userId, "Counter offer proposed: " + newAmount);
+                System.out.println("Counter offer proposed for user: " + bid.userId);
                 return;
             }
         }
@@ -202,7 +216,7 @@ public class BidPurchase implements IPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public static void acceptCounterOffer(String storeId, String productId, String userId) {
+    public static void acceptCounterOffer(String storeId, String productId, String listingId, String userId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
         for (Bid bid : productBids) {
@@ -212,11 +226,17 @@ public class BidPurchase implements IPurchase {
                 // Mark as approved automatically (no need for all approvals again)
                 bid.approved = true;
                 bid.counterOffered = false; // No longer a counter-offer
-                notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
+                //notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
+                System.out.println("Counter offer accepted for user: " + bid.userId);
                 // Complete purchase immediately
+                boolean updatedStock = storeService.checkAndUpdateStock(storeId, productId, 1);
+                if (!updatedStock) {
+                    throw new RuntimeException("Failed to update stock for bid purchase.");
+                }
                 Purchase purchase = new BidPurchase().purchase(
                         bid.userId,
                         storeId,
+                        listingId,
                         productId,
                         bid.price,
                         bid.shippingAddress,
@@ -243,7 +263,8 @@ public class BidPurchase implements IPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && bid.counterOffered && !bid.rejected) {
                 bid.rejected = true; // Mark bid as rejected
-                notifyUserWithDelayIfNeeded(bid.userId, "You declined the counter-offer. The bid has been canceled.");
+                //notifyUserWithDelayIfNeeded(bid.userId, "You declined the counter-offer. The bid has been canceled.");
+                System.out.println("Bid canceled for user: " + bid.userId);
                 return;
             }
         }
@@ -286,13 +307,13 @@ public class BidPurchase implements IPurchase {
      * 
      * Called internally by: System (BidPurchase logic)
      */
-    private static void notifyUserWithDelayIfNeeded(String userId, String message) {
-        if (NotificationForPurchase.isUserOnline(userId)) {
-            NotificationForPurchase.notifyUser(userId, message);
-        } else {
-            pendingNotifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
-        }
-    }
+    // private static void notifyUserWithDelayIfNeeded(String userId, String message) {
+    //     if (NotificationForPurchase.isUserOnline(userId)) {
+    //         NotificationForPurchase.notifyUser(userId, message);
+    //     } else {
+    //         pendingNotifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
+    //     }
+    // }
 
 
     /**
@@ -303,13 +324,13 @@ public class BidPurchase implements IPurchase {
      * 
      * Called by: System (during user login)
      */
-    public static List<String> pullPendingNotifications(String userId) {
-        List<String> notifications = pendingNotifications.remove(userId);
-        if (notifications == null) {
-            return new ArrayList<>();
-        }
-        return notifications;
-    }
+    // public static List<String> pullPendingNotifications(String userId) {
+    //     List<String> notifications = pendingNotifications.remove(userId);
+    //     if (notifications == null) {
+    //         return new ArrayList<>();
+    //     }
+    //     return notifications;
+    // }
 
 
     /**
@@ -320,10 +341,11 @@ public class BidPurchase implements IPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo) {
+    public Purchase purchase(String userId, String storeId, String listingId, String productId, double price, String shippingAddress, String contactInfo) {
         PurchasedProduct product = new PurchasedProduct(
                 productId,
                 storeId,
+                listingId,
                 1, // Always 1 in a bid purchase
                 price,
                 0.0 // No discount in a bid purchase

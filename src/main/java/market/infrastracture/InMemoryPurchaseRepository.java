@@ -1,8 +1,6 @@
 package market.infrastructure;
 
-import market.domain.purchase.IPurchaseRepository;
-import market.model.Purchase;
-import market.model.PurchasedProduct;
+import market.domain.purchase.*;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,5 @@
 package market.domain.purchase;
 
-import market.model.Purchase;
-
 import java.util.List;
 
 public interface IPurchaseRepository {
