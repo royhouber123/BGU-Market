@@ -8,20 +8,16 @@ import java.util.Map;
 
 public class PolicyHandler {
 
-    private final Store store;
-
     private List<PurchasePolicy> policies;
     private CompositeDiscountPolicy discountPolicy;
 
-    public PolicyHandler(Store store) {
-        this.store = store;
+    public PolicyHandler() {
         policies = new ArrayList<>();
         policies.add(new DefaultPurchasePolicy());
         discountPolicy = new CompositeDiscountPolicy(DiscountCombinationType.SUM);
     }
 
     public PolicyHandler(Store store, DiscountCombinationType type) {
-        this.store = store;
         policies = new ArrayList<>();
         policies.add(new DefaultPurchasePolicy());
         discountPolicy = new CompositeDiscountPolicy(type);
@@ -29,12 +25,31 @@ public class PolicyHandler {
 
     // Add a new purchase policy
     public void addPurchasePolicy(PurchasePolicy policy) {
+        if(policies.contains(policy)) {
+            throw new IllegalArgumentException("Policy already exists");
+        }
         policies.add(policy);
+    }
+
+
+    public void removePurchasePolicy(PurchasePolicy policy) {
+        if(!policies.contains(policy)) {
+            throw new IllegalArgumentException("Policy does not exist");
+        }
+        policies.remove(policy);
     }
 
     // Add a new discount policy
     public void addDiscountPolicy(DiscountPolicy discount) {
         discountPolicy.addPolicy(discount);
+    }
+
+    public void removeDiscountPolicy(DiscountPolicy discount) {
+        discountPolicy.removePolicy(discount);
+    }
+
+    public List<DiscountPolicy> getDiscountPolicies() {
+        return discountPolicy.getPolicies();
     }
 
     // Check if purchase is allowed (all policies must approve)
@@ -52,4 +67,7 @@ public class PolicyHandler {
         return discountPolicy.calculateDiscount(listings);
     }
 
+    public List<PurchasePolicy> getPolicies() {
+        return policies;
+    }
 }

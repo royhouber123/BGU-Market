@@ -1,5 +1,6 @@
 package market.domain.store.Policies;
 
+import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
 import market.domain.store.Store;
 
@@ -9,15 +10,19 @@ import java.util.Map;
 public class ProductPrecentageDiscountPolicy implements DiscountPolicy {
 
     Map<String, Double> productDiscountPrecentage;
-    Store store;
+    IStoreProductsManager store;
 
-    public ProductPrecentageDiscountPolicy(Store store, Map<String, Double> productDiscountPrecentage) {
-        for(String prodID : productDiscountPrecentage.keySet()) {
-            if(store.getListing(prodID) == null) {
-                throw new IllegalArgumentException("Product ID " + prodID + " does not exist");
+    public ProductPrecentageDiscountPolicy(IStoreProductsManager store, Map<String, Double> productDiscountPrecentage) {
+
+        for(Map.Entry<String, Double> entry : productDiscountPrecentage.entrySet()) {
+            if(store.getListingById(entry.getKey()) == null) {
+                throw new IllegalArgumentException("Product ID " + entry.getKey() + " does not exist");
+            }
+            if(entry.getValue() < 0 || entry.getValue() > 100) {
+                throw new IllegalArgumentException("Product discount is out of range (" + entry.getValue() + ")");
             }
         }
-        //TODO: check discounts between 0 and 100
+
         this.productDiscountPrecentage = productDiscountPrecentage;
         this.store = store;
     }
@@ -35,7 +40,7 @@ public class ProductPrecentageDiscountPolicy implements DiscountPolicy {
                 if(prodId != discountEntry.getKey()){
                     continue;
                 }
-                Listing l = store.getListing(prodId);
+                Listing l = store.getListingById(prodId);
                 discount += l.getPrice() * quantity * discountEntry.getValue()/100;
             }
         }
