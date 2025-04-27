@@ -1,7 +1,9 @@
 package market.infrastructure;
 
+
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
+
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,8 +23,9 @@ public class StoreRepository implements IStoreRepository {
         return null;
     }
 
+
     @Override
-    public Store getStoreByID(int storeID) {
+    public Store getStoreByID(String storeID) {
         if(storesById.containsKey(storeID)) {
             return storesById.get(storeID);
         }
@@ -59,11 +62,11 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public int getNextStoreID() {
+    public String getNextStoreID() {
         if(storesById.isEmpty()) {
-            return 1;
+            return "1";
         }
-        return Collections.max(this.storesById.keySet().stream().map(Integer::parseInt).toList()) + 1;
+        return String.valueOf(Collections.max(this.storesById.keySet().stream().map(Integer::parseInt).toList()) + 1);
     }
 
 }

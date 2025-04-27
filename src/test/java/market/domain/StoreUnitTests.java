@@ -12,10 +12,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class StoreUnitTests {
 
     private Store store;
-    private final int founderID = 1;
-    private final int ownerA = 2;
-    private final int ownerB = 3;
-    private final int ownerC = 4;
+    private final String founderID = "1";
+    private final String ownerA = "2";
+    private final String ownerB = "3";
+    private final String ownerC = "4";
 
     // ------------------------- Setup -------------------------
     @BeforeEach
@@ -64,7 +64,7 @@ class StoreUnitTests {
         store.addNewOwner(ownerA, ownerB);
         store.addNewOwner(ownerB, ownerC);
 
-        List<Integer> removed = store.removeOwner(founderID, ownerA);
+        List<String> removed = store.removeOwner(founderID, ownerA);
 
         assertTrue(removed.contains(ownerA));
         assertTrue(removed.contains(ownerB));
