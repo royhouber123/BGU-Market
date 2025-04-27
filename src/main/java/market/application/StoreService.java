@@ -232,7 +232,7 @@ assumes aggreement by 'apointerID''s appointer
      * @param price Price per unit.
      * @return "succeed" or error message.
      */
-    public String addNewListing(String userID, String storeID, String productId, String productName, String productDescription, int quantity, int price) {
+    public String addNewListing(String userID, String storeID, String productId, String productName, String productDescription, int quantity, double price) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)

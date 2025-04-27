@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c14fa780-cca1-4bc5-a595-f2c7b221c93e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/application/StoreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/application/StoreService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Listing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Listing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/test.iml" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/test.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,7 +28,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="store-repository" />
+        <entry key="$PROJECT_DIR$" value="Policies-Factories" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -59,8 +63,9 @@
     "Repository.Attach.Sources": "false",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "store-price-calculation",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/tamirbadalbaev/local/sadna/BGU-Market",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -91,14 +96,6 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-jdk-9823dce3aa75-fdfe4dae3a2d-intellij.indexing.shared.core-IU-243.21565.193" />
-        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-IU-243.21565.193" />
-      </set>
-    </attachedChunks>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -113,7 +110,14 @@
       <workItem from="1745485257290" duration="1186000" />
       <workItem from="1745653490513" duration="207000" />
       <workItem from="1745653760496" duration="6523000" />
-      <workItem from="1745740737978" duration="17296000" />
+      <workItem from="1745740737978" duration="18850000" />
+      <workItem from="1745766244177" duration="64000" />
+      <workItem from="1745766317869" duration="66000" />
+      <workItem from="1745766386015" duration="197000" />
+      <workItem from="1745766586173" duration="15000" />
+      <workItem from="1745766678894" duration="195000" />
+      <workItem from="1745766879694" duration="30000" />
+      <workItem from="1745766926632" duration="50000" />
     </task>
     <servers />
   </component>
