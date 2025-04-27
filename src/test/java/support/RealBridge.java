@@ -2,23 +2,23 @@ package support;
 
 import market.application.UserService;
 import market.application.StoreService;
-import market.application.AuthenticationService;
-import market.application.PaymentService;
-import market.application.ShipmentService;
-import market.model.Product;
-import market.model.ShoppingCart;
+import market.application.AuthService;
+import market.application.External.PaymentService;
+import market.application.External.ShipmentService;
+
+
 
 import java.util.List;
 
 public class RealBridge implements Bridge {
     private final UserService userService;
     private final StoreService storeService;
-    private final AuthenticationService authService;
+    private final AuthService authService;
     private final PaymentService paymentService;
     private final ShipmentService shipmentService;
 
     public RealBridge(UserService userService, StoreService storeService,
-                      AuthenticationService authService,
+                      AuthService authService,
                       PaymentService paymentService,
                       ShipmentService shipmentService) {
         this.userService = userService;
