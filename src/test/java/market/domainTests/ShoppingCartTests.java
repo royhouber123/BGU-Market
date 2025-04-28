@@ -1,4 +1,4 @@
-package market.domain;
+package market.domainTests;
 
 import market.domain.user.User;
 import market.domain.user.StoreBag;

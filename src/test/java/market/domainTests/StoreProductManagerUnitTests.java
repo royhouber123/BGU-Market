@@ -1,4 +1,4 @@
-package market.domain;
+package market.domainTests;
 
 import market.domain.store.Listing;
 import market.domain.store.StoreProductManager;
