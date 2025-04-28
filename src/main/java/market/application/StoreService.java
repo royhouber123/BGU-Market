@@ -1,16 +1,22 @@
 package market.application;
 import market.domain.store.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import market.domain.user.IUserRepository;
+import market.domain.user.Subscriber;
 
 public class StoreService {
     private IStoreRepository storeRepository;
     private String storeIDs ="1";
+    private IUserRepository userRepository;
 
-    public StoreService(IStoreRepository storeRepository) {
+    public StoreService(IStoreRepository storeRepository, IUserRepository userRepository) {
         this.storeRepository = storeRepository;
         storeIDs = storeRepository.getNextStoreID();
+        this.userRepository = userRepository;
     }
 
     public void createStore(String storeName, String founderId) throws Exception {
@@ -22,6 +28,7 @@ public class StoreService {
         Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
         //Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
+        ((Subscriber)userRepository.findById(founderId)).setStoreRole();
         //LOG - store added
     }
 
@@ -31,19 +38,34 @@ public class StoreService {
      * If successful, the store is marked as inactive (closed).
      *
      * @param storeID ID of the store to close.
-     * @param userID  ID of the user attempting to close the store.
+     * @param userName  ID of the user attempting to close the store.
      * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
      * @throws Exception if the store does not exist or the closure fails internally.
      */
-    public String closeStore(String storeID,String userID) throws Exception {
+    public String closeStore(String storeID,String userName) throws Exception {
         try
         {
             Store s = storeRepository.getStoreByID(storeID);
             if (s==null){
                 throw new Exception("store doesn't exist");
             }
-            s.closeStore(userID);
-            //TODO:need to notify all the owners and managers
+            if (!s.closeStore(userName)){
+                throw new Exception("store cant be closed");
+
+            }
+            Set<String> users = s.getPositionsInStore(userName).keySet();
+            for(String ownerOrManager : users){
+                if(s.isManager(ownerOrManager))
+                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Manager");
+                if(s.isOwner(ownerOrManager))
+                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Owner");
+                if(s.getFounderID().equals(ownerOrManager)){
+                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Founder");
+                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStore(storeID);
+                }
+
+                //TODO:need to notify all the owners and managers
+            }
         }
         catch(Exception e){
             return e.getMessage();
@@ -58,18 +80,18 @@ public class StoreService {
      * If successful, the store is marked as active (open).
      *
      * @param storeID ID of the store to open.
-     * @param userID  ID of the user attempting to open the store.
+     * @param userName  ID of the user attempting to open the store.
      * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
      * @throws Exception if the store does not exist or the reopening fails internally.
      */
-    public String openStore(String storeID,String userID) throws Exception {
+    public String openStore(String storeID,String userName) throws Exception {
         try
         {
             Store s = storeRepository.getStoreByID(storeID);
             if (s==null){
                 throw new Exception("store doesn't exist");
             }
-            s.openStore(userID);
+            s.openStore(userName);
             //TODO:need to notify all the owners and managers
         }
         catch(Exception e){
@@ -82,7 +104,6 @@ public class StoreService {
     
 
     public StoreDTO getStore(String storeName) throws Exception {
-
         Store store = storeRepository.getStoreByName(storeName);
         if(store == null) {
             return null;
@@ -103,6 +124,8 @@ assumes aggreement by 'apointerID''s appointer
                 throw new Exception("store doesn't exist");
             }
             s.addNewOwner(appointerID,newOwnerID);
+            ((Subscriber)userRepository.findById(newOwnerID)).setStoreRole(storeID , "Owner");
+            //PAY ATTENTION! לעשות בכל מקום
         }
         catch (Exception e){
             //TODO:we need to decide how to handle things here
@@ -151,8 +174,13 @@ assumes aggreement by 'apointerID''s appointer
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("store doesn't exist");
-            List<String> removedWorkers =  s.removeOwner(id,toRemove);
-            for (String i:removedWorkers ){
+            List<List<String>> removedWorkers =  s.removeOwner(id,toRemove);
+            for (String i:removedWorkers.get(0) ){
+                ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Owner");
+                //TODO: need to change data on those ussers
+            }
+            for (String i:removedWorkers.get(1) ){
+                ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Manager");
                 //TODO: need to change data on those ussers
             }
         }
@@ -167,19 +195,20 @@ assumes aggreement by 'apointerID''s appointer
      * Only an existing owner of the store can appoint a new manager.
      *
      * @param appointerID ID of the owner appointing the new manager.
-     * @param newManagerID ID of the user being assigned as a new manager.
+     * @param newManagerName ID of the user being assigned as a new manager.
      * @param storeID ID of the store where the manager is being added.
      * @return "success" if the manager was added successfully, "failed" if the operation was unsuccessful.
      * @throws RuntimeException if the store does not exist, the appointer is not an owner,
      *                           the new manager is already assigned, or any other business rule is violated.
      */
-    public String addNewManager(String appointerID, String newManagerID, String storeID){
+    public String addNewManager(String appointerID, String newManagerName, String storeID){
         try{
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null){
                 throw new Exception("store doesn't exist");
             }
-            if (s.addNewManager(appointerID,newManagerID)){
+            if (s.addNewManager(appointerID,newManagerName)){
+                ((Subscriber)userRepository.findById(newManagerName)).setStoreRole(storeID,"Manager");
                 return "success";
             }
             else{
@@ -279,7 +308,7 @@ assumes aggreement by 'apointerID''s appointer
     /**
      * Adds a new listing to the specified store.
      *
-     * @param userID User trying to add.
+     * @param userName User trying to add.
      * @param storeID Store ID.
      * @param productId Product ID.
      * @param productName Product name.
@@ -288,12 +317,12 @@ assumes aggreement by 'apointerID''s appointer
      * @param price Price per unit.
      * @return "succeed" or error message.
      */
-    public String addNewListing(String userID, String storeID, String productId, String productName, String productDescription, int quantity, double price) {
+    public String addNewListing(String userName, String storeID, String productId, String productName, String productDescription, int quantity, double price) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("Store doesn't exist");
-            s.addNewListing(userID, productId, productName, productDescription, quantity, price);
+            s.addNewListing(userName, productId, productName, productDescription, quantity, price);
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -306,17 +335,17 @@ assumes aggreement by 'apointerID''s appointer
     /**
      * Removes a listing from the specified store.
      *
-     * @param userID User ID.
+     * @param userName User ID.
      * @param storeID Store ID.
      * @param listingId ID of the listing to remove.
      * @return "succeed" or error message.
      */
-    public String removeListing(String userID, String storeID, String listingId) {
+    public String removeListing(String userName, String storeID, String listingId) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("Store doesn't exist");
-            s.removeListing(userID, listingId);
+            s.removeListing(userName, listingId);
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -347,11 +376,14 @@ assumes aggreement by 'apointerID''s appointer
     }
 
     public double getProductPrice(String storeID, String productID) {
-        //TODO: implement this method to get product price
-        return 0.0;
+        Store s = storeRepository.getStoreByID(storeID);
+        Map<String,Integer> prod = new HashMap<>();
+        prod.put(productID,1);
+        return s.calculateStoreBagWithDiscount(prod);
     }
 
     public String getProductListing(String storeID, String productID) {
+
         //TODO: implement this method to get product listing
         return null;
     }

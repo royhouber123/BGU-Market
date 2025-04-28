@@ -12,12 +12,12 @@ public class UserRepository implements IUserRepository {
 
     public UserRepository() {
         User u1 = new User("username1");
-        u1.addProductToCart(111, "productA", 1);
+        u1.addProductToCart("111", "productA", 1);
         userMap.put(u1.getUserName(), u1);
         passwordMap.put(u1.getUserName(), "pw1");
 
         User u2 = new User("username2");
-        u2.addProductToCart(111, "productC", 2);
+        u2.addProductToCart("111", "productC", 2);
         userMap.put(u2.getUserName(), u2);
         passwordMap.put(u2.getUserName(), "pw2");
     }

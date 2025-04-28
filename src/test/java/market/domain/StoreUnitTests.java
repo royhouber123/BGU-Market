@@ -65,11 +65,11 @@ class StoreUnitTests {
         store.addNewOwner(ownerA, ownerB);
         store.addNewOwner(ownerB, ownerC);
 
-        List<String> removed = store.removeOwner(founderID, ownerA);
+        List<List<String>> removed = store.removeOwner(founderID, ownerA);
 
-        assertTrue(removed.contains(ownerA));
-        assertTrue(removed.contains(ownerB));
-        assertTrue(removed.contains(ownerC));
+        assertTrue(removed.get(0).contains(ownerA));
+        assertTrue(removed.get(0).contains(ownerB));
+        assertTrue(removed.get(0).contains(ownerC));
 
         assertFalse(store.isOwner(ownerA));
         assertFalse(store.isOwner(ownerB));
