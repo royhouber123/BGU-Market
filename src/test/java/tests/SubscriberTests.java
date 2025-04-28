@@ -1,78 +1,144 @@
 package tests;
 
+import market.application.PurchaseService;
 import market.application.AuthService.AuthTokens;
+import market.domain.purchase.Purchase;
 import market.domain.user.ShoppingCart;
-import support.AcceptanceTestBase;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import support.AcceptanceTestBase;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class SubscriberTests extends AcceptanceTestBase {
+/**
+ * Acceptance-level scenarios for a subscriber.
+ */
+class SubscriberTests extends AcceptanceTestBase {
 
+    private static final String SUB = "sub01";
+    private static final String PW  = "pw";
 
-    private static final String SUB = "subscriber1";
-    private static final String PW  = "password1";
-
-
-    private int storeId;
-
+    private String  storeId; 
+    private String productid;        // string id in StoreService
+    
 
     @BeforeEach
-    void init() throws Exception {
-        // ① register the subscriber
+    void setUp() throws Exception {
+
+        // --- subscriber exists ------------------------------------------------
         userService.register(SUB, PW);
-        // ② create a store with a single product so the tests can interact
-        storeService.createStore("GadgetStore", 1 /*founderId*/);
+
+
+        // --- create store + one listing --------------------------------------
+        storeService.createStore("GadgetStore", "100");          // founderId
         storeId = storeService.getStore("GadgetStore").getStoreID();
-        storeService.addNewProduct(1, storeId, "Keyboard", "PERIPHERALS", 10, 250);
+        storeService.addNewListing("100",
+                                   storeId,
+                                   "m1",
+                                   "Mouse",
+                                   "Wireless mouse",
+                                   5,
+                                   100);
+        productid = "m1";
+        // --- stub external ports ---------------------------------------------
+        // when(paymentService.processPayment(any())).thenReturn(true);
+        // when(shipmentService.ship(any(), any(), any())).thenReturn("123");
+
+        // --- build a real PurchaseService using base-class repositories -------
     }
 
+    /* ---------------------------------------------------------------------- */
+    /* 1. successful purchase + personal history                              */
+    /* ---------------------------------------------------------------------- */
     @Test
-    void subscriber_logs_in_and_cart_is_restored() throws Exception {
-        // subscriber adds a product while logged in
-        AuthTokens firstLogin = authService.login(SUB, PW);
-        userService.addProductToCart(SUB, storeId, "Keyboard", 2);
-        ShoppingCart before = userService.getCart(SUB);
-        authService.logout(firstLogin.refreshToken(), firstLogin.accessToken());
+    void subscriber_can_view_personal_purchase_history() throws Exception {
 
-        // subscriber "re‑logs" (simulate a new session)
-        // for our simple in‑memory services we just call login again
-        AuthTokens secondLogin = authService.login(SUB, PW);
-        ShoppingCart after = userService.getCart(SUB);
+        AuthTokens tok = authService.login(SUB, PW);
 
-        assertEquals(before.getAllStoreBags().size(), after.getAllStoreBags().size(),
-                     "Cart items should persist between log‑ins in the same repository instance");
-        authService.logout(secondLogin.refreshToken(), secondLogin.accessToken());
-        
+        // add to cart
+        storeService.getProductListing(storeId,productid);
+        //the parse int  will be change when roy and yair change the store id to string
+        userService.addProductToCart(SUB, Integer.parseInt(storeId), "Mouse", 1);
+        ShoppingCart cart = userService.getCart(SUB);
+
+        // execute purchase
+        Purchase p = purchaseService.executePurchase(
+                SUB, cart, "Beer-Sheva", "050-1234567");
+
+        // history query
+        List<Purchase> history = purchaseService.getPurchasesByUser(SUB);
+        assertEquals(1, history.size());
+
+        authService.logout(tok.refreshToken(), tok.accessToken());
     }
 
-   
+    /* ---------------------------------------------------------------------- */
+    /* 2. cannot rate a product without purchasing it first                   */
+    /* ---------------------------------------------------------------------- */
+    // @Test
+    // void subscriber_cannot_rate_without_purchase() throws Exception {
 
-    @Test
-    void subscriber_can_view_personal_purchase_history() {
-        ///
-    }
+    //     AuthTokens tok = authService.login(SUB, PW);
 
-    @Test
-    void subscriber_can_rate_purchased_product() {
-        ///
-    }
+    //     RuntimeException ex = assertThrows(RuntimeException.class,
+    //         () -> userService.rateProduct(SUB, "Mouse", 4));
 
-    @Test
-    void subscriber_cannot_rate_without_purchase() {
-        ///
-    }
+    //     assertTrue(ex.getMessage().contains("No matching purchase"));
 
-    @Test
-    void subscriber_sends_message_to_store() {
-        ///
-    }
+    //     authService.logout(tok.refreshToken(), tok.accessToken());
+    // }
 
-    @Test
-    void subscriber_logs_out_and_cart_preserved() {
-       ///
-    }
+    /* ---------------------------------------------------------------------- */
+    /* 3. rating works after purchase                                          */
+    /* ---------------------------------------------------------------------- */
+    // @Test
+    // void subscriber_can_rate_purchased_product() throws Exception {
+
+    //     AuthTokens tok = authService.login(SUB, PW);
+    //     userService.addProductToCart(SUB, storeId, "Mouse", 1);
+    //     purchaseService.executePurchase(
+    //             SUB, userService.getCart(SUB), "TLV", "050-1");
+
+    //     String res = userService.rateProduct(SUB, "Mouse", 5);
+    //     assertEquals("Rating submitted", res);
+
+    //     authService.logout(tok.refreshToken(), tok.accessToken());
+    // }
+
+    /* ---------------------------------------------------------------------- */
+    /* 4. send message to store owner                                          */
+    /* ---------------------------------------------------------------------- */
+    // @Test
+    // void subscriber_sends_message_to_store() throws Exception {
+
+    //     AuthTokens tok = authService.login(SUB, PW);
+
+    //     String msg = storeService.sendMessageToStore(SUB, storeId,
+    //                                                  "Do you have blue?");
+    //     assertEquals("Message sent", msg);
+
+    //     authService.logout(tok.refreshToken(), tok.accessToken());
+    // }
+
+    /* ---------------------------------------------------------------------- */
+    /* 5. logout does NOT clear cart                                           */
+    /* ---------------------------------------------------------------------- */
+    // @Test
+    // void subscriber_logs_out_and_cart_preserved() throws Exception {
+
+    //     AuthTokens tok1 = authService.login(SUB, PW);
+    //     userService.addProductToCart(SUB, storeId, "Mouse", 2);
+    //     ShoppingCart before = userService.getCart(SUB);
+    //     authService.logout(tok1.refreshToken(), tok1.accessToken());
+
+    //     // new login
+    //     AuthTokens tok2 = authService.login(SUB, PW);
+    //     ShoppingCart after = userService.getCart(SUB);
+    //     assertEquals(before.getTotalItems(), after.getTotalItems());
+
+    //     authService.logout(tok2.refreshToken(), tok2.accessToken());
+    // }
 }

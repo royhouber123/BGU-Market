@@ -5,9 +5,10 @@ public class PaymentService {
     // In a real-world application, this would contain methods to process payments,
     // handle payment gateways, and manage transactions.
     
-    public void processPayment(String paymentDetails) {
+    public boolean processPayment(String paymentDetails) {
         // Logic to process payment
         System.out.println("Processing payment with details: " + paymentDetails);
+        return true;
     }
 
     public void refundPayment(String paymentId) {
