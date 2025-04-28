@@ -99,14 +99,14 @@ class PoliciesTests {
     // ---------------------------------------
     @Test
     void maxItemsPolicyPassesWhenUnderLimit() {
-        MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy(null, 5);
+        MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy(5);
         Map<String, Integer> cart = Map.of("item1", 3);
         assertTrue(policy.isPurchaseAllowed(cart));
     }
 
     @Test
     void maxItemsPolicyFailsWhenOverLimit() {
-        MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy(null, 2);
+        MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy(2);
         Map<String, Integer> cart = Map.of("item1", 3);
         assertFalse(policy.isPurchaseAllowed(cart));
     }
@@ -182,7 +182,7 @@ class PoliciesTests {
     @Test
     void policyHandlerAddRemovePurchasePolicy() {
         PolicyHandler handler = new PolicyHandler();
-        MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy(null, 5);
+        MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy( 5);
         handler.addPurchasePolicy(policy);
         assertTrue(handler.getPolicies().contains(policy));
 
