@@ -2,6 +2,7 @@ package market.domain.purchase;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 public class Bid {
 
@@ -16,7 +17,7 @@ public class Bid {
     boolean counterOffered = false;
     double counterOfferAmount = -1; //no counter offer yet
 
-    Bid(String userId, double price, String shippingAddress, String contactInfo, Set<String> requiredApprovers) {
+    public Bid(String userId, double price, String shippingAddress, String contactInfo, Set<String> requiredApprovers) {
         this.userId = userId;
         this.price = price;
         this.shippingAddress = shippingAddress;
@@ -24,7 +25,7 @@ public class Bid {
         this.requiredApprovers = requiredApprovers;
     }
 
-    void approve(String approverId) {
+    public void approve(String approverId) {
         if (requiredApprovers.contains(approverId)) {
             approvedBy.add(approverId);
             if (approvedBy.containsAll(requiredApprovers)) {
@@ -33,21 +34,21 @@ public class Bid {
         }
     }
 
-    boolean isApproved() {
+    public boolean isApproved() {
         return approved;
     }
 
-    void reject(String approverId) {
+    public void reject(String approverId) {
         if (requiredApprovers.contains(approverId)) {
             rejected = true;
         }
     }
 
-    boolean isRejected() {
+    public boolean isRejected() {
         return rejected;
     }
 
-    void proposeCounterOffer(double newAmount) {
+    public void proposeCounterOffer(double newAmount) {
         counterOffered = true;
         counterOfferAmount = newAmount;
     }
@@ -58,5 +59,25 @@ public class Bid {
 
     public Set<String> getRequiredApprovers() {
         return requiredApprovers;
+    }
+
+    public double getCounterOfferAmount() {
+        if (!counterOffered) {
+            throw new RuntimeException("No counter offer has been made yet.");
+        }
+        return counterOfferAmount;
+    }
+
+    public void setCounterOfferAmount(double counterOfferAmount) {
+        counterOffered = true;
+        this.counterOfferAmount = counterOfferAmount;
+    }
+
+    public Boolean isCounterOffered() {
+        return counterOffered;
+    }
+
+    public double getPrice() {
+        return price;
     }
 }
