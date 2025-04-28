@@ -169,4 +169,8 @@ public class AuctionPurchase {
         shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
         return new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
     }
+
+    public static Map<AuctionKey, List<Offer>> getOffers() {
+        return offers;
+    }
 }
