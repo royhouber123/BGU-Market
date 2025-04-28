@@ -14,7 +14,6 @@ import market.application.External.ShipmentService;
 import market.infrastructure.StoreRepository;
 
 import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class AuctionPurchase {
