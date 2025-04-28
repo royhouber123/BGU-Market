@@ -1,4 +1,4 @@
-package market.infrastracture;
+package market.infrastructure;
 
 import market.domain.user.IUserRepository;
 import market.domain.user.User;

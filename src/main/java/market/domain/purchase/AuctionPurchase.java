@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.TimerTask;
 
 import market.application.StoreService;
-import market.infrastracture.StoreRepository;
+import market.infrastructure.StoreRepository;
 
 import java.util.Timer;
 import java.util.TimerTask;

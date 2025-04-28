@@ -1,4 +1,4 @@
-package market.infrastracture;
+package market.infrastructure;
 
 
 import market.domain.store.IStoreRepository;
