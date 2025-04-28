@@ -5,10 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c14fa780-cca1-4bc5-a595-f2c7b221c93e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/DiscountPolicyFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/PurchasePolicyFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/MaxItemsPurchasePolicy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Policies/MaxItemsPurchasePolicy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/application/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/application/AuthService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/application/PurchaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/application/PurchaseService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/application/StoreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/application/StoreService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/application/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/application/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/store/Store.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/ShoppingCart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/ShoppingCart.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/StoreBag.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/StoreBag.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/Subscriber.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/Subscriber.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Founder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Founder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Manager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Manager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Owner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Owner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Role.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/domain/user/roles/Role.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/market/infrastructure/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/market/infrastructure/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/market/domain/StoreUnitTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/market/domain/StoreUnitTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/support/AcceptanceTestBase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/support/AcceptanceTestBase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/tests/SubscriberTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/tests/SubscriberTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/tests/UserTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/tests/UserTests.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,7 +41,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Policies-Factories" />
+        <entry key="$PROJECT_DIR$" value="store-repository" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -61,7 +75,17 @@
     "Repository.Attach.JavaDocs": "false",
     "Repository.Attach.Sources": "false",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",</component>
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "98-store-user-authentication",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RunManager">
     <configuration name="StoreUnitTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="test" />
@@ -98,7 +122,7 @@
       <workItem from="1745485257290" duration="1186000" />
       <workItem from="1745653490513" duration="207000" />
       <workItem from="1745653760496" duration="6523000" />
-      <workItem from="1745740737978" duration="18850000" />
+      <workItem from="1745740737978" duration="17296000" />
     </task>
     <servers />
   </component>

@@ -1,37 +1,14 @@
-package market.application;
+package market.domain;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class PurchaseServiceTest {
-
-    private PurchaseService purchaseService;
+class BidPurchaseTest {
 
     @BeforeEach
     void setUp() {
-        // Setup with mocks or fake repositories if needed
-        purchaseService = new PurchaseService(null, null, null);
-    }
-
-    @Test
-    void testExecutePurchaseSuccess() {
-        // TODO: implement
-    }
-
-    @Test
-    void testSubmitOfferSuccess() {
-        // TODO: implement
-    }
-
-    @Test
-    void testOpenAuctionSuccess() {
-        // TODO: implement
-    }
-
-    @Test
-    void testGetAuctionStatusSuccess() {
-        // TODO: implement
+        // No specific setup needed for now
     }
 
     @Test
@@ -70,12 +47,8 @@ class PurchaseServiceTest {
     }
 
     @Test
-    void testGetPurchasesByUserSuccess() {
-        // TODO: implement
-    }
-
-    @Test
-    void testGetPurchasesByStoreSuccess() {
+    void testPurchaseCreation() {
         // TODO: implement
     }
 }
+

@@ -44,8 +44,8 @@ class SubscriberTests extends AcceptanceTestBase {
                                    100);
         productid = "m1";
         // --- stub external ports ---------------------------------------------
-        // when(paymentService.processPayment(any())).thenReturn(true);
-        // when(shipmentService.ship(any(), any(), any())).thenReturn("123");
+        when(paymentService.processPayment(any())).thenReturn(true);
+        when(shipmentService.ship(any(), any(), any())).thenReturn("123");
 
         // --- build a real PurchaseService using base-class repositories -------
     }
@@ -61,7 +61,7 @@ class SubscriberTests extends AcceptanceTestBase {
         // add to cart
         storeService.getProductListing(storeId,productid);
         //the parse int  will be change when roy and yair change the store id to string
-        userService.addProductToCart(SUB, Integer.parseInt(storeId), "Mouse", 1);
+        userService.addProductToCart(SUB, storeId, "Mouse", 1);
         ShoppingCart cart = userService.getCart(SUB);
 
         // execute purchase

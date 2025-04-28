@@ -9,58 +9,18 @@ import java.util.Objects;
 import java.util.TimerTask;
 
 import market.application.StoreService;
-import market.infrastracture.StoreRepository;
+import market.domain.store.*;
+import market.application.External.PaymentService;
+import market.application.External.ShipmentService;
+import market.infrastructure.StoreRepository;
 
 import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class AuctionPurchase {
 
     //to update and check stock
-    private static StoreRepository storeRepository;
-
-
-    /// AuctionKey is a combination of storeId and productId
-    /// This is used to identify auctions uniquely
-    private static class AuctionKey {
-        String storeId;
-        String productId;
-
-        AuctionKey(String storeId, String productId) {
-            this.storeId = storeId;
-            this.productId = productId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof AuctionKey)) return false;
-            AuctionKey other = (AuctionKey) o;
-            return storeId.equals(other.storeId) && productId.equals(other.productId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(storeId, productId);
-        }
-    }
-
-    /// Offer is a class that represents an offer made by a user
-    /// It contains the userId, price, shipping address, and contact info
-    private static class Offer {
-        String userId;
-        double price;
-        String shippingAddress;
-        String contactInfo;
-    
-        Offer(String userId, double price, String shippingAddress, String contactInfo) {
-            this.userId = userId;
-            this.price = price;
-            this.shippingAddress = shippingAddress;
-            this.contactInfo = contactInfo;
-        }
-    }
+    private static IStoreRepository storeRepository;
 
 
     /// Map to store offers for each auction
@@ -82,7 +42,7 @@ public class AuctionPurchase {
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(StoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis) {
+    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, ShipmentService shipmentService, PaymentService paymentService) {
         storeRepository = rep;
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
@@ -94,7 +54,7 @@ public class AuctionPurchase {
             @Override
             public void run() {
                 try {
-                    closeAuction(storeId, productId);
+                    closeAuction(storeId, productId, shipmentService, paymentService);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -154,7 +114,7 @@ public class AuctionPurchase {
     /// It finds the winner by comparing the offers and creates a Purchase object for the winner.
     /// It also removes the auction from the maps.
     /// If no offers were placed, it indicates that the auction closed with no offers.
-    public static Purchase closeAuction(String storeId, String productId) {
+    public static Purchase closeAuction(String storeId, String productId, ShipmentService shipmentService, PaymentService paymentService) {
         AuctionKey key = new AuctionKey(storeId, productId);
         long now = System.currentTimeMillis();
         if (!endTimes.containsKey(key)) {
@@ -174,7 +134,13 @@ public class AuctionPurchase {
         Offer winner = offerList.stream()
                 .max(Comparator.comparingDouble(o -> o.price))
                 .orElseThrow();
-        boolean updatedStock = storeRepository.updateStockForOneItems(storeId, productId, 1);
+        //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
+        ////לוודא עם דיין כי אין את הפונקציה
+        Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
+        Map<String, Integer> productMap = new HashMap<>();
+        productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
+        listForUpdateStock.put(storeId, productMap);
+        boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
         if (!updatedStock) {
             throw new RuntimeException("Failed to update stock for auction purchase.");
         }
@@ -184,19 +150,23 @@ public class AuctionPurchase {
                         productId,
                         winner.price,
                         winner.shippingAddress,
-                        winner.contactInfo
+                        winner.contactInfo,
+                        shipmentService,
+                        paymentService
                     );
         return p;
     }
     
     
-    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo) {
+    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo, ShipmentService shipmentService, PaymentService paymentService) {
         PurchasedProduct product = new PurchasedProduct(
                 productId,
                 storeId,
                 1, //always 1 for auction purchase
                 price // price is set when auction ends
         );
+        paymentService.processPayment("User: " + userId + ", Amount: " + price);
+        shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
         return new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
     }
 }

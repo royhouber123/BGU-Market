@@ -10,16 +10,13 @@ import static org.mockito.Mockito.mock;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import market.domain.user.IUserRepository;
-import market.domain.purchase.Purchase;
-//import IStoreRepository
+import market.infrastructure.UserRepository; // Ensure this is the correct package path
+import market.infrastructure.PurchaseRepository;
+import market.infrastructure.StoreRepository; // Ensure this is the correct package path
+import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IStoreRepository;
-// import user repository
-import market.infrastracture.UserRepository;
-import market.infrastracture.StoreRepository;
-//import subscriber
 import market.domain.user.Subscriber;
-//import purchased service
-import market.infrastracture.InMemoryPurchaseRepository;
+import market.*;
 
 public abstract class AcceptanceTestBase {
 
@@ -37,16 +34,14 @@ public abstract class AcceptanceTestBase {
         IUserRepository userRepository = new UserRepository();
         userService = new UserService(userRepository);
         authService = new AuthService(userRepository);
-        StoreRepository storerepo = new StoreRepository(); // Use the real implementation
-        storeService = new StoreService(storerepo); // Use the real implementation 
-        UserRepository userRepository2_for_purchese = new UserRepository();
-        purchaseService = new PurchaseService(storerepo, new InMemoryPurchaseRepository(), userRepository2_for_purchese);
+        IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
-
-
+        storeService = new StoreService(storerepo,userRepository); // Use the real implementation
         paymentService = mock(PaymentService.class); // Mock external service
         shipmentService = mock(ShipmentService.class); // Mock external service
-        
+        IPurchaseRepository prep = new PurchaseRepository();
+
+        purchaseService = new PurchaseService(storerepo, prep , userRepository,paymentService,shipmentService);
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
         
