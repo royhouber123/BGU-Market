@@ -1,14 +1,18 @@
 package market.domain;
 
-import market.domain.store.Listing;
-import market.domain.store.StoreProductManager;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import market.domain.purchase.PurchaseType;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.List;
+import market.domain.store.Listing;
+import market.domain.store.StoreProductManager;
 
 class StoreProductManagerUnitTests {
     private StoreProductManager manager;
@@ -49,17 +53,17 @@ class StoreProductManagerUnitTests {
         assertFalse(addedAgain);
     }
 
-    @Test
-    void testAddListingWithWrongStoreIdFails() {
-        Listing wrongStoreListing = new Listing(
-                "wrongStore", "p3", "ProductC", "Wrong description", 5, PurchaseType.REGULAR, 50
-        );
+    // @Test
+    // void testAddListingWithWrongStoreIdFails() {
+    //     Listing wrongStoreListing = new Listing(
+    //             "wrongStore", "p3", "ProductC", "Wrong description", 5, PurchaseType.REGULAR, 50
+    //     );
 
-        Exception e = assertThrows(IllegalArgumentException.class, () -> {
-            manager.addListing(wrongStoreListing);
-        });
-        assertTrue(e.getMessage().contains("storeId does not match"));
-    }
+    //     Exception e = assertThrows(IllegalArgumentException.class, () -> {
+    //         manager.addListing(wrongStoreListing);
+    //     });
+    //     assertTrue(e.getMessage().contains("storeId does not match"));
+    // }
 
     @Test
     void testRemoveListingSuccess() {

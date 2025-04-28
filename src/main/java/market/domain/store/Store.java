@@ -1,13 +1,19 @@
 package market.domain.store;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import market.domain.purchase.PurchaseType;
-import market.domain.store.Policies.DiscountCombinationType;
 import market.domain.store.Policies.DiscountPolicy;
 import market.domain.store.Policies.PolicyHandler;
 import market.domain.store.Policies.PurchasePolicy;
-
-import java.util.*;
-import java.util.stream.*;
 
 
 
@@ -502,6 +508,20 @@ public class Store {
     }
 
     /**
+ * Retrieves all the listings available in the store.
+ * <p>
+ * This method gathers all listings managed by the {@link IStoreProductsManager}
+ * and returns them as a list. Each listing represents a product available for purchase
+ * in the store.
+ * </p>
+ *
+ * @return A {@link List} of {@link Listing} objects representing all products listed in the store.
+ */
+public List<Listing> getAllListings() {
+    return storeProductsManager.getAllListings();
+}
+
+    /**
      * Adds a new purchase policy to the store.
      * Only users with {@code EDIT_POLICIES} permission can add policies.
      *
@@ -681,10 +701,58 @@ public class Store {
     }
 
 
+    /**
+ * Checks if a user has permission to approve bids in the store.
+ * <p>
+ * A user is allowed to approve bids if:
+ * <ul>
+ *     <li>They are an owner of the store, or</li>
+ *     <li>They are a manager and have the {@link Permission#BID_APPROVAL} permission.</li>
+ * </ul>
+ *
+ * @param approverID ID of the user attempting to approve a bid.
+ * @return {@code true} if the user is allowed to approve bids, {@code false} otherwise.
+ */
+
+    public boolean checkBidPermission(String approverID){
+        return isOwner(approverID) || (isManager(approverID) && getManager(approverID).hasPermission(Permission.BID_APPROVAL));
+    }
+
+
+    public Set<String> getAllOwners(){
+        return this.ownerToAssignedOwners.keySet();
+    }
+
+
+
+/**
+ * Retrieves the set of user IDs that are allowed to approve bids in the store.
+ * <p>
+ * A user is considered eligible to approve bids if:
+ * <ul>
+ *     <li>They are an owner of the store, or</li>
+ *     <li>They are a manager with the {@link Permission#BID_APPROVAL} permission.</li>
+ * </ul>
+ *
+ * @return A {@link Set} of user IDs who are authorized to approve bids.
+ */
+    public Set<String> getApproversForBid(){
+        Set<String> res = new HashSet<>();
+        for (String s:getAllOwners())
+            res.add(s);
+        for (Manager m:getAllManagers())
+            if (m.hasPermission(Permission.BID_APPROVAL))
+                res.add(m.id);    
+        return res;
+
+    }
+
+
     public enum Permission{
         VIEW_ONLY(0),
         EDIT_PRODUCTS(1),
-        EDIT_POLICIES(2);
+        EDIT_POLICIES(2),
+        BID_APPROVAL(3);
 
         private final int code;
 
