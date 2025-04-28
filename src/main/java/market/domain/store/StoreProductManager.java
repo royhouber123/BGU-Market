@@ -1,6 +1,10 @@
 package market.domain.store;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /*
 need to implement!!!!!!!!!!!!!
@@ -29,9 +33,9 @@ public class StoreProductManager implements IStoreProductsManager {
         }
     @Override
     public boolean addListing(Listing listing) {
-        if (listing.getStoreId().equals(this.storeId)) {
-            throw new IllegalArgumentException("Listing storeId does not match StoreProductManager storeId!");
-        }
+        // if (listing.getStoreId().equals(this.storeId)) {
+        //     throw new IllegalArgumentException("Listing storeId does not match StoreProductManager storeId!");
+        // }
         if (listingsById.containsKey(listing.getListingId())) {
             return false; // Already exists
         }
