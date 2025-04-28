@@ -1,6 +1,5 @@
 package market.infrastracture;
 
-
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 

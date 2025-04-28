@@ -1,6 +1,6 @@
 package market.domain.user.roles;
 
 public interface Role {
-    String getStoreId();
+    int getStoreId();
     String getRoleName();
 }

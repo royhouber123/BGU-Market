@@ -85,8 +85,9 @@ public class PurchaseService {
             throw new RuntimeException("Failed to get auction status: " + e.getMessage(), e);
         }
     }
-
-    // Bid Purchase
+    
+    // Bid Purchase:
+    //should return "bid successful" or "bid failed"
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
         try {
             Set<String> approvers = storeRepository.getStoreByID(storeId).getStoreOwners();

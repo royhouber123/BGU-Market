@@ -31,13 +31,19 @@ public class AuthService {
     private final Map<String, String> refreshTokenStore = new ConcurrentHashMap<>();
     private final IUserRepository userRepository;
 
-    public AuthService(String accessSecret, String refreshSecret , IUserRepository userRepository) {
-        this.accessTokenKey = Keys.hmacShaKeyFor(accessSecret.getBytes(StandardCharsets.UTF_8));
-        this.refreshTokenKey = Keys.hmacShaKeyFor(refreshSecret.getBytes(StandardCharsets.UTF_8));
-        this.accessTokenTtlMs = TimeUnit.DAYS.toMillis(1);;
-        this.refreshTokenTtlMs = TimeUnit.DAYS.toMillis(1);;
-        this.userRepository = userRepository;
-    }
+public AuthService(IUserRepository userRepository) {
+    String accessSecret  = "JMvzGmTQtUL4OWwh-JAiawZXbxKKrFssCXZtkC_ZUKc";
+    String refreshSecret = "LPhmk_IdSLlevsRkTccTc0khD4W8gYrhysF0Yo74R7A";
+
+    this.accessTokenKey  = Keys.hmacShaKeyFor(
+        io.jsonwebtoken.io.Decoders.BASE64URL.decode(accessSecret));
+    this.refreshTokenKey = Keys.hmacShaKeyFor(
+        io.jsonwebtoken.io.Decoders.BASE64URL.decode(refreshSecret));
+
+    this.accessTokenTtlMs  = TimeUnit.DAYS.toMillis(1);   // 24 h access tokens
+    this.refreshTokenTtlMs = TimeUnit.DAYS.toMillis(7);   // 7 d refresh tokens
+    this.userRepository    = userRepository;
+}
 
 
     public String generateAccessToken(User user) {
@@ -45,14 +51,13 @@ public class AuthService {
         Date expiry = new Date(now.getTime() + accessTokenTtlMs);
 
         JwtBuilder builder = Jwts.builder()
-                .setSubject(user.getuserName())          
+                .setSubject(user.getUserName())          
                 .setIssuer("com.exmaple")
                 .setIssuedAt(now)
-                .setExpiration(expiry)
-                .claim("user", user);  
+                .setExpiration(expiry);  
                 
         if (user instanceof Subscriber sub) {
-            Map<String, List<String>> storeRoles = sub.getRoles().keySet()
+            Map<Integer, List<String>> storeRoles = sub.getRoles().keySet()
                 .stream()
                 .collect(Collectors.groupingBy(
                     StoreRoleKey::storeId,                         
@@ -123,7 +128,7 @@ public class AuthService {
         User u = this.userRepository.isExist(username , password);
         if (u == null) throw new Exception("User not registered");
         String access  = generateAccessToken(u);
-        String refresh = generateRefreshToken(u.getuserName());
+        String refresh = generateRefreshToken(u.getUserName());
         return new AuthTokens(access, refresh);
     }
 

@@ -2,14 +2,14 @@ package market.domain.user.roles;
 
 
 public class Founder implements Role {
-    private String storeId;
+    private int storeId;
 
-    public Founder(String storeId) {
+    public Founder(int storeId) {
         this.storeId = storeId;
     }
 
     @Override
-    public String getStoreId() {
+    public int getStoreId() {
         return storeId;
     }
 
