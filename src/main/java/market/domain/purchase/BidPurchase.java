@@ -1,7 +1,10 @@
 package market.domain.purchase;
 import market.domain.user.ShoppingCart;
 import market.domain.user.StoreBag;
+import market.infrastracture.StoreRepository;
 import market.application.StoreService;
+import market.application.External.PaymentService;
+import market.application.External.ShipmentService;
 import market.domain.purchase.NotificationForPurchase;
 
 import java.util.*;
@@ -10,7 +13,9 @@ import java.util.*;
 public class BidPurchase {
 
     //to update and check stock
-    private static StoreService storeService;
+    private static StoreRepository storeRepository;
+    private static ShipmentService shipmentService;
+    private static PaymentService paymentService;
     
     private static class BidKey {
         String storeId;
@@ -105,10 +110,12 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
-    public static void submitBid(StoreService service, String storeId, String productId, String userId, double amount,
-                                 String shippingAddress, String contactInfo, Set<String> approvers) {
+    public static void submitBid(StoreRepository rep, String storeId, String productId, String userId, double amount,
+                                 String shippingAddress, String contactInfo, Set<String> approvers, ShipmentService shipment, PaymentService payment) {
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
-        storeService=service;
+        storeRepository=rep;
+        shipmentService=shipment;
+        paymentService=payment;
         BidKey key = buildKey(storeId, productId);
         Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
@@ -136,7 +143,8 @@ public class BidPurchase {
                     //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
                     System.out.println("Bid approved for user: " + bid.userId);
                     // Call purchase directly with simple arguments
-                    boolean updatedStock = storeService.checkAndUpdateStock(storeId, productId, 1);
+                    boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
+                    ////לוודא עם דיין כי אין את הפונקציה
                     if (!updatedStock) {
                         throw new RuntimeException("Failed to update stock for bid purchase.");
                     }
@@ -228,7 +236,7 @@ public class BidPurchase {
                 //notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
                 System.out.println("Counter offer accepted for user: " + bid.userId);
                 // Complete purchase immediately
-                boolean updatedStock = storeService.checkAndUpdateStock(storeId, productId, 1);
+                boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
                 if (!updatedStock) {
                     throw new RuntimeException("Failed to update stock for bid purchase.");
                 }
@@ -344,9 +352,11 @@ public class BidPurchase {
                 productId,
                 storeId,
                 1, // Always 1 in a bid purchase
-                price,
+                price
         );
-        return new Purchase(userId, List.of(product), product.getTotalPrice(), shippingAddress, contactInfo);
+        paymentService.processPayment("User: " + userId + ", Amount: " + price);
+        shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
+        return new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
     } 
 
 }

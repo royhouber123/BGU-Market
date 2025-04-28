@@ -1,5 +1,7 @@
 package market.application;
 
+import market.application.External.PaymentService;
+import market.application.External.ShipmentService;
 import market.domain.purchase.*;
 import market.domain.user.*;
 <<<<<<< HEAD
@@ -18,39 +20,47 @@ public class PurchaseService {
     private final StoreRepository storeRepository;
     private final IPurchaseRepository purchaseRepository;
     private final UserRepository userRepository;
+    private final PaymentService paymentService;
+    private final ShipmentService shipmentService;
 
-    public PurchaseService(StoreRepository storeRepository, IPurchaseRepository purchaseRepository, UserRepository userRepository) {
+
+    public PurchaseService(StoreRepository storeRepository, IPurchaseRepository purchaseRepository, UserRepository userRepository, PaymentService paymentService, ShipmentService shipmentService) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
         this.userRepository = userRepository;
+        this.paymentService = paymentService;
+        this.shipmentService = shipmentService;
     }
 
     // Regular Purchase
     public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
         try {
+            double totalDiscountPrice = 0.0;
             List<PurchasedProduct> purchasedItems = new ArrayList<>();
             for (StoreBag bag : cart.getAllStoreBags()) {
-                String storeId = bag.getStoreId();
+                String storeId = String.valueOf(bag.getStoreId());
                 Store store = storeRepository.getStoreByID(storeId);
-                boolean isValidBag = store.checkPurchasePolicy(bag, userId);
+                boolean isValidBag = store.isPurchaseAllowed(bag.getProducts());
+                ////לוודא עם דיין כי אין את הפונקציה
                 if (!isValidBag) {
                     throw new RuntimeException("Invalid purchase bag for store: " + storeId);
                 }
-                int totalDiscountPrice = store.getTotalDiscountPrice(bag);
+                totalDiscountPrice=totalDiscountPrice+store.calculateStoreBagWithDiscount(bag.getProducts());
                 for (Map.Entry<String, Integer> product : bag.getProducts().entrySet()) {
                     String productId = product.getKey();
-                    double unitPrice = store.getProductUnitPrice(productId);
+                    double unitPrice = store.ProductPrice(productId);
                     Integer quantity = product.getValue();
                     PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
                     purchasedItems.add(purchasedProduct);
                 }
             }
             boolean updated = storeRepository.updateStockForPurchasedItems(purchasedItems);
+            ////לוודא עם דיין כי אין את הפונקציה
             if (!updated) {
                 throw new RuntimeException("Failed to update stock for purchased items.");
             }
             RegularPurchase regularPurchase = new RegularPurchase();
-            return regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo);
+            return regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to execute regular purchase: " + e.getMessage(), e);
         }
@@ -73,8 +83,8 @@ public class PurchaseService {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             store.addNewListing(userId, productId, productName, productDescription, 1, startingPrice);
-            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis);
-        } catch (RuntimeException e) {
+            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+        } catch (Exception e) {
             throw new RuntimeException("Failed to open auction: " + e.getMessage(), e);
         }
     }
@@ -96,7 +106,8 @@ public class PurchaseService {
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
         try {
             Set<String> approvers = storeRepository.getStoreByID(storeId).getStoreOwners();
-            BidPurchase.submitBid(storeRepository, storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers);
+            ////לוודא עם דיין כי אין את הפונקציה
+            BidPurchase.submitBid(storeRepository, storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers, shipmentService, paymentService);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to submit bid: " + e.getMessage(), e);
         }
@@ -170,13 +181,14 @@ public class PurchaseService {
     }
 
     private void validateApprover(String storeId, String approverId) {
-        User approver = userRepository.findById(approverId);
-        if (!(approver instanceof StoreOwner || approver instanceof StoreManager)) {
-            throw new RuntimeException("User is not an owner or manager: " + approverId);
+        User user = userRepository.findById(approverId);
+        if (!(user instanceof Subscriber subscriber)) {
+            throw new RuntimeException("User is not a subscriber: " + approverId);
         }
-        String approverStoreId = approver.getStoreId();
-        if (!storeId.equals(approverStoreId)) {
-            throw new RuntimeException("User does not belong to the store: " + approverId);
+        int storeIdInt = Integer.parseInt(storeId); 
+        if (!subscriber.isOwner(storeIdInt) && !subscriber.isManager(storeIdInt)) {
+            throw new RuntimeException("User is not an owner or manager in store: " + approverId);
         }
+        /////////לוודא עם דיין כי אמרו מנהלי או בעלי חנות עם הרשאות מתאימות
     }
 }
