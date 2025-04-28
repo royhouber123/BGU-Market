@@ -6,21 +6,21 @@ import market.domain.purchase.*;
 import market.domain.user.*;
 import market.infrastructure.*;
 import market.application.StoreService;
-import market.domain.store.Store;
+import market.domain.store.*;
 import market.domain.store.Policies.*;
 
 import java.util.*;
 
 public class PurchaseService {
 
-    private final StoreRepository storeRepository;
+    private final IStoreRepository storeRepository;
     private final IPurchaseRepository purchaseRepository;
-    private final UserRepository userRepository;
+    private final IUserRepository userRepository;
     private final PaymentService paymentService;
     private final ShipmentService shipmentService;
 
 
-    public PurchaseService(StoreRepository storeRepository, IPurchaseRepository purchaseRepository, UserRepository userRepository, PaymentService paymentService, ShipmentService shipmentService) {
+    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IUserRepository userRepository, PaymentService paymentService, ShipmentService shipmentService) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
         this.userRepository = userRepository;
@@ -31,27 +31,31 @@ public class PurchaseService {
     // Regular Purchase
     public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
         try {
+            Map<String, Map<String, Integer>> listForUpdateStock=new HashMap<>();
             double totalDiscountPrice = 0.0;
             List<PurchasedProduct> purchasedItems = new ArrayList<>();
             for (StoreBag bag : cart.getAllStoreBags()) {
                 String storeId = String.valueOf(bag.getStoreId());
                 Store store = storeRepository.getStoreByID(storeId);
+                listForUpdateStock.put(storeId, bag.getProducts());
                 boolean isValidBag = store.isPurchaseAllowed(bag.getProducts());
-                ////לוודא עם דיין כי אין את הפונקציה
                 if (!isValidBag) {
                     throw new RuntimeException("Invalid purchase bag for store: " + storeId);
                 }
                 totalDiscountPrice=totalDiscountPrice+store.calculateStoreBagWithDiscount(bag.getProducts());
                 for (Map.Entry<String, Integer> product : bag.getProducts().entrySet()) {
                     String productId = product.getKey();
-                    double unitPrice = store.ProductPrice(productId);
+                    try{
+                        double unitPrice = store.ProductPrice(productId);
+                    } catch (Exception e){
+                        throw new RuntimeException("Product not found in store: " + productId);
+                    }
                     Integer quantity = product.getValue();
                     PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
                     purchasedItems.add(purchasedProduct);
                 }
             }
-            boolean updated = storeRepository.updateStockForPurchasedItems(purchasedItems);
-            ////לוודא עם דיין כי אין את הפונקציה
+            boolean updated = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
             if (!updated) {
                 throw new RuntimeException("Failed to update stock for purchased items.");
             }
@@ -98,11 +102,9 @@ public class PurchaseService {
     }
     
     // Bid Purchase:
-    //should return "bid successful" or "bid failed"
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
         try {
-            Set<String> approvers = storeRepository.getStoreByID(storeId).getStoreOwners();
-            ////לוודא עם דיין כי אין את הפונקציה
+            Set<String> approvers = storeRepository.getStoreByID(storeId).getAprroversForBid();
             BidPurchase.submitBid(storeRepository, storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers, shipmentService, paymentService);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to submit bid: " + e.getMessage(), e);
@@ -185,6 +187,8 @@ public class PurchaseService {
         if (!subscriber.isOwner(storeIdInt) && !subscriber.isManager(storeIdInt)) {
             throw new RuntimeException("User is not an owner or manager in store: " + approverId);
         }
+        Store store=storeRepository.getStoreByID(storeId); // Check if store exists
+        Boolean ifVlaid=store.checkBidPermission(approverId); // Check if user has permission to approve/reject bids
         /////////לוודא עם דיין כי אמרו מנהלי או בעלי חנות עם הרשאות מתאימות
     }
 }

@@ -6,6 +6,7 @@ import market.domain.store.Store;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StoreRepository implements IStoreRepository {
@@ -66,6 +67,12 @@ public class StoreRepository implements IStoreRepository {
             return "1";
         }
         return String.valueOf(Collections.max(this.storesById.keySet().stream().map(Integer::parseInt).toList()) + 1);
+    }
+
+
+    public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateStockForPurchasedItems'");
     }
 
 }

@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.TimerTask;
 
 import market.application.StoreService;
+import market.domain.store.*;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
 import market.infrastructure.StoreRepository;
@@ -19,7 +20,7 @@ import java.util.Timer;
 public class AuctionPurchase {
 
     //to update and check stock
-    private static StoreRepository storeRepository;
+    private static IStoreRepository storeRepository;
 
 
     /// AuctionKey is a combination of storeId and productId
@@ -83,7 +84,7 @@ public class AuctionPurchase {
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(StoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, ShipmentService shipmentService, PaymentService paymentService) {
+    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, ShipmentService shipmentService, PaymentService paymentService) {
         storeRepository = rep;
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
@@ -175,8 +176,10 @@ public class AuctionPurchase {
         Offer winner = offerList.stream()
                 .max(Comparator.comparingDouble(o -> o.price))
                 .orElseThrow();
-        boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
+        //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
         ////לוודא עם דיין כי אין את הפונקציה
+        Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
+        boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
         if (!updatedStock) {
             throw new RuntimeException("Failed to update stock for auction purchase.");
         }

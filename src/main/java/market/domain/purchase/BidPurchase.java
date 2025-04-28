@@ -6,6 +6,7 @@ import market.application.StoreService;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
 import market.domain.purchase.NotificationForPurchase;
+import market.domain.store.*;
 
 import java.util.*;
 
@@ -13,7 +14,7 @@ import java.util.*;
 public class BidPurchase {
 
     //to update and check stock
-    private static StoreRepository storeRepository;
+    private static IStoreRepository storeRepository;
     private static ShipmentService shipmentService;
     private static PaymentService paymentService;
     
@@ -50,7 +51,7 @@ public class BidPurchase {
         boolean approved = false;
         boolean rejected = false;
         boolean counterOffered = false;
-        double counterOfferAmount = -1; // ברירת מחדל – אין הצעת נגד
+        double counterOfferAmount = -1; //no counter offer yet
 
         Bid(String userId, double price, String shippingAddress, String contactInfo, Set<String> requiredApprovers) {
             this.userId = userId;
@@ -107,7 +108,7 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
-    public static void submitBid(StoreRepository rep, String storeId, String productId, String userId, double amount,
+    public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
                                  String shippingAddress, String contactInfo, Set<String> approvers, ShipmentService shipment, PaymentService payment) {
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
         storeRepository=rep;
@@ -140,8 +141,10 @@ public class BidPurchase {
                     //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
                     System.out.println("Bid approved for user: " + bid.userId);
                     // Call purchase directly with simple arguments
-                    boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
+                    //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
                     ////לוודא עם דיין כי אין את הפונקציה
+                    Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
+                    boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
                     if (!updatedStock) {
                         throw new RuntimeException("Failed to update stock for bid purchase.");
                     }
@@ -233,7 +236,9 @@ public class BidPurchase {
                 //notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
                 System.out.println("Counter offer accepted for user: " + bid.userId);
                 // Complete purchase immediately
-                boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
+                //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
+                Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
+                boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
                 if (!updatedStock) {
                     throw new RuntimeException("Failed to update stock for bid purchase.");
                 }
