@@ -68,8 +68,6 @@ public class BidPurchase {
                     //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
                     System.out.println("Bid approved for user: " + bid.userId);
                     // Call purchase directly with simple arguments
-                    //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
-                    ////לוודא עם דיין כי אין את הפונקציה
                     Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
                     Map<String, Integer> productMap = new HashMap<>();
                     productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
@@ -166,7 +164,6 @@ public class BidPurchase {
                 //notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
                 System.out.println("Counter offer accepted for user: " + bid.userId);
                 // Complete purchase immediately
-                //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
                 Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
                 Map<String, Integer> productMap = new HashMap<>();
                 productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
