@@ -685,4 +685,16 @@ public class Store {
 
     }
 
+    public Set<String> getAprroversForBid() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAprroversForBid'");
+    }
+
+
+
+    public Boolean checkBidPermission(String approverId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'checkBidPermission'");
+    }
+
 }

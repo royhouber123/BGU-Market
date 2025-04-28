@@ -179,6 +179,9 @@ public class AuctionPurchase {
         //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
         ////לוודא עם דיין כי אין את הפונקציה
         Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
+        Map<String, Integer> productMap = new HashMap<>();
+        productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
+        listForUpdateStock.put(storeId, productMap);
         boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
         if (!updatedStock) {
             throw new RuntimeException("Failed to update stock for auction purchase.");

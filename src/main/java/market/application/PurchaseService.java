@@ -113,7 +113,7 @@ public class PurchaseService {
 
     public void approveBid(String storeId, String productId, String userId, String approverId) {
         try {
-            validateApprover(storeId, approverId);
+            validateApproverForBid(storeId, approverId);
             BidPurchase.approveBid(storeId, productId, userId, approverId);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to approve bid: " + e.getMessage(), e);
@@ -122,7 +122,7 @@ public class PurchaseService {
 
     public void rejectBid(String storeId, String productId, String userId, String approverId) {
         try {
-            validateApprover(storeId, approverId);
+            validateApproverForBid(storeId, approverId);
             BidPurchase.rejectBid(storeId, productId, userId, approverId);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to reject bid: " + e.getMessage(), e);
@@ -131,7 +131,7 @@ public class PurchaseService {
 
     public void proposeCounterBid(String storeId, String productId, String userId, String approverId, double newAmount) {
         try {
-            validateApprover(storeId, approverId);
+            validateApproverForBid(storeId, approverId);
             BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to propose counter bid: " + e.getMessage(), e);
@@ -178,17 +178,11 @@ public class PurchaseService {
         }
     }
 
-    private void validateApprover(String storeId, String approverId) {
-        User user = userRepository.findById(approverId);
-        if (!(user instanceof Subscriber subscriber)) {
-            throw new RuntimeException("User is not a subscriber: " + approverId);
-        }
-        int storeIdInt = Integer.parseInt(storeId); 
-        if (!subscriber.isOwner(storeIdInt) && !subscriber.isManager(storeIdInt)) {
-            throw new RuntimeException("User is not an owner or manager in store: " + approverId);
-        }
+    private void validateApproverForBid(String storeId, String approverId) {
         Store store=storeRepository.getStoreByID(storeId); // Check if store exists
-        Boolean ifVlaid=store.checkBidPermission(approverId); // Check if user has permission to approve/reject bids
-        /////////לוודא עם דיין כי אמרו מנהלי או בעלי חנות עם הרשאות מתאימות
+        Boolean ifVlaidPermission=store.checkBidPermission(approverId); // Check if user has permission to bids
+        if (!ifVlaidPermission) {
+            throw new RuntimeException("User does not have permission to approve/reject bids: " + approverId);
+        }
     }
 }
