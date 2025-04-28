@@ -1,9 +1,7 @@
 package market.domain.purchase;
 
-import market.domain.purchase.PurchasedProduct;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RegularPurchase {
