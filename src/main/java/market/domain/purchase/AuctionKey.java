@@ -9,7 +9,7 @@ public class AuctionKey {
     String storeId;
     String productId;
 
-    AuctionKey(String storeId, String productId) {
+    public AuctionKey(String storeId, String productId) {
         this.storeId = storeId;
         this.productId = productId;
     }

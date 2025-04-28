@@ -14,4 +14,20 @@ public class Offer {
         this.shippingAddress = shippingAddress;
         this.contactInfo = contactInfo;
     }
+
+    public String getUserId() {
+        return userId;
+    }
+    
+    public double getPrice() {
+        return price;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public String getContactInfo() {
+        return contactInfo;
+    }
 }
