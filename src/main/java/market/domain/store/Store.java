@@ -571,8 +571,12 @@ public class Store {
         return price - discount;
     }
 
+    public boolean isPurchaseAllowed(Map<String, Integer> listings) {
+        return policyHandler.isPurchaseAllowed(listings);
+    }
 
-    public List<Listing> getListingsByProductName(String productName) {
+
+        public List<Listing> getListingsByProductName(String productName) {
         return storeProductsManager.getListingsByProductName(productName);
     }
 
