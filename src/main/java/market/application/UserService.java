@@ -40,7 +40,7 @@ public class UserService {
     }
 
     public void addProductToCart(String userName,
-                                 int storeId,
+                                 String storeId,
                                  String productName,
                                  int quantity) {
         Optional.ofNullable(repo.findById(userName))

@@ -61,7 +61,7 @@ public class PurchaseService {
             }
             RegularPurchase regularPurchase = new RegularPurchase();
             return regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to execute regular purchase: " + e.getMessage(), e);
         }
     }

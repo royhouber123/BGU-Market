@@ -57,7 +57,7 @@ public AuthService(IUserRepository userRepository) {
                 .setExpiration(expiry);  
                 
         if (user instanceof Subscriber sub) {
-            Map<Integer, List<String>> storeRoles = sub.getRoles().keySet()
+            Map<String, List<String>> storeRoles = sub.getRoles().keySet()
                 .stream()
                 .collect(Collectors.groupingBy(
                     StoreRoleKey::storeId,                         
