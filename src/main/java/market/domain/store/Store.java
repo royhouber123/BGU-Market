@@ -66,7 +66,67 @@ public class Store {
     }
 
 
+    /**
+     * Closes the store.
+     * Only the founder of the store is allowed to perform this action.
+     * After closing, the store will become inactive and certain operations will be blocked.
+     *
+     * @param userID ID of the user attempting to close the store.
+     * @return {@code true} if the store was successfully closed.
+     * @throws Exception if:
+     *      - The user is not the founder of the store.
+     *      - The store is already closed.
+     */
+    public boolean closeStore(String userID) throws Exception {
+        if (!userID.equals(founderID))
+            throw new Exception("User:"+ userID +" is not the founder of store:"+ storeID);
+        if (!active)
+            throw new Exception("the store:"+ storeID +" is already closed");
+        active = false;
+        return true;
+    }
 
+    /**
+     * Checks whether the store is currently open (active).
+     *
+     * @return {@code true} if the store is open; {@code false} if it is closed.
+     */
+    public boolean isOpen() {
+        return active;
+    }
+
+    /**
+     * Throws an exception if the store is currently closed.
+     * Useful as a helper method to enforce that certain operations can only happen when the store is open.
+     *
+     * @throws Exception if the store is closed.
+     */
+    private void storeClosedExeption() throws Exception {
+        if (!active){
+            throw new Exception("Store:" + storeID + " is closed for now");
+        }
+    }
+
+    /**
+     * Reopens the store.
+     * Only the founder of the store is allowed to perform this action.
+     * After reopening, the store becomes active and available for operations.
+     *
+     * @param userID ID of the user attempting to open the store.
+     * @return {@code true} if the store was successfully reopened.
+     * @throws Exception if:
+     *      - The user is not the founder of the store.
+     *      - The store is already open.
+     */
+    public boolean openStore(String userID) throws Exception {
+        if (!userID.equals(founderID)){
+            throw new Exception("User:"+ userID +" is not the founder of store:"+ storeID);
+        }
+        if (active)
+            throw new Exception("Store:" + storeID + " is already open");
+        active = true;
+        return true;
+    }
     /*
         validates there are no illegal characters
      */
@@ -90,7 +150,7 @@ public class Store {
 
         if (isOwner(newOwnerID))
             throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
-
+        storeClosedExeption();//actions are available only when open
         ownerToAssignedOwners.get(appointerID).add(newOwnerID);
         ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
         ownerToWhoAssignedHim.put(newOwnerID,appointerID);
@@ -114,7 +174,7 @@ public class Store {
 
         if (isManager(newManagerID))
             throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
-
+        storeClosedExeption();//actions are available only when open
         Manager newManager = new Manager(newManagerID, appointerID);
         return ownerToAssignedManagers.get(appointerID).add(newManager);
     }
@@ -136,7 +196,7 @@ public class Store {
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
         if(!isManager(managerID))
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
-
+        storeClosedExeption();//actions are available only when open
         Manager manager = getManager(managerID);
         Permission p = Permission.fromCode(permissionID); //if invalid code, exception is thrown here
 
@@ -186,7 +246,7 @@ public class Store {
         Manager manager = getManager(managerID);
         if (manager == null)
             throw new Exception("Manager with ID " + managerID + " not found in store: " + storeID);
-
+        storeClosedExeption();//actions are available only when open
         Permission permission = Permission.fromCode(permissionID); // throws if invalid
 
         return manager.removePermission(permission, appointerID); // throws if appointer isn't authorized
@@ -309,6 +369,7 @@ public class Store {
         if (ownerToWhoAssignedHim.get(toRemove)!= id){
             throw new Exception(id +" didn't assign " + toRemove + " to be owner of store:"+ storeID);
         }
+        storeClosedExeption();//actions are available only when open
         Queue<String> queue = new ArrayDeque<>();
         queue.add(toRemove);
         while(!queue.isEmpty()){
@@ -388,7 +449,7 @@ public class Store {
     public boolean addNewListing(String userID, String productId, String productName, String productDescription, int quantity, double unitPrice) throws Exception {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
-
+        storeClosedExeption();//actions are available only when open
         Listing newListing = new Listing(
                 this.storeID,
                 productId,
@@ -398,6 +459,7 @@ public class Store {
                 PurchaseType.REGULAR,
                 unitPrice
         );
+
         return storeProductsManager.addListing(newListing);
     }
 
@@ -415,6 +477,7 @@ public class Store {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to REMOVE listing!");
 
+        storeClosedExeption();//actions are available only when open
         return storeProductsManager.removeListing(listingId);
     }
 
@@ -429,6 +492,7 @@ public class Store {
     public boolean purchaseFromListing(String listingId, int quantity) throws Exception {
         // Note: Maybe here you don't even need permission checking - depends if buying is free to any user
         //TODO: check wtf is going on here
+        storeClosedExeption();//actions are available only when open
         return storeProductsManager.purchaseFromListing(listingId, quantity);
     }
 
@@ -450,6 +514,7 @@ public class Store {
         if(!canEditPolicies(userID)){
             throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
         }
+        storeClosedExeption();//actions are available only when open
         policyHandler.addPurchasePolicy(policy);
         return true;
     }
@@ -467,6 +532,7 @@ public class Store {
         if(!canEditPolicies(userID)){
             throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
         }
+        storeClosedExeption();//actions are available only when open
         policyHandler.removePurchasePolicy(policy);
         return true;
     }
@@ -499,6 +565,7 @@ public class Store {
         if(!canEditPolicies(userId)){
             throw new Exception("User " + userId + " doesn't have permission to ADD discount!");
         }
+        storeClosedExeption();//actions are available only when open
         policyHandler.addDiscountPolicy(discountPolicy);
         return true;
     }
@@ -517,6 +584,7 @@ public class Store {
         if(!canEditPolicies(userID)){
             throw new Exception("User " + userID + " doesn't have permission to REMOVE discount!");
         }
+        storeClosedExeption();//actions are available only when open
         policyHandler.removeDiscountPolicy(discountPolicy);
         return true;
     }
