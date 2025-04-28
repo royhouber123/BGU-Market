@@ -51,4 +51,12 @@ public class Bid {
         counterOffered = true;
         counterOfferAmount = newAmount;
     }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public Set<String> getRequiredApprovers() {
+        return requiredApprovers;
+    }
 }

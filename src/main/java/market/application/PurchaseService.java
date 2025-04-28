@@ -118,7 +118,7 @@ public class PurchaseService {
 
     public void approveBid(String storeId, String productId, String userId, String approverId) {
         try {
-            validateApproverForBid(storeId, approverId);
+            validateApproverForBid(storeId, productId, userId, approverId);
             BidPurchase.approveBid(storeId, productId, userId, approverId);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to approve bid: " + e.getMessage(), e);
@@ -127,7 +127,7 @@ public class PurchaseService {
 
     public void rejectBid(String storeId, String productId, String userId, String approverId) {
         try {
-            validateApproverForBid(storeId, approverId);
+            validateApproverForBid(storeId, productId, userId, approverId);
             BidPurchase.rejectBid(storeId, productId, userId, approverId);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to reject bid: " + e.getMessage(), e);
@@ -136,7 +136,7 @@ public class PurchaseService {
 
     public void proposeCounterBid(String storeId, String productId, String userId, String approverId, double newAmount) {
         try {
-            validateApproverForBid(storeId, approverId);
+            validateApproverForBid(storeId, productId, userId, approverId);
             BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to propose counter bid: " + e.getMessage(), e);
@@ -183,11 +183,23 @@ public class PurchaseService {
         }
     }
 
-    private void validateApproverForBid(String storeId, String approverId) {
-        Store store=storeRepository.getStoreByID(storeId); // Check if store exists
-        Boolean ifVlaidPermission=store.checkBidPermission(approverId); // Check if user has permission to bids
-        if (!ifVlaidPermission) {
-            throw new RuntimeException("User does not have permission to approve/reject bids: " + approverId);
+    private void validateApproverForBid(String storeId, String productId, String userId, String approverId) {
+        List<Bid> bids=BidPurchase.getBids().get(new BidKey(storeId, productId));
+        if (bids == null || bids.isEmpty()) {
+            throw new RuntimeException("No bids found for product " + productId + " in store " + storeId);
+        }        
+        Bid bidOfUser=null;
+        for (Bid bid : bids) {
+            if (bid.getUserId().equals(userId)) {
+                bidOfUser=bid;
+                break; // find the matching bid and break
+            }
+        }
+        if (bidOfUser == null) {
+            throw new RuntimeException("No bid found for user: " + userId);
+        }
+        if (!bidOfUser.getRequiredApprovers().contains(approverId)) {
+            throw new RuntimeException("User " + approverId + " does not have permission to approve/reject/propose counter offer this bid.");
         }
     }
 }

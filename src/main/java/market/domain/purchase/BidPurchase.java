@@ -18,85 +18,12 @@ public class BidPurchase {
     private static ShipmentService shipmentService;
     private static PaymentService paymentService;
     
-    private static class BidKey {
-        String storeId;
-        String productId;
-
-        BidKey(String storeId, String productId) {
-            this.storeId = storeId;
-            this.productId = productId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof BidKey)) return false;
-            BidKey other = (BidKey) o;
-            return storeId.equals(other.storeId) && productId.equals(other.productId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(storeId, productId);
-        }
-    }
-
-    private static class Bid {
-        String userId;
-        double price;
-        String shippingAddress;
-        String contactInfo;
-        Set<String> requiredApprovers;
-        Set<String> approvedBy = new HashSet<>();
-        boolean approved = false;
-        boolean rejected = false;
-        boolean counterOffered = false;
-        double counterOfferAmount = -1; //no counter offer yet
-
-        Bid(String userId, double price, String shippingAddress, String contactInfo, Set<String> requiredApprovers) {
-            this.userId = userId;
-            this.price = price;
-            this.shippingAddress = shippingAddress;
-            this.contactInfo = contactInfo;
-            this.requiredApprovers = requiredApprovers;
-        }
-
-        void approve(String approverId) {
-            if (requiredApprovers.contains(approverId)) {
-                approvedBy.add(approverId);
-                if (approvedBy.containsAll(requiredApprovers)) {
-                    approved = true;
-                }
-            }
-        }
-
-        boolean isApproved() {
-            return approved;
-        }
-
-        void reject(String approverId) {
-            if (requiredApprovers.contains(approverId)) {
-                rejected = true;
-            }
-        }
-
-        boolean isRejected() {
-            return rejected;
-        }
-
-        void proposeCounterOffer(double newAmount) {
-            counterOffered = true;
-            counterOfferAmount = newAmount;
-        }
-    }
-    
     
     private static final Map<BidKey, List<Bid>> bids = new HashMap<>();
 
     private static BidKey buildKey(String storeId, String productId) {
         return new BidKey(storeId, productId);
     }
-
 
 
     /**
@@ -367,4 +294,7 @@ public class BidPurchase {
         return new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
     } 
 
+    public static Map<BidKey, List<Bid>> getBids() {
+        return bids;
+    }
 }
