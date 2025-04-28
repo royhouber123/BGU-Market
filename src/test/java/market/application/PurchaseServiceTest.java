@@ -3,7 +3,7 @@ package market.application;
 import market.domain.policy.*;
 import market.domain.purchase.*;
 import market.domain.user.*;
-import market.infrastructure.InMemoryPurchaseRepository;
+import market.infrastructure.PurchaseRepository;
 import market.services.Store;
 import market.services.StoreService;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,12 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PurchaseServiceTest {
 
     private PurchaseService purchaseService;
-    private InMemoryPurchaseRepository repository;
+    private PurchaseRepository repository;
     private MockStoreService storeService;
 
     @BeforeEach
     public void setup() {
-        repository = new InMemoryPurchaseRepository();
+        repository = new PurchaseRepository();
         storeService = new MockStoreService();
         purchaseService = new PurchaseService(storeService, repository);
     }

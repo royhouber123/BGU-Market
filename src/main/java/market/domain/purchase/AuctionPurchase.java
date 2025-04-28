@@ -11,7 +11,7 @@ import java.util.TimerTask;
 import market.application.StoreService;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
-import market.infrastracture.StoreRepository;
+import market.infrastructure.StoreRepository;
 
 import java.util.Timer;
 import java.util.TimerTask;

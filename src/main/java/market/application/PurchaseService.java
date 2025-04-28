@@ -4,7 +4,12 @@ import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
 import market.domain.purchase.*;
 import market.domain.user.*;
+<<<<<<< HEAD
+import market.infrastructure.*;
+import market.application.StoreService;
+=======
 import market.infrastracture.*;
+>>>>>>> 6a35619b7244fb9a0ad4c1a2f7678b65043529a2
 import market.domain.store.Store;
 import market.domain.store.Policies.*;
 
