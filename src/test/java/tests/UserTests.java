@@ -67,9 +67,8 @@ public class UserTests extends AcceptanceTestBase {
 
      @Test
     void user_add_product() {
-        
         this.storeService.addNewProduct(1, 1, "gvina", "milk", 5, 100);
-        this.userService.addProductToCart("user1", 1, "gvina", 3);
+        this.userService.addProductToCart("user1", "1", "gvina", 3);
         ShoppingCart shoppingCart = this.userService.getCart("user1");
         assertEquals(3,shoppingCart.getStoreBag(1).getProductQuantity("gvina")); 
         this.userService.removeProductFromCart("user1",111,"gvina",3)  ; 
@@ -139,7 +138,7 @@ public class UserTests extends AcceptanceTestBase {
                 AuthTokens tokens = authService.login("user6", "password6");
                 String accessToken  = tokens.accessToken();  
                 String refreshToken = tokens.refreshToken();
-                this.userService.addProductToCart("user6", 1, "gvina", 3);
+                this.userService.addProductToCart("user6", "1", "gvina", 3);
                 /// need to check payment and shipping which both mock
                 when (paymentService.getPaymentStatus("user6")).thenReturn("Visa **** 1234");
                 when(shipmentService.getShippingInfo("user6")).thenReturn("123 Main St, City, Country");

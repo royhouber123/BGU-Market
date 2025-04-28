@@ -9,16 +9,16 @@ import java.util.Map;
  */
 public class StoreBag {
 
-    private final Integer storeId;
+    private final String storeId;
     /** key = productName, value = (quantity, purchaseType) */
     private final Map<String, Integer> products = new HashMap<>();
 
-    public StoreBag(int storeId) {
+    public StoreBag(String storeId) {
         this.storeId = storeId;
     }
 
 
-    public int getStoreId() {
+    public String getStoreId() {
         return storeId;
     }
 

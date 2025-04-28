@@ -12,7 +12,7 @@ import java.util.Map;
 public class Subscriber extends User {
 
     private String shippingAddress;
-    public static record StoreRoleKey(Integer storeId, String roleName) {}
+    public static record StoreRoleKey(String storeId, String roleName) {}
     private final Map<StoreRoleKey, Role> roles;
 
     public Subscriber(String userName) {
@@ -39,7 +39,7 @@ public class Subscriber extends User {
      * @param roleName the name of the role (Owner, Manager, Founder)
      * @throws IllegalArgumentException if the roleName is invalid
      */
-    public void setStoreRole(int storeId, String roleName) throws Exception {
+    public void setStoreRole(String storeId, String roleName) throws Exception {
         Role role;
         switch (roleName) {
             case "Owner" -> role = new Owner(storeId);
@@ -50,7 +50,7 @@ public class Subscriber extends User {
         roles.put(new StoreRoleKey(storeId, roleName), role);
     }
 
-    public Role getStoreRole(int storeId, String roleName) throws Exception {
+    public Role getStoreRole(String storeId, String roleName) throws Exception {
         StoreRoleKey key = new StoreRoleKey(storeId, roleName);
         Role role = roles.get(key);
         if (role == null) {
@@ -60,23 +60,23 @@ public class Subscriber extends User {
         return role;
     }
 
-    public boolean isFounder(int storeId)
+    public boolean isFounder(String storeId)
     {
         StoreRoleKey key = new StoreRoleKey(storeId, "Founder");
         return this.roles.containsKey(key);
     }
 
-    public boolean isManager(int storeId){
+    public boolean isManager(String storeId){
         StoreRoleKey key = new StoreRoleKey(storeId, "Manager");
         return this.roles.containsKey(key);
     }
 
-    public boolean isOwner(int storeId){
+    public boolean isOwner(String storeId){
         StoreRoleKey key = new StoreRoleKey(storeId, "Owner");
         return this.roles.containsKey(key);
     }
 
-    public boolean removeStoreRole(int storeId, String roleName) {
+    public boolean removeStoreRole(String storeId, String roleName) {
         return roles.remove(new StoreRoleKey(storeId, roleName)) != null;
     }
 
@@ -85,7 +85,7 @@ public class Subscriber extends User {
      * @param storeId the store identifier
      * @return true if any roles were removed, false otherwise
      */
-    public boolean removeStore(int storeId) {
+    public boolean removeStore(String storeId) {
         boolean removed = roles.keySet().removeIf(key -> key.storeId.equals(storeId));
         return removed;
     }

@@ -32,9 +32,9 @@ public abstract class AcceptanceTestBase {
         IUserRepository userRepository = new UserRepository();
         userService = new UserService(userRepository);
         authService = new AuthService(userRepository);
-        StoreRepository storerepo = new StoreRepository(); // Use the real implementation
+        IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
-        storeService = new StoreService(storerepo); // Use the real implementation 
+        storeService = new StoreService(storerepo,userRepository); // Use the real implementation
         paymentService = mock(PaymentService.class); // Mock external service
         shipmentService = mock(ShipmentService.class); // Mock external service
         
