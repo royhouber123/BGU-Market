@@ -2,7 +2,7 @@ package market.application;
 
 import market.domain.purchase.*;
 import market.domain.user.*;
-import market.infrastracture.*;
+import market.infrastructure.*;
 import market.domain.store.Store;
 import market.domain.store.Policies.*;
 
