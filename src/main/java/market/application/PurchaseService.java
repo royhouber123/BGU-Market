@@ -109,7 +109,7 @@ public class PurchaseService {
     // Bid Purchase:
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
         try {
-            Set<String> approvers = storeRepository.getStoreByID(storeId).getAprroversForBid();
+            Set<String> approvers = storeRepository.getStoreByID(storeId).getApproversForBid();
             BidPurchase.submitBid(storeRepository, storeId, productId, userId, offerPrice, shippingAddress, contactInfo, approvers, shipmentService, paymentService);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to submit bid: " + e.getMessage(), e);
