@@ -1,7 +1,7 @@
 package market.domain.purchase;
 import market.domain.user.ShoppingCart;
 import market.domain.user.StoreBag;
-import market.infrastracture.StoreRepository;
+import market.infrastructure.StoreRepository;
 import market.application.StoreService;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
@@ -91,9 +91,6 @@ public class BidPurchase {
     
     
     private static final Map<BidKey, List<Bid>> bids = new HashMap<>();
-
-    private static final Map<String, List<String>> pendingNotifications = new HashMap<>();
-
 
     private static BidKey buildKey(String storeId, String productId) {
         return new BidKey(storeId, productId);
