@@ -33,9 +33,11 @@ public class StoreProductManager implements IStoreProductsManager {
         }
     @Override
     public boolean addListing(Listing listing) {
-        // if (listing.getStoreId().equals(this.storeId)) {
-        //     throw new IllegalArgumentException("Listing storeId does not match StoreProductManager storeId!");
-        // }
+
+        if (!listing.getStoreId().equals(this.storeId)) {
+            throw new IllegalArgumentException("Listing storeId does not match StoreProductManager storeId!");
+        }
+
         if (listingsById.containsKey(listing.getListingId())) {
             return false; // Already exists
         }

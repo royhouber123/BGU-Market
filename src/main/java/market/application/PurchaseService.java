@@ -9,6 +9,8 @@ import market.application.StoreService;
 import market.domain.store.*;
 import market.domain.store.Policies.*;
 
+
+
 import java.util.*;
 
 public class PurchaseService {
@@ -34,6 +36,7 @@ public class PurchaseService {
             Map<String, Map<String, Integer>> listForUpdateStock=new HashMap<>();
             double totalDiscountPrice = 0.0;
             List<PurchasedProduct> purchasedItems = new ArrayList<>();
+            
             for (StoreBag bag : cart.getAllStoreBags()) {
                 String storeId = String.valueOf(bag.getStoreId());
                 Store store = storeRepository.getStoreByID(storeId);
@@ -43,16 +46,18 @@ public class PurchaseService {
                     throw new RuntimeException("Invalid purchase bag for store: " + storeId);
                 }
                 totalDiscountPrice=totalDiscountPrice+store.calculateStoreBagWithDiscount(bag.getProducts());
+                
                 for (Map.Entry<String, Integer> product : bag.getProducts().entrySet()) {
                     String productId = product.getKey();
-                    try{
-                        double unitPrice = store.ProductPrice(productId);
-                        Integer quantity = product.getValue();
-                        PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
-                        purchasedItems.add(purchasedProduct);
-                    } catch (Exception e){
+                    double unitPrice;
+                    try {
+                        unitPrice = store.ProductPrice(productId);
+                    } catch (Exception e) {
                         throw new RuntimeException("Product not found in store: " + productId);
                     }
+                    Integer quantity = product.getValue();
+                    PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
+                    purchasedItems.add(purchasedProduct);
                 }
             }
             boolean updated = storeRepository.updateStockForPurchasedItems(listForUpdateStock);

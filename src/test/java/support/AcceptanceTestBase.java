@@ -3,19 +3,20 @@ package support;
 import market.application.UserService;
 import market.application.StoreService;
 import market.application.AuthService;
+import market.application.PurchaseService;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
 import static org.mockito.Mockito.mock;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import market.domain.user.IUserRepository;
-//import IStoreRepository
+import market.infrastructure.UserRepository; // Ensure this is the correct package path
+import market.infrastructure.PurchaseRepository;
+import market.infrastructure.StoreRepository; // Ensure this is the correct package path
+import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IStoreRepository;
-// import user repository
-import market.infrastracture.UserRepository;
-import market.infrastracture.StoreRepository;
-//import subscriber
 import market.domain.user.Subscriber;
+import market.*;
 
 public abstract class AcceptanceTestBase {
 
@@ -25,6 +26,7 @@ public abstract class AcceptanceTestBase {
     protected AuthService authService;
     protected PaymentService paymentService;
     protected ShipmentService shipmentService;
+    protected PurchaseService purchaseService;
     
     @BeforeEach
     void setup() {
@@ -37,7 +39,9 @@ public abstract class AcceptanceTestBase {
         storeService = new StoreService(storerepo,userRepository); // Use the real implementation
         paymentService = mock(PaymentService.class); // Mock external service
         shipmentService = mock(ShipmentService.class); // Mock external service
-        
+        IPurchaseRepository prep = new PurchaseRepository();
+
+        purchaseService = new PurchaseService(storerepo, prep , userRepository,paymentService,shipmentService);
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
         
@@ -49,11 +53,6 @@ public abstract class AcceptanceTestBase {
     }
 
 
-    /* 2️⃣  create an empty store – returns the new store-ID */
-    protected int createStore(String userName, String storeName) throws Exception {
-        AuthService.AuthTokens auth = registarAndLogin("founder");
-        this.storeService.createStore(storeName, 1);
-        return storeService.getStore(storeName).getStoreID();
-    }
+   
   
 }

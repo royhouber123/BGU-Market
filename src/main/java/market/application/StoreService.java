@@ -28,7 +28,7 @@ public class StoreService {
         Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
         //Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
-        ((Subscriber)userRepository.findById(founderId)).setStoreRole();
+        ((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "FOUNDER");
         //LOG - store added
     }
 
