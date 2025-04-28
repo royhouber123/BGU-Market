@@ -355,8 +355,10 @@ public class Store {
      *                   - {@code toRemove} is the founder,
      *                   - {@code id} is not the one who assigned {@code toRemove}.
      */
-    public List<String> removeOwner(String id, String toRemove) throws Exception {
-        List<String> res = new ArrayList<>();
+    public List<List<String>> removeOwner(String id, String toRemove) throws Exception {
+        List<List<String>> res = new ArrayList<>();
+        res.add(new ArrayList<>());
+        res.add(new ArrayList<>());
         if (!isOwner(id)){
             throw new Exception(id +" is not a owner of store:"+ storeID);
         }
@@ -375,7 +377,7 @@ public class Store {
         while(!queue.isEmpty()){
             String next = queue.remove();
             //add to remove list
-            res.add(next);
+            res.get(0).add(next);
             List<String> assigments = getOwnerAssigments(next);
 
             //enter the owners he assigned to the queue
@@ -391,14 +393,14 @@ public class Store {
             if (ownerToAssignedManagers.get(next)!= null){
                 //remove the managers he assign
                 for (Manager a: ownerToAssignedManagers.get(next)){
-                    res.add(a.getID());
+                    res.get(1).add(a.getID());
                 }
                 ownerToAssignedManagers.remove(next);
             }
 
 
         }
-        for (String o:res){
+        for (String o:res.get(0)){
             if (isOwner(o)){
                 ownerToAssignedOwners.remove(o);
             }

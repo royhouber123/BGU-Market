@@ -57,7 +57,7 @@ public class PurchaseService {
             }
             RegularPurchase regularPurchase = new RegularPurchase();
             return regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to execute regular purchase: " + e.getMessage(), e);
         }
     }
@@ -181,8 +181,7 @@ public class PurchaseService {
         if (!(user instanceof Subscriber subscriber)) {
             throw new RuntimeException("User is not a subscriber: " + approverId);
         }
-        int storeIdInt = Integer.parseInt(storeId); 
-        if (!subscriber.isOwner(storeIdInt) && !subscriber.isManager(storeIdInt)) {
+        if (!subscriber.isOwner(storeId) && !subscriber.isManager(storeId)) {
             throw new RuntimeException("User is not an owner or manager in store: " + approverId);
         }
         /////////לוודא עם דיין כי אמרו מנהלי או בעלי חנות עם הרשאות מתאימות

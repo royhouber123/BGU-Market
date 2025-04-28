@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ShoppingCart {
-    private Map<Integer, StoreBag> storeBags = new HashMap<>();
+    private Map<String, StoreBag> storeBags = new HashMap<>();
 
     public ShoppingCart(){
         this.storeBags = new HashMap<>();
     }
 
-    public boolean addProduct(int storeId, String productId,  int quantity) {
+    public boolean addProduct(String storeId, String productId,  int quantity) {
         storeBags.computeIfAbsent(storeId, StoreBag::new)
                  .addProduct(productId , quantity);
         return true;
