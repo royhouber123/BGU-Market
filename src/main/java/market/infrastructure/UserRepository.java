@@ -1,48 +1,50 @@
 package market.infrastructure;
 
-import market.domain.user.IUserRepository;
-import market.domain.user.User;
+import market.domain.user.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Mock implementation of IUserRepository for development and testing.
- * Initializes with sample users and allows in-memory CRUD operations.
- */
 public class UserRepository implements IUserRepository {
 
-    private final Map<String, User> userMap = new HashMap<>();
-    
+    private final Map<String, User>   userMap     = new HashMap<>();
+    private final Map<String, String> passwordMap = new HashMap<>();
+
     public UserRepository() {
-        // Initialize with mock data
-        User user1 = new User("username1");
-        user1.addProductToCart("store1", "productA" , 1);
-        user1.addProductToCart("store2", "productB" , 1);
+        User u1 = new User("username1");
+        u1.addProductToCart(111, "productA", 1);
+        userMap.put(u1.getUserName(), u1);
+        passwordMap.put(u1.getUserName(), "pw1");
 
-        User user2 = new User("username2");
-        user2.addProductToCart("store1", "productC", 2);
+        User u2 = new User("username2");
+        u2.addProductToCart(111, "productC", 2);
+        userMap.put(u2.getUserName(), u2);
+        passwordMap.put(u2.getUserName(), "pw2");
     }
 
-    @Override
-    public User findById(String userName) {
-        return userMap.get(userName);
+    public User findById(String name)                   { return userMap.get(name); }
+    public void register(String name, String pw)        { userMap.put(name,new User(name)); passwordMap.put(name,pw); }
+    public void delete(String name)                     { userMap.remove(name); passwordMap.remove(name); }
+    public User isExist(String name,String pw)          { return pw.equals(passwordMap.get(name)) ? userMap.get(name):null; }
+
+    public boolean changeUserName(String oldName,String newName){
+        if(!userMap.containsKey(oldName)||userMap.containsKey(newName)) return false;
+        User u = userMap.remove(oldName);
+        u.setUserName(newName);                 
+        userMap.put(newName,u);
+
+        String pw = passwordMap.remove(oldName);
+        passwordMap.put(newName,pw);
+        return true;
     }
 
-    @Override
-    public void register(String username , String password) {
-        userMap.put(username , new User(username));
+    public boolean changePassword(String name,String newPw){
+        if(!passwordMap.containsKey(name)) return false;
+        passwordMap.put(name,newPw);
+        return true;
     }
-
-    @Override
-    public void delete(String userName) {
-        userMap.remove(userName);
-    }
-
-    @Override
-    public User isExist(String userName ,String password)
-    {
-        //TODO - DB LOGIN INFO CHECK
-        return this.userMap.get(userName);
+    public ShoppingCart getCart(String name){
+        User u = userMap.get(name);
+        return u!=null ? u.getShoppingCart():null;
     }
 }
