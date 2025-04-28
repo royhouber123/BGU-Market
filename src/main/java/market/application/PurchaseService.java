@@ -47,12 +47,12 @@ public class PurchaseService {
                     String productId = product.getKey();
                     try{
                         double unitPrice = store.ProductPrice(productId);
+                        Integer quantity = product.getValue();
+                        PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
+                        purchasedItems.add(purchasedProduct);
                     } catch (Exception e){
                         throw new RuntimeException("Product not found in store: " + productId);
                     }
-                    Integer quantity = product.getValue();
-                    PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
-                    purchasedItems.add(purchasedProduct);
                 }
             }
             boolean updated = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
