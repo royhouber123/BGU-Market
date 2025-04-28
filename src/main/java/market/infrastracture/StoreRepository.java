@@ -3,13 +3,15 @@ package market.infrastracture;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 
+
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class StoreRepository implements IStoreRepository {
 
     private final HashMap<String, Store> storesByName = new HashMap<>();
-    private final HashMap<Integer, Store> storesById = new HashMap<>();
+    private final HashMap<String, Store> storesById = new HashMap<>();
 
 
     @Override
@@ -20,8 +22,9 @@ public class StoreRepository implements IStoreRepository {
         return null;
     }
 
+
     @Override
-    public Store getStoreByID(int storeID) {
+    public Store getStoreByID(String storeID) {
         if(storesById.containsKey(storeID)) {
             return storesById.get(storeID);
         }
@@ -30,7 +33,7 @@ public class StoreRepository implements IStoreRepository {
 
     @Override
     public void addStore(Store store) throws Exception {
-        int id = store.getStoreID();
+        String id = store.getStoreID();
         String storeName = store.getName();
         if(storesByName.containsKey(storeName)) {
             throw new Exception("Store with name " + storeName + " already exists");
@@ -47,7 +50,7 @@ public class StoreRepository implements IStoreRepository {
         Store s = getStoreByName(storeName);
         if(s == null)
             throw new Exception("Store '" + storeName +"' doesn't exist in repository");
-        int id = s.getStoreID();
+        String id = s.getStoreID();
         storesById.remove(id);
         storesByName.remove(storeName);
     }
@@ -58,11 +61,11 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
-    public int getNextStoreID() {
+    public String getNextStoreID() {
         if(storesById.isEmpty()) {
-            return 1;
+            return "1";
         }
-        return Collections.max(this.storesById.keySet()) + 1;
+        return String.valueOf(Collections.max(this.storesById.keySet().stream().map(Integer::parseInt).toList()) + 1);
     }
 
 }

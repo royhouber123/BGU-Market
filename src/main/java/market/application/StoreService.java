@@ -6,21 +6,21 @@ import java.util.Set;
 
 public class StoreService {
     private IStoreRepository storeRepository;
-    private int storeIDs =1;
+    private String storeIDs ="1";
 
     public StoreService(IStoreRepository storeRepository) {
         this.storeRepository = storeRepository;
         storeIDs = storeRepository.getNextStoreID();
     }
 
-    public void createStore(String storeName, int founderId) throws Exception {
+    public void createStore(String storeName, String founderId) throws Exception {
         // ? - do we need store type
         if(storeRepository.containsStore(storeName)) {
             // LOG - error
             throw new Exception("The storeName '" + storeName + "' already exists");
         }
-        Store store = new Store(storeIDs,storeName, founderId);
-        storeIDs++;//Who is responsable to manage the store id's????????
+        Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
+        //Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
         //LOG - store added
     }
@@ -39,7 +39,7 @@ public class StoreService {
 appoints 'newOwner' to be an owner of 'storeID' BY 'appointerID'
 assumes aggreement by 'apointerID''s appointer
  */
-    public String addAdditionalStoreOwner(int appointerID, int newOwnerID, int storeID){
+    public String addAdditionalStoreOwner(String appointerID, String newOwnerID, String storeID){
         try
         {
             Store s = storeRepository.getStoreByID(storeID);
@@ -60,12 +60,12 @@ assumes aggreement by 'apointerID''s appointer
     if the founder requests, it does that.
     if an owner requests, so its send a notification to his appointer, to allow the appointment
      */
-    public String OwnerAppointmentRequest(int appointerID, int newOwnerId,int storeID){
+    public String OwnerAppointmentRequest(String appointerID, String newOwnerId,String storeID){
         try{
             Store s = storeRepository.getStoreByID(storeID);
             if (s==null)
                 throw new Exception("store doesn't exist");
-            if (s.getFounderID()==appointerID){
+            if (s.getFounderID().equals(appointerID)){
                 s.addNewOwner(appointerID,newOwnerId);
             }
             else{
@@ -75,7 +75,7 @@ assumes aggreement by 'apointerID''s appointer
                 if (!s.isOwner(appointerID)){
                     throw new Exception(appointerID + " is NOT an Owner of store:"+storeID);
                 }
-                int requestTO=s.OwnerAssignedBy(appointerID);
+                String requestTO=s.OwnerAssignedBy(appointerID);
                 //TODO:notify 'requestTO' that his assignee want to assign new owner
             }
         }catch (Exception e){
@@ -90,13 +90,13 @@ assumes aggreement by 'apointerID''s appointer
     /*
     removes 'toRemove' and all the people he assigned
      */
-    public String removeOwner(int id, int toRemove, int storeID){
+    public String removeOwner(String id, String toRemove, String storeID){
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("store doesn't exist");
-            List<Integer> removedWorkers =  s.removeOwner(id,toRemove);
-            for (int i:removedWorkers ){
+            List<String> removedWorkers =  s.removeOwner(id,toRemove);
+            for (String i:removedWorkers ){
                 //TODO: need to change data on those ussers
             }
         }
@@ -117,7 +117,7 @@ assumes aggreement by 'apointerID''s appointer
      * @throws RuntimeException if the store does not exist, the appointer is not an owner,
      *                           the new manager is already assigned, or any other business rule is violated.
      */
-    public String addNewManager(int appointerID, int newManagerID, int storeID){
+    public String addNewManager(String appointerID, String newManagerID, String storeID){
         try{
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null){
@@ -141,14 +141,14 @@ assumes aggreement by 'apointerID''s appointer
      *
      * @param managerID    ID of the manager receiving the new permission.
      * @param appointerID  ID of the owner who appointed the manager and is now granting the permission.
-     * @param permissionID Integer code representing the permission to assign (must be valid in {@link Permission} enum).
+     * @param permissionID Integer code representing the permission to assign (must be valid in {Permission} enum).
      * @param storeID      ID of the store where the manager belongs.
      * @return "success" if the permission was successfully added, "failed" if the operation did not complete.
      * @throws RuntimeException if the store does not exist, the appointer is not authorized,
      *                           the manager is invalid, the permission code is invalid,
      *                           or any other business rule violation occurs.
      */
-    public String addPermissionToManager(int managerID, int appointerID, int permissionID, int storeID) {
+    public String addPermissionToManager(String managerID, String appointerID, int permissionID, String storeID) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
@@ -175,7 +175,7 @@ assumes aggreement by 'apointerID''s appointer
      * @throws RuntimeException if the store does not exist, the requester is unauthorized,
      *                           the manager is invalid, or any other business rule violation occurs.
      */
-    public Set<Integer> getManagersPermissions(int managerID, int whoIsAsking, int storeID) {
+    public Set<Integer> getManagersPermissions(String managerID, String whoIsAsking, String storeID) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
@@ -192,7 +192,7 @@ assumes aggreement by 'apointerID''s appointer
      * Only the owner who originally appointed the manager can remove permissions.
      *
      * @param managerID    ID of the manager whose permission is being revoked.
-     * @param permissionID Integer code representing the permission to remove (must be valid in {@link Permission} enum).
+     * @param permissionID Integer code representing the permission to remove (must be valid in { Permission} enum).
      * @param appointerID  ID of the owner who appointed the manager and is requesting to remove the permission.
      * @param storeID      ID of the store where the manager belongs.
      * @return "success" if the permission was successfully removed, "failed" if the operation did not complete.
@@ -200,7 +200,7 @@ assumes aggreement by 'apointerID''s appointer
      *                           the manager ID is invalid, the permission code is invalid,
      *                           or any other business rule violation occurs.
      */
-    public String removePermissionFromManager(int managerID, int permissionID, int appointerID, int storeID) {
+    public String removePermissionFromManager(String managerID, int permissionID, String appointerID, String storeID) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
@@ -212,102 +212,32 @@ assumes aggreement by 'apointerID''s appointer
                 return "failed";
             }
         } catch (Exception e) {
+
+
             throw new RuntimeException(e);
         }
     }
 
 
 
-
     /**
-     * Adds a new product to the specified store.
-     * Requires that the store exists and the user has permission to edit products.
+     * Adds a new listing to the specified store.
      *
-     * @param userID      ID of the user attempting to add the product.
-     * @param storeID     ID of the target store.
-     * @param productName Name of the product to be added.
-     * @param category    Category of the product.
-     * @param quantity    Quantity of the product to add.
-     * @param price       Price per unit of the product.
-     * @return "succeed" if the product was added successfully; otherwise, returns an error message.
+     * @param userID User trying to add.
+     * @param storeID Store ID.
+     * @param productId Product ID.
+     * @param productName Product name.
+     * @param productDescription Description of the product.
+     * @param quantity Quantity to add.
+     * @param price Price per unit.
+     * @return "succeed" or error message.
      */
-    public String addNewProduct(int userID, int storeID, String productName, String category, int quantity, int price) {
+    public String addNewListing(String userID, String storeID, String productId, String productName, String productDescription, int quantity, double price) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
-                throw new Exception("store doesn't exist");
-            s.addNewProduct(userID,productName,category,quantity,price);
-        }
-        catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
-
-
-    /**
-     * Removes a product from the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user attempting to remove the product.
-     * @param storeID     ID of the target store.
-     * @param productName Name of the product to remove.
-     * @return "succeed" if the product was removed successfully; otherwise, returns an error message.
-     */
-    public String removeProduct(int userID, int storeID, String productName) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.removeProduct(userID,productName);
-        }
-        catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
-
-
-    /**
-     * Reduces the quantity of a specific product in the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user attempting to reduce the product quantity.
-     * @param storeID     ID of the store containing the product.
-     * @param productName Name of the product whose quantity is to be reduced.
-     * @param howMuch     Amount to reduce from the current quantity.
-     * @return "succeed" if the quantity was reduced successfully; otherwise, an error message.
-     */
-    public String reduceProductQuantity(int userID, int storeID, String productName, int howMuch){
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.reduceProductQuantity(userID,productName,howMuch);
-        }
-        catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
-
-
-    /**
-     * Updates the quantity of a specific product in the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user performing the update.
-     * @param storeID     ID of the store where the product is located.
-     * @param productName Name of the product to update.
-     * @param howMuch     The new quantity or amount to update.
-     * @return "succeed" if the quantity was updated successfully; otherwise, an error message.
-     */
-    public String updateProductQuantity(int userID, int storeID, String productName, int howMuch) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.updateProductQuantity(userID, productName, howMuch);
+                throw new Exception("Store doesn't exist");
+            s.addNewListing(userID, productId, productName, productDescription, quantity, price);
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -315,21 +245,22 @@ assumes aggreement by 'apointerID''s appointer
     }
 
 
+
+
     /**
-     * Adds a new product category to the specified store.
-     * Requires that the store exists and the user has permission to edit products.
+     * Removes a listing from the specified store.
      *
-     * @param userID  ID of the user performing the operation.
-     * @param storeID ID of the store to which the category will be added.
-     * @param catName Name of the category to add.
-     * @return "succeed" if the category was added successfully; otherwise, an error message.
+     * @param userID User ID.
+     * @param storeID Store ID.
+     * @param listingId ID of the listing to remove.
+     * @return "succeed" or error message.
      */
-    public String addCategory(int userID, int storeID, String catName) {
+    public String removeListing(String userID, String storeID, String listingId) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
-                throw new Exception("store doesn't exist");
-            s.addCategory(userID, catName);
+                throw new Exception("Store doesn't exist");
+            s.removeListing(userID, listingId);
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -337,45 +268,22 @@ assumes aggreement by 'apointerID''s appointer
     }
 
 
+
     /**
-     * Moves a product to a different category within the specified store.
-     * Requires that the store exists and the user has permission to edit products.
+     * Purchases quantity from a listing.
      *
-     * @param userID      ID of the user performing the operation.
-     * @param storeID     ID of the store where the product resides.
-     * @param productName Name of the product to move.
-     * @param catName     Target category name.
-     * @return "succeed" if the product was moved successfully; otherwise, an error message.
+     *
+     * @param storeID Store ID.
+     * @param listingId ID of the listing to purchase from.
+     * @param quantity How many units to buy.
+     * @return "succeed" or error message.
      */
-    public String moveProductToCategory(int userID, int storeID, String productName, String catName) {
+    public String purchaseFromListing( String storeID, String listingId, int quantity) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
-                throw new Exception("store doesn't exist");
-            s.moveProductToCategory(userID, productName, catName);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
-        return "succeed";
-    }
-
-
-    /**
-     * Updates the price of a product in the specified store.
-     * Requires that the store exists and the user has permission to edit products.
-     *
-     * @param userID      ID of the user performing the update.
-     * @param storeID     ID of the store containing the product.
-     * @param productName Name of the product whose price is to be updated.
-     * @param newPrice    New price to set for the product.
-     * @return "succeed" if the price was updated successfully; otherwise, an error message.
-     */
-    public String updateProductPrice(int userID, int storeID, String productName, int newPrice) {
-        try {
-            Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
-                throw new Exception("store doesn't exist");
-            s.updateProductPrice(userID, productName, newPrice);
+                throw new Exception("Store doesn't exist");
+            s.purchaseFromListing(listingId, quantity);
         } catch (Exception e) {
             return e.getMessage();
         }

@@ -1,6 +1,10 @@
 package market.domain.store;
 
 import market.domain.purchase.PurchaseType;
+import market.domain.store.Policies.DiscountCombinationType;
+import market.domain.store.Policies.DiscountPolicy;
+import market.domain.store.Policies.PolicyHandler;
+import market.domain.store.Policies.PurchasePolicy;
 
 import java.util.*;
 import java.util.stream.*;
@@ -18,24 +22,26 @@ public class Store {
     private String name;
     boolean active;
 
-    int founderID;
+    String founderID;
 
-    private HashMap<Integer,Integer> ownerToWhoAssignedHim;
-    private HashMap<Integer, List<Integer>> ownerToAssignedOwners;
+    private HashMap<String,String> ownerToWhoAssignedHim;
+    private HashMap<String, List<String>> ownerToAssignedOwners;
     //every mangaer has a key in the dict.
     // if manager 1 assign manager 2, so manager2 in managers[manager1]
 
+
     //TODO: implement manager interface (probably state design pattern) with appropriate permissions
 
-    private HashMap<Integer, List<Manager>> ownerToAssignedManagers;
+    private HashMap<String, List<Manager>> ownerToAssignedManagers;
 
-    // ? - do we need store type
 
 
     private IStoreProductsManager storeProductsManager;
 
+    private PolicyHandler policyHandler;
 
-    public Store(String storeID,String name, int founderID) throws IllegalArgumentException {
+
+    public Store(String storeID,String name, String founderID) throws IllegalArgumentException {
         // ? - do we need store type
 
         if(!isValidName(name)){
@@ -56,6 +62,7 @@ public class Store {
         this.ownerToAssignedOwners.put(founderID, new ArrayList<>());
         this.ownerToAssignedManagers.put(founderID, new ArrayList<>());
 
+        this.policyHandler = new PolicyHandler();
     }
 
 
@@ -77,7 +84,7 @@ public class Store {
      * @return {@code true} if the new owner was successfully added.
      * @throws Exception if the appointer is not an owner, or if the new owner is already registered as an owner.
      */
-    public boolean addNewOwner(int appointerID, int newOwnerID) throws Exception {
+    public boolean addNewOwner(String appointerID, String newOwnerID) throws Exception {
        if (!isOwner(appointerID))
            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
 
@@ -101,7 +108,7 @@ public class Store {
      * @return {@code true} if the manager was successfully added.
      * @throws Exception if the appointer is not an owner, or if the new manager is already registered as a manager.
      */
-    public boolean addNewManager(int appointerID, int newManagerID) throws Exception {
+    public boolean addNewManager(String appointerID, String newManagerID) throws Exception {
         if (!isOwner(appointerID))
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
 
@@ -124,7 +131,7 @@ public class Store {
      * @throws Exception if the appointer is not an owner, the manager ID is not valid, the permission code is invalid,
      *                   or if the appointer is not the one who originally assigned the manager.
      */
-    public boolean addPermissionToManager( int managerID, int appointerID, int permissionID) throws Exception {
+    public boolean addPermissionToManager( String managerID, String appointerID, int permissionID) throws Exception {
         if(!isOwner(appointerID))
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
         if(!isManager(managerID))
@@ -148,13 +155,13 @@ public class Store {
      * @throws IllegalArgumentException if the requesting user is neither an owner nor the manager.
      * @throws Exception if the given manager ID does not correspond to a valid manager in this store.
      */
-    public Set<Integer> getManagersPermmisions(int managerID, int whoIsAsking) throws Exception {
+    public Set<Integer> getManagersPermmisions(String managerID, String whoIsAsking) throws Exception {
         if(!isOwner(whoIsAsking) && !isManager(managerID))
             throw new IllegalArgumentException("the user:"+whoIsAsking+" is not an owner or a manager of the store: "+storeID);
         Manager manager = getManager(managerID);
         if (manager == null)
             throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
-        return manager.getPermissions().stream().map(Permission::getCode).collect(Collectors.toSet());
+        return manager.getPermissions().stream().map((perm)->(Integer)perm.getCode()).collect(Collectors.toSet());
     }
 
 
@@ -169,7 +176,7 @@ public class Store {
      * @throws Exception if the appointer is not an owner of the store, the manager ID is invalid,
      *                   the permission code is invalid, or if the appointer is not the one who appointed the manager.
      */
-    public boolean removePermissionFromManager(int managerID, int permissionID, int appointerID) throws Exception {
+    public boolean removePermissionFromManager(String managerID, int permissionID, String appointerID) throws Exception {
         if (!isOwner(appointerID))
             throw new Exception("The user: " + appointerID + " is not an owner of the store: " + storeID);
 
@@ -192,7 +199,7 @@ public class Store {
      * @param id ID of the user to check.
      * @return {@code true} if the user is an owner of the store; {@code false} otherwise.
      */
-    public boolean isOwner(int id){
+    public boolean isOwner(String id){
         return ownerToAssignedOwners.containsKey(id);
     }
 
@@ -202,10 +209,10 @@ public class Store {
      * @param id ID of the user to check.
      * @return {@code true} if the user is a manager of the store; {@code false} otherwise.
      */
-    public boolean isManager(int id){
+    public boolean isManager(String id){
         for(List<Manager> l :this.ownerToAssignedManagers.values()){
             for (Manager m : l){
-                if(m.getID()==id){
+                if(m.getID().equals(id)){
                     return true;
                 }
             }
@@ -219,7 +226,7 @@ public class Store {
      * @param id ID of the manager to retrieve.
      * @return The {@link Manager} instance if found; {@code null} otherwise.
      */
-    private Manager getManager(int id){
+    private Manager getManager(String id){
         for (Manager m : getAllManagers()){
             if(m.getID()==id){
                 return m;
@@ -247,11 +254,11 @@ public class Store {
      * @param id ID of the user whose appointer is being queried.
      * @return The ID of the owner who assigned this user, or {@code -1} if the user has no recorded appointer.
      */
-    public int OwnerAssignedBy(int id){
+    public String OwnerAssignedBy(String id){
         if (ownerToWhoAssignedHim.containsKey(id)){
             return ownerToWhoAssignedHim.get(id);
         }
-        return -1;
+        return null;
     }
 
     /**
@@ -260,7 +267,7 @@ public class Store {
      *
      * @return The user ID of the store's founder.
      */
-    public int getFounderID(){
+    public String getFounderID(){
         return founderID;
     }
 
@@ -270,7 +277,7 @@ public class Store {
      * @param id ID of the owner whose assigned owners are requested.
      * @return A list of user IDs representing owners assigned by this user, or {@code null} if the user is not in the map.
      */
-    public List<Integer> getOwnerAssigments(int id){
+    public List<String> getOwnerAssigments(String id){
         return ownerToAssignedOwners.get(id);
     }
 
@@ -288,8 +295,8 @@ public class Store {
      *                   - {@code toRemove} is the founder,
      *                   - {@code id} is not the one who assigned {@code toRemove}.
      */
-    public List<Integer> removeOwner(int id, int toRemove) throws Exception {
-        List<Integer> res = new ArrayList<>();
+    public List<String> removeOwner(String id, String toRemove) throws Exception {
+        List<String> res = new ArrayList<>();
         if (!isOwner(id)){
             throw new Exception(id +" is not a owner of store:"+ storeID);
         }
@@ -302,16 +309,16 @@ public class Store {
         if (ownerToWhoAssignedHim.get(toRemove)!= id){
             throw new Exception(id +" didn't assign " + toRemove + " to be owner of store:"+ storeID);
         }
-        Queue<Integer> queue = new ArrayDeque<>();
+        Queue<String> queue = new ArrayDeque<>();
         queue.add(toRemove);
         while(!queue.isEmpty()){
-            int next = queue.remove();
+            String next = queue.remove();
             //add to remove list
             res.add(next);
-            List<Integer> assigments = getOwnerAssigments(next);
+            List<String> assigments = getOwnerAssigments(next);
 
             //enter the owners he assigned to the queue
-            for (int a:assigments){
+            for (String a:assigments){
                 queue.add(a);
             }
             //remove him
@@ -330,7 +337,7 @@ public class Store {
 
 
         }
-        for (int o:res){
+        for (String o:res){
             if (isOwner(o)){
                 ownerToAssignedOwners.remove(o);
             }
@@ -338,25 +345,25 @@ public class Store {
         return res;
     }
 
-    /*
+    /**
     if the user called is an owner,
     returns a hashmap.
     key - worker (manager or owner)
     value - set(permissions_values).   if manager
             NULL.                      if owner
      */
-    public HashMap<Integer, Set<Integer>> getPositionsInStore(Integer requestUser) throws Exception{
+    public HashMap<String, Set<Integer>> getPositionsInStore(String requestUser) throws Exception{
         if(!isOwner(requestUser))
-            throw new Exception("User " + requestUser.toString() + " is not an owner!");
+            throw new Exception("User " + requestUser + " is not an owner!");
 
-        HashMap<Integer, Set<Integer>> workerToPermission = new HashMap<>();
-        for(Integer owner : this.ownerToWhoAssignedHim.keySet()){
+        HashMap<String, Set<Integer>> workerToPermission = new HashMap<>();
+        for(String owner : this.ownerToWhoAssignedHim.keySet()){
             workerToPermission.put(owner, null);
         }
 
         for(Manager m : getAllManagers()){
             Set<Permission> ps = m.getPermissions();
-            workerToPermission.put(m.getID(), ps.stream().map(Permission::getCode).collect(Collectors.toSet()));
+            workerToPermission.put(m.getID(), ps.stream().map((perm) -> (Integer) perm.getCode()).collect(Collectors.toSet()));
         }
         return workerToPermission;
     }
@@ -378,7 +385,7 @@ public class Store {
      * @return {@code true} if listing was added successfully.
      * @throws Exception if user lacks permission.
      */
-    public boolean addNewListing(int userID, String productId, String productName, String productDescription, int quantity, int unitPrice) throws Exception {
+    public boolean addNewListing(String userID, String productId, String productName, String productDescription, int quantity, double unitPrice) throws Exception {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
 
@@ -388,7 +395,8 @@ public class Store {
                 productName,
                 productDescription,
                 quantity,
-                PurchaseType.REGULAR
+                PurchaseType.REGULAR,
+                unitPrice
         );
         return storeProductsManager.addListing(newListing);
     }
@@ -403,7 +411,7 @@ public class Store {
      * @return {@code true} if successfully removed.
      * @throws Exception if user lacks permission.
      */
-    public boolean removeListing(int userID, String listingId) throws Exception {
+    public boolean removeListing(String userID, String listingId) throws Exception {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to REMOVE listing!");
 
@@ -413,16 +421,156 @@ public class Store {
     /**
      * Purchases quantity from a specific listing.
      *
-     * @param userID User attempting to buy.
      * @param listingId ID of the listing.
      * @param quantity Quantity to purchase.
      * @return {@link PurchaseType} of the purchase attempt.
      * @throws Exception if permission is missing or invalid.
      */
-    public boolean purchaseFromListing(int userID, String listingId, int quantity) throws Exception {
+    public boolean purchaseFromListing(String listingId, int quantity) throws Exception {
         // Note: Maybe here you don't even need permission checking - depends if buying is free to any user
+        //TODO: check wtf is going on here
         return storeProductsManager.purchaseFromListing(listingId, quantity);
     }
+
+    public boolean canEditPolicies(String userID) throws Exception {
+        return isOwner(userID) || (isManager(userID) &&
+                getManager(userID).getPermissions().contains(Permission.EDIT_POLICIES));
+    }
+
+    /**
+     * Adds a new purchase policy to the store.
+     * Only users with {@code EDIT_POLICIES} permission can add policies.
+     *
+     * @param userID ID of the user attempting to add the policy.
+     * @param policy The {@link PurchasePolicy} to be added.
+     * @return {@code true} if the policy was successfully added.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean addPolicy(String userID, PurchasePolicy policy) throws Exception {
+        if(!canEditPolicies(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
+        }
+        policyHandler.addPurchasePolicy(policy);
+        return true;
+    }
+
+    /**
+     * Removes an existing purchase policy from the store.
+     * Only users with {@code EDIT_POLICIES} permission can remove policies.
+     *
+     * @param userID ID of the user attempting to remove the policy.
+     * @param policy The {@link PurchasePolicy} to be removed.
+     * @return {@code true} if the policy was successfully removed.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean removePolicy(String userID, PurchasePolicy policy) throws Exception {
+        if(!canEditPolicies(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to ADD policy!");
+        }
+        policyHandler.removePurchasePolicy(policy);
+        return true;
+    }
+
+    /**
+     * Retrieves the list of purchase policies defined in the store.
+     * Only owners and managers are allowed to view the current policies.
+     *
+     * @param userID ID of the user requesting the policies.
+     * @return A {@link List} of {@link PurchasePolicy} currently active in the store.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public List<PurchasePolicy> getPolicies(String userID) throws Exception {
+        if(!isManager(userID) || !isOwner(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to Get policy!");
+        }
+        return policyHandler.getPolicies();
+    }
+
+    /**
+     * Adds a new discount policy to the store.
+     * Only users with {@code EDIT_POLICIES} permission can add discount policies.
+     *
+     * @param userId ID of the user attempting to add the discount policy.
+     * @param discountPolicy The {@link DiscountPolicy} to be added.
+     * @return {@code true} if the discount policy was successfully added.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean addDiscount(String userId, DiscountPolicy discountPolicy) throws Exception {
+        if(!canEditPolicies(userId)){
+            throw new Exception("User " + userId + " doesn't have permission to ADD discount!");
+        }
+        policyHandler.addDiscountPolicy(discountPolicy);
+        return true;
+    }
+
+
+    /**
+     * Removes an existing discount policy from the store.
+     * Only users with {@code EDIT_POLICIES} permission can remove discount policies.
+     *
+     * @param userID ID of the user attempting to remove the discount policy.
+     * @param discountPolicy The {@link DiscountPolicy} to be removed.
+     * @return {@code true} if the discount policy was successfully removed.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public boolean removeDiscount(String userID, DiscountPolicy discountPolicy) throws Exception {
+        if(!canEditPolicies(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to REMOVE discount!");
+        }
+        policyHandler.removeDiscountPolicy(discountPolicy);
+        return true;
+    }
+
+
+    /**
+     * Retrieves the list of discount policies defined in the store.
+     * Only owners and managers are allowed to view the current discount policies.
+     *
+     * @param userID ID of the user requesting the discount policies.
+     * @return A {@link List} of {@link DiscountPolicy} currently active in the store.
+     * @throws Exception if the user lacks the required permission.
+     */
+    public List<DiscountPolicy> getDiscountPolicies(String userID) throws Exception {
+        if(!isManager(userID) || !isOwner(userID)){
+            throw new Exception("User " + userID + " doesn't have permission to Get discount policies!");
+        }
+        return policyHandler.getDiscountPolicies();
+    }
+
+
+    public double calculateStoreBagWithDiscount(Map<String,Integer> prodsToQuantity){
+        return policyHandler.calculateDiscount(prodsToQuantity);
+    }
+
+    public double calculateStoreBagWithoutDiscount(Map<String,Integer> prodsToQuantity) throws Exception {
+        double result = 0.0;
+        Listing l;
+        for (Map.Entry<String, Integer> entry : prodsToQuantity.entrySet()) {
+            l = storeProductsManager.getListingById(entry.getKey());
+            if(l==null){
+                throw new Exception("Listing " + l + " not found");
+            }
+            result += l.getPrice() * entry.getValue();
+        }
+        return result;
+    }
+
+    public double ProductPrice(String prodId) throws Exception {
+        Listing l = storeProductsManager.getListingById(prodId);
+        if(l == null){
+            throw new Exception("Listing " + l + " not found");
+        }
+        return l.getPrice();
+    }
+
+    public double ProductPriceWithDiscount(String prodId) throws Exception{
+        double price = ProductPrice(prodId);
+        Map<String, Integer> map = new HashMap<>();
+        map.put(prodId,(Integer)1);
+        double discount = policyHandler.calculateDiscount(map);
+        return price - discount;
+    }
+
 
     public List<Listing> getListingsByProductName(String productName) {
         return storeProductsManager.getListingsByProductName(productName);
@@ -430,6 +578,10 @@ public class Store {
 
     public List<Listing> getListingsByProductId(String productId) {
         return storeProductsManager.getListingsByProductId(productId);
+    }
+
+    public Listing getListing(String listingID) {
+        return storeProductsManager.getListingById(listingID);
     }
 
 
@@ -440,11 +592,11 @@ public class Store {
      * @param userID ID of the user to check.
      * @return {@code true} if the user has permission to edit products, {@code false} otherwise.
      */
-    public boolean checkProductsPermission(int userID){
+    public boolean checkProductsPermission(String userID){
         return isOwner(userID) || (isManager(userID) && getManager(userID).hasPermission(Permission.EDIT_PRODUCTS));
     }
 
-    public int getStoreID() {
+    public String getStoreID() {
         return storeID;
     }
 
@@ -485,37 +637,37 @@ public class Store {
 
     class Manager{
 
-        int id;
-        int apointedBy;
+        String id;
+        String apointedBy;
 
 
         private Set<Permission> permissions;
 
-        public Manager(int id, int apointedBy){
+        public Manager(String id, String apointedBy){
             this.id = id;
             this.apointedBy = apointedBy;
             permissions = new HashSet<>();
             permissions.add(Permission.VIEW_ONLY);
         }
 
-        public boolean addPermission(Permission permission, int byWho) throws Exception {
+        public boolean addPermission(Permission permission, String byWho) throws Exception {
             if(byWho != apointedBy){
                 throw new Exception("user " + byWho + " cant add permission to manager " + this.id + " because he is not his appointer");
             }
             return permissions.add(permission);
         }
 
-        public boolean removePermission(Permission permission, int byWho) throws Exception {
+        public boolean removePermission(Permission permission, String byWho) throws Exception {
             if(byWho != apointedBy){
                 throw new Exception("user " + byWho + " cant add permission to manager " + this.id + " because he is not his appointer");
             }
             return permissions.remove(permission);
         }
 
-        public int getApointedBy() {
+        public String getApointedBy() {
             return apointedBy;
         }
-        public int getID() {
+        public String getID() {
             return id;
         }
 

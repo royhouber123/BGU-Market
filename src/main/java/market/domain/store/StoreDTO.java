@@ -1,7 +1,7 @@
 package market.domain.store;
 
 public class StoreDTO {
-    private int storeID;
+    private String storeID;
     private String name;
     private boolean active;
 
@@ -12,7 +12,7 @@ public class StoreDTO {
     }
 
 
-    public int getStoreID() {
+    public String getStoreID() {
         return storeID;
     }
 

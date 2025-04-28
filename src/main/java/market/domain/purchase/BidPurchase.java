@@ -126,7 +126,7 @@ public class BidPurchase {
      * 
      * Called by: Store owner or authorized manager
      */
-    public static void approveBid(String storeId, String productId, String listingId, String userId, String approverId) {
+    public static void approveBid(String storeId, String productId, String userId, String approverId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
         for (Bid bid : productBids) {
@@ -143,7 +143,6 @@ public class BidPurchase {
                     Purchase purchase = new BidPurchase().purchase(
                             bid.userId,
                             storeId,
-                            listingId,
                             productId,
                             bid.price,
                             bid.shippingAddress,
@@ -216,7 +215,7 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public static void acceptCounterOffer(String storeId, String productId, String listingId, String userId) {
+    public static void acceptCounterOffer(String storeId, String productId, String userId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
         for (Bid bid : productBids) {
@@ -236,7 +235,6 @@ public class BidPurchase {
                 Purchase purchase = new BidPurchase().purchase(
                         bid.userId,
                         storeId,
-                        listingId,
                         productId,
                         bid.price,
                         bid.shippingAddress,
@@ -341,14 +339,12 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public Purchase purchase(String userId, String storeId, String listingId, String productId, double price, String shippingAddress, String contactInfo) {
+    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo) {
         PurchasedProduct product = new PurchasedProduct(
                 productId,
                 storeId,
-                listingId,
                 1, // Always 1 in a bid purchase
                 price,
-                0.0 // No discount in a bid purchase
         );
         return new Purchase(userId, List.of(product), product.getTotalPrice(), shippingAddress, contactInfo);
     } 
