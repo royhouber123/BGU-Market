@@ -25,6 +25,62 @@ public class StoreService {
         //LOG - store added
     }
 
+    /**
+     * Closes a specific store.
+     * Only the founder of the store is authorized to perform this operation.
+     * If successful, the store is marked as inactive (closed).
+     *
+     * @param storeID ID of the store to close.
+     * @param userID  ID of the user attempting to close the store.
+     * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
+     * @throws Exception if the store does not exist or the closure fails internally.
+     */
+    public String closeStore(String storeID,String userID) throws Exception {
+        try
+        {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s==null){
+                throw new Exception("store doesn't exist");
+            }
+            s.closeStore(userID);
+            //TODO:need to notify all the owners and managers
+        }
+        catch(Exception e){
+            return e.getMessage();
+        }
+        return "success";
+    }
+
+
+    /**
+     * Reopens a specific store.
+     * Only the founder of the store is authorized to perform this operation.
+     * If successful, the store is marked as active (open).
+     *
+     * @param storeID ID of the store to open.
+     * @param userID  ID of the user attempting to open the store.
+     * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
+     * @throws Exception if the store does not exist or the reopening fails internally.
+     */
+    public String openStore(String storeID,String userID) throws Exception {
+        try
+        {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s==null){
+                throw new Exception("store doesn't exist");
+            }
+            s.openStore(userID);
+            //TODO:need to notify all the owners and managers
+        }
+        catch(Exception e){
+            return e.getMessage();
+        }
+        return "success";
+    }
+
+
+    
+
     public StoreDTO getStore(String storeName) throws Exception {
 
         Store store = storeRepository.getStoreByName(storeName);
