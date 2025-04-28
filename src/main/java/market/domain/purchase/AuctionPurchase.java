@@ -23,48 +23,6 @@ public class AuctionPurchase {
     private static IStoreRepository storeRepository;
 
 
-    /// AuctionKey is a combination of storeId and productId
-    /// This is used to identify auctions uniquely
-    private static class AuctionKey {
-        String storeId;
-        String productId;
-
-        AuctionKey(String storeId, String productId) {
-            this.storeId = storeId;
-            this.productId = productId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof AuctionKey)) return false;
-            AuctionKey other = (AuctionKey) o;
-            return storeId.equals(other.storeId) && productId.equals(other.productId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(storeId, productId);
-        }
-    }
-
-    /// Offer is a class that represents an offer made by a user
-    /// It contains the userId, price, shipping address, and contact info
-    private static class Offer {
-        String userId;
-        double price;
-        String shippingAddress;
-        String contactInfo;
-    
-        Offer(String userId, double price, String shippingAddress, String contactInfo) {
-            this.userId = userId;
-            this.price = price;
-            this.shippingAddress = shippingAddress;
-            this.contactInfo = contactInfo;
-        }
-    }
-
-
     /// Map to store offers for each auction
     /// The key is a combination of storeId and productId
     private static final Map<AuctionKey, List<Offer>> offers = new HashMap<>();
