@@ -1,4 +1,5 @@
 package market.application;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,12 +179,15 @@ assumes aggreement by 'apointerID''s appointer
     /*
     removes 'toRemove' and all the people he assigned
      */
-    public String removeOwner(String id, String toRemove, String storeID){
+    public List<List<String>> removeOwner(String id, String toRemove, String storeID){
+        List<List<String>> ret = new ArrayList<>();
+        ret.add(new ArrayList<>());
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("store doesn't exist");
             List<List<String>> removedWorkers =  s.removeOwner(id,toRemove);
+            return removedWorkers;
             // for (String i:removedWorkers.get(0) ){
             //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Owner");
             //     //TODO: need to change data on those ussers
@@ -194,9 +198,11 @@ assumes aggreement by 'apointerID''s appointer
             // }
         }
         catch (Exception e){
-            return e.getMessage();
+            ret.get(0).add(e.getMessage());
+            return ret;
         }
-        return "succeed";
+        ret.get(0).add("success");
+        return ret;
     }
 
     /**
