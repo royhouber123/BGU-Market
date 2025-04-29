@@ -25,10 +25,9 @@ public class StoreOwnerTests extends AcceptanceTestBase {
     @BeforeEach
     void init() throws Exception {
         // fresh repo & services already built in AcceptanceTestBase.setup()
-        storeService.createStore(STORE_NAME, FOUNDER);
+        this.storeId = storeService.createStore(STORE_NAME, FOUNDER);
         StoreDTO dto = storeService.getStore(STORE_NAME);
         assertNotNull(dto, "store should exist after creation");
-        this.storeId = dto.getStoreID();
     }
 
     // ───────────────────────────────────────────────────────────────── store creation
