@@ -3,8 +3,7 @@ import market.domain.user.ShoppingCart;
 import market.domain.user.StoreBag;
 import market.infrastructure.StoreRepository;
 import market.application.StoreService;
-import market.application.External.PaymentService;
-import market.application.External.ShipmentService;
+import market.application.External.*;
 import market.domain.purchase.NotificationForPurchase;
 import market.domain.store.*;
 
@@ -15,8 +14,8 @@ public class BidPurchase {
 
     //to update and check stock
     private static IStoreRepository storeRepository;
-    private static ShipmentService shipmentService;
-    private static PaymentService paymentService;
+    private static IShipmentService shipmentService;
+    private static IPaymentService paymentService;
     
     
     private static final Map<BidKey, List<Bid>> bids = new HashMap<>();
@@ -36,7 +35,7 @@ public class BidPurchase {
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
     public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
-                                 String shippingAddress, String contactInfo, Set<String> approvers, ShipmentService shipment, PaymentService payment) {
+                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment) {
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
         storeRepository=rep;
         shipmentService=shipment;
@@ -293,5 +292,20 @@ public class BidPurchase {
 
     public static Map<BidKey, List<Bid>> getBids() {
         return bids;
+    }
+
+
+    public static void setStoreRepository(IStoreRepository storeRepository2) {
+        storeRepository=storeRepository2;
+    }
+
+
+    public static void setPaymentService(IPaymentService paymentService2) {
+        paymentService = paymentService2;
+    }
+
+
+    public static void setShippingService(IShipmentService shipmentService2) {
+        shipmentService=shipmentService2;
     }
 }

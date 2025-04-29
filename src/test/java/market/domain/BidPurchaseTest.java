@@ -3,7 +3,9 @@ package market.domain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -15,22 +17,30 @@ import market.domain.purchase.BidKey;
 import market.domain.purchase.BidPurchase;
 import market.domain.store.IStoreRepository;
 import market.infrastructure.StoreRepository;
-import market.application.External.PaymentService;
-import market.application.External.ShipmentService;
+import market.application.External.*;
 
 
 
 
 class BidPurchaseTest {
-    private ShipmentService shipmentService;
-    private PaymentService paymentService;
+    private IShipmentService shipmentService;
+    private IPaymentService paymentService;
     private IStoreRepository storeRepository;
 
+
+    
     @BeforeEach
     void setUp() {
-        shipmentService = new ShipmentService();
-        paymentService = new PaymentService();
-        storeRepository = new StoreRepository();
+        BidPurchase.getBids().clear(); 
+        storeRepository = mock(IStoreRepository.class);
+        when(storeRepository.updateStockForPurchasedItems(anyMap())).thenReturn(true);
+        BidPurchase.setStoreRepository(storeRepository);
+        paymentService = mock(IPaymentService.class);
+        when(paymentService.processPayment(anyString())).thenReturn(true); 
+        BidPurchase.setPaymentService(paymentService); 
+        shipmentService = mock(IShipmentService.class);
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("Shipping successful");
+        BidPurchase.setShippingService(shipmentService);
     }
 
     @Test
@@ -161,23 +171,29 @@ class BidPurchaseTest {
         String storeId = "store1";
         String productId = "product1";
         String userId = "user1";
-        Set<String> approvers = Set.of("owner1", "manager1");
-        Bid bid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approvers);
         BidKey key = new BidKey(storeId, productId);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
-        String status = BidPurchase.getBidStatus(storeId, productId, userId);
-        assertEquals("Pending Approval", status);
-        bid.approve("owner1");
-        bid.approve("manager1");
+        Set<String> approversPending = Set.of("owner1", "manager1");
+        Bid pendingBid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approversPending);
+        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(pendingBid);
+        String pendingStatus = BidPurchase.getBidStatus(storeId, productId, userId);
+        assertEquals("Pending Approval", pendingStatus);
+        pendingBid.approve("owner1");
+        pendingBid.approve("manager1");
         String approvedStatus = BidPurchase.getBidStatus(storeId, productId, userId);
         assertEquals("Approved", approvedStatus);
-        bid.setCounterOfferAmount(120.0);
-        String counterOfferedStatus = BidPurchase.getBidStatus(storeId, productId, userId);
-        assertEquals("Counter Offered: 120.0", counterOfferedStatus);
-        bid.reject("owner1");
-        String rejectedStatus = BidPurchase.getBidStatus(storeId, productId, userId);
+        Bid counterBid = new Bid("user2", 150.0, "456 Another St", "another@example.com", approversPending);
+        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(counterBid);
+        counterBid.proposeCounterOffer(170.0);
+        String counterStatus = BidPurchase.getBidStatus(storeId, productId, "user2");
+        assertEquals("Counter Offered: 170.0", counterStatus);
+        Bid rejectedBid = new Bid("user3", 90.0, "789 Other St", "other@example.com", approversPending);
+        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(rejectedBid);
+        rejectedBid.reject("owner1");
+        String rejectedStatus = BidPurchase.getBidStatus(storeId, productId, "user3");
         assertEquals("Rejected", rejectedStatus);
     }
+
+
     // @Test
     // void testPurchaseCreation() {
     //     String userId = "user1";
@@ -191,6 +207,3 @@ class BidPurchaseTest {
     //     assertDoesNotThrow(() -> bidPurchase.purchase(userId, storeId, productId, price, shippingAddress, contactInfo));
     // }
 }
-
-
-
