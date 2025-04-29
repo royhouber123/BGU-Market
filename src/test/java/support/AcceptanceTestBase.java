@@ -4,8 +4,8 @@ import market.application.UserService;
 import market.application.StoreService;
 import market.application.AuthService;
 import market.application.PurchaseService;
-import market.application.External.PaymentService;
-import market.application.External.ShipmentService;
+import market.application.External.IPaymentService;
+import market.application.External.IShipmentService;
 import static org.mockito.Mockito.mock;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
@@ -16,7 +16,7 @@ import market.infrastructure.StoreRepository; // Ensure this is the correct pack
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.user.Subscriber;
-import market.*;
+
 
 public abstract class AcceptanceTestBase {
 
@@ -24,21 +24,22 @@ public abstract class AcceptanceTestBase {
     protected UserService userService;
     protected StoreService storeService;
     protected AuthService authService;
-    protected PaymentService paymentService;
-    protected ShipmentService shipmentService;
+    protected IPaymentService paymentService;
+    protected IShipmentService shipmentService;
     protected PurchaseService purchaseService;
     
     @BeforeEach
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
-        userService = new UserService(userRepository);
+        
         authService = new AuthService(userRepository);
+        userService = new UserService(userRepository,authService);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         storeService = new StoreService(storerepo,userRepository); // Use the real implementation
-        paymentService = mock(PaymentService.class); // Mock external service
-        shipmentService = mock(ShipmentService.class); // Mock external service
+        paymentService = mock(IPaymentService.class); // Mock external service
+        shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();
 
         purchaseService = new PurchaseService(storerepo, prep , userRepository,paymentService,shipmentService);

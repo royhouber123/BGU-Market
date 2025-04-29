@@ -29,13 +29,13 @@ class SubscriberTests extends AcceptanceTestBase {
     void setUp() throws Exception {
 
         // --- subscriber exists ------------------------------------------------
-        userService.register(SUB, PW);
+        userService.getUserRepository().register(SUB, PW);
 
 
         // --- create store + one listing --------------------------------------
         storeService.createStore("GadgetStore", "100");          // founderId
         storeId = storeService.getStore("GadgetStore").getStoreID();
-        storeService.addNewListing("100",
+        storeService.addNewListing("sub01",
                                    storeId,
                                    "m1",
                                    "Mouse",
@@ -44,8 +44,8 @@ class SubscriberTests extends AcceptanceTestBase {
                                    100);
         productid = "m1";
         // --- stub external ports ---------------------------------------------
-        when(paymentService.processPayment(any())).thenReturn(true);
-        when(shipmentService.ship(any(), any(), any())).thenReturn("123");
+        when(paymentService.processPayment(anyString())).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("123");
 
         // --- build a real PurchaseService using base-class repositories -------
     }
@@ -61,8 +61,8 @@ class SubscriberTests extends AcceptanceTestBase {
         // add to cart
         storeService.getProductListing(storeId,productid);
         //the parse int  will be change when roy and yair change the store id to string
-        userService.addProductToCart(SUB, storeId, "Mouse", 1);
-        ShoppingCart cart = userService.getCart(SUB);
+        userService.getUserRepository().findById(SUB).addProductToCart(storeId, productid, 1);
+        ShoppingCart cart = userService.getUserRepository().getCart(SUB);
 
         // execute purchase
         Purchase p = purchaseService.executePurchase(
@@ -126,19 +126,23 @@ class SubscriberTests extends AcceptanceTestBase {
     /* ---------------------------------------------------------------------- */
     /* 5. logout does NOT clear cart                                           */
     /* ---------------------------------------------------------------------- */
-    // @Test
-    // void subscriber_logs_out_and_cart_preserved() throws Exception {
+    // The commented out code block you provided is a test case method named
+    // `subscriber_logs_out_and_cart_preserved()`. This test case is checking the behavior of the
+    // shopping cart when a subscriber logs out and then logs back in. Here is a breakdown of what the
+    // test case is doing:
+    @Test
+    void subscriber_logs_out_and_cart_preserved() throws Exception {
 
-    //     AuthTokens tok1 = authService.login(SUB, PW);
-    //     userService.addProductToCart(SUB, storeId, "Mouse", 2);
-    //     ShoppingCart before = userService.getCart(SUB);
-    //     authService.logout(tok1.refreshToken(), tok1.accessToken());
+        AuthTokens tok1 = authService.login(SUB, PW);
+        userService.addProductToCart(storeId, "Mouse", 2);
+        ShoppingCart before = userService.getCart();
+        authService.logout(tok1.refreshToken(), tok1.accessToken());
 
-    //     // new login
-    //     AuthTokens tok2 = authService.login(SUB, PW);
-    //     ShoppingCart after = userService.getCart(SUB);
-    //     assertEquals(before.getTotalItems(), after.getTotalItems());
+        // new login
+        AuthTokens tok2 = authService.login(SUB, PW);
+        ShoppingCart after = userService.getCart();
+        assertEquals(before.getAllStoreBags().size(), after.getAllStoreBags().size());
 
-    //     authService.logout(tok2.refreshToken(), tok2.accessToken());
-    // }
+        authService.logout(tok2.refreshToken(), tok2.accessToken());
+    }
 }

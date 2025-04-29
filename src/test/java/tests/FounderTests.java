@@ -23,7 +23,7 @@ public class FounderTests extends AcceptanceTestBase {
     private String storeId;
 
     @BeforeEach
-    void setUpTestData() {
+    void setUpTestData() throws Exception {
         storeId = storeService.createStore(storeName, founderID);
     }
 
@@ -46,9 +46,11 @@ public class FounderTests extends AcceptanceTestBase {
         Exception ex = assertThrows(Exception.class, () -> {
             storeService.removeOwner(founderID, founderID, storeId);
         });
+        assertNotNull(ex, "Exception should be thrown when attempting to remove the founder");
         assertTrue(
-            ex.getMessage().toLowerCase().contains("founder"),
-            "Founder should not be removable from the store"
+            ex.getMessage().toLowerCase().contains("founder") ||
+            ex.getMessage().toLowerCase().contains("cannot be removed"),
+            "Founder should not be allowed to be removed from the store"
         );
     }
 

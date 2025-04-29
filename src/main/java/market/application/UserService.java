@@ -153,4 +153,9 @@ public class UserService {
         Claims claims = authService.parseAccessToken(token);
         return claims.getSubject();
     }
+
+    public IUserRepository getUserRepository()
+    {
+        return this.repo;
+    }
 }
