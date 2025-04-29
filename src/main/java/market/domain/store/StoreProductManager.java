@@ -32,14 +32,14 @@ public class StoreProductManager implements IStoreProductsManager {
             return storeId;
         }
     @Override
-    public boolean addListing(Listing listing) {
+    public String addListing(Listing listing) {
 
         if (!listing.getStoreId().equals(this.storeId)) {
             throw new IllegalArgumentException("Listing storeId does not match StoreProductManager storeId!");
         }
 
         if (listingsById.containsKey(listing.getListingId())) {
-            return false; // Already exists
+            throw new IllegalArgumentException("Listing id already exist");
         }
 
         listingsById.put(listing.getListingId(), listing);
@@ -47,7 +47,7 @@ public class StoreProductManager implements IStoreProductsManager {
         listingsByProductId.computeIfAbsent(listing.getProductId(), k -> new ArrayList<>()).add(listing);
         listingsByProductName.computeIfAbsent(listing.getProductName(), k -> new ArrayList<>()).add(listing);
 
-        return true;
+        return listing.getListingId();
     }
 
     @Override
