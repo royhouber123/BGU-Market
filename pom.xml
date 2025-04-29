@@ -43,6 +43,7 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
+        
 
         <!-- JUnit 5 API & Engine -->
         <dependency>
@@ -59,6 +60,13 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>5.5.0</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-inline</artifactId>
+        <version>5.2.0</version>   <!-- או אפילו 5.5.0, כמו mockito-core שלך -->
         <scope>test</scope>
       </dependency>
     </dependencies>
