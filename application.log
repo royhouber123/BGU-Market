@@ -482,3 +482,228 @@
 [2025-04-29 14:04:45] [INFO] AuthService initialized
 [2025-04-29 14:04:46] [INFO] Store created: TestStore, founder: 1, id: 2
 [2025-04-29 14:04:46] [ERROR] Error removing owner: 1 from store: 2. Reason: 1 is the founder of store:2
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:06:52] [INFO] Added new owner: 2 to store: 2, by: 1
+[2025-04-29 14:06:52] [ERROR] Attempted to add owner to non-existent store: 3
+[2025-04-29 14:06:52] [ERROR] Error adding owner: 2 to store: 3. Reason: store doesn't exist
+[2025-04-29 14:06:52] [ERROR] Attempted to add owner to non-existent store: 4
+[2025-04-29 14:06:52] [ERROR] Error adding owner: 2 to store: 4. Reason: store doesn't exist
+[2025-04-29 14:06:52] [INFO] Removed owner: 2 from store: 2, by: 1
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:06:52] [ERROR] Attempted to add owner to non-existent store: 1
+[2025-04-29 14:06:52] [ERROR] Error adding owner: 2 to store: 1. Reason: store doesn't exist
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:06:52] [INFO] Added new owner: 2 to store: 2, by: 1
+[2025-04-29 14:06:52] [ERROR] Attempted to add manager to non-existent store: 3
+[2025-04-29 14:06:52] [ERROR] Error adding manager: 2 to store: 3. Reason: store doesn't exist
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:06:52] [ERROR] Error removing owner: 1 from store: 2. Reason: 1 is the founder of store:2
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:52] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:52] [ERROR] Attempted to create store with existing name: GadgetStore
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:52] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:52] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-04-29 14:06:52] [INFO] Removed owner: 200 from store: 2, by: 100
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:52] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:52] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-04-29 14:06:52] [INFO] AuthService initialized
+[2025-04-29 14:06:52] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:52] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-04-29 14:06:53] [INFO] Added new manager: 300 to store: 2, by: 200
+[2025-04-29 14:06:53] [INFO] Added permission: 1 to manager: 300 in store: 2, by: 200
+[2025-04-29 14:06:53] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 200
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Added new owner: OWNER_B to store: 2, by: 100
+[2025-04-29 14:06:53] [ERROR] Error adding owner: OWNER_B to store: 2. Reason: the user:100 is already a owner of the store: 2
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [ERROR] Error removing owner: 100 from store: 2. Reason: 100 is the founder of store:2
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Added new listing: Headset to store: 2, by: 100
+[2025-04-29 14:06:53] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-04-29 14:06:53] [INFO] Added new manager: 300 to store: 2, by: 200
+[2025-04-29 14:06:53] [INFO] Removed listing: b199f07e-7938-47b2-9242-b6bae323f1cb from store: 2, by: 300
+[2025-04-29 14:06:53] [ERROR] Error removing listing: b199f07e-7938-47b2-9242-b6bae323f1cb from store: 2. Reason: User 300 doesn't have permission to REMOVE listing!
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 14:06:53] [INFO] Removed listing: 55d5c87b-6cf4-4f75-9b8b-2e3346facf9b from store: 2, by: 100
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Registering user: sub01
+[2025-04-29 14:06:53] [INFO] User registered: sub01
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Added new listing: Mouse to store: 2, by: sub01
+[2025-04-29 14:06:53] [ERROR] Error adding listing: Mouse to store: 2. Reason: User sub01 doesn't have permission to ADD listing!
+[2025-04-29 14:06:53] [INFO] Logging in user: sub01
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: sub01
+[2025-04-29 14:06:53] [INFO] User found: sub01
+[2025-04-29 14:06:53] [INFO] Generating access token for user: sub01
+[2025-04-29 14:06:53] [INFO] Access token generated for user: sub01
+[2025-04-29 14:06:53] [INFO] Generating refresh token for user: sub01
+[2025-04-29 14:06:53] [INFO] Refresh token generated for user: sub01
+[2025-04-29 14:06:53] [INFO] User logged in successfully
+[2025-04-29 14:06:53] [ERROR] Access token is missing from request context
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Registering user: sub01
+[2025-04-29 14:06:53] [INFO] User registered: sub01
+[2025-04-29 14:06:53] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:06:53] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:06:53] [INFO] Added new listing: Mouse to store: 2, by: sub01
+[2025-04-29 14:06:53] [ERROR] Error adding listing: Mouse to store: 2. Reason: User sub01 doesn't have permission to ADD listing!
+[2025-04-29 14:06:53] [INFO] Logging in user: sub01
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: sub01
+[2025-04-29 14:06:53] [INFO] User found: sub01
+[2025-04-29 14:06:53] [INFO] Generating access token for user: sub01
+[2025-04-29 14:06:53] [INFO] Access token generated for user: sub01
+[2025-04-29 14:06:53] [INFO] Generating refresh token for user: sub01
+[2025-04-29 14:06:53] [INFO] Refresh token generated for user: sub01
+[2025-04-29 14:06:53] [INFO] User logged in successfully
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: sub01
+[2025-04-29 14:06:53] [INFO] User found: sub01
+[2025-04-29 14:06:53] [INFO] Getting cart for user: sub01
+[2025-04-29 14:06:53] [INFO] Cart retrieved for user: sub01
+[2025-04-29 14:06:53] [INFO] Executing purchase for user: sub01
+[2025-04-29 14:06:53] [ERROR] Product not found in store: m1
+[2025-04-29 14:06:53] [ERROR] Failed to execute regular purchase for user: sub01. Reason: Product not found in store: m1
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 14:06:53] [INFO] Registering user: user3
+[2025-04-29 14:06:53] [INFO] Registering user: user3
+[2025-04-29 14:06:53] [INFO] User registered: user3
+[2025-04-29 14:06:53] [INFO] User registered: user3
+[2025-04-29 14:06:53] [INFO] Logging in user: user3
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: user3
+[2025-04-29 14:06:53] [INFO] User found: user3
+[2025-04-29 14:06:53] [INFO] Generating access token for user: user3
+[2025-04-29 14:06:53] [INFO] Access token generated for user: user3
+[2025-04-29 14:06:53] [INFO] Generating refresh token for user: user3
+[2025-04-29 14:06:53] [INFO] Refresh token generated for user: user3
+[2025-04-29 14:06:53] [INFO] User logged in successfully
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 14:06:53] [INFO] Registering user: user5
+[2025-04-29 14:06:53] [INFO] Registering user: user5
+[2025-04-29 14:06:53] [INFO] User registered: user5
+[2025-04-29 14:06:53] [INFO] User registered: user5
+[2025-04-29 14:06:53] [INFO] Logging in user: user5
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: user5
+[2025-04-29 14:06:53] [INFO] User found: user5
+[2025-04-29 14:06:53] [INFO] Generating access token for user: user5
+[2025-04-29 14:06:53] [INFO] Access token generated for user: user5
+[2025-04-29 14:06:53] [INFO] Generating refresh token for user: user5
+[2025-04-29 14:06:53] [INFO] Refresh token generated for user: user5
+[2025-04-29 14:06:53] [INFO] User logged in successfully
+[2025-04-29 14:06:53] [ERROR] Access token is missing from request context
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: user1
+[2025-04-29 14:06:53] [INFO] User found: user1
+[2025-04-29 14:06:53] [INFO] Getting cart for user: user1
+[2025-04-29 14:06:53] [INFO] Cart retrieved for user: user1
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: user1
+[2025-04-29 14:06:53] [INFO] User found: user1
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 14:06:53] [INFO] Registering user: user6
+[2025-04-29 14:06:53] [INFO] Registering user: user6
+[2025-04-29 14:06:53] [INFO] User registered: user6
+[2025-04-29 14:06:53] [INFO] User registered: user6
+[2025-04-29 14:06:53] [INFO] Logging in user: user6
+[2025-04-29 14:06:53] [INFO] Attempting to find user by id: user6
+[2025-04-29 14:06:53] [INFO] User found: user6
+[2025-04-29 14:06:53] [INFO] Generating access token for user: user6
+[2025-04-29 14:06:53] [INFO] Access token generated for user: user6
+[2025-04-29 14:06:53] [INFO] Generating refresh token for user: user6
+[2025-04-29 14:06:53] [INFO] Refresh token generated for user: user6
+[2025-04-29 14:06:53] [INFO] User logged in successfully
+[2025-04-29 14:06:53] [ERROR] Access token is missing from request context
+[2025-04-29 14:06:53] [INFO] AuthService initialized
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] User registered: user1
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] User registered: user2
+[2025-04-29 14:06:53] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [INFO] Registering user: user2
+[2025-04-29 14:06:53] [ERROR] User with name 'user2' already exists.
+[2025-04-29 14:06:53] [ERROR] Failed to register user: user2. Exception: User with name 'user2' already exists.

@@ -16,7 +16,7 @@ import market.infrastructure.StoreRepository; // Ensure this is the correct pack
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.user.Subscriber;
-import market.*;
+
 
 public abstract class AcceptanceTestBase {
 
