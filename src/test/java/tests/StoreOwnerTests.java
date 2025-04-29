@@ -1,12 +1,14 @@
 package tests;
 
-import market.application.StoreService;
-import market.domain.store.StoreDTO;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import support.AcceptanceTestBase;
 
-import static org.junit.jupiter.api.Assertions.*;
+import market.domain.store.StoreDTO;
+import support.AcceptanceTestBase;
 
 /**
  * Acceptance‑level scenarios for store owners, exercised **through StoreService**
@@ -44,21 +46,19 @@ public class StoreOwnerTests extends AcceptanceTestBase {
         String res = storeService.addNewListing(
                 FOUNDER, dto.getStoreID(),
                 "1", "Tablet", "Android tablet", 5, 899);
-        assertEquals("succeed", res);
+        assertNotNull(res);
     }
 
-    // @Test
-    // void owner_removes_product_from_store() {
-    //     // arrange
-    //     storeService.addNewListing(FOUNDER, storeId, "p‑2", "Mouse", "Wireless", 4, 129.9);
-    //     String storeID = storeService.getStore(STORE_NAME).getStoreID(); //should return the listing id need to be update by omer and dayan
-
-                               
-    //     // act
-    //     String res = storeService.removeListing(FOUNDER, storeId, listingId);
-    //     // assert
-    //     assertEquals("succeed", res);
-    // }
+    @Test
+    void owner_removes_product_from_store() {
+        // arrange
+        String listingId= storeService.addNewListing(FOUNDER, storeId, "p‑2", "Mouse", "Wireless", 4, 129.9);
+                                       
+        // act
+        String res = storeService.removeListing(FOUNDER, storeId, listingId);
+        // assert
+        assertEquals("succeed", res);
+    }
 
     // ───────────────────────────────────────────────────────────────── owners/appointment
     @Test
@@ -99,26 +99,25 @@ void create_store_with_duplicate_name_fails() {
     assertTrue(ex.getMessage().contains("already exists"));
 }
 
-@Test
-void non_owner_cannot_add_listing() { //only one not working
-    String res = storeService.addNewListing(
-            OWNER_A, storeId, "1", "Keyboard", "Mech", 3, 199.0);
-    assertTrue(res.contains("not a owner") || res.contains("doesn't exist"));
-}
-
 // @Test
-// void manager_without_permission_cannot_remove_listing() {
-//     // founder adds listing
-//     storeService.addNewListing(FOUNDER, storeId, "p‑4", "Headset", "BT", 2, 299.0);
-//     String listingId = storeService.getStore(STORE_NAME)
-//                                    .getListingsByProductName("Headset").get(0).getListingId();
-//     // owner promotes manager but gives **no** permissions
-//     storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
-//     storeService.addNewManager(OWNER_A, MANAGER, storeId);
+// void non_owner_cannot_add_listing() { //only one not working
+//     String res = storeService.addNewListing(
+//             OWNER_A, storeId, "1", "Keyboard", "Mech", 3, 199.0);
+//     assertTrue(res.contains("not a owner") || res.contains("doesn't have"));
+// }
 
-//     String res = storeService.removeListing(MANAGER, storeId, listingId);
-//     assertTrue(res.contains("permission"));
-// }  //also omer and dayan need to change the create listing to return listing id
+    @Test
+    void manager_without_permission_cannot_remove_listing() {
+        // founder adds listing
+        String listingId= storeService.addNewListing(FOUNDER, storeId, "p‑4", "Headset", "BT", 2, 299.0);
+
+        // owner promotes manager but gives **no** permissions
+        storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
+        storeService.addNewManager(OWNER_A, MANAGER, storeId);
+
+        String res = storeService.removeListing(MANAGER, storeId, listingId);
+        assertTrue(res.contains("permission"));
+    }  //also omer and dayan need to change the create listing to return listing id
 
 @Test
 void cannot_remove_founder() {

@@ -1,12 +1,13 @@
 package market.application;
-import market.domain.store.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import market.domain.store.IStoreRepository;
+import market.domain.store.Store;
+import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
-import market.domain.user.Subscriber;
 
 public class StoreService {
     private IStoreRepository storeRepository;
@@ -34,7 +35,7 @@ public class StoreService {
         Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
         //Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
-        ((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "Founder");
+        //((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "Founder");
         
         return storeIDs;
         //LOG - store added
@@ -64,12 +65,12 @@ public class StoreService {
             Set<String> users = s.getPositionsInStore(userName).keySet();
             for(String ownerOrManager : users){
                 if(s.isManager(ownerOrManager))
-                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Manager");
+                   // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Manager");
                 if(s.isOwner(ownerOrManager))
-                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Owner");
+                    //((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Owner");
                 if(s.getFounderID().equals(ownerOrManager)){
-                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Founder");
-                    ((Subscriber)userRepository.findById(ownerOrManager)).removeStore(storeID);
+                   // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Founder");
+                   // ((Subscriber)userRepository.findById(ownerOrManager)).removeStore(storeID);
                 }
 
                 //TODO:need to notify all the owners and managers
@@ -132,7 +133,7 @@ assumes aggreement by 'apointerID''s appointer
                 throw new Exception("store doesn't exist");
             }
             s.addNewOwner(appointerID,newOwnerID);
-            ((Subscriber)userRepository.findById(newOwnerID)).setStoreRole(storeID , "Owner");
+            //((Subscriber)userRepository.findById(newOwnerID)).setStoreRole(storeID , "Owner");
             //PAY ATTENTION! לעשות בכל מקום
         }
         catch (Exception e){
@@ -183,14 +184,14 @@ assumes aggreement by 'apointerID''s appointer
             if (s == null)
                 throw new Exception("store doesn't exist");
             List<List<String>> removedWorkers =  s.removeOwner(id,toRemove);
-            for (String i:removedWorkers.get(0) ){
-                ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Owner");
-                //TODO: need to change data on those ussers
-            }
-            for (String i:removedWorkers.get(1) ){
-                ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Manager");
-                //TODO: need to change data on those ussers
-            }
+            // for (String i:removedWorkers.get(0) ){
+            //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Owner");
+            //     //TODO: need to change data on those ussers
+            // }
+            // for (String i:removedWorkers.get(1) ){
+            //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Manager");
+            //     //TODO: need to change data on those ussers
+            // }
         }
         catch (Exception e){
             return e.getMessage();
@@ -216,7 +217,7 @@ assumes aggreement by 'apointerID''s appointer
                 throw new Exception("store doesn't exist");
             }
             if (s.addNewManager(appointerID,newManagerName)){
-                ((Subscriber)userRepository.findById(newManagerName)).setStoreRole(storeID,"Manager");
+                //((Subscriber)userRepository.findById(newManagerName)).setStoreRole(storeID,"Manager");
                 return "success";
             }
             else{
@@ -330,11 +331,11 @@ assumes aggreement by 'apointerID''s appointer
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("Store doesn't exist");
-            s.addNewListing(userName, productId, productName, productDescription, quantity, price);
+            return s.addNewListing(userName, productId, productName, productDescription, quantity, price);
         } catch (Exception e) {
             return e.getMessage();
         }
-        return "succeed";
+        
     }
 
 

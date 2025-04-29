@@ -14,7 +14,7 @@ public interface IStoreProductsManager {
      * @param listing The listing to add.
      * @return {@code true} if the listing was added successfully; {@code false} otherwise.
      */
-    boolean addListing(Listing listing);
+    String addListing(Listing listing);
 
     /**
      * Removes a listing from the store based on its ID.
