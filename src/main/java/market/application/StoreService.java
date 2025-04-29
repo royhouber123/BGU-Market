@@ -9,11 +9,14 @@ import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
+import utils.Logger;
+
 
 public class StoreService {
     private IStoreRepository storeRepository;
     private String storeIDs ="1";
     private IUserRepository userRepository;
+    private Logger logger = Logger.getInstance();
 
     public StoreService(IStoreRepository storeRepository, IUserRepository userRepository) {
         this.storeRepository = storeRepository;
@@ -28,7 +31,7 @@ public class StoreService {
     public String createStore(String storeName, String founderId) throws Exception {
         // ? - do we need store type
         if(storeRepository.containsStore(storeName)) {
-            // LOG - error
+            logger.error("Attempted to create store with existing name: " + storeName);
             throw new Exception("The storeName '" + storeName + "' already exists");
         }
         String id = storeIDs;
@@ -36,6 +39,7 @@ public class StoreService {
         Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
         //Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
+        logger.info("Store created: " + storeName + ", founder: " + founderId + ", id: " + storeIDs);
         //((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "Founder");
         
         return storeIDs;
@@ -57,27 +61,31 @@ public class StoreService {
         {
             Store s = storeRepository.getStoreByID(storeID);
             if (s==null){
+                logger.error("Attempted to close non-existent store: " + storeID);
                 throw new Exception("store doesn't exist");
             }
             if (!s.closeStore(userName)){
+                logger.error("Failed to close store: " + storeID);
                 throw new Exception("store cant be closed");
 
             }
             Set<String> users = s.getPositionsInStore(userName).keySet();
             for(String ownerOrManager : users){
                 if(s.isManager(ownerOrManager))
-                   // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Manager");
+                   ; // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Manager");
                 if(s.isOwner(ownerOrManager))
-                    //((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Owner");
+                    ; //((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Owner");
                 if(s.getFounderID().equals(ownerOrManager)){
-                   // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Founder");
-                   // ((Subscriber)userRepository.findById(ownerOrManager)).removeStore(storeID);
+                   ; // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Founder");
+                   ; // ((Subscriber)userRepository.findById(ownerOrManager)).removeStore(storeID);
                 }
 
                 //TODO:need to notify all the owners and managers
             }
+            logger.info("Store closed: " + storeID + ", by user: " + userName);
         }
         catch(Exception e){
+            logger.error("Error closing store: " + storeID + ", by user: " + userName + ". Reason: " + e.getMessage());
             return e.getMessage();
         }
         return "success";
@@ -99,12 +107,15 @@ public class StoreService {
         {
             Store s = storeRepository.getStoreByID(storeID);
             if (s==null){
+                logger.error("Attempted to open non-existent store: " + storeID);
                 throw new Exception("store doesn't exist");
             }
             s.openStore(userName);
+            logger.info("Store opened: " + storeID + ", by user: " + userName);
             //TODO:need to notify all the owners and managers
         }
         catch(Exception e){
+            logger.error("Error opening store: " + storeID + ", by user: " + userName + ". Reason: " + e.getMessage());
             return e.getMessage();
         }
         return "success";
@@ -116,8 +127,10 @@ public class StoreService {
     public StoreDTO getStore(String storeName) throws Exception {
         Store store = storeRepository.getStoreByName(storeName);
         if(store == null) {
+            logger.error("Attempted to get non-existent store: " + storeName);
             return null;
         }
+        logger.info("Store retrieved: " + storeName);
         return new StoreDTO(store);
     }
 
@@ -131,16 +144,19 @@ assumes aggreement by 'apointerID''s appointer
         {
             Store s = storeRepository.getStoreByID(storeID);
             if (s==null){
+                logger.error("Attempted to add owner to non-existent store: " + storeID);
                 throw new Exception("store doesn't exist");
             }
             s.addNewOwner(appointerID,newOwnerID);
+            logger.info("Added new owner: " + newOwnerID + " to store: " + storeID + ", by: " + appointerID);
             //((Subscriber)userRepository.findById(newOwnerID)).setStoreRole(storeID , "Owner");
             //PAY ATTENTION! לעשות בכל מקום
         }
         catch (Exception e){
+            logger.error("Error adding owner: " + newOwnerID + " to store: " + storeID + ". Reason: " + e.getMessage());
             //TODO:we need to decide how to handle things here
             return e.getMessage();
-    }
+        }
         return "success";
     }
 
@@ -156,18 +172,23 @@ assumes aggreement by 'apointerID''s appointer
                 throw new Exception("store doesn't exist");
             if (s.getFounderID().equals(appointerID)){
                 s.addNewOwner(appointerID,newOwnerId);
+                logger.info("Founder " + appointerID + " added new owner: " + newOwnerId + " to store: " + storeID);
             }
             else{
                 if (s.isOwner(newOwnerId)){
+                    logger.error(newOwnerId + " is already an Owner of store:"+storeID);
                     throw new Exception(newOwnerId + " is already an Owner of store:"+storeID);
                 }
                 if (!s.isOwner(appointerID)){
+                    logger.error(appointerID + " is NOT an Owner of store:"+storeID);
                     throw new Exception(appointerID + " is NOT an Owner of store:"+storeID);
                 }
                 String requestTO=s.OwnerAssignedBy(appointerID);
+                logger.info("Owner appointment request: " + appointerID + " requests to appoint " + newOwnerId + " in store: " + storeID + ", request sent to: " + requestTO);
                 //TODO:notify 'requestTO' that his assignee want to assign new owner
             }
         }catch (Exception e){
+            logger.error("Error in owner appointment request for store: " + storeID + ". Reason: " + e.getMessage());
             //TODO:we need to decide how to handle things here
             return e.getMessage();
         }
@@ -187,6 +208,7 @@ assumes aggreement by 'apointerID''s appointer
             if (s == null)
                 throw new Exception("store doesn't exist");
             List<List<String>> removedWorkers =  s.removeOwner(id,toRemove);
+            logger.info("Removed owner: " + toRemove + " from store: " + storeID + ", by: " + id);
             return removedWorkers;
             // for (String i:removedWorkers.get(0) ){
             //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Owner");
@@ -198,8 +220,13 @@ assumes aggreement by 'apointerID''s appointer
             // }
         }
         catch (Exception e){
+<<<<<<< HEAD
             ret.get(0).add(e.getMessage());
             return ret;
+=======
+            logger.error("Error removing owner: " + toRemove + " from store: " + storeID + ". Reason: " + e.getMessage());
+            return e.getMessage();
+>>>>>>> 754f39b (Build Successeed)
         }
         ret.get(0).add("success");
         return ret;
@@ -220,17 +247,21 @@ assumes aggreement by 'apointerID''s appointer
         try{
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null){
+                logger.error("Attempted to add manager to non-existent store: " + storeID);
                 throw new Exception("store doesn't exist");
             }
             if (s.addNewManager(appointerID,newManagerName)){
+                logger.info("Added new manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
                 //((Subscriber)userRepository.findById(newManagerName)).setStoreRole(storeID,"Manager");
                 return "success";
             }
             else{
+                logger.error("Failed to add manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
                 return "failed";
             }
 
         } catch (Exception e) {
+            logger.error("Error adding manager: " + newManagerName + " to store: " + storeID + ". Reason: " + e.getMessage());
             return e.getMessage();
         }
     }
@@ -252,14 +283,18 @@ assumes aggreement by 'apointerID''s appointer
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
+                logger.error("Attempted to add permission to non-existent store: " + storeID);
                 throw new Exception("store doesn't exist");
             }
             if (s.addPermissionToManager(managerID, appointerID, permissionID)) {
+                logger.info("Added permission: " + permissionID + " to manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
                 return "success";
             } else {
+                logger.error("Failed to add permission: " + permissionID + " to manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
                 return "failed";
             }
         } catch (Exception e) {
+            logger.error("Error adding permission: " + permissionID + " to manager: " + managerID + " in store: " + storeID + ". Reason: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -279,10 +314,13 @@ assumes aggreement by 'apointerID''s appointer
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
+                logger.error("Attempted to get permissions for non-existent store: " + storeID);
                 throw new Exception("store doesn't exist");
             }
+            logger.info("Retrieved permissions for manager: " + managerID + " in store: " + storeID + ", by: " + whoIsAsking);
             return s.getManagersPermmisions(managerID, whoIsAsking);
         } catch (Exception e) {
+            logger.error("Error retrieving permissions for manager: " + managerID + " in store: " + storeID + ". Reason: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -304,16 +342,18 @@ assumes aggreement by 'apointerID''s appointer
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
+                logger.error("Attempted to remove permission from non-existent store: " + storeID);
                 throw new Exception("store doesn't exist");
             }
             if (s.removePermissionFromManager(managerID, permissionID, appointerID)) {
+                logger.info("Removed permission: " + permissionID + " from manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
                 return "success";
             } else {
+                logger.error("Failed to remove permission: " + permissionID + " from manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
                 return "failed";
             }
         } catch (Exception e) {
-
-
+            logger.error("Error removing permission: " + permissionID + " from manager: " + managerID + " in store: " + storeID + ". Reason: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -337,8 +377,10 @@ assumes aggreement by 'apointerID''s appointer
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("Store doesn't exist");
+            logger.info("Added new listing: " + productName + " to store: " + storeID + ", by: " + userName);
             return s.addNewListing(userName, productId, productName, productDescription, quantity, price);
         } catch (Exception e) {
+            logger.error("Error adding listing: " + productName + " to store: " + storeID + ". Reason: " + e.getMessage());
             return e.getMessage();
         }
         
@@ -360,8 +402,10 @@ assumes aggreement by 'apointerID''s appointer
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("Store doesn't exist");
+            logger.info("Removed listing: " + listingId + " from store: " + storeID + ", by: " + userName);
             s.removeListing(userName, listingId);
         } catch (Exception e) {
+            logger.error("Error removing listing: " + listingId + " from store: " + storeID + ". Reason: " + e.getMessage());
             return e.getMessage();
         }
         return "succeed";
@@ -383,8 +427,10 @@ assumes aggreement by 'apointerID''s appointer
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("Store doesn't exist");
+            logger.info("Purchased " + quantity + " units from listing: " + listingId + " in store: " + storeID);
             s.purchaseFromListing(listingId, quantity);
         } catch (Exception e) {
+            logger.error("Error purchasing from listing: " + listingId + " in store: " + storeID + ". Reason: " + e.getMessage());
             return e.getMessage();
         }
         return "succeed";
@@ -394,6 +440,7 @@ assumes aggreement by 'apointerID''s appointer
         Store s = storeRepository.getStoreByID(storeID);
         Map<String,Integer> prod = new HashMap<>();
         prod.put(productID,1);
+        logger.info("Retrieved price for product: " + productID + " in store: " + storeID);
         return s.calculateStoreBagWithDiscount(prod);
     }
 

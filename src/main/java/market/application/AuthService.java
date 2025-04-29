@@ -18,12 +18,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Collections;
 
-import javax.swing.JWindow;
 import javax.crypto.SecretKey;
+
+import utils.Logger;
 
 public class AuthService {
     public record AuthTokens(String accessToken, String refreshToken) {}
+    private static final Logger logger = Logger.getInstance();
     private final SecretKey accessTokenKey;
     private final SecretKey refreshTokenKey;
     private final long accessTokenTtlMs;
@@ -31,22 +34,23 @@ public class AuthService {
     private final Map<String, String> refreshTokenStore = new ConcurrentHashMap<>();
     private final IUserRepository userRepository;
 
-public AuthService(IUserRepository userRepository) {
-    String accessSecret  = "JMvzGmTQtUL4OWwh-JAiawZXbxKKrFssCXZtkC_ZUKc";
-    String refreshSecret = "LPhmk_IdSLlevsRkTccTc0khD4W8gYrhysF0Yo74R7A";
+    public AuthService(IUserRepository userRepository) {
+        String accessSecret  = "JMvzGmTQtUL4OWwh-JAiawZXbxKKrFssCXZtkC_ZUKc";
+        String refreshSecret = "LPhmk_IdSLlevsRkTccTc0khD4W8gYrhysF0Yo74R7A";
 
-    this.accessTokenKey  = Keys.hmacShaKeyFor(
-        io.jsonwebtoken.io.Decoders.BASE64URL.decode(accessSecret));
-    this.refreshTokenKey = Keys.hmacShaKeyFor(
-        io.jsonwebtoken.io.Decoders.BASE64URL.decode(refreshSecret));
+        this.accessTokenKey  = Keys.hmacShaKeyFor(
+            io.jsonwebtoken.io.Decoders.BASE64URL.decode(accessSecret));
+        this.refreshTokenKey = Keys.hmacShaKeyFor(
+            io.jsonwebtoken.io.Decoders.BASE64URL.decode(refreshSecret));
 
-    this.accessTokenTtlMs  = TimeUnit.DAYS.toMillis(1);   // 24 h access tokens
-    this.refreshTokenTtlMs = TimeUnit.DAYS.toMillis(7);   // 7 d refresh tokens
-    this.userRepository    = userRepository;
-}
-
+        this.accessTokenTtlMs  = TimeUnit.DAYS.toMillis(1);   // 24 h access tokens
+        this.refreshTokenTtlMs = TimeUnit.DAYS.toMillis(7);   // 7 d refresh tokens
+        this.userRepository    = userRepository;
+        logger.info("AuthService initialized");
+    }
 
     public String generateAccessToken(User user) {
+        logger.info("Generating access token for user: " + user.getUserName());
         Date now    = new Date();
         Date expiry = new Date(now.getTime() + accessTokenTtlMs);
 
@@ -59,19 +63,21 @@ public AuthService(IUserRepository userRepository) {
         if (user instanceof Subscriber sub) {
             Map<String, List<String>> storeRoles = sub.getRoles().keySet()
                 .stream()
-                .collect(Collectors.groupingBy(
-                    StoreRoleKey::storeId,                         
-                    Collectors.mapping(StoreRoleKey::roleName,     
-                                        Collectors.toList())
+                .collect(Collectors.toMap(
+                    StoreRoleKey::storeId,
+                    k -> Collections.singletonList(sub.getRoles().get(k).getRoleName())
                 ));
             builder.claim("storeRoles", storeRoles);
         }
-        return builder
+        String token = builder
                 .signWith(accessTokenKey, SignatureAlgorithm.HS256)
                 .compact();
+        logger.info("Access token generated for user: " + user.getUserName());
+        return token;
     }
 
     public String generateRefreshToken(String userName) {
+        logger.info("Generating refresh token for user: " + userName);
         Date now = new Date();
         Date expiry = new Date(now.getTime() + refreshTokenTtlMs);
         String token = Jwts.builder()
@@ -82,22 +88,27 @@ public AuthService(IUserRepository userRepository) {
             .signWith(this.refreshTokenKey, SignatureAlgorithm.HS256)
             .compact();
         refreshTokenStore.put(token, userName);
+        logger.info("Refresh token generated for user: " + userName);
         return token;
     }
 
     public boolean validateAccessToken(String token) {
+        logger.info("Validating access token");
         try {
             Jwts.parserBuilder()
                 .setSigningKey(accessTokenKey)
                 .build()
                 .parseClaimsJws(token);
+            logger.info("Access token valid");
             return true;
         } catch (JwtException e) {
+            logger.error("Invalid access token: " + e.getMessage());
             return false;
         }
     }
 
     public boolean validateRefreshToken(String token) {
+        logger.info("Validating refresh token");
         try {
             Claims claims = Jwts.parserBuilder()
                 .setSigningKey(refreshTokenKey)
@@ -107,33 +118,49 @@ public AuthService(IUserRepository userRepository) {
             return refreshTokenStore.containsKey(token)
                 && claims.getExpiration().after(new Date());
         } catch (JwtException e) {
+            logger.error("Invalid refresh token: " + e.getMessage());
             return false;
         }
     }
 
     public Claims parseAccessToken(String token) {
-        return Jwts.parserBuilder()
-            .setSigningKey(accessTokenKey)
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
+        logger.info("Parsing access token");
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(accessTokenKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            logger.info("Access token parsed successfully");
+            return claims;
+        } catch (JwtException e) {
+            logger.error("Failed to parse access token: " + e.getMessage());
+            throw e;
+        }
     }
 
     public void revokeRefreshToken(String token) {
+        logger.info("Revoking refresh token");
         refreshTokenStore.remove(token);
     }
 
     public AuthTokens login(String username, String password) throws Exception {
+        logger.info("Logging in user: " + username);
         //DB Check 
         Subscriber u = this.userRepository.findById(username);
-        if (u == null) throw new Exception("User not registered");
+        if (u == null) {
+            logger.error("User not registered");
+            throw new Exception("User not registered");
+        }
         String access  = generateAccessToken(u);
         String refresh = generateRefreshToken(u.getUserName());
+        logger.info("User logged in successfully");
         return new AuthTokens(access, refresh);
     }
 
     /** Log out: revoke refresh-token and blacklist the access-token. */
     public void logout(String refreshToken, String accessToken) {
+        logger.info("Logging out user");
         // 1. Revoke the refresh token (if any)
         if (refreshToken != null && !refreshToken.isBlank()) {
             revokeRefreshToken(refreshToken);
@@ -143,10 +170,12 @@ public AuthService(IUserRepository userRepository) {
         Claims claims = parseAccessToken(accessToken);
         String username = claims.getSubject();
         if (username == null || username.isBlank()) {
+            logger.error("Invalid access token: subject is missing");
             throw new IllegalArgumentException("Invalid access token: subject is missing");
         }
     
         // 3. Delete the user via the repository
         userRepository.delete(username);
+        logger.info("User logged out successfully");
     }
 }

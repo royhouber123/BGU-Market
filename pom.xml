@@ -68,6 +68,35 @@
         <artifactId>mockito-inline</artifactId>
         <version>5.2.0</version>   <!-- או אפילו 5.5.0, כמו mockito-core שלך -->
         <scope>test</scope>
+      
+      <!-- Spring Web -->
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+        <version>5.3.30</version>
+      </dependency>
+      
+      <!-- Spring Context -->
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>5.3.30</version>
+      </dependency>
+      
+      <!-- Jakarta Servlet API -->
+      <dependency>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>5.0.0</version>
+        <scope>provided</scope>
+      </dependency>
+      
+      <!-- Javax Servlet API for legacy support -->
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>4.0.1</version>
+        <scope>provided</scope>
       </dependency>
     </dependencies>
 
