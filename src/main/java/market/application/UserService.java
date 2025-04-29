@@ -103,7 +103,7 @@ public class UserService {
         }
     }
 
-    public void removeProductFromCart(int storeId,
+    public void removeProductFromCart(String storeId,
                                       String productName,
                                       int quantity) throws Exception {
         String userName = extractUserNameFromToken();
@@ -152,5 +152,10 @@ public class UserService {
         }
         Claims claims = authService.parseAccessToken(token);
         return claims.getSubject();
+    }
+
+    public IUserRepository getUserRepository()
+    {
+        return this.repo;
     }
 }

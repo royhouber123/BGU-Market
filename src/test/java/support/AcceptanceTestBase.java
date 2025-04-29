@@ -32,8 +32,9 @@ public abstract class AcceptanceTestBase {
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
-        userService = new UserService(userRepository);
+        
         authService = new AuthService(userRepository);
+        userService = new UserService(userRepository,authService);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         storeService = new StoreService(storerepo,userRepository); // Use the real implementation

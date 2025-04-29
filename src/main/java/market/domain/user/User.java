@@ -18,7 +18,7 @@ public class User {
     public void addProductToCart(String storeId, String productName, int qty) {
         shoppingCart.addProduct(storeId, productName, qty);
     }
-    public void removeProductFromCart(int storeId, String productName, int qty) {
+    public void removeProductFromCart(String storeId, String productName, int qty) {
         shoppingCart.removeProduct(storeId, productName, qty);
     }
 

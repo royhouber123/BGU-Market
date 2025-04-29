@@ -17,7 +17,7 @@ public class ShoppingCart {
         return true;
     }
 
-    public boolean removeProduct(int storeId, String productId,  int quantity) {
+    public boolean removeProduct(String storeId, String productId,  int quantity) {
         StoreBag bag = storeBags.get(storeId);
         if (bag != null) {
             bag.removeProduct(productId, quantity);

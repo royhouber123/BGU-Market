@@ -124,7 +124,7 @@ void create_store_with_duplicate_name_fails() {
 
 @Test
 void cannot_remove_founder() {
-    String res = storeService.removeOwner(OWNER_A, FOUNDER, storeId);
+    String res = storeService.removeOwner(OWNER_A, FOUNDER, storeId).get(0).get(0);
     assertTrue(res.contains("FOUNDER") || res.contains("not a owner"));
 }
 
