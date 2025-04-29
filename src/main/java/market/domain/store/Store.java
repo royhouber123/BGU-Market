@@ -354,7 +354,7 @@ public class Store {
      *
      * @param id        ID of the owner performing the removal.
      * @param toRemove  ID of the owner to be removed.
-     * @return A list of all user IDs (owners and managers) that were removed.
+     * @return A list of lists all user IDs (owners(0) and managers(1)) that were removed.
      * @throws Exception If:
      *                   - {@code id} is not an owner,
      *                   - {@code toRemove} is not an owner,
@@ -365,6 +365,9 @@ public class Store {
         List<List<String>> res = new ArrayList<>();
         res.add(new ArrayList<>());
         res.add(new ArrayList<>());
+        if(founderID.equals(id)){
+            throw new Exception(id +" is the founder of store:"+ storeID);
+        }
         if (!isOwner(id)){
             throw new Exception(id +" is not a owner of store:"+ storeID);
         }
