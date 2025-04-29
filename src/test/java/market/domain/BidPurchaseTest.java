@@ -27,6 +27,7 @@ class BidPurchaseTest {
     private IPaymentService paymentService;
     private IStoreRepository storeRepository;
 
+    
     @BeforeEach
     void setUp() {
         BidPurchase.getBids().clear(); 
