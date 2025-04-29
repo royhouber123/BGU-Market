@@ -66,9 +66,9 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-inline</artifactId>
-        <version>5.2.0</version>   <!-- או אפילו 5.5.0, כמו mockito-core שלך -->
+        <version>5.2.0</version>
         <scope>test</scope>
-      
+      </dependency>
       <!-- Spring Web -->
       <dependency>
         <groupId>org.springframework</groupId>

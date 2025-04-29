@@ -9,6 +9,7 @@ import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
+import market.domain.user.Subscriber;
 import utils.Logger;
 
 
@@ -209,7 +210,6 @@ assumes aggreement by 'apointerID''s appointer
                 throw new Exception("store doesn't exist");
             List<List<String>> removedWorkers =  s.removeOwner(id,toRemove);
             logger.info("Removed owner: " + toRemove + " from store: " + storeID + ", by: " + id);
-            return removedWorkers;
             // for (String i:removedWorkers.get(0) ){
             //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Owner");
             //     //TODO: need to change data on those ussers
@@ -218,14 +218,13 @@ assumes aggreement by 'apointerID''s appointer
             //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Manager");
             //     //TODO: need to change data on those ussers
             // }
+            return removedWorkers;
         }
         catch (Exception e){
             ret.get(0).add(e.getMessage());
             logger.error("Error removing owner: " + toRemove + " from store: " + storeID + ". Reason: " + e.getMessage());
             return ret;
         }
-        ret.get(0).add("success");
-        return ret;
     }
 
     /**
