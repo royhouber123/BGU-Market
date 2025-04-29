@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -70,8 +73,8 @@ public class StoreOwnerTests extends AcceptanceTestBase {
     @Test
     void owner_removes_owner_successfully() {
         storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
-        String res = storeService.removeOwner(FOUNDER, OWNER_A, storeId);
-        assertEquals("succeed", res);
+        List<List<String>> res = storeService.removeOwner(FOUNDER, OWNER_A, storeId);
+        assertEquals("succeed", res.get(0).get(0));
     }
 
     // ───────────────────────────────────────────────────────────────── managers & permissions
