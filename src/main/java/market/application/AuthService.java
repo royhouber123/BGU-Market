@@ -124,8 +124,8 @@ public AuthService(IUserRepository userRepository) {
     }
 
     public AuthTokens login(String username, String password) throws Exception {
-        
-        User u = this.userRepository.isExist(username , password);
+        //DB Check 
+        Subscriber u = this.userRepository.findById(username);
         if (u == null) throw new Exception("User not registered");
         String access  = generateAccessToken(u);
         String refresh = generateRefreshToken(u.getUserName());
