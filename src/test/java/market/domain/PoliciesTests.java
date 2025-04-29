@@ -228,7 +228,7 @@ class PoliciesTests {
             return dummyListings.get(listingId);
         }
 
-        @Override public boolean addListing(Listing listing) { return false; }
+        @Override public String addListing(Listing listing) { return ""; }
         @Override public boolean removeListing(String listingId) { return false; }
         @Override public List<Listing> getListingsByProductName(String productName) { return null; }
         @Override public List<Listing> getListingsByProductId(String productId) { return null; }
