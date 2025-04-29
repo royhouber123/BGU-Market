@@ -29,13 +29,13 @@ class SubscriberTests extends AcceptanceTestBase {
     void setUp() throws Exception {
 
         // --- subscriber exists ------------------------------------------------
-        userService.register(SUB, PW);
+        userService.getUserRepository().register(SUB, PW);
 
 
         // --- create store + one listing --------------------------------------
         storeService.createStore("GadgetStore", "100");          // founderId
         storeId = storeService.getStore("GadgetStore").getStoreID();
-        storeService.addNewListing("100",
+        storeService.addNewListing("sub01",
                                    storeId,
                                    "m1",
                                    "Mouse",
@@ -44,8 +44,8 @@ class SubscriberTests extends AcceptanceTestBase {
                                    100);
         productid = "m1";
         // --- stub external ports ---------------------------------------------
-        when(paymentService.processPayment(any())).thenReturn(true);
-        when(shipmentService.ship(any(), any(), any())).thenReturn("123");
+        when(paymentService.processPayment(anyString())).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("123");
 
         // --- build a real PurchaseService using base-class repositories -------
     }
@@ -61,8 +61,8 @@ class SubscriberTests extends AcceptanceTestBase {
         // add to cart
         storeService.getProductListing(storeId,productid);
         //the parse int  will be change when roy and yair change the store id to string
-        userService.addProductToCart(storeId, "Mouse", 1);
-        ShoppingCart cart = userService.getCart();
+        userService.getUserRepository().findById(SUB).addProductToCart(storeId, productid, 1);
+        ShoppingCart cart = userService.getUserRepository().getCart(SUB);
 
         // execute purchase
         Purchase p = purchaseService.executePurchase(

@@ -274,3 +274,211 @@
 [2025-04-29 13:43:56] [INFO] Store retrieved: GadgetStore
 [2025-04-29 13:43:56] [INFO] Added new listing: Mouse to store: 2, by: 100
 [2025-04-29 13:43:56] [INFO] AuthService initialized
+[2025-04-29 13:45:16] [INFO] AuthService initialized
+[2025-04-29 13:45:18] [INFO] Registering user: sub01
+[2025-04-29 13:45:18] [INFO] Registering user: sub01
+[2025-04-29 13:45:18] [INFO] User registered: sub01
+[2025-04-29 13:45:18] [INFO] User registered: sub01
+[2025-04-29 13:45:18] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:45:18] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:45:18] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:45:18] [INFO] AuthService initialized
+[2025-04-29 13:49:56] [INFO] AuthService initialized
+[2025-04-29 13:49:57] [INFO] Registering user: sub01
+[2025-04-29 13:49:57] [INFO] Registering user: sub01
+[2025-04-29 13:49:57] [INFO] User registered: sub01
+[2025-04-29 13:49:57] [INFO] User registered: sub01
+[2025-04-29 13:49:57] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:49:57] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:49:57] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:49:58] [INFO] Logging in user: sub01
+[2025-04-29 13:49:58] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:49:58] [INFO] User found: sub01
+[2025-04-29 13:49:58] [INFO] Generating access token for user: sub01
+[2025-04-29 13:49:58] [INFO] Access token generated for user: sub01
+[2025-04-29 13:49:58] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:49:58] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:49:58] [INFO] User logged in successfully
+[2025-04-29 13:49:58] [ERROR] Access token is missing from request context
+[2025-04-29 13:50:03] [INFO] AuthService initialized
+[2025-04-29 13:50:04] [INFO] Registering user: sub01
+[2025-04-29 13:50:04] [INFO] Registering user: sub01
+[2025-04-29 13:50:04] [INFO] User registered: sub01
+[2025-04-29 13:50:04] [INFO] User registered: sub01
+[2025-04-29 13:50:04] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:50:04] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:50:04] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:50:04] [INFO] Logging in user: sub01
+[2025-04-29 13:50:04] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:50:04] [INFO] User found: sub01
+[2025-04-29 13:50:04] [INFO] Generating access token for user: sub01
+[2025-04-29 13:50:04] [INFO] Access token generated for user: sub01
+[2025-04-29 13:50:04] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:50:04] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:50:04] [INFO] User logged in successfully
+[2025-04-29 13:50:04] [ERROR] Access token is missing from request context
+[2025-04-29 13:50:04] [INFO] AuthService initialized
+[2025-04-29 13:50:04] [INFO] Registering user: sub01
+[2025-04-29 13:50:04] [INFO] Registering user: sub01
+[2025-04-29 13:50:04] [INFO] User registered: sub01
+[2025-04-29 13:50:04] [INFO] User registered: sub01
+[2025-04-29 13:50:04] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:50:04] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:50:04] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:50:04] [INFO] Logging in user: sub01
+[2025-04-29 13:50:04] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:50:04] [INFO] User found: sub01
+[2025-04-29 13:50:04] [INFO] Generating access token for user: sub01
+[2025-04-29 13:50:04] [INFO] Access token generated for user: sub01
+[2025-04-29 13:50:04] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:50:04] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:50:04] [INFO] User logged in successfully
+[2025-04-29 13:50:04] [ERROR] Access token is missing from request context
+[2025-04-29 13:53:01] [INFO] AuthService initialized
+[2025-04-29 13:53:02] [INFO] Registering user: sub01
+[2025-04-29 13:53:02] [INFO] User registered: sub01
+[2025-04-29 13:53:02] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:53:02] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:53:02] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:53:02] [INFO] Logging in user: sub01
+[2025-04-29 13:53:02] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:53:02] [INFO] User found: sub01
+[2025-04-29 13:53:02] [INFO] Generating access token for user: sub01
+[2025-04-29 13:53:02] [INFO] Access token generated for user: sub01
+[2025-04-29 13:53:02] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:53:02] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:53:02] [INFO] User logged in successfully
+[2025-04-29 13:53:02] [ERROR] Access token is missing from request context
+[2025-04-29 13:53:02] [INFO] AuthService initialized
+[2025-04-29 13:53:02] [INFO] Registering user: sub01
+[2025-04-29 13:53:02] [INFO] User registered: sub01
+[2025-04-29 13:53:02] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:53:02] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:53:02] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:53:02] [INFO] Logging in user: sub01
+[2025-04-29 13:53:02] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:53:02] [INFO] User found: sub01
+[2025-04-29 13:53:02] [INFO] Generating access token for user: sub01
+[2025-04-29 13:53:02] [INFO] Access token generated for user: sub01
+[2025-04-29 13:53:02] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:53:02] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:53:02] [INFO] User logged in successfully
+[2025-04-29 13:53:02] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:53:02] [INFO] User found: sub01
+[2025-04-29 13:53:51] [INFO] AuthService initialized
+[2025-04-29 13:53:52] [INFO] Registering user: sub01
+[2025-04-29 13:53:52] [INFO] User registered: sub01
+[2025-04-29 13:53:52] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:53:52] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:53:52] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:53:52] [INFO] Logging in user: sub01
+[2025-04-29 13:53:52] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:53:52] [INFO] User found: sub01
+[2025-04-29 13:53:52] [INFO] Generating access token for user: sub01
+[2025-04-29 13:53:52] [INFO] Access token generated for user: sub01
+[2025-04-29 13:53:52] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:53:52] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:53:52] [INFO] User logged in successfully
+[2025-04-29 13:53:52] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:53:52] [INFO] User found: sub01
+[2025-04-29 13:53:52] [ERROR] Access token is missing from request context
+[2025-04-29 13:54:47] [INFO] AuthService initialized
+[2025-04-29 13:54:48] [INFO] Registering user: sub01
+[2025-04-29 13:54:48] [INFO] User registered: sub01
+[2025-04-29 13:54:48] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:54:48] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:54:48] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:54:48] [INFO] Logging in user: sub01
+[2025-04-29 13:54:48] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:54:48] [INFO] User found: sub01
+[2025-04-29 13:54:48] [INFO] Generating access token for user: sub01
+[2025-04-29 13:54:48] [INFO] Access token generated for user: sub01
+[2025-04-29 13:54:48] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:54:48] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:54:48] [INFO] User logged in successfully
+[2025-04-29 13:54:48] [ERROR] Access token is missing from request context
+[2025-04-29 13:54:48] [INFO] AuthService initialized
+[2025-04-29 13:54:48] [INFO] Registering user: sub01
+[2025-04-29 13:54:48] [INFO] User registered: sub01
+[2025-04-29 13:54:48] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:54:48] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:54:48] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:54:48] [INFO] Logging in user: sub01
+[2025-04-29 13:54:48] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:54:48] [INFO] User found: sub01
+[2025-04-29 13:54:48] [INFO] Generating access token for user: sub01
+[2025-04-29 13:54:48] [INFO] Access token generated for user: sub01
+[2025-04-29 13:54:48] [INFO] Generating refresh token for user: sub01
+[2025-04-29 13:54:48] [INFO] Refresh token generated for user: sub01
+[2025-04-29 13:54:48] [INFO] User logged in successfully
+[2025-04-29 13:54:48] [INFO] Attempting to find user by id: sub01
+[2025-04-29 13:54:48] [INFO] User found: sub01
+[2025-04-29 13:54:48] [INFO] Getting cart for user: sub01
+[2025-04-29 13:54:48] [INFO] Cart retrieved for user: sub01
+[2025-04-29 13:54:48] [INFO] Executing purchase for user: sub01
+[2025-04-29 13:54:48] [ERROR] Product not found in store: m1
+[2025-04-29 13:54:48] [ERROR] Failed to execute regular purchase for user: sub01. Reason: Product not found in store: m1
+[2025-04-29 14:01:22] [INFO] AuthService initialized
+[2025-04-29 14:01:23] [INFO] Registering user: sub01
+[2025-04-29 14:01:23] [INFO] User registered: sub01
+[2025-04-29 14:01:23] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:01:23] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:01:23] [INFO] Added new listing: Mouse to store: 2, by: sub01
+[2025-04-29 14:01:23] [ERROR] Error adding listing: Mouse to store: 2. Reason: User sub01 doesn't have permission to ADD listing!
+[2025-04-29 14:01:23] [INFO] Logging in user: sub01
+[2025-04-29 14:01:23] [INFO] Attempting to find user by id: sub01
+[2025-04-29 14:01:23] [INFO] User found: sub01
+[2025-04-29 14:01:23] [INFO] Generating access token for user: sub01
+[2025-04-29 14:01:23] [INFO] Access token generated for user: sub01
+[2025-04-29 14:01:23] [INFO] Generating refresh token for user: sub01
+[2025-04-29 14:01:23] [INFO] Refresh token generated for user: sub01
+[2025-04-29 14:01:23] [INFO] User logged in successfully
+[2025-04-29 14:01:23] [ERROR] Access token is missing from request context
+[2025-04-29 14:01:23] [INFO] AuthService initialized
+[2025-04-29 14:01:23] [INFO] Registering user: sub01
+[2025-04-29 14:01:23] [INFO] User registered: sub01
+[2025-04-29 14:01:23] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 14:01:23] [INFO] Store retrieved: GadgetStore
+[2025-04-29 14:01:23] [INFO] Added new listing: Mouse to store: 2, by: sub01
+[2025-04-29 14:01:23] [ERROR] Error adding listing: Mouse to store: 2. Reason: User sub01 doesn't have permission to ADD listing!
+[2025-04-29 14:01:23] [INFO] Logging in user: sub01
+[2025-04-29 14:01:23] [INFO] Attempting to find user by id: sub01
+[2025-04-29 14:01:23] [INFO] User found: sub01
+[2025-04-29 14:01:23] [INFO] Generating access token for user: sub01
+[2025-04-29 14:01:23] [INFO] Access token generated for user: sub01
+[2025-04-29 14:01:23] [INFO] Generating refresh token for user: sub01
+[2025-04-29 14:01:23] [INFO] Refresh token generated for user: sub01
+[2025-04-29 14:01:23] [INFO] User logged in successfully
+[2025-04-29 14:01:23] [INFO] Attempting to find user by id: sub01
+[2025-04-29 14:01:23] [INFO] User found: sub01
+[2025-04-29 14:01:23] [INFO] Getting cart for user: sub01
+[2025-04-29 14:01:23] [INFO] Cart retrieved for user: sub01
+[2025-04-29 14:01:23] [INFO] Executing purchase for user: sub01
+[2025-04-29 14:01:23] [ERROR] Product not found in store: m1
+[2025-04-29 14:01:23] [ERROR] Failed to execute regular purchase for user: sub01. Reason: Product not found in store: m1
+[2025-04-29 14:03:17] [INFO] AuthService initialized
+[2025-04-29 14:03:18] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:03:18] [INFO] Added new owner: 2 to store: 2, by: 1
+[2025-04-29 14:03:18] [ERROR] Attempted to add owner to non-existent store: 3
+[2025-04-29 14:03:18] [ERROR] Error adding owner: 2 to store: 3. Reason: store doesn't exist
+[2025-04-29 14:03:18] [ERROR] Attempted to add owner to non-existent store: 4
+[2025-04-29 14:03:18] [ERROR] Error adding owner: 2 to store: 4. Reason: store doesn't exist
+[2025-04-29 14:03:18] [INFO] Removed owner: 2 from store: 2, by: 1
+[2025-04-29 14:03:18] [INFO] AuthService initialized
+[2025-04-29 14:03:18] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:03:18] [ERROR] Attempted to add owner to non-existent store: 1
+[2025-04-29 14:03:18] [ERROR] Error adding owner: 2 to store: 1. Reason: store doesn't exist
+[2025-04-29 14:03:18] [INFO] AuthService initialized
+[2025-04-29 14:03:18] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:03:18] [INFO] Added new owner: 2 to store: 2, by: 1
+[2025-04-29 14:03:18] [ERROR] Attempted to add manager to non-existent store: 3
+[2025-04-29 14:03:18] [ERROR] Error adding manager: 2 to store: 3. Reason: store doesn't exist
+[2025-04-29 14:03:18] [INFO] AuthService initialized
+[2025-04-29 14:03:18] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:03:19] [ERROR] Error removing owner: 1 from store: 2. Reason: 1 is the founder of store:2
+[2025-04-29 14:04:16] [INFO] AuthService initialized
+[2025-04-29 14:04:17] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:04:17] [ERROR] Error removing owner: 1 from store: 2. Reason: 1 is the founder of store:2
+[2025-04-29 14:04:45] [INFO] AuthService initialized
+[2025-04-29 14:04:46] [INFO] Store created: TestStore, founder: 1, id: 2
+[2025-04-29 14:04:46] [ERROR] Error removing owner: 1 from store: 2. Reason: 1 is the founder of store:2
