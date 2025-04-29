@@ -26,7 +26,7 @@ public class ShoppingCart {
         return false;
     }
 
-    public StoreBag getStoreBag(int storeId) {
+    public StoreBag getStoreBag(String storeId) {
         return storeBags.get(storeId);
     }
 
