@@ -19,16 +19,24 @@ public class StoreService {
         this.userRepository = userRepository;
     }
 
-    public void createStore(String storeName, String founderId) throws Exception {
+
+    /*
+     * return storeId
+     */
+    public String createStore(String storeName, String founderId) throws Exception {
         // ? - do we need store type
         if(storeRepository.containsStore(storeName)) {
             // LOG - error
             throw new Exception("The storeName '" + storeName + "' already exists");
         }
+        String id = storeIDs;
+        storeIDs = String.valueOf(Integer.valueOf(storeIDs) + 1);
         Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
         //Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
-        ((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "FOUNDER");
+        ((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "Founder");
+        
+        return storeIDs;
         //LOG - store added
     }
 
