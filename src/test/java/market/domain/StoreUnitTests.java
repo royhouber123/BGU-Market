@@ -3,6 +3,7 @@ package market.domain;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -196,10 +197,10 @@ class StoreUnitTests {
         store.addNewOwner(founderID, ownerA);
 
         // Act
-        boolean added = store.addNewListing(ownerA, "p1", "Laptop", "Gaming laptop", 5, 2000);
+        String added = store.addNewListing(ownerA, "p1", "Laptop", "Gaming laptop", 5, 2000);
 
         // Assert
-        assertTrue(added);
+        assert(added.contains("doesn't have permission"));
         assertEquals(1, store.getListingsByProductName("Laptop").size());
     }
 
@@ -209,9 +210,9 @@ class StoreUnitTests {
         store.addNewManager(ownerA, ownerB);
         store.addPermissionToManager(ownerB, ownerA, Store.Permission.EDIT_PRODUCTS.getCode());
 
-        boolean added = store.addNewListing(ownerB, "p2", "Phone", "iPhone", 10, 1000);
+        String added = store.addNewListing(ownerB, "p2", "Phone", "iPhone", 10, 1000);
 
-        assertTrue(added);
+        assert(!added.contains("doesn't have permission"));
         assertEquals(1, store.getListingsByProductName("Phone").size());
     }
 

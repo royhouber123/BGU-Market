@@ -4,6 +4,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,9 +39,9 @@ class StoreProductManagerUnitTests {
     @Test
     void testAddListingSuccess() {
         Listing listing = createListing("p1", "ProductA");
-        boolean added = manager.addListing(listing);
+        String added = manager.addListing(listing);
 
-        assertTrue(added);
+        assertEquals(added, listing.getListingId());
         assertEquals(listing, manager.getListingById(listing.getListingId()));
     }
 
@@ -49,8 +50,8 @@ class StoreProductManagerUnitTests {
         Listing listing = createListing("p2", "ProductB");
         manager.addListing(listing);
 
-        boolean addedAgain = manager.addListing(listing);
-        assertFalse(addedAgain);
+        String addedAgain = manager.addListing(listing);
+        assertNotEquals(addedAgain, listing.getListingId());
     }
 
     // @Test
