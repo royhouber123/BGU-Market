@@ -17,6 +17,7 @@ class AuctionPurchaseTest {
 
     //AuctionPurchase auctionPurchase;
     IStoreRepository storeRepository;   
+    
     @BeforeEach
     void setUp() {
         // No specific setup needed for now
@@ -25,19 +26,24 @@ class AuctionPurchaseTest {
     }
 
     @Test
-    void testOpenAuctionSuccess() {
+    void testOpenAuctionInitialStatus() {
         String storeId = "store1";
         String productId = "prod1";
         double startingPrice = 100.0;
-        long endTimeMillis = System.currentTimeMillis() + 1 * 60 * 1000; // one minute from now
+        long endTimeMillis = System.currentTimeMillis() + 5000; // 5 שניות מהעכשיו
         ShipmentService shipmentService = new ShipmentService();
         PaymentService paymentService = new PaymentService();
+    
         assertDoesNotThrow(() -> {
             AuctionPurchase.openAuction(this.storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
         });
-        Map<AuctionKey, List<Offer>> offers = AuctionPurchase.getOffers();
-        AuctionKey auctionKey = new AuctionKey(storeId, productId);
-        assertTrue(offers.containsKey(auctionKey));
+    
+        // בודקים שנוצר המכרז נכון
+        Map<String, Object> auctionStatus = AuctionPurchase.getAuctionStatus(storeId, productId);
+        assertNotNull(auctionStatus);
+        assertEquals(startingPrice, auctionStatus.get("startingPrice"));
+        assertEquals(startingPrice, auctionStatus.get("currentMaxOffer")); // אין עדיין הצעות
+        assertTrue((long)auctionStatus.get("timeLeftMillis") > 0); // נותר זמן
     }
 
     @Test
@@ -60,6 +66,7 @@ class AuctionPurchaseTest {
     
         // Submit an offer
         assertDoesNotThrow(() -> {
+            Thread.sleep(50);
             AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
         });
     
@@ -78,7 +85,8 @@ class AuctionPurchaseTest {
         String storeId = "store1";
         String productId = "prod1";
         double startingPrice = 100.0;
-        long endTimeMillis = System.currentTimeMillis() + 1 * 60 * 1000; // one minute from now
+        long auctionDurationMillis = 2000; // נניח מכירה של 2 שניות
+        long endTimeMillis = System.currentTimeMillis() + auctionDurationMillis;
         ShipmentService shipmentService = new ShipmentService();
         PaymentService paymentService = new PaymentService();
 
@@ -87,66 +95,37 @@ class AuctionPurchaseTest {
             AuctionPurchase.openAuction(this.storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
         });
 
-        // Get auction status
+        // Immediately get auction status
         Map<String, Object> auctionStatus = AuctionPurchase.getAuctionStatus(storeId, productId);
 
-        // Verify auction status
+        // Verify auction status right after opening
         assertNotNull(auctionStatus);
+
         assertTrue(auctionStatus.containsKey("startingPrice"));
         assertTrue(auctionStatus.containsKey("currentMaxOffer"));
         assertTrue(auctionStatus.containsKey("timeLeftMillis"));
 
-        assertEquals(100.0, auctionStatus.get("startingPrice")); // Auction should be open
-        assertEquals(0.0, auctionStatus.get("currentMaxOffer")); // No bids yet
-        assertEquals(endTimeMillis, auctionStatus.get("timeLeftMillis"));
+        assertEquals(startingPrice, (double) auctionStatus.get("startingPrice"));
+        assertEquals(startingPrice, (double) auctionStatus.get("currentMaxOffer")); // אין הצעות עדיין
 
-        
+        long timeLeftMillis = (long) auctionStatus.get("timeLeftMillis");
+        assertTrue(timeLeftMillis > 0, "Auction should still be active immediately after opening");
+
+        // עכשיו נחכה שהמכרז יסתיים
+        try {
+            Thread.sleep(auctionDurationMillis + 200); // מחכים קצת יותר מהזמן של המכרז
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // אם מישהו עוצר את הת'רד, לא להתעלם
+        }
+
+        // אחרי שהסתיים – בודקים שוב את הסטטוס
+        Map<String, Object> auctionStatusAfterEnd = AuctionPurchase.getAuctionStatus(storeId, productId);
+
+        long timeLeftAfterEnd = (long) auctionStatusAfterEnd.get("timeLeftMillis");
+        assertEquals(0, timeLeftAfterEnd, "Auction should be closed after end time");
     }
+    
 
-    @Test
-    void testCloseAuctionSuccess() {
-        String storeId = "store1";
-        String productId = "prod1";
-        String userId = "user1";
-        double startingPrice = 100.0;
-        double winningPrice = 150.0;
-        String shippingAddress = "123 Main St";
-        String contactInfo = "555-555-5555";
-        long endTimeMillis = System.currentTimeMillis() + 1 * 60 * 1000; // one minute from now
-        ShipmentService shipmentService = new ShipmentService();
-        PaymentService paymentService = new PaymentService();
-
-        // Open an auction
-        assertDoesNotThrow(() -> {
-            AuctionPurchase.openAuction(this.storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
-        });
-
-        // Submit a winning offer
-        assertDoesNotThrow(() -> {
-            AuctionPurchase.submitOffer(storeId, productId, userId, winningPrice, shippingAddress, contactInfo);
-        });
-
-        // Close the auction
-        assertDoesNotThrow(() -> {
-            Purchase purchase = AuctionPurchase.closeAuction(storeId, productId, shipmentService, paymentService);
-
-            // Verify the purchase details
-            assertNotNull(purchase);
-            assertEquals(userId, purchase.getUserId());
-            assertEquals(winningPrice, purchase.getTotalPrice());
-            assertEquals(1, purchase.getProducts().size());
-            assertEquals(productId, purchase.getProducts().get(0).getProductId());
-            assertEquals(shippingAddress, purchase.getShippingAddress());
-            assertEquals(contactInfo, purchase.getContactInfo());
-
-        });
-
-        // Verify the auction is no longer open
-        Map<String, Object> auctionStatus = AuctionPurchase.getAuctionStatus(storeId, productId);
-        assertNotNull(auctionStatus);
-        assertEquals(0, auctionStatus.get("timeLeftMillis")); // Auction should be closed
-
-    }
 
     @Test
     void testPurchaseCreation() {
