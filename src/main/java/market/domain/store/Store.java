@@ -365,8 +365,8 @@ public class Store {
         List<List<String>> res = new ArrayList<>();
         res.add(new ArrayList<>());
         res.add(new ArrayList<>());
-        if(founderID.equals(id)){
-            throw new Exception(id +" is the founder of store:"+ storeID);
+        if(founderID.equals(toRemove)){
+            throw new Exception(toRemove +" is the founder of store:"+ storeID);
         }
         if (!isOwner(id)){
             throw new Exception(id +" is not a owner of store:"+ storeID);

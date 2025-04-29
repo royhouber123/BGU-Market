@@ -4,7 +4,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,11 +49,13 @@ class StoreProductManagerUnitTests {
         Listing listing = createListing("p2", "ProductB");
         manager.addListing(listing);
 
-        String addedAgain = manager.addListing(listing);
-        assertNotEquals(addedAgain, listing.getListingId());
+        Exception ex = assertThrows(Exception.class, () ->
+            manager.addListing(listing));
+
+        
     }
 
-    // @Test
+    // // @Test
     // void testAddListingWithWrongStoreIdFails() {
     //     Listing wrongStoreListing = new Listing(
     //             "wrongStore", "p3", "ProductC", "Wrong description", 5, PurchaseType.REGULAR, 50
