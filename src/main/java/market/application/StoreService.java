@@ -220,13 +220,9 @@ assumes aggreement by 'apointerID''s appointer
             // }
         }
         catch (Exception e){
-<<<<<<< HEAD
             ret.get(0).add(e.getMessage());
-            return ret;
-=======
             logger.error("Error removing owner: " + toRemove + " from store: " + storeID + ". Reason: " + e.getMessage());
-            return e.getMessage();
->>>>>>> 754f39b (Build Successeed)
+            return ret;
         }
         ret.get(0).add("success");
         return ret;
