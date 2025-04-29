@@ -1,12 +1,12 @@
 package market.domain.purchase;
 
-import market.application.External.PaymentService;
-import market.application.External.ShipmentService;
+import market.application.External.IPaymentService;
+import market.application.External.IShipmentService;
 import java.util.List;
 
 public class RegularPurchase {
 
-    public Purchase purchase(String userId, List<PurchasedProduct> purchasedItems, String shippingAddress, String contactInfo, double totalDiscountPrice, PaymentService paymentService, ShipmentService shipmentService) {
+    public Purchase purchase(String userId, List<PurchasedProduct> purchasedItems, String shippingAddress, String contactInfo, double totalDiscountPrice, IPaymentService paymentService, IShipmentService shipmentService) {
         double total = 0.0;
 
         for (PurchasedProduct item : purchasedItems) {

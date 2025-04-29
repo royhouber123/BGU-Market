@@ -106,3 +106,171 @@
 [2025-04-29 13:20:54] [INFO] User registered: user2
 [2025-04-29 13:20:54] [INFO] Store created: store1, founder: 1, id: 2
 [2025-04-29 13:20:54] [ERROR] Access token is missing from request context
+[2025-04-29 13:35:17] [INFO] AuthService initialized
+[2025-04-29 13:35:19] [INFO] Registering user: user1
+[2025-04-29 13:35:19] [INFO] Registering user: user1
+[2025-04-29 13:35:19] [INFO] User registered: user1
+[2025-04-29 13:35:19] [INFO] User registered: user1
+[2025-04-29 13:35:19] [INFO] Registering user: user2
+[2025-04-29 13:35:19] [INFO] Registering user: user2
+[2025-04-29 13:35:19] [INFO] User registered: user2
+[2025-04-29 13:35:19] [INFO] User registered: user2
+[2025-04-29 13:35:19] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:35:19] [INFO] Attempting to find user by id: user1
+[2025-04-29 13:35:19] [INFO] User found: user1
+[2025-04-29 13:35:19] [INFO] Getting cart for user: user1
+[2025-04-29 13:35:19] [INFO] Cart retrieved for user: user1
+[2025-04-29 13:36:22] [INFO] AuthService initialized
+[2025-04-29 13:36:23] [INFO] Registering user: user1
+[2025-04-29 13:36:23] [INFO] Registering user: user1
+[2025-04-29 13:36:23] [INFO] User registered: user1
+[2025-04-29 13:36:23] [INFO] User registered: user1
+[2025-04-29 13:36:23] [INFO] Registering user: user2
+[2025-04-29 13:36:23] [INFO] Registering user: user2
+[2025-04-29 13:36:23] [INFO] User registered: user2
+[2025-04-29 13:36:23] [INFO] User registered: user2
+[2025-04-29 13:36:23] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:36:23] [INFO] Registering user: user3
+[2025-04-29 13:36:23] [INFO] Registering user: user3
+[2025-04-29 13:36:23] [INFO] User registered: user3
+[2025-04-29 13:36:23] [INFO] User registered: user3
+[2025-04-29 13:36:23] [INFO] Logging in user: user3
+[2025-04-29 13:36:23] [INFO] Attempting to find user by id: user3
+[2025-04-29 13:36:23] [INFO] User found: user3
+[2025-04-29 13:36:23] [INFO] Generating access token for user: user3
+[2025-04-29 13:36:24] [INFO] Access token generated for user: user3
+[2025-04-29 13:36:24] [INFO] Generating refresh token for user: user3
+[2025-04-29 13:36:24] [INFO] Refresh token generated for user: user3
+[2025-04-29 13:36:24] [INFO] User logged in successfully
+[2025-04-29 13:36:24] [INFO] AuthService initialized
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:36:24] [INFO] Registering user: user5
+[2025-04-29 13:36:24] [INFO] Registering user: user5
+[2025-04-29 13:36:24] [INFO] User registered: user5
+[2025-04-29 13:36:24] [INFO] User registered: user5
+[2025-04-29 13:36:24] [INFO] Logging in user: user5
+[2025-04-29 13:36:24] [INFO] Attempting to find user by id: user5
+[2025-04-29 13:36:24] [INFO] User found: user5
+[2025-04-29 13:36:24] [INFO] Generating access token for user: user5
+[2025-04-29 13:36:24] [INFO] Access token generated for user: user5
+[2025-04-29 13:36:24] [INFO] Generating refresh token for user: user5
+[2025-04-29 13:36:24] [INFO] Refresh token generated for user: user5
+[2025-04-29 13:36:24] [INFO] User logged in successfully
+[2025-04-29 13:36:24] [ERROR] Access token is missing from request context
+[2025-04-29 13:36:24] [INFO] AuthService initialized
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:36:24] [INFO] Attempting to find user by id: user1
+[2025-04-29 13:36:24] [INFO] User found: user1
+[2025-04-29 13:36:24] [INFO] Getting cart for user: user1
+[2025-04-29 13:36:24] [INFO] Cart retrieved for user: user1
+[2025-04-29 13:36:24] [INFO] AuthService initialized
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:36:24] [INFO] Registering user: user6
+[2025-04-29 13:36:24] [INFO] Registering user: user6
+[2025-04-29 13:36:24] [INFO] User registered: user6
+[2025-04-29 13:36:24] [INFO] User registered: user6
+[2025-04-29 13:36:24] [INFO] Logging in user: user6
+[2025-04-29 13:36:24] [INFO] Attempting to find user by id: user6
+[2025-04-29 13:36:24] [INFO] User found: user6
+[2025-04-29 13:36:24] [INFO] Generating access token for user: user6
+[2025-04-29 13:36:24] [INFO] Access token generated for user: user6
+[2025-04-29 13:36:24] [INFO] Generating refresh token for user: user6
+[2025-04-29 13:36:24] [INFO] Refresh token generated for user: user6
+[2025-04-29 13:36:24] [INFO] User logged in successfully
+[2025-04-29 13:36:24] [ERROR] Access token is missing from request context
+[2025-04-29 13:36:24] [INFO] AuthService initialized
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] User registered: user1
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] User registered: user2
+[2025-04-29 13:36:24] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [INFO] Registering user: user2
+[2025-04-29 13:36:24] [ERROR] User with name 'user2' already exists.
+[2025-04-29 13:36:24] [ERROR] Failed to register user: user2. Exception: User with name 'user2' already exists.
+[2025-04-29 13:38:43] [INFO] AuthService initialized
+[2025-04-29 13:38:44] [INFO] Registering user: user1
+[2025-04-29 13:38:44] [INFO] Registering user: user1
+[2025-04-29 13:38:44] [INFO] User registered: user1
+[2025-04-29 13:38:44] [INFO] User registered: user1
+[2025-04-29 13:38:44] [INFO] Registering user: user2
+[2025-04-29 13:38:44] [INFO] Registering user: user2
+[2025-04-29 13:38:44] [INFO] User registered: user2
+[2025-04-29 13:38:44] [INFO] User registered: user2
+[2025-04-29 13:38:44] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:38:44] [INFO] Attempting to find user by id: user1
+[2025-04-29 13:38:44] [INFO] User found: user1
+[2025-04-29 13:38:44] [INFO] Getting cart for user: user1
+[2025-04-29 13:38:44] [INFO] Cart retrieved for user: user1
+[2025-04-29 13:38:44] [ERROR] Access token is missing from request context
+[2025-04-29 13:39:31] [INFO] AuthService initialized
+[2025-04-29 13:39:32] [INFO] Registering user: user1
+[2025-04-29 13:39:32] [INFO] Registering user: user1
+[2025-04-29 13:39:32] [INFO] User registered: user1
+[2025-04-29 13:39:32] [INFO] User registered: user1
+[2025-04-29 13:39:32] [INFO] Registering user: user2
+[2025-04-29 13:39:32] [INFO] Registering user: user2
+[2025-04-29 13:39:32] [INFO] User registered: user2
+[2025-04-29 13:39:32] [INFO] User registered: user2
+[2025-04-29 13:39:32] [INFO] Store created: store1, founder: 1, id: 2
+[2025-04-29 13:39:32] [INFO] Attempting to find user by id: user1
+[2025-04-29 13:39:32] [INFO] User found: user1
+[2025-04-29 13:39:32] [INFO] Getting cart for user: user1
+[2025-04-29 13:39:32] [INFO] Cart retrieved for user: user1
+[2025-04-29 13:39:32] [INFO] Attempting to find user by id: user1
+[2025-04-29 13:39:32] [INFO] User found: user1
+[2025-04-29 13:39:39] [INFO] AuthService initialized
+[2025-04-29 13:39:40] [INFO] Registering user: sub01
+[2025-04-29 13:39:40] [INFO] Registering user: sub01
+[2025-04-29 13:39:40] [INFO] User registered: sub01
+[2025-04-29 13:39:40] [INFO] User registered: sub01
+[2025-04-29 13:39:40] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:39:40] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:39:40] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:39:40] [INFO] AuthService initialized
+[2025-04-29 13:40:15] [INFO] AuthService initialized
+[2025-04-29 13:40:16] [INFO] Registering user: sub01
+[2025-04-29 13:40:16] [INFO] Registering user: sub01
+[2025-04-29 13:40:16] [INFO] User registered: sub01
+[2025-04-29 13:40:16] [INFO] User registered: sub01
+[2025-04-29 13:40:16] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:40:16] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:40:16] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:40:16] [INFO] AuthService initialized
+[2025-04-29 13:43:54] [INFO] AuthService initialized
+[2025-04-29 13:43:55] [INFO] Registering user: sub01
+[2025-04-29 13:43:55] [INFO] Registering user: sub01
+[2025-04-29 13:43:55] [INFO] User registered: sub01
+[2025-04-29 13:43:55] [INFO] User registered: sub01
+[2025-04-29 13:43:56] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-04-29 13:43:56] [INFO] Store retrieved: GadgetStore
+[2025-04-29 13:43:56] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-04-29 13:43:56] [INFO] AuthService initialized

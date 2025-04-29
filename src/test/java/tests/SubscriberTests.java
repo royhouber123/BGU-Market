@@ -61,7 +61,7 @@ class SubscriberTests extends AcceptanceTestBase {
         // add to cart
         storeService.getProductListing(storeId,productid);
         //the parse int  will be change when roy and yair change the store id to string
-        userService.addProductToCart(SUB, storeId, "Mouse", 1);
+        userService.addProductToCart(storeId, "Mouse", 1);
         ShoppingCart cart = userService.getCart();
 
         // execute purchase
@@ -134,7 +134,7 @@ class SubscriberTests extends AcceptanceTestBase {
     void subscriber_logs_out_and_cart_preserved() throws Exception {
 
         AuthTokens tok1 = authService.login(SUB, PW);
-        userService.addProductToCart(SUB, storeId, "Mouse", 2);
+        userService.addProductToCart(storeId, "Mouse", 2);
         ShoppingCart before = userService.getCart();
         authService.logout(tok1.refreshToken(), tok1.accessToken());
 

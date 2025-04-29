@@ -71,10 +71,10 @@ void user_login_unsuccessfully() throws Exception {
      @Test
     void user_add_product() {
         try {
-            this.userService.addProductToCart(storeid, "gvina", 3);
-            ShoppingCart shoppingCart = this.userService.getCart();
-            assertEquals(3, shoppingCart.getStoreBag(1).getProductQuantity("gvina"));
-            this.userService.removeProductFromCart(storeid, "gvina", 3); // check later
+            this.userService.getUserRepository().findById("user1").addProductToCart(storeid, "gvina", 2);
+            ShoppingCart shoppingCart = this.userService.getUserRepository().getCart("user1");
+            assertEquals(2, shoppingCart.getStoreBag(storeid).getProductQuantity("gvina"));
+            this.userService.getUserRepository().findById("user1").removeProductFromCart(storeid, "gvina", 2); // check later
         } catch (Exception e) {
             fail("Exception occurred: " + e.getMessage());
         }

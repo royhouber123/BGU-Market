@@ -1,7 +1,7 @@
 package market.application;
 
-import market.application.External.PaymentService;
-import market.application.External.ShipmentService;
+import market.application.External.IPaymentService;
+import market.application.External.IShipmentService;
 import market.domain.purchase.*;
 import market.domain.user.*;
 import market.infrastructure.*;
@@ -17,11 +17,11 @@ public class PurchaseService {
     private final IStoreRepository storeRepository;
     private final IPurchaseRepository purchaseRepository;
     private final IUserRepository userRepository;
-    private final PaymentService paymentService;
-    private final ShipmentService shipmentService;
+    private final IPaymentService paymentService;
+    private final IShipmentService shipmentService;
     private final Logger logger = Logger.getInstance();
 
-    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IUserRepository userRepository, PaymentService paymentService, ShipmentService shipmentService) {
+    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
         this.userRepository = userRepository;
