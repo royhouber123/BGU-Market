@@ -103,7 +103,7 @@ public class UserService {
         }
     }
 
-    public void removeProductFromCart(int storeId,
+    public void removeProductFromCart(String storeId,
                                       String productName,
                                       int quantity) throws Exception {
         String userName = extractUserNameFromToken();
