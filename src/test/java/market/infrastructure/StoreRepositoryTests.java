@@ -17,14 +17,16 @@ import market.domain.store.Store;
 class StoreRepositoryTests {
 
     private StoreRepository storeRepository;
+    private ListingRepository listingRepository;
     private Store store1;
     private Store store2;
 
     @BeforeEach
     void setup() throws Exception {
         storeRepository = new StoreRepository();
-        store1 = new Store("1", "TestStore1", "founder1");
-        store2 = new Store("2", "TestStore2", "founder2");
+        listingRepository = new ListingRepository();
+        store1 = new Store("1", "TestStore1", "founder1",listingRepository);
+        store2 = new Store("2", "TestStore2", "founder2",listingRepository);
         storeRepository.addStore(store1);
         storeRepository.addStore(store2);
     }
@@ -60,7 +62,7 @@ class StoreRepositoryTests {
     @Test
     void testAddDuplicateStoreNameThrows() {
         Exception e = assertThrows(Exception.class, () -> {
-            storeRepository.addStore(new Store("999", "TestStore1", "founderX"));
+            storeRepository.addStore(new Store("999", "TestStore1", "founderX",listingRepository));
         });
         assertTrue(e.getMessage().contains("already exists"));
     }
@@ -68,7 +70,7 @@ class StoreRepositoryTests {
     @Test
     void testAddDuplicateStoreIdThrows() {
         Exception e = assertThrows(Exception.class, () -> {
-            storeRepository.addStore(new Store("1", "AnotherStore", "founderX"));
+            storeRepository.addStore(new Store("1", "AnotherStore", "founderX",listingRepository));
         });
         assertTrue(e.getMessage().contains("already exists"));
     }
