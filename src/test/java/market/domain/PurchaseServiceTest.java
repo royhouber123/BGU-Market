@@ -3,20 +3,27 @@ package market.domain;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.domain.purchase.*;
+import market.domain.store.Store;
+import market.domain.store.IStoreRepository;
+import market.domain.user.*;
 import org.junit.jupiter.api.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
-class RegularPurchaseTest {
+class PurchaseServiceTest {
 
     private IPaymentService paymentService;
     private IShipmentService shipmentService;
+    private IStoreRepository storeRepository;
+    private Store store;
+    private ShoppingCart cart;
     private RegularPurchase regularPurchase;
 
     private String userId;
@@ -26,7 +33,7 @@ class RegularPurchaseTest {
     private String contactInfo;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         userId = "user1";
         storeId = "store1";
         productId = "prod1";
@@ -35,9 +42,19 @@ class RegularPurchaseTest {
 
         paymentService = mock(IPaymentService.class);
         shipmentService = mock(IShipmentService.class);
+        storeRepository = mock(IStoreRepository.class);
+        store = mock(Store.class);
 
         when(paymentService.processPayment(anyString())).thenReturn(true);
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("OK");
+
+        when(storeRepository.getStoreByID(storeId)).thenReturn(store);
+        when(store.isPurchaseAllowed(anyMap())).thenReturn(true);
+        when(store.ProductPrice(productId)).thenReturn(50.0);
+        when(store.calculateStoreBagWithDiscount(anyMap())).thenReturn(10.0);
+
+        cart = new ShoppingCart();
+        cart.addProduct(storeId, productId, 2);
 
         regularPurchase = new RegularPurchase();
     }
@@ -46,14 +63,15 @@ class RegularPurchaseTest {
     void tearDown() {
         paymentService = null;
         shipmentService = null;
+        storeRepository = null;
+        store = null;
+        cart = null;
         regularPurchase = null;
     }
 
     @Test
     void purchase_validInput_shouldCreateCorrectPurchase() {
-        PurchasedProduct product = new PurchasedProduct(productId, storeId, 2, 50.0);
-        List<PurchasedProduct> products = List.of(product);
-
+        List<PurchasedProduct> products = List.of(new PurchasedProduct(productId, storeId, 2, 50.0));
         Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 10.0, paymentService, shipmentService);
 
         assertNotNull(purchase);

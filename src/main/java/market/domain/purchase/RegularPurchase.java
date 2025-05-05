@@ -10,7 +10,7 @@ public class RegularPurchase {
         double total = 0.0;
 
         for (PurchasedProduct item : purchasedItems) {
-            total += item.getUnitPrice();
+            total += item.getUnitPrice() * item.getQuantity();
         }
         total=total-totalDiscountPrice;
         paymentService.processPayment("User: " + userId + ", Amount: " + total);
