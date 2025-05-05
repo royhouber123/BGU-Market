@@ -43,13 +43,13 @@ public class AuctionPurchase {
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
     public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService) {
+        long delay = endTimeMillis - System.currentTimeMillis();
+        if (delay <= 0) return;
         storeRepository = rep;
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
         endTimes.put(key, endTimeMillis);
         startingPrices.put(key, startingPrice);
-        long delay = endTimeMillis - System.currentTimeMillis();
-        if (delay <= 0) return;
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -172,5 +172,13 @@ public class AuctionPurchase {
 
     public static Map<AuctionKey, List<Offer>> getOffers() {
         return offers;
+    }
+
+    public static Map<AuctionKey, Long> getEndTimes() {
+        return endTimes;
+    }
+    
+    public static Map<AuctionKey, Double> getStartingPrices() {
+        return startingPrices;
     }
 }
