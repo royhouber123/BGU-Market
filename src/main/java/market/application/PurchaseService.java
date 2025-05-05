@@ -42,7 +42,7 @@ public class PurchaseService {
                 listForUpdateStock.put(storeId, bag.getProducts());
                 boolean isValidBag = store.isPurchaseAllowed(bag.getProducts());
                 if (!isValidBag) {
-                    logger.error("Invalid purchase bag for store: " + storeId);
+                    logger.debug("Invalid purchase bag for store: " + storeId);
                     throw new RuntimeException("Invalid purchase bag for store: " + storeId);
                 }
                 totalDiscountPrice=totalDiscountPrice+store.calculateStoreBagWithDiscount(bag.getProducts());
@@ -52,7 +52,7 @@ public class PurchaseService {
                     try {
                         unitPrice = store.ProductPrice(productId);
                     } catch (Exception e) {
-                        logger.error("Product not found in store: " + productId);
+                        logger.debug("Product not found in store: " + productId);
                         throw new RuntimeException("Product not found in store: " + productId);
                     }
                     Integer quantity = product.getValue();
@@ -79,7 +79,7 @@ public class PurchaseService {
         try {
             User user = userRepository.findById(userId);
             if (!(user instanceof Subscriber)) {
-                logger.error("User is not a subscriber: " + userId);
+                logger.debug("User is not a subscriber: " + userId);
                 throw new RuntimeException("User is not a subscriber: " + userId);
             }
             AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
@@ -106,7 +106,7 @@ public class PurchaseService {
         try {
             User user = userRepository.findById(userId);
             if (!(user instanceof Subscriber)) {
-                logger.error("User is not a subscriber: " + userId);
+                logger.debug("User is not a subscriber: " + userId);
                 throw new RuntimeException("User is not a subscriber: " + userId);
             }
             logger.info("Getting auction status: user " + userId + ", store " + storeId + ", product " + productId);
@@ -135,7 +135,7 @@ public class PurchaseService {
             BidPurchase.approveBid(storeId, productId, userId, approverId);
             logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
         } catch (RuntimeException e) {
-            logger.error("Failed to approve bid for user: " + userId + ". Reason: " + e.getMessage());
+            logger.debug("Failed to approve bid for user: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to approve bid: " + e.getMessage(), e);
         }
     }
@@ -146,7 +146,7 @@ public class PurchaseService {
             BidPurchase.rejectBid(storeId, productId, userId, approverId);
             logger.info("Bid rejected: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
         } catch (RuntimeException e) {
-            logger.error("Failed to reject bid for user: " + userId + ". Reason: " + e.getMessage());
+            logger.debug("Failed to reject bid for user: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to reject bid: " + e.getMessage(), e);
         }
     }
@@ -157,7 +157,7 @@ public class PurchaseService {
             BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
             logger.info("Counter bid proposed: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId + ", new amount " + newAmount);
         } catch (RuntimeException e) {
-            logger.error("Failed to propose counter bid for user: " + userId + ". Reason: " + e.getMessage());
+            logger.debug("Failed to propose counter bid for user: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to propose counter bid: " + e.getMessage(), e);
         }
     }
@@ -167,7 +167,7 @@ public class PurchaseService {
             BidPurchase.acceptCounterOffer(storeId, productId, userId);
             logger.info("Counter offer accepted: user " + userId + ", store " + storeId + ", product " + productId);
         } catch (RuntimeException e) {
-            logger.error("Failed to accept counter offer for user: " + userId + ". Reason: " + e.getMessage());
+            logger.debug("Failed to accept counter offer for user: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to accept counter offer: " + e.getMessage(), e);
         }
     }
@@ -177,7 +177,7 @@ public class PurchaseService {
             BidPurchase.declineCounterOffer(storeId, productId, userId);
             logger.info("Counter offer declined: user " + userId + ", store " + storeId + ", product " + productId);
         } catch (RuntimeException e) {
-            logger.error("Failed to decline counter offer for user: " + userId + ". Reason: " + e.getMessage());
+            logger.debug("Failed to decline counter offer for user: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to decline counter offer: " + e.getMessage(), e);
         }
     }
@@ -186,7 +186,7 @@ public class PurchaseService {
         try {
             return BidPurchase.getBidStatus(storeId, productId, userId);
         } catch (RuntimeException e) {
-            logger.error("Failed to get bid status for user: " + userId + ". Reason: " + e.getMessage());
+            logger.debug("Failed to get bid status for user: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to get bid status: " + e.getMessage(), e);
         }
     }
