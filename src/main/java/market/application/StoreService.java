@@ -5,24 +5,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
-import market.domain.user.Subscriber;
 import utils.Logger;
 
 
 public class StoreService {
     private IStoreRepository storeRepository;
+    private IListingRepository listingRepository;
     private String storeIDs ="1";
     private IUserRepository userRepository;
     private Logger logger = Logger.getInstance();
 
-    public StoreService(IStoreRepository storeRepository, IUserRepository userRepository) {
+    public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository) {
         this.storeRepository = storeRepository;
         storeIDs = storeRepository.getNextStoreID();
         this.userRepository = userRepository;
+        this.listingRepository = listingRepository;
     }
 
 
@@ -37,7 +39,7 @@ public class StoreService {
         }
         String id = storeIDs;
         storeIDs = String.valueOf(Integer.valueOf(storeIDs) + 1);
-        Store store = new Store(String.valueOf(storeIDs),storeName, founderId);
+        Store store = new Store(String.valueOf(storeIDs),storeName, founderId,listingRepository);
         //Who is responsable to manage the store id's????????
         storeRepository.addStore(store);
         logger.info("Store created: " + storeName + ", founder: " + founderId + ", id: " + storeIDs);

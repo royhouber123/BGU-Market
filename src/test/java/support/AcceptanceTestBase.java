@@ -1,21 +1,22 @@
 package support;
 
-import market.application.UserService;
-import market.application.StoreService;
+import org.junit.jupiter.api.BeforeEach;
+import static org.mockito.Mockito.mock;
+
 import market.application.AuthService;
-import market.application.PurchaseService;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
-import static org.mockito.Mockito.mock;
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.Mock;
-import market.domain.user.IUserRepository;
-import market.infrastructure.UserRepository; // Ensure this is the correct package path
-import market.infrastructure.PurchaseRepository;
-import market.infrastructure.StoreRepository; // Ensure this is the correct package path
+import market.application.PurchaseService;
+import market.application.StoreService;
+import market.application.UserService;
 import market.domain.purchase.IPurchaseRepository;
-import market.domain.store.IStoreRepository;
-import market.domain.user.Subscriber;
+import market.domain.store.IListingRepository;
+import market.domain.store.IStoreRepository; // Ensure this is the correct package path
+import market.domain.user.IUserRepository;
+import market.infrastructure.ListingRepository;
+import market.infrastructure.PurchaseRepository; // Ensure this is the correct package path
+import market.infrastructure.StoreRepository;
+import market.infrastructure.UserRepository;
 
 
 public abstract class AcceptanceTestBase {
@@ -32,12 +33,13 @@ public abstract class AcceptanceTestBase {
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
+        IListingRepository listingRepository = new ListingRepository();
         
         authService = new AuthService(userRepository);
         userService = new UserService(userRepository,authService);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
-        storeService = new StoreService(storerepo,userRepository); // Use the real implementation
+        storeService = new StoreService(storerepo,userRepository,listingRepository); // Use the real implementation
         paymentService = mock(IPaymentService.class); // Mock external service
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();
