@@ -62,6 +62,9 @@ public class BidPurchase {
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && !bid.isRejected()) {
+                if (!bid.getRequiredApprovers().contains(approverId)) {
+                    throw new RuntimeException("Approver is not authorized.");
+                }
                 bid.approve(approverId);
                 if (bid.approved) {
                     //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");

@@ -1,209 +1,177 @@
 package market.domain;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import market.application.External.IPaymentService;
+import market.application.External.IShipmentService;
+import market.domain.purchase.*;
+import market.domain.store.IStoreRepository;
+import org.junit.jupiter.api.*;
+
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+public class BidPurchaseTest {
 
-import market.domain.purchase.Bid;
-import market.domain.purchase.BidKey;
-import market.domain.purchase.BidPurchase;
-import market.domain.store.IStoreRepository;
-import market.infrastructure.StoreRepository;
-import market.application.External.*;
-
-
-
-
-class BidPurchaseTest {
     private IShipmentService shipmentService;
     private IPaymentService paymentService;
     private IStoreRepository storeRepository;
 
+    private String storeId;
+    private String productId;
+    private String userId;
+    private BidKey bidKey;
+    private Set<String> approvers;
 
-    
     @BeforeEach
     void setUp() {
-        BidPurchase.getBids().clear(); 
+        storeId = "store1";
+        productId = "product1";
+        userId = "user1";
+        bidKey = new BidKey(storeId, productId);
+        approvers = Set.of("owner1", "manager1");
+
         storeRepository = mock(IStoreRepository.class);
         when(storeRepository.updateStockForPurchasedItems(anyMap())).thenReturn(true);
         BidPurchase.setStoreRepository(storeRepository);
+
         paymentService = mock(IPaymentService.class);
-        when(paymentService.processPayment(anyString())).thenReturn(true); 
-        BidPurchase.setPaymentService(paymentService); 
+        when(paymentService.processPayment(anyString())).thenReturn(true);
+        BidPurchase.setPaymentService(paymentService);
+
         shipmentService = mock(IShipmentService.class);
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("Shipping successful");
         BidPurchase.setShippingService(shipmentService);
     }
 
+    @AfterEach
+    void tearDown() {
+        BidPurchase.getBids().clear();
+    }
+
+    private Bid createAndAddBid(double price, Set<String> approversOverride) {
+        Bid bid = new Bid(userId, price, "addr", "contact", approversOverride);
+        BidPurchase.getBids().computeIfAbsent(bidKey, k -> new ArrayList<>()).add(bid);
+        return bid;
+    }
+
+    private Bid createAndAddBid(double price) {
+        return createAndAddBid(price, approvers);
+    }
+
     @Test
-    void testSubmitBidSuccess() {
-        String storeId = "store1";
-        String productId = "product1";
-        String userId = "user1";
-        double price = 100.0;
-        String shippingAddress = "123 Test St";
-        String contactInfo = "test@example.com";
-        Set<String> approvers = Set.of("owner1", "manager1");
+    void submitBid_validBid_shouldAddToMap() {
         assertDoesNotThrow(() -> BidPurchase.submitBid(
-            storeRepository,
-            storeId,
-            productId,
-            userId,
-            price,
-            shippingAddress,
-            contactInfo,
-            approvers,
-            shipmentService,
-            paymentService
-        ));
-        BidKey key = new BidKey(storeId, productId);
-        assertTrue(BidPurchase.getBids().containsKey(key));
+                storeRepository, storeId, productId, userId, 100.0, "addr", "contact", approvers, shipmentService, paymentService));
+        assertTrue(BidPurchase.getBids().containsKey(bidKey));
     }
 
     @Test
-    void testApproveBidSuccess() {
-        String storeId = "store1";
-        String productId = "product1";
-        String userId = "user1";
-        String approverId = "owner1"; 
-        Set<String> approvers = Set.of(approverId);
-        Bid testBid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approvers);
-        BidKey key = new BidKey(storeId, productId);
-        BidPurchase.getBids().put(key, new ArrayList<>(List.of(testBid)));
-        assertDoesNotThrow(() -> {
-            BidPurchase.approveBid(storeId, productId, userId, approverId);
-        });
-        Bid approvedBid = BidPurchase.getBids().get(key).get(0);
-        assertTrue(approvedBid.isApproved());
+    void submitBid_negativeAmount_shouldThrow() {
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> BidPurchase.submitBid(
+                storeRepository, storeId, productId, userId, -50.0, "addr", "contact", approvers, shipmentService, paymentService));
+        assertEquals("Bid must be a positive value.", ex.getMessage());
     }
 
     @Test
-    void testRejectBidSuccess() {
-        String storeId = "store1";
-        String productId = "product1";
-        String userId = "user1";
-        String approverId = "owner1";
-        Set<String> approvers = Set.of(approverId, "manager1");
-        Bid bid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approvers);
-        BidKey key = new BidKey(storeId, productId);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
-        assertDoesNotThrow(() -> BidPurchase.rejectBid(
-            storeId,
-            productId,
-            userId,
-            approverId
-        ));
-        Boolean isRejected= bid.isRejected();
-        assertTrue(isRejected);
+    void approveBid_allApprovers_shouldCreatePurchase() {
+        Bid bid = createAndAddBid(100.0);
+        assertDoesNotThrow(() -> BidPurchase.approveBid(storeId, productId, userId, "owner1"));
+        assertFalse(bid.isApproved());
+        BidPurchase.approveBid(storeId, productId, userId, "manager1");
+        assertTrue(bid.isApproved());
     }
 
     @Test
-    void testProposeCounterBidSuccess() {
-        String storeId = "store1";
-        String productId = "product1";
-        String userId = "user1";
-        String approverId = "owner1";
-        Set<String> approvers = Set.of(approverId, "manager1");
-        Bid bid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approvers);
-        BidKey key = new BidKey(storeId, productId);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
-        double newCounterOffer = 120.0;
-        assertDoesNotThrow(() -> BidPurchase.proposeCounterBid(
-            storeId,
-            productId,
-            userId,
-            newCounterOffer
-        ));
-        double counterOfferAmount = bid.getCounterOfferAmount();
-        assertEquals(newCounterOffer, counterOfferAmount);
+    void approveBid_notAnApprover_shouldThrow() {
+        Set<String> onlyOwner = Set.of("owner1");
+        createAndAddBid(100.0, onlyOwner);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                BidPurchase.approveBid(storeId, productId, userId, "notAnApprover"));
+        assertEquals("Approver is not authorized.", ex.getMessage());
     }
 
     @Test
-    void testAcceptCounterOfferSuccess() {
-        String storeId = "store1";
-        String productId = "product1";
-        String userId = "user1";
-        String approverId = "owner1";
-        Set<String> approvers = Set.of(approverId, "manager1");
-        Bid bid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approvers);
-        bid.setCounterOfferAmount(120.0);
-        BidKey key = new BidKey(storeId, productId);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
-            assertDoesNotThrow(() -> BidPurchase.acceptCounterOffer(
-            storeId,
-            productId,
-            userId
-        ));
-        assertEquals(120.0, bid.getPrice());     
-        assertTrue(bid.isApproved());             
-        assertFalse(bid.isCounterOffered());      
-    }
-
-    @Test
-    void testDeclineCounterOfferSuccess() {
-        String storeId = "store1";
-        String productId = "product1";
-        String userId = "user1";
-        String approverId = "owner1";
-        Set<String> approvers = Set.of(approverId, "manager1");
-        Bid bid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approvers);
-        bid.setCounterOfferAmount(120.0);
-        BidKey key = new BidKey(storeId, productId);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
-        assertDoesNotThrow(() -> BidPurchase.declineCounterOffer(
-            storeId,
-            productId,
-            userId
-        ));
+    void rejectBid_shouldMarkAsRejected() {
+        Bid bid = createAndAddBid(100.0);
+        assertDoesNotThrow(() -> BidPurchase.rejectBid(storeId, productId, userId, "owner1"));
         assertTrue(bid.isRejected());
     }
 
     @Test
-    void testGetBidStatusSuccess() {
-        String storeId = "store1";
-        String productId = "product1";
-        String userId = "user1";
-        BidKey key = new BidKey(storeId, productId);
-        Set<String> approversPending = Set.of("owner1", "manager1");
-        Bid pendingBid = new Bid(userId, 100.0, "123 Test St", "test@example.com", approversPending);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(pendingBid);
-        String pendingStatus = BidPurchase.getBidStatus(storeId, productId, userId);
-        assertEquals("Pending Approval", pendingStatus);
-        pendingBid.approve("owner1");
-        pendingBid.approve("manager1");
-        String approvedStatus = BidPurchase.getBidStatus(storeId, productId, userId);
-        assertEquals("Approved", approvedStatus);
-        Bid counterBid = new Bid("user2", 150.0, "456 Another St", "another@example.com", approversPending);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(counterBid);
-        counterBid.proposeCounterOffer(170.0);
-        String counterStatus = BidPurchase.getBidStatus(storeId, productId, "user2");
-        assertEquals("Counter Offered: 170.0", counterStatus);
-        Bid rejectedBid = new Bid("user3", 90.0, "789 Other St", "other@example.com", approversPending);
-        BidPurchase.getBids().computeIfAbsent(key, k -> new ArrayList<>()).add(rejectedBid);
-        rejectedBid.reject("owner1");
-        String rejectedStatus = BidPurchase.getBidStatus(storeId, productId, "user3");
-        assertEquals("Rejected", rejectedStatus);
+    void proposeCounterBid_validBid_shouldSetCounterOffer() {
+        Bid bid = createAndAddBid(100.0);
+        BidPurchase.proposeCounterBid(storeId, productId, userId, 120.0);
+        assertEquals(120.0, bid.getCounterOfferAmount());
     }
 
+    @Test
+    void proposeCounterBid_negativeAmount_shouldThrow() {
+        createAndAddBid(100.0);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                BidPurchase.proposeCounterBid(storeId, productId, userId, -20.0));
+        assertEquals("Counter offer must be a positive value.", ex.getMessage());
+    }
 
-    // @Test
-    // void testPurchaseCreation() {
-    //     String userId = "user1";
-    //     String storeId = "store1";
-    //     String productId = "product1";
-    //     double price = 100.0;
-    //     String shippingAddress = "123 Test St";
-    //     String contactInfo = "test@example.com";
+    @Test
+    void acceptCounterOffer_shouldApproveBid() {
+        Bid bid = createAndAddBid(100.0);
+        bid.setCounterOfferAmount(120.0);
+        BidPurchase.acceptCounterOffer(storeId, productId, userId);
+        assertTrue(bid.isApproved());
+        assertEquals(120.0, bid.getPrice());
+        assertFalse(bid.isCounterOffered());
+    }
 
-    //     BidPurchase bidPurchase = new BidPurchase();
-    //     assertDoesNotThrow(() -> bidPurchase.purchase(userId, storeId, productId, price, shippingAddress, contactInfo));
-    // }
+    @Test
+    void acceptCounterOffer_withoutCounter_shouldThrow() {
+        createAndAddBid(100.0);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                BidPurchase.acceptCounterOffer(storeId, productId, userId));
+        assertEquals("No counter-offer found for user.", ex.getMessage());
+    }
+
+    @Test
+    void declineCounterOffer_shouldRejectBid() {
+        Bid bid = createAndAddBid(100.0);
+        bid.setCounterOfferAmount(120.0);
+        BidPurchase.declineCounterOffer(storeId, productId, userId);
+        assertTrue(bid.isRejected());
+    }
+
+    @Test
+    void declineCounterOffer_withoutCounter_shouldThrow() {
+        createAndAddBid(100.0);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                BidPurchase.declineCounterOffer(storeId, productId, userId));
+        assertEquals("No counter-offer found for user.", ex.getMessage());
+    }
+
+    @Test
+    void getBidStatus_variousStatuses_shouldReturnCorrectStatus() {
+        Bid bid = createAndAddBid(100.0);
+        assertEquals("Pending Approval", BidPurchase.getBidStatus(storeId, productId, userId));
+
+        bid.approve("owner1");
+        bid.approve("manager1");
+        assertEquals("Approved", BidPurchase.getBidStatus(storeId, productId, userId));
+
+        Bid counterBid = new Bid("user2", 150.0, "addr", "contact", approvers);
+        counterBid.proposeCounterOffer(170.0);
+        BidPurchase.getBids().get(bidKey).add(counterBid);
+        assertEquals("Counter Offered: 170.0", BidPurchase.getBidStatus(storeId, productId, "user2"));
+
+        Bid rejectedBid = new Bid("user3", 90.0, "addr", "contact", approvers);
+        rejectedBid.reject("owner1");
+        BidPurchase.getBids().get(bidKey).add(rejectedBid);
+        assertEquals("Rejected", BidPurchase.getBidStatus(storeId, productId, "user3"));
+    }
+
+    @Test
+    void getBidStatus_noBid_shouldReturnNoBidFound() {
+        String status = BidPurchase.getBidStatus("storeX", "productX", "nonexistentUser");
+        assertEquals("No Bid Found", status);
+    }
 }
