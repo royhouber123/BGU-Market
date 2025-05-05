@@ -1,12 +1,11 @@
 package tests;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -74,7 +73,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
     void owner_removes_owner_successfully() {
         storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
         List<List<String>> res = storeService.removeOwner(FOUNDER, OWNER_A, storeId);
-        assertEquals("succeed", res.get(0).get(0));
+        assertTrue(res.get(0).contains(OWNER_A));
     }
 
     // ───────────────────────────────────────────────────────────────── managers & permissions
@@ -102,12 +101,12 @@ void create_store_with_duplicate_name_fails() {
     assertTrue(ex.getMessage().contains("already exists"));
 }
 
-// @Test
-// void non_owner_cannot_add_listing() { //only one not working
-//     String res = storeService.addNewListing(
-//             OWNER_A, storeId, "1", "Keyboard", "Mech", 3, 199.0);
-//     assertTrue(res.contains("not a owner") || res.contains("doesn't have"));
-// }
+@Test
+void non_owner_cannot_add_listing() { //only one not working
+    String res = storeService.addNewListing(
+            OWNER_A, storeId, "1", "Keyboard", "Mech", 3, 199.0);
+    assertTrue(res.contains("not a owner") || res.contains("doesn't have"));
+}
 
     @Test
     void manager_without_permission_cannot_remove_listing() {
@@ -125,7 +124,7 @@ void create_store_with_duplicate_name_fails() {
 @Test
 void cannot_remove_founder() {
     String res = storeService.removeOwner(OWNER_A, FOUNDER, storeId).get(0).get(0);
-    assertTrue(res.contains("FOUNDER") || res.contains("not a owner"));
+    assertTrue(res.contains(" is the founder") || res.contains("not a owner"));
 }
 
 @Test

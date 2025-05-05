@@ -58,17 +58,17 @@ class StoreProductManagerUnitTests {
         
     }
 
-    // // @Test
-    // void testAddListingWithWrongStoreIdFails() {
-    //     Listing wrongStoreListing = new Listing(
-    //             "wrongStore", "p3", "ProductC", "Wrong description", 5, PurchaseType.REGULAR, 50
-    //     );
+    @Test
+    void testAddListingWithWrongStoreIdFails() {
+        Listing wrongStoreListing = new Listing(
+                "wrongStore", "p3", "ProductC", "Wrong description", 5, PurchaseType.REGULAR, 50
+        );
 
-    //     Exception e = assertThrows(IllegalArgumentException.class, () -> {
-    //         manager.addListing(wrongStoreListing);
-    //     });
-    //     assertTrue(e.getMessage().contains("storeId does not match"));
-    // }
+        Exception e = assertThrows(IllegalArgumentException.class, () -> {
+            manager.addListing(wrongStoreListing);
+        });
+        assertTrue(e.getMessage().contains("storeId does not match"));
+    }
 
     @Test
     void testRemoveListingSuccess() {
