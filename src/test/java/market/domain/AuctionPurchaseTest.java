@@ -1,102 +1,137 @@
 package market.domain;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import market.application.External.IPaymentService;
+import market.application.External.IShipmentService;
+import market.application.External.PaymentService;
+import market.application.External.ShipmentService;
+import market.domain.purchase.*;
+import market.domain.store.IStoreRepository;
+import org.junit.jupiter.api.*;
 
 import java.util.List;
 import java.util.Map;
 
-import market.application.External.PaymentService;
-import market.domain.purchase.*;
-import market.domain.store.IStoreRepository;
-import market.infrastructure.StoreRepository;
-import market.application.External.ShipmentService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+public class AuctionPurchaseTest {
 
-class AuctionPurchaseTest {
+    private IShipmentService shipmentService;
+    private IPaymentService paymentService;
+    private IStoreRepository storeRepository;
+    private String storeId;
+    private String productId;
+    private double startingPrice;
+    private long endTimeMillis;
 
-    //AuctionPurchase auctionPurchase;
-    IStoreRepository storeRepository;   
     @BeforeEach
     void setUp() {
-        // No specific setup needed for now
-        //auctionPurchase = new AuctionPurchase();
-        storeRepository = new StoreRepository(); // Replace with a mock or concrete implementation
+        storeRepository = mock(IStoreRepository.class);
+        when(storeRepository.updateStockForPurchasedItems(anyMap())).thenReturn(true);
+        BidPurchase.setStoreRepository(storeRepository);
+
+        paymentService = mock(IPaymentService.class);
+        when(paymentService.processPayment(anyString())).thenReturn(true);
+        BidPurchase.setPaymentService(paymentService);
+
+        shipmentService = mock(IShipmentService.class);
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("Shipping successful");
+        BidPurchase.setShippingService(shipmentService);
+
+        storeId = "store1";
+        productId = "prod1";
+        startingPrice = 100.0;
+        endTimeMillis = System.currentTimeMillis() + 2000;
+    }
+
+    @AfterEach
+    void tearDown() {
+        AuctionPurchase.getOffers().clear();
+        AuctionPurchase.getEndTimes().clear();
+        AuctionPurchase.getStartingPrices().clear();
     }
 
     @Test
-    void testOpenAuctionSuccess() {
-        String storeId = "store1";
-        String productId = "prod1";
-        double startingPrice = 100.0;
-        long endTimeMillis = System.currentTimeMillis() + 1 * 60 * 1000; // one minute from now
-        ShipmentService shipmentService = new ShipmentService();
-        PaymentService paymentService = new PaymentService();
-        assertDoesNotThrow(() -> {
-            AuctionPurchase.openAuction(this.storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
-        });
-        Map<AuctionKey, List<Offer>> offers = AuctionPurchase.getOffers();
-        AuctionKey auctionKey = new AuctionKey(storeId, productId);
-        assertTrue(offers.containsKey(auctionKey));
+    void openAuction_validInput_shouldCreateAuction() {
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+        AuctionKey key = new AuctionKey(storeId, productId);
+        assertTrue(AuctionPurchase.getOffers().containsKey(key));
     }
 
     @Test
-    void testSubmitOfferSuccess() {
-        String storeId = "store1";
-        String productId = "prod1";
-        String userId = "user1";
-        double startingPrice = 100.0;
-        double offerPrice = 150.0;
-        String shippingAddress = "123 Main St";
-        String contactInfo = "555-555-5555";
-        long endTimeMillis = System.currentTimeMillis() + 1 * 60 * 1000; // one minute from now
-        ShipmentService shipmentService = new ShipmentService();
-        PaymentService paymentService = new PaymentService();
-    
-        // Open an auction
-        assertDoesNotThrow(() -> {
-            AuctionPurchase.openAuction(this.storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
-        });
-    
-        // Submit an offer
-        assertDoesNotThrow(() -> {
-            AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
-        });
-    
-        // Verify the offer was added
-        Map<AuctionKey, List<Offer>> offers = AuctionPurchase.getOffers();
-        AuctionKey auctionKey = new AuctionKey(storeId, productId);
-        assertTrue(offers.containsKey(auctionKey));
-        List<Offer> offerList = offers.get(auctionKey);
-        assertFalse(offerList.isEmpty());
-        assertEquals(offerPrice, offerList.get(0).getPrice());
-        assertEquals(userId, offerList.get(0).getUserId());
+    void openAuction_pastEndTime_shouldNotScheduleAuction() {
+        long pastEndTime = System.currentTimeMillis() - 1000;
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, pastEndTime, shipmentService, paymentService);
+        AuctionKey key = new AuctionKey(storeId, productId);
+        assertFalse(AuctionPurchase.getOffers().containsKey(key));
     }
 
     @Test
-    void testGetAuctionStatusSuccess() {
-        String storeId = "store1";
-        String productId = "prod1";
-        double startingPrice = 100.0;
-        long endTimeMillis = System.currentTimeMillis() + 1 * 60 * 1000; // one minute from now
-        ShipmentService shipmentService = new ShipmentService();
-        PaymentService paymentService = new PaymentService();
-
-        // Open an auction
-        assertDoesNotThrow(() -> {
-            AuctionPurchase.openAuction(this.storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
-        });
-
-        // Get auction status
-        Map<String, Object> auctionStatus = AuctionPurchase.getAuctionStatus(storeId, productId);
-
-        // Verify auction status
-        assertNotNull(auctionStatus);
-        assertTrue(auctionStatus.containsKey("startingPrice"));
-        assertTrue(auctionStatus.containsKey("currentMaxOffer"));
-        assertTrue(auctionStatus.containsKey("timeLeftMillis"));
-        assertEquals(100.0, auctionStatus.get("startingPrice")); // Auction should be open
-        assertEquals(100.0, auctionStatus.get("currentMaxOffer")); // No bids yet
+    void submitOffer_validOffer_shouldAddOffer() {
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+        AuctionPurchase.submitOffer(storeId, productId, "user1", 150.0, "addr", "contact");
+        AuctionKey key = new AuctionKey(storeId, productId);
+        List<Offer> offers = AuctionPurchase.getOffers().get(key);
+        assertEquals(1, offers.size());
     }
 
+    @Test
+    void submitOffer_lowerThanCurrentMax_shouldFail() {
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+        AuctionPurchase.submitOffer(storeId, productId, "user1", 150.0, "addr", "contact");
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                AuctionPurchase.submitOffer(storeId, productId, "user2", 140.0, "addr", "contact")
+        );
+        assertEquals("Offer must be higher than current maximum.", ex.getMessage());
+    }
+
+    @Test
+    void getAuctionStatus_noOffers_shouldReturnStartingPriceAsMax() {
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+        Map<String, Object> status = AuctionPurchase.getAuctionStatus(storeId, productId);
+        assertEquals(startingPrice, status.get("currentMaxOffer"));
+    }
+
+    @Test
+    void getAuctionStatus_withOffers_shouldReturnMaxOffer() {
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+        AuctionPurchase.submitOffer(storeId, productId, "user1", 200.0, "addr", "contact");
+        Map<String, Object> status = AuctionPurchase.getAuctionStatus(storeId, productId);
+        assertEquals(200.0, status.get("currentMaxOffer"));
+    }
+
+    @Test
+    void closeAuction_manualCall_shouldReturnPurchase() {
+        long fakeEndTime = System.currentTimeMillis() - 100; // already passed
+        AuctionKey key = new AuctionKey(storeId, productId);
+
+        AuctionPurchase.getOffers().put(key, List.of(new Offer("user1", 200.0, "addr", "contact")));
+        AuctionPurchase.getEndTimes().put(key, fakeEndTime);
+        AuctionPurchase.getStartingPrices().put(key, startingPrice);
+
+        Purchase p = AuctionPurchase.closeAuction(storeId, productId, shipmentService, paymentService);
+        assertNotNull(p);
+        assertEquals("user1", p.getUserId());
+    }
+
+    @Test
+    void auction_shouldAutoCloseAfterEndTime() throws InterruptedException {
+        long shortEndTime = System.currentTimeMillis() + 500;
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, shortEndTime, shipmentService, paymentService);
+        AuctionPurchase.submitOffer(storeId, productId, "user1", 200.0, "addr", "contact");
+        Thread.sleep(600);
+        AuctionKey key = new AuctionKey(storeId, productId);
+        assertFalse(AuctionPurchase.getOffers().containsKey(key));
+    }
+
+    @Test
+    void closeAuction_beforeEnd_shouldThrowException() {
+        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                AuctionPurchase.closeAuction(storeId, productId, shipmentService, paymentService)
+        );
+        assertEquals("Auction has not ended yet.", ex.getMessage());
+    }
 }

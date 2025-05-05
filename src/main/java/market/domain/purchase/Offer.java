@@ -8,7 +8,7 @@ public class Offer {
     String shippingAddress;
     String contactInfo;
 
-    Offer(String userId, double price, String shippingAddress, String contactInfo) {
+    public Offer(String userId, double price, String shippingAddress, String contactInfo) {
         this.userId = userId;
         this.price = price;
         this.shippingAddress = shippingAddress;
