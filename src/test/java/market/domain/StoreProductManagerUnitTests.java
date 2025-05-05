@@ -11,15 +11,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import market.domain.purchase.PurchaseType;
+import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
 import market.domain.store.StoreProductManager;
+import market.infrastructure.ListingRepository;
 
 class StoreProductManagerUnitTests {
     private StoreProductManager manager;
 
     @BeforeEach
     void setUp() {
-        manager = new StoreProductManager("store123");
+        IListingRepository repo = new ListingRepository();
+        manager = new StoreProductManager("store123",repo);
     }
 
     // Corrected createListing to match your Listing constructor
@@ -141,6 +144,6 @@ class StoreProductManagerUnitTests {
         Exception e = assertThrows(Exception.class, () -> {
             manager.purchaseFromListing("nonExistentId", 1);
         });
-        assertTrue(e.getMessage().contains("does not exist"));
+        assertTrue(e.getMessage().contains("not found"));
     }
 }

@@ -47,7 +47,7 @@ public class Store {
     private PolicyHandler policyHandler;
 
 
-    public Store(String storeID,String name, String founderID) throws IllegalArgumentException {
+    public Store(String storeID,String name, String founderID, IListingRepository repository) throws IllegalArgumentException {
         // ? - do we need store type
 
         if(!isValidName(name)){
@@ -56,7 +56,7 @@ public class Store {
         }
         this.storeID=storeID;
         this.name = name;
-        this.storeProductsManager = new StoreProductManager(storeID);
+        this.storeProductsManager = new StoreProductManager(storeID,repository);
         this.active = true;
 
         this.ownerToWhoAssignedHim = new HashMap<>();

@@ -1,108 +1,72 @@
 package market.domain.store;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-/*
-need to implement!!!!!!!!!!!!!
- */
 
 /**
  * Manages the collection of listings (products for sale) for a specific store.
+ * Delegates all storage and search to the injected ListingRepository,
+ * while enforcing that operations only affect listings in this manager's store.
  */
 public class StoreProductManager implements IStoreProductsManager {
 
-    private final String storeId; // ID of the store this manager belongs to
-    private final Map<String, Listing> listingsById;
-    private final Map<String, List<Listing>> listingsByProductId;
-    private final Map<String, List<Listing>> listingsByProductName;
+    private final String storeId;
+    private final IListingRepository listingRepository;
 
-    public StoreProductManager(String storeId) {
+    public StoreProductManager(String storeId, IListingRepository listingRepository) {
         this.storeId = storeId;
-        this.listingsById = new HashMap<>();
-        this.listingsByProductId = new HashMap<>();
-        this.listingsByProductName = new HashMap<>();
+        this.listingRepository = listingRepository;
     }
 
-
     public String getStoreId() {
-            return storeId;
-        }
+        return storeId;
+    }
+
     @Override
     public String addListing(Listing listing) {
-
         if (!listing.getStoreId().equals(this.storeId)) {
             throw new IllegalArgumentException("Listing storeId does not match StoreProductManager storeId!");
         }
-
-        if (listingsById.containsKey(listing.getListingId())) {
-            throw new IllegalArgumentException("Listing id already exist");
+        if (listingRepository.getListingById(listing.getListingId()) != null) {
+            throw new IllegalArgumentException("Listing ID already exists");
         }
-
-        listingsById.put(listing.getListingId(), listing);
-
-        listingsByProductId.computeIfAbsent(listing.getProductId(), k -> new ArrayList<>()).add(listing);
-        listingsByProductName.computeIfAbsent(listing.getProductName(), k -> new ArrayList<>()).add(listing);
-
-        return listing.getListingId();
+        return listingRepository.addListing(listing);
     }
 
     @Override
     public boolean removeListing(String listingId) {
-        Listing listing = listingsById.remove(listingId);
-        if (listing == null) {
-            return false; // Nothing to remove
+        Listing listing = listingRepository.getListingById(listingId);
+        if (listing == null || !listing.getStoreId().equals(this.storeId)) {
+            return false;
         }
-
-        List<Listing> byProductId = listingsByProductId.get(listing.getProductId());
-        if (byProductId != null) {
-            byProductId.remove(listing);
-            if (byProductId.isEmpty()) {
-                listingsByProductId.remove(listing.getProductId());
-            }
-        }
-
-        List<Listing> byProductName = listingsByProductName.get(listing.getProductName());
-        if (byProductName != null) {
-            byProductName.remove(listing);
-            if (byProductName.isEmpty()) {
-                listingsByProductName.remove(listing.getProductName());
-            }
-        }
-
-        return true;
+        return listingRepository.removeListing(listingId);
     }
-
-
 
     @Override
     public Listing getListingById(String listingId) {
-        return listingsById.get(listingId);
+        Listing listing = listingRepository.getListingById(listingId);
+        return (listing != null && listing.getStoreId().equals(this.storeId)) ? listing : null;
     }
 
     @Override
     public List<Listing> getListingsByProductName(String productName) {
-        return listingsByProductName.getOrDefault(productName, Collections.emptyList());
+        return listingRepository.getListingsByProductNameAndStore(productName, storeId);
     }
 
     @Override
     public List<Listing> getListingsByProductId(String productId) {
-        return listingsByProductId.getOrDefault(productId, Collections.emptyList());
+        return listingRepository.getListingsByProductIdAndStore(productId, storeId);
     }
 
     @Override
     public List<Listing> getAllListings() {
-        return new ArrayList<>(listingsById.values());
+        return listingRepository.getListingsByStoreId(storeId);
     }
 
     @Override
     public boolean purchaseFromListing(String listingId, int quantity) throws Exception {
-        Listing listing = listingsById.get(listingId);
-        if (listing == null) {
-            throw new Exception("Listing with ID " + listingId + " does not exist!");
+        Listing listing = listingRepository.getListingById(listingId);
+        if (listing == null || !listing.getStoreId().equals(this.storeId)) {
+            throw new Exception("Listing with ID " + listingId + " not found in store " + storeId);
         }
         return listing.purchase(quantity);
     }

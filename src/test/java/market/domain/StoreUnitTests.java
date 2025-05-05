@@ -11,8 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
 import market.domain.store.Store;
+import market.infrastructure.ListingRepository;
 
 class StoreUnitTests {
 
@@ -25,7 +27,8 @@ class StoreUnitTests {
     // ------------------------- Setup -------------------------
     @BeforeEach
     void setUp() {
-        store = new Store("999", "TestStore", founderID);
+        IListingRepository repo = new ListingRepository();
+        store = new Store("999", "TestStore", founderID, repo);
     }
 
     // ------------------------- Owner Assignment Tests -------------------------
@@ -88,7 +91,7 @@ class StoreUnitTests {
             store.removeOwner(ownerA, founderID);
         });
 
-        assertTrue(ex.getMessage().contains("is the FOUNDER"));
+        assertTrue(ex.getMessage().contains("is the founder"));
     }
 
     @Test
