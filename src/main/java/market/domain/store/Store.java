@@ -314,6 +314,10 @@ public class Store {
         return managers;
     }
 
+    public List<String> getAllManagersStrs(){
+        return this.getAllManagers().stream().map(Manager::getID).toList();
+    }
+
     /**
      * Returns the ID of the owner who appointed the specified user as an owner.
      *
@@ -727,6 +731,7 @@ public List<Listing> getAllListings() {
     public Set<String> getAllOwners(){
         return this.ownerToAssignedOwners.keySet();
     }
+
 
 
 
