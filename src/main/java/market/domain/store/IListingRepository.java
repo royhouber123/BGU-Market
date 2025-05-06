@@ -1,6 +1,7 @@
 package market.domain.store;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Repository interface for managing and querying {@link Listing} entities.
@@ -67,5 +68,10 @@ public interface IListingRepository {
     // Added methods for scoped queries:
     List<Listing> getListingsByProductIdAndStore(String productId, String storeId);
     List<Listing> getListingsByProductNameAndStore(String productName, String storeId);
+    boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock);
+
+    List<Listing> getListingsByCategory(String category);
+    List<Listing> getListingsByCategoryAndStore(String category, String storeId);
+
     
 }
