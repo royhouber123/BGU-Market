@@ -1,7 +1,11 @@
 package market.application;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import market.domain.Role.IRoleRepository;
+import market.domain.Role.Role;
 import market.domain.user.IUserRepository;
 import market.domain.user.User;
 import market.domain.user.ShoppingCart;
@@ -15,10 +19,12 @@ public class UserService {
     private static final Logger logger = Logger.getInstance();
     private final IUserRepository repo;
     private final AuthService authService;
+    private final IRoleRepository roleRepository;
 
-    public UserService(IUserRepository repo, AuthService authService) {
+    public UserService(IUserRepository repo, AuthService authService, IRoleRepository roleRepository) {
         this.repo = repo;
         this.authService = authService;
+        this.roleRepository = roleRepository;
     }
 
     /** Register a brand-new user. */
@@ -140,6 +146,31 @@ public class UserService {
             return cart;
         } catch (Exception e) {
             logger.error("Failed to get cart for user: " + userName + ". Exception: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    public Map<String, List<Role>> getUserRoles() throws Exception {
+        String userName = extractUserNameFromToken();
+        logger.info("Getting roles for user: " + userName);
+        try {
+            Map<String, List<Role>> roles = roleRepository.getRolesOfUser(userName);
+            logger.info("Roles retrieved for user: " + userName);
+            return roles;
+        } catch (Exception e) {
+            logger.error("Failed to get roles for user: " + userName + ". Exception: " + e.getMessage());
+            throw e;
+        }
+    }
+    
+    public Map<String, List<Role>> getUserRolesByUsername(String userName) throws Exception {
+        logger.info("Getting roles for user: " + userName);
+        try {
+            Map<String, List<Role>> roles = roleRepository.getRolesOfUser(userName);
+            logger.info("Roles retrieved for user: " + userName);
+            return roles;
+        } catch (Exception e) {
+            logger.error("Failed to get roles for user: " + userName + ". Exception: " + e.getMessage());
             throw e;
         }
     }

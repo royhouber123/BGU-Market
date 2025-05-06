@@ -9,19 +9,24 @@ import market.application.External.IShipmentService;
 import market.application.PurchaseService;
 import market.application.StoreService;
 import market.application.UserService;
+import market.domain.Role.IRoleRepository;
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
-import market.domain.store.IStoreRepository; // Ensure this is the correct package path
+import market.domain.store.IStoreRepository;
 import market.domain.user.IUserRepository;
 import market.infrastructure.ListingRepository;
-import market.infrastructure.PurchaseRepository; // Ensure this is the correct package path
+import market.infrastructure.PurchaseRepository;
 import market.infrastructure.StoreRepository;
 import market.infrastructure.UserRepository;
 
-
+/**
+ * Base class for acceptance tests.
+ */
 public abstract class AcceptanceTestBase {
 
-    
+    /**
+     * User service instance.
+     */
     protected UserService userService;
     protected StoreService storeService;
     protected AuthService authService;
@@ -34,9 +39,10 @@ public abstract class AcceptanceTestBase {
       
         IUserRepository userRepository = new UserRepository();
         IListingRepository listingRepository = new ListingRepository();
+        IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
         
         authService = new AuthService(userRepository);
-        userService = new UserService(userRepository,authService);
+        userService = new UserService(userRepository, authService, roleRepository);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         storeService = new StoreService(storerepo,userRepository,listingRepository); // Use the real implementation
