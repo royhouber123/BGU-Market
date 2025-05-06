@@ -1,6 +1,7 @@
 package market.infrastructure;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,5 +73,86 @@ public class ListingRepository implements IListingRepository {
                 .filter(l -> l.getStoreId().equals(storeId))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    
+    public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock) {
+        if (listForUpdateStock == null || listForUpdateStock.isEmpty()) {
+            return false;
+        }
+
+        // Collect listings and sort by ID to avoid deadlocks
+        List<Listing> toLock = new ArrayList<>();
+        for (String storeId : listForUpdateStock.keySet()) {
+            Map<String, Integer> listingUpdates = listForUpdateStock.get(storeId);
+            if (listingUpdates == null) throw new IllegalArgumentException("Missing listings for store " + storeId);
+
+            for (String listingId : listingUpdates.keySet()) {
+                Listing l = getListingById(listingId);
+                if (l == null || !l.getStoreId().equals(storeId))
+                    throw new IllegalArgumentException("Invalid listing: " + listingId + " for store: " + storeId);
+                toLock.add(l);
+            }
+        }
+
+        toLock.sort(Comparator.comparing(Listing::getListingId));
+
+        // Lock all listings in sorted order
+        List<Object> locks = toLock.stream().map(l -> (Object) l).distinct().toList();
+        synchronizedLocks(locks, () -> {
+            // Check stock availability
+            for (Listing listing : toLock) {
+                int requested = listForUpdateStock.get(listing.getStoreId()).get(listing.getListingId());
+                if (listing.getQuantityAvailable() < requested)
+                    throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+            }
+
+            // Perform all purchases
+            for (Listing listing : toLock) {
+                int quantity = listForUpdateStock.get(listing.getStoreId()).get(listing.getListingId());
+                try {
+                    listing.purchase(quantity);
+                } catch (Exception e) {
+                    throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
+                }
+            }
+        });
+
+        return true;
+    }
+
+    // Utility method to synchronize on multiple objects
+    private void synchronizedLocks(List<Object> locks, Runnable criticalSection) {
+        synchronizedRecursive(locks, 0, criticalSection);
+    }
+
+    private void synchronizedRecursive(List<Object> locks, int index, Runnable criticalSection) {
+        if (index == locks.size()) {
+            criticalSection.run();
+            return;
+        }
+        synchronized (locks.get(index)) {
+            synchronizedRecursive(locks, index + 1, criticalSection);
+        }
+    }
+
+
+    @Override
+    public List<Listing> getListingsByCategory(String category) {
+        return listingsById.values().stream()
+                .filter(l -> l.getCategory().equalsIgnoreCase(category))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Listing> getListingsByCategoryAndStore(String category, String storeId) {
+        return listingsById.values().stream()
+                .filter(l -> l.getCategory().equalsIgnoreCase(category) && l.getStoreId().equals(storeId))
+                .collect(Collectors.toList());
+    }
+
+
+    
+
 }
 
