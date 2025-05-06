@@ -20,6 +20,9 @@ public class Listing {
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
     private double price;
+    private String category = ""; //TODO: still need to add this to the constructor 
+    private Boolean isClosed=false;
+
 
     /**
      * Constructs a new Listing with an auto-generated listing ID.
@@ -90,5 +93,19 @@ public class Listing {
     public PurchaseType getPurchaseType() {
         return purchaseType;
     }
+
+    public String getCategory() {
+        return category;
+    }
+
+
+    public void closeStore(){
+        this.isClosed=true;
+    }
+
+    public void openStore(){
+        this.isClosed=false;
+    }
+    
 
 }
