@@ -3,6 +3,7 @@ package market.infrastructure;
 import market.domain.user.*;
 import market.domain.user.Subscriber;
 import utils.Logger;
+import utils.PasswordUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,12 +19,12 @@ public class UserRepository implements IUserRepository {
         Subscriber u1 = new Subscriber("username1");
         u1.addProductToCart("111", "productA", 1);
         userMap.put(u1.getUserName(), u1);
-        passwordMap.put(u1.getUserName(), "pw1");
+        passwordMap.put(u1.getUserName(), PasswordUtil.hashPassword("pw1"));
 
         Subscriber u2 = new Subscriber("username2");
         u2.addProductToCart("111", "productC", 2);
         userMap.put(u2.getUserName(), u2);
-        passwordMap.put(u2.getUserName(), "pw2");
+        passwordMap.put(u2.getUserName(), PasswordUtil.hashPassword("pw2"));
     }
 
     public Subscriber findById(String name) {
@@ -45,8 +46,24 @@ public class UserRepository implements IUserRepository {
         }
         Subscriber subscriber = new Subscriber(name);
         userMap.put(name, subscriber);
-        passwordMap.put(name, pw);
+        passwordMap.put(name, PasswordUtil.hashPassword(pw));
         logger.info("User registered: " + name);
+    }
+
+    public boolean verifyPassword(String username, String plainPassword) {
+        logger.info("Verifying password for user: " + username);
+        String hashedPassword = passwordMap.get(username);
+        if (hashedPassword == null) {
+            logger.error("User with name '" + username + "' not found.");
+            return false;
+        }
+        boolean isMatch = PasswordUtil.verifyPassword(plainPassword, hashedPassword);
+        if (isMatch) {
+            logger.info("Password verification successful for user: " + username);
+        } else {
+            logger.info("Password verification failed for user: " + username);
+        }
+        return isMatch;
     }
 
     public void delete(String name) {
@@ -86,7 +103,7 @@ public class UserRepository implements IUserRepository {
             logger.error("Password for user '" + name + "' does not exist.");
             throw new RuntimeException("Password for user '" + name + "' does not exist.");
         }
-        passwordMap.put(name, newPw);
+        passwordMap.put(name, PasswordUtil.hashPassword(newPw));
         logger.info("Password changed for user: " + name);
         return true;
     }

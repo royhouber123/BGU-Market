@@ -7,7 +7,7 @@ import java.io.IOException;
 
 @Component
 public class AuthTokenFilter implements Filter {
-    public static final String TOKEN_ATTR = "ACCESS_TOKEN";
+    public static final String TOKEN_ATTR = "AUTH_TOKEN";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

@@ -145,12 +145,12 @@ public class UserService {
     }
 
     private String extractUserNameFromToken() {
-        String token = TokenUtils.getAccessToken();
+        String token = TokenUtils.getToken();
         if (token == null) {
-            logger.error("Access token is missing from request context");
-            throw new IllegalStateException("Access token is missing from request context");
+            logger.error("Token is missing from request context");
+            throw new IllegalStateException("Token is missing from request context");
         }
-        Claims claims = authService.parseAccessToken(token);
+        Claims claims = authService.parseToken(token);
         return claims.getSubject();
     }
 

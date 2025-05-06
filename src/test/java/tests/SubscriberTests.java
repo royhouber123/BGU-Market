@@ -1,7 +1,7 @@
 package tests;
 
 import market.application.PurchaseService;
-import market.application.AuthService.AuthTokens;
+import market.application.AuthService.AuthToken;
 import market.domain.purchase.Purchase;
 import market.domain.user.ShoppingCart;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +56,8 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void subscriber_can_view_personal_purchase_history() throws Exception {
 
-        AuthTokens tok = authService.login(SUB, PW);
+        AuthToken auth = authService.login(SUB, PW);
+        String token = auth.token();
 
         // add to cart
         storeService.getProductListing(storeId,productid);
@@ -72,7 +73,7 @@ class SubscriberTests extends AcceptanceTestBase {
         List<Purchase> history = purchaseService.getPurchasesByUser(SUB);
         assertEquals(1, history.size());
 
-        authService.logout(tok.refreshToken(), tok.accessToken());
+        authService.logout(token);
     }
 
     /* ---------------------------------------------------------------------- */
@@ -81,14 +82,15 @@ class SubscriberTests extends AcceptanceTestBase {
     // @Test
     // void subscriber_cannot_rate_without_purchase() throws Exception {
 
-    //     AuthTokens tok = authService.login(SUB, PW);
+    //     AuthToken auth = authService.login(SUB, PW);
+    //     String token = auth.token();
 
     //     RuntimeException ex = assertThrows(RuntimeException.class,
     //         () -> userService.rateProduct(SUB, "Mouse", 4));
 
     //     assertTrue(ex.getMessage().contains("No matching purchase"));
 
-    //     authService.logout(tok.refreshToken(), tok.accessToken());
+    //     authService.logout(token);
     // }
 
     /* ---------------------------------------------------------------------- */
@@ -97,7 +99,8 @@ class SubscriberTests extends AcceptanceTestBase {
     // @Test
     // void subscriber_can_rate_purchased_product() throws Exception {
 
-    //     AuthTokens tok = authService.login(SUB, PW);
+    //     AuthToken auth = authService.login(SUB, PW);
+    //     String token = auth.token();
     //     userService.addProductToCart(SUB, storeId, "Mouse", 1);
     //     purchaseService.executePurchase(
     //             SUB, userService.getCart(SUB), "TLV", "050-1");
@@ -105,7 +108,7 @@ class SubscriberTests extends AcceptanceTestBase {
     //     String res = userService.rateProduct(SUB, "Mouse", 5);
     //     assertEquals("Rating submitted", res);
 
-    //     authService.logout(tok.refreshToken(), tok.accessToken());
+    //     authService.logout(token);
     // }
 
     /* ---------------------------------------------------------------------- */
@@ -114,13 +117,14 @@ class SubscriberTests extends AcceptanceTestBase {
     // @Test
     // void subscriber_sends_message_to_store() throws Exception {
 
-    //     AuthTokens tok = authService.login(SUB, PW);
+    //     AuthToken auth = authService.login(SUB, PW);
+    //     String token = auth.token();
 
     //     String msg = storeService.sendMessageToStore(SUB, storeId,
     //                                                  "Do you have blue?");
     //     assertEquals("Message sent", msg);
 
-    //     authService.logout(tok.refreshToken(), tok.accessToken());
+    //     authService.logout(token);
     // }
 
     /* ---------------------------------------------------------------------- */
@@ -133,16 +137,18 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void subscriber_logs_out_and_cart_preserved() throws Exception {
 
-        AuthTokens tok1 = authService.login(SUB, PW);
+        AuthToken auth1 = authService.login(SUB, PW);
+        String token1 = auth1.token();
         userService.addProductToCart(storeId, "Mouse", 2);
         ShoppingCart before = userService.getCart();
-        authService.logout(tok1.refreshToken(), tok1.accessToken());
+        authService.logout(token1);
 
         // new login
-        AuthTokens tok2 = authService.login(SUB, PW);
+        AuthToken auth2 = authService.login(SUB, PW);
+        String token2 = auth2.token();
         ShoppingCart after = userService.getCart();
         assertEquals(before.getAllStoreBags().size(), after.getAllStoreBags().size());
 
-        authService.logout(tok2.refreshToken(), tok2.accessToken());
+        authService.logout(token2);
     }
 }
