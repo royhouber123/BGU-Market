@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import market.domain.Role.Role;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Listing;
 import market.domain.store.Store;
@@ -153,6 +155,41 @@ public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> li
         // We just used locking in a safe deterministic way
     }
 }
+
+
+   @Override
+   public Map<String, List<Role>> getUsersRoles(String userName) {
+        Map<String,List<Role>> usersInfo = new HashMap<>();
+        String key;
+
+        for (Store store : this.storesById.values()) {
+            key = store.getStoreID();
+            if(store.getFounderID().equals(userName)){
+                usersInfo.put(key,new ArrayList<>());
+                usersInfo.get(key).add(Role.FOUNDER);
+            }
+            for(String owner:store.getAllOwners()){
+                if(owner.equals(userName)){
+                    if(!usersInfo.containsKey(key)){
+                        usersInfo.put(key,new ArrayList<>());
+                    }
+                    usersInfo.get(key).add(Role.OWNER);
+                    break;
+                }
+            }
+            for(String manager:store.getAllManagersStrs()){
+                if(manager.equals(userName)){
+                    if(!usersInfo.containsKey(key)){
+                        usersInfo.put(key,new ArrayList<>());
+                    }
+                    usersInfo.get(key).add(Role.MANAGER);
+                    break;
+                }
+            }
+
+        }
+        return usersInfo;
+    }
 
 
 }
