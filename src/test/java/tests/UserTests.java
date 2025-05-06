@@ -19,7 +19,7 @@ import market.domain.user.StoreBag;
 
 
 import market.application.AuthService;   
-import market.application.AuthService.AuthTokens; 
+import market.application.AuthService.AuthToken; 
 public class UserTests extends AcceptanceTestBase {
     String storeid;
 
@@ -37,11 +37,9 @@ public class UserTests extends AcceptanceTestBase {
         
     try {
         this.userService.register("user3", "password3");
-        AuthTokens tokens = authService.login("user3", "password3");
-        String accessToken  = tokens.accessToken();  
-        String refreshToken = tokens.refreshToken();
-        assertNotNull(refreshToken);
-        assertNotNull(refreshToken);
+        AuthToken auth = authService.login("user3", "password3");
+        String token = auth.token();
+        assertNotNull(token);
     } catch (Exception exception) {
         
     }
@@ -85,10 +83,9 @@ void user_login_unsuccessfully() throws Exception {
     // void user_logs_out__session_cleared() {
     //     try {
     //         this.userService.register("user4", "password4");
-    //         AuthTokens tokens = authService.login("user4", "password4");
-    //         String accessToken  = tokens.accessToken();  
-    //         String refreshToken = tokens.refreshToken();
-    //         String ans = this.authService.logout(refreshToken,accessToken);  /// ask roy and yair to make logout return string  
+    //         AuthToken auth = authService.login("user4", "password4");
+    //         String token = auth.token();
+    //         String ans = this.authService.logout(token);  /// ask roy and yair to make logout return string  
     //     } catch (Exception exception)
     //     {
             
@@ -102,12 +99,11 @@ void user_login_unsuccessfully() throws Exception {
         ///
         try {
             this.userService.register("user5", "password5");
-            AuthTokens tokens = authService.login("user5", "password5");
-            String accessToken  = tokens.accessToken();  
-            String refreshToken = tokens.refreshToken();
+            AuthToken auth = authService.login("user5", "password5");
+            String token = auth.token();
             boolean ans = this.userService.changePassword("newPassword5");
             assertTrue(ans);
-            this.authService.logout(refreshToken,accessToken);    
+            this.authService.logout(token);    
         } catch (Exception exception)
         {
             
@@ -120,9 +116,8 @@ void user_login_unsuccessfully() throws Exception {
         void user_views_saved_payment_and_shipping_info() {
             try {
                 this.userService.register("user6", "password6");
-                AuthTokens tokens = authService.login("user6", "password6");
-                String accessToken  = tokens.accessToken();  
-                String refreshToken = tokens.refreshToken();
+                AuthToken auth = authService.login("user6", "password6");
+                String token = auth.token();
                 this.userService.addProductToCart( "1", "gvina", 3);
                 /// need to check payment and shipping which both mock
                 when (paymentService.getPaymentStatus("user6")).thenReturn("Visa **** 1234");
@@ -134,7 +129,7 @@ void user_login_unsuccessfully() throws Exception {
                 assertEquals("Visa **** 1234", paymentInfo);
                 assertEquals("123 Main St, City, Country", shippingInfo);
 
-                this.authService.logout(refreshToken,accessToken);
+                this.authService.logout(token);
                 
                 
             } catch (Exception exception)

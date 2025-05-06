@@ -44,6 +44,12 @@
             <scope>runtime</scope>
         </dependency>
         
+        <!-- Spring Security Crypto for Password Encryption -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+            <version>6.1.4</version>
+        </dependency>
 
         <!-- JUnit 5 API & Engine -->
         <dependency>

@@ -8,6 +8,7 @@ public interface IUserRepository {
 
     boolean changeUserName(String oldUserName, String newUserName);
     boolean changePassword(String userName, String newPassword);
+    boolean verifyPassword(String userName, String plainPassword);
 
     ShoppingCart getCart(String userName);
 }
