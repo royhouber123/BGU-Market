@@ -70,4 +70,17 @@ public class StoreProductManager implements IStoreProductsManager {
         }
         return listing.purchase(quantity);
     }
+
+
+
+    @Override
+    public void disableAllListings() {
+        listingRepository.disableListingsByStoreId(storeId);
+    }
+    
+    @Override
+    public void enableAllListings() {
+        listingRepository.enableListingsByStoreId(storeId);
+    }
+    
 }

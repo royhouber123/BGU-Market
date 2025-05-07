@@ -64,4 +64,20 @@ public interface IStoreProductsManager {
      * @throws Exception If the listing does not exist or the purchase is invalid.
      */
     boolean purchaseFromListing(String listingId, int quantity) throws Exception;
+
+
+  /**
+ * Marks all listings in the store as unavailable (e.g., store is closed).
+ * These listings should not be shown or purchasable by users.
+ */
+void disableAllListings();
+
+/**
+ * Marks all listings in the store as available again (e.g., store is reopened).
+ */
+void enableAllListings();
+
 }
+
+
+
