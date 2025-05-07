@@ -1,14 +1,53 @@
 package tests;
 
 import support.AcceptanceTestBase;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import market.domain.purchase.Purchase;
+import market.domain.user.ShoppingCart;
+import market.domain.user.User;
+import market.middleware.TokenUtils;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class GuestTests extends AcceptanceTestBase {
+
+    private static final String GUEST = "guest";
+    private static final String MANAGER = "manager";
+    private static final String PW = "1234";
+    private String storeId;
+    private String productId = "p1";
+    private String productName = "Notebook";
+    private String productDescription = "Simple notebook";
+    private int quantity = 5;
+    private double price = 25.0;
+
+
+    @BeforeEach
+    void setUp() throws Exception {
+        userService.getUserRepository().register(MANAGER, PW);
+        storeId = storeService.createStore("SchoolStore", MANAGER);
+        storeService.addNewListing(
+            MANAGER,
+            storeId,
+            productId,
+            productName,
+            productDescription,
+            quantity,
+            price
+        );
+        userService.getUserRepository().register(GUEST, PW); //need to replace in future to registerGuest
+        when(paymentService.processPayment(anyString())).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("SHIP123");
+    }
+
 
     @Test
     void guest_enters_system_initializes_cart() {
@@ -86,8 +125,15 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
     @Test
-    void guest_purchases_cart_successfully() {
-        ///
+    void guest_purchases_cart_successfully() throws Exception {
+        User guestUser = userService.getUserRepository().findById(GUEST);
+        guestUser.addProductToCart(storeId, productId, 1);
+        String shippingAddress = "123 Guest Street";
+        String contactInfo = "guest@example.com";
+        ShoppingCart guestCart = guestUser.getShoppingCart();
+        Purchase purchase = purchaseService.executePurchase(GUEST, guestCart, shippingAddress, contactInfo);
+        assertNotNull(purchase, "Purchase should not be null");
+        assertEquals(GUEST, purchase.getUserId(), "Buyer ID should be guest");
     }
 
     @Test
