@@ -3,8 +3,9 @@ package tests;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,12 +30,12 @@ public class FounderTests extends AcceptanceTestBase {
     @Test
     void founder_appoints_owner_and_manager_successfully() {
         // Appoint ownerA as owner
-        String ans = storeService.addAdditionalStoreOwner(founderID, storeId, ownerA);
+        String ans = storeService.addAdditionalStoreOwner(founderID, ownerA,storeId);
         assertEquals(ans, "success");
         // assertTrue(storeService.isOwner(storeId, ownerA), "ownerA should be an owner of the store");
 
         // Appoint ownerB as manager
-        String managerAppointed = storeService.addNewManager(founderID, storeId, ownerB);
+        String managerAppointed = storeService.addNewManager(founderID,  ownerB,storeId);
         assertEquals(ans, "success");
         // assertTrue(managerAppointed, "Founder should be able to appoint a new manager");
         // assertTrue(storeService.isManager(storeId, ownerB), "ownerB should be a manager of the store");
@@ -42,23 +43,25 @@ public class FounderTests extends AcceptanceTestBase {
 
     @Test
     void founder_cannot_be_removed_from_store() {
-        Exception ex = assertThrows(Exception.class, () -> {
-            storeService.removeOwner(founderID, founderID, storeId);
-        });
-        assertNotNull(ex, "Exception should be thrown when attempting to remove the founder");
+        List<List<String>> result = storeService.removeOwner(founderID, founderID, storeId);
+
+        // Check that an error message was returned
+        assertFalse(result.get(0).isEmpty(), "Expected an error message when attempting to remove the founder");
+
+        String errorMessage = result.get(0).get(0).toLowerCase();
         assertTrue(
-            ex.getMessage().toLowerCase().contains("founder") ||
-            ex.getMessage().toLowerCase().contains("cannot be removed"),
-            "Founder should not be allowed to be removed from the store"
+            errorMessage.contains("founder") || errorMessage.contains("cannot be removed"),
+            "Expected error message to mention that the founder cannot be removed"
         );
     }
+
 
     @Test
     void founder_views_appointment_chain() {
         // Build hierarchy: founder -> ownerA -> ownerB -> ownerC
-        storeService.addAdditionalStoreOwner(founderID, storeId, ownerA);
-        storeService.addAdditionalStoreOwner(ownerA, storeId, ownerB);
-        storeService.addAdditionalStoreOwner(ownerB, storeId, ownerC);
+        storeService.addAdditionalStoreOwner(founderID, ownerA,storeId);
+        storeService.addAdditionalStoreOwner(ownerA,ownerB, storeId);
+        storeService.addAdditionalStoreOwner(ownerB, ownerC,storeId);
 
         List<List<String>> removedOwners = storeService.removeOwner(founderID, ownerA, storeId);
         // Map<String, List<String>> appointments = storeService.getAppointmentHierarchy(storeId);
@@ -71,14 +74,15 @@ public class FounderTests extends AcceptanceTestBase {
 
     @Test
     void founder_attempts_to_transfer_ownership_blocked() {
-        // Simulate a transfer by trying to reappoint self
-        Exception ex = assertThrows(Exception.class, () -> {
-            storeService.addAdditionalStoreOwner(founderID, storeId, founderID);
-        });
+        String result = storeService.addAdditionalStoreOwner(founderID, founderID, storeId);
+
+        assertNotEquals("success", result, "Expected failure when founder attempts to reappoint themselves as owner");
+
+        String message = result.toLowerCase();
         assertTrue(
-            ex.getMessage().toLowerCase().contains("founder") ||
-            ex.getMessage().toLowerCase().contains("already an owner"),
-            "Founder should not be allowed to reappoint themselves"
+            message.contains("founder") || message.contains("already an owner"),
+            "Expected error message to mention founder restriction or duplicate ownership"
         );
     }
+
 }

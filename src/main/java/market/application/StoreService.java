@@ -229,6 +229,7 @@ assumes aggreement by 'apointerID''s appointer
         }
     }
 
+
     /**
      * Adds a new manager to the store by delegating to the business logic layer.
      * Only an existing owner of the store can appoint a new manager.
