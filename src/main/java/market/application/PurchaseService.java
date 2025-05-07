@@ -16,14 +16,16 @@ public class PurchaseService {
 
     private final IStoreRepository storeRepository;
     private final IPurchaseRepository purchaseRepository;
+    private final IListingRepository listingRepository;
     private final IUserRepository userRepository;
     private final IPaymentService paymentService;
     private final IShipmentService shipmentService;
     private final Logger logger = Logger.getInstance();
 
-    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService) {
+    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
+        this.listingRepository=listingRepository;
         this.userRepository = userRepository;
         this.paymentService = paymentService;
         this.shipmentService = shipmentService;
@@ -50,24 +52,30 @@ public class PurchaseService {
                     String productId = product.getKey();
                     double unitPrice;
                     try {
-                        unitPrice = store.ProductPrice(productId);
+                        unitPrice = listingRepository.ProductPrice(productId);
                     } catch (Exception e) {
-                        logger.debug("Product not found in store: " + productId);
-                        throw new RuntimeException("Product not found in store: " + productId);
+                        logger.debug("Product not found: " + productId);
+                        throw new RuntimeException("Product not found: " + productId);
                     }
                     Integer quantity = product.getValue();
                     PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
                     purchasedItems.add(purchasedProduct);
                 }
             }
-            boolean updated = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
+            boolean updated = listingRepository.updateStockForPurchasedItems(listForUpdateStock);
             if (!updated) {
                 logger.error("Failed to update stock for purchased items.");
                 throw new RuntimeException("Failed to update stock for purchased items.");
             }
             RegularPurchase regularPurchase = new RegularPurchase();
             logger.info("Purchase executed successfully for user: " + userId + ", total: " + totalDiscountPrice);
-            return regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
+            Purchase finalPurchase=regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
+            if (finalPurchase!=null){
+                User user = userRepository.findById(userId);
+                user.clearCart();
+                return finalPurchase;
+            }
+            return null;
         } catch (Exception e) {
             logger.error("Failed to execute regular purchase for user: " + userId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Failed to execute regular purchase: " + e.getMessage(), e);
