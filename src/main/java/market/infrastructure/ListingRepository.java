@@ -2,9 +2,9 @@ package market.infrastructure;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import market.domain.store.IListingRepository;
@@ -16,7 +16,8 @@ import market.domain.store.Listing;
  */
 public class ListingRepository implements IListingRepository {
 
-   private final Map<String, Listing> listingsById = new HashMap<>();
+   private final Map<String, Listing> listingsById = new ConcurrentHashMap<>();
+;
 
     @Override
     public String addListing(Listing listing) {
