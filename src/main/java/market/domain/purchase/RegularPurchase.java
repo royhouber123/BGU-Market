@@ -16,6 +16,7 @@ public class RegularPurchase {
         paymentService.processPayment("User: " + userId + ", Amount: " + total);
         double totalWeight = calculateTotalWeight(purchasedItems); 
         shipmentService.ship(shippingAddress, userId, totalWeight);
+        
         return new Purchase(userId, purchasedItems, total, shippingAddress, contactInfo);
     }
 

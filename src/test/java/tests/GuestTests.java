@@ -23,7 +23,7 @@ public class GuestTests extends AcceptanceTestBase {
     private static final String MANAGER = "manager";
     private static final String PW = "1234";
     private String storeId;
-    private String productId = "p1";
+    private String listingId;
     private String productName = "Notebook";
     private String productDescription = "Simple notebook";
     private int quantity = 5;
@@ -34,16 +34,15 @@ public class GuestTests extends AcceptanceTestBase {
     void setUp() throws Exception {
         userService.getUserRepository().register(MANAGER, PW);
         storeId = storeService.createStore("SchoolStore", MANAGER);
-        storeService.addNewListing(
+        listingId=storeService.addNewListing(
             MANAGER,
             storeId,
-            productId,
+            "p1",
             productName,
             productDescription,
             quantity,
             price
         );
-        userService.getUserRepository().register(GUEST, PW); //need to replace in future to registerGuest
         when(paymentService.processPayment(anyString())).thenReturn(true);
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("SHIP123");
     }
@@ -126,14 +125,23 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_purchases_cart_successfully() throws Exception {
-        User guestUser = userService.getUserRepository().findById(GUEST);
-        guestUser.addProductToCart(storeId, productId, 1);
+        userService.register(GUEST, ""); //to change- guest doesnt need to register
+        User guestUser=userService.getUserRepository().findById(GUEST); //this function returns subscriber- error
+        guestUser.addProductToCart(storeId, listingId, 1);
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
         ShoppingCart guestCart = guestUser.getShoppingCart();
         Purchase purchase = purchaseService.executePurchase(GUEST, guestCart, shippingAddress, contactInfo);
         assertNotNull(purchase, "Purchase should not be null");
         assertEquals(GUEST, purchase.getUserId(), "Buyer ID should be guest");
+        /////
+        User refreshedGuest = userService.getUserRepository().findById(GUEST);
+        ShoppingCart refreshedCart = refreshedGuest.getShoppingCart();
+        assertTrue(refreshedCart.getAllStoreBags().isEmpty(), "Shopping cart should be empty after purchase");
+        /////
+        ///assertTrue(guestCart.getAllStoreBags().size()==0, "Shopping cart should be empty after purchase");
+        int remainingStock = storeService.getListingRepository().getListingById(listingId).getQuantityAvailable();
+        assertEquals(quantity - 1, remainingStock, "Stock should decrease by purchased amount");
     }
 
     @Test
