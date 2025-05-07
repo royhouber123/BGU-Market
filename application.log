@@ -805,3 +805,273 @@
 [2025-04-29 16:09:30] [INFO] Registering user: user2
 [2025-04-29 16:09:30] [ERROR] User with name 'user2' already exists.
 [2025-04-29 16:09:30] [ERROR] Failed to register user: user2. Exception: User with name 'user2' already exists.
+[2025-05-07 17:15:25] [INFO] Hashing password
+[2025-05-07 17:15:26] [INFO] Hashing password
+[2025-05-07 17:15:27] [INFO] AuthService initialized
+[2025-05-07 17:15:27] [INFO] Registering user: manager
+[2025-05-07 17:15:27] [INFO] Hashing password
+[2025-05-07 17:15:27] [INFO] User registered: manager
+[2025-05-07 17:15:27] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:15:27] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:15:27] [INFO] Registering user: guest
+[2025-05-07 17:15:27] [INFO] Registering user: guest
+[2025-05-07 17:15:27] [INFO] Hashing password
+[2025-05-07 17:15:27] [INFO] User registered: guest
+[2025-05-07 17:15:27] [INFO] User registered: guest
+[2025-05-07 17:15:27] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:15:27] [INFO] User found: guest
+[2025-05-07 17:15:27] [INFO] Executing purchase for user: guest
+[2025-05-07 17:15:27] [INFO] Purchase executed successfully for user: guest, total: 0.0
+[2025-05-07 17:15:27] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:15:27] [INFO] User found: guest
+[2025-05-07 17:15:27] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:15:27] [INFO] User found: guest
+[2025-05-07 17:15:31] [INFO] Hashing password
+[2025-05-07 17:15:31] [INFO] Hashing password
+[2025-05-07 17:15:32] [INFO] AuthService initialized
+[2025-05-07 17:15:32] [INFO] Registering user: manager
+[2025-05-07 17:15:32] [INFO] Hashing password
+[2025-05-07 17:15:32] [INFO] User registered: manager
+[2025-05-07 17:15:32] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:15:32] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:15:32] [INFO] Registering user: guest
+[2025-05-07 17:15:32] [INFO] Registering user: guest
+[2025-05-07 17:15:32] [INFO] Hashing password
+[2025-05-07 17:15:32] [INFO] User registered: guest
+[2025-05-07 17:15:32] [INFO] User registered: guest
+[2025-05-07 17:15:32] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:15:32] [INFO] User found: guest
+[2025-05-07 17:15:32] [INFO] Executing purchase for user: guest
+[2025-05-07 17:15:33] [ERROR] Failed to execute regular purchase for user: guest. Reason: Not enough stock for listing: 546d06db-adfa-4293-967b-99f31f5992d8
+[2025-05-07 17:23:52] [INFO] Hashing password
+[2025-05-07 17:23:52] [INFO] Hashing password
+[2025-05-07 17:23:54] [INFO] AuthService initialized
+[2025-05-07 17:23:54] [INFO] Registering user: manager
+[2025-05-07 17:23:54] [INFO] Hashing password
+[2025-05-07 17:23:54] [INFO] User registered: manager
+[2025-05-07 17:23:54] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:23:54] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:23:54] [INFO] Registering user: guest
+[2025-05-07 17:23:54] [INFO] Registering user: guest
+[2025-05-07 17:23:54] [INFO] Hashing password
+[2025-05-07 17:23:54] [INFO] User registered: guest
+[2025-05-07 17:23:54] [INFO] User registered: guest
+[2025-05-07 17:23:54] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:23:54] [INFO] User found: guest
+[2025-05-07 17:23:54] [INFO] Executing purchase for user: guest
+[2025-05-07 17:23:54] [INFO] Purchase executed successfully for user: guest, total: 0.0
+[2025-05-07 17:23:54] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:23:54] [INFO] User found: guest
+[2025-05-07 17:23:54] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:23:54] [INFO] User found: guest
+[2025-05-07 17:23:57] [INFO] Hashing password
+[2025-05-07 17:23:57] [INFO] Hashing password
+[2025-05-07 17:23:59] [INFO] AuthService initialized
+[2025-05-07 17:23:59] [INFO] Registering user: manager
+[2025-05-07 17:23:59] [INFO] Hashing password
+[2025-05-07 17:23:59] [INFO] User registered: manager
+[2025-05-07 17:23:59] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:23:59] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:23:59] [INFO] Registering user: guest
+[2025-05-07 17:23:59] [INFO] Registering user: guest
+[2025-05-07 17:23:59] [INFO] Hashing password
+[2025-05-07 17:23:59] [INFO] User registered: guest
+[2025-05-07 17:23:59] [INFO] User registered: guest
+[2025-05-07 17:23:59] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:23:59] [INFO] User found: guest
+[2025-05-07 17:23:59] [INFO] Executing purchase for user: guest
+[2025-05-07 17:23:59] [ERROR] Failed to execute regular purchase for user: guest. Reason: Not enough stock for listing: 846527b8-65da-43f9-accd-9cb0f118541b
+[2025-05-07 17:24:02] [INFO] Hashing password
+[2025-05-07 17:24:02] [INFO] Hashing password
+[2025-05-07 17:24:04] [INFO] AuthService initialized
+[2025-05-07 17:24:04] [INFO] Registering user: manager
+[2025-05-07 17:24:04] [INFO] Hashing password
+[2025-05-07 17:24:04] [INFO] User registered: manager
+[2025-05-07 17:24:04] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:24:04] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:24:04] [INFO] Registering user: guest
+[2025-05-07 17:24:04] [INFO] Registering user: guest
+[2025-05-07 17:24:04] [INFO] Hashing password
+[2025-05-07 17:24:04] [INFO] User registered: guest
+[2025-05-07 17:24:04] [INFO] User registered: guest
+[2025-05-07 17:24:04] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:24:04] [INFO] User found: guest
+[2025-05-07 17:24:04] [INFO] Executing purchase for user: guest
+[2025-05-07 17:24:04] [INFO] Purchase executed successfully for user: guest, total: 0.0
+[2025-05-07 17:24:04] [ERROR] Failed to execute regular purchase for user: guest. Reason: Payment failed for user: guest
+[2025-05-07 17:42:50] [INFO] Hashing password
+[2025-05-07 17:42:50] [INFO] Hashing password
+[2025-05-07 17:42:52] [INFO] AuthService initialized
+[2025-05-07 17:42:52] [INFO] Registering user: manager
+[2025-05-07 17:42:52] [INFO] Hashing password
+[2025-05-07 17:42:52] [INFO] User registered: manager
+[2025-05-07 17:42:52] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:52] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:52] [INFO] Hashing password
+[2025-05-07 17:42:52] [INFO] Hashing password
+[2025-05-07 17:42:52] [INFO] AuthService initialized
+[2025-05-07 17:42:52] [INFO] Registering user: manager
+[2025-05-07 17:42:52] [INFO] Hashing password
+[2025-05-07 17:42:52] [INFO] User registered: manager
+[2025-05-07 17:42:52] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:52] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:52] [INFO] Registering user: guest
+[2025-05-07 17:42:52] [INFO] Registering user: guest
+[2025-05-07 17:42:52] [INFO] Hashing password
+[2025-05-07 17:42:52] [INFO] User registered: guest
+[2025-05-07 17:42:52] [INFO] User registered: guest
+[2025-05-07 17:42:52] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:42:52] [INFO] User found: guest
+[2025-05-07 17:42:52] [INFO] Executing purchase for user: guest
+[2025-05-07 17:42:53] [INFO] Purchase executed successfully for user: guest, total: 0.0
+[2025-05-07 17:42:53] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:42:53] [INFO] User found: guest
+[2025-05-07 17:42:53] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:42:53] [INFO] User found: guest
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] AuthService initialized
+[2025-05-07 17:42:53] [INFO] Registering user: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] User registered: manager
+[2025-05-07 17:42:53] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:53] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] AuthService initialized
+[2025-05-07 17:42:53] [INFO] Registering user: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] User registered: manager
+[2025-05-07 17:42:53] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:53] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] AuthService initialized
+[2025-05-07 17:42:53] [INFO] Registering user: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] User registered: manager
+[2025-05-07 17:42:53] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:53] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] AuthService initialized
+[2025-05-07 17:42:53] [INFO] Registering user: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] User registered: manager
+[2025-05-07 17:42:53] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:53] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] AuthService initialized
+[2025-05-07 17:42:53] [INFO] Registering user: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] User registered: manager
+[2025-05-07 17:42:53] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:53] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:53] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] AuthService initialized
+[2025-05-07 17:42:54] [INFO] Registering user: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] User registered: manager
+[2025-05-07 17:42:54] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:54] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] AuthService initialized
+[2025-05-07 17:42:54] [INFO] Registering user: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] User registered: manager
+[2025-05-07 17:42:54] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:54] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] AuthService initialized
+[2025-05-07 17:42:54] [INFO] Registering user: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] User registered: manager
+[2025-05-07 17:42:54] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:54] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:54] [INFO] Registering user: guest
+[2025-05-07 17:42:54] [INFO] Registering user: guest
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] User registered: guest
+[2025-05-07 17:42:54] [INFO] User registered: guest
+[2025-05-07 17:42:54] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:42:54] [INFO] User found: guest
+[2025-05-07 17:42:54] [INFO] Executing purchase for user: guest
+[2025-05-07 17:42:54] [ERROR] Failed to execute regular purchase for user: guest. Reason: Not enough stock for listing: a05f88b5-c97e-492a-a3ba-2e87eacd5038
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] AuthService initialized
+[2025-05-07 17:42:54] [INFO] Registering user: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] User registered: manager
+[2025-05-07 17:42:54] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:54] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] AuthService initialized
+[2025-05-07 17:42:54] [INFO] Registering user: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] User registered: manager
+[2025-05-07 17:42:54] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:54] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:54] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] AuthService initialized
+[2025-05-07 17:42:55] [INFO] Registering user: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] User registered: manager
+[2025-05-07 17:42:55] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:55] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] AuthService initialized
+[2025-05-07 17:42:55] [INFO] Registering user: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] User registered: manager
+[2025-05-07 17:42:55] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:55] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] AuthService initialized
+[2025-05-07 17:42:55] [INFO] Registering user: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] User registered: manager
+[2025-05-07 17:42:55] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:55] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] AuthService initialized
+[2025-05-07 17:42:55] [INFO] Registering user: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] User registered: manager
+[2025-05-07 17:42:55] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:55] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] AuthService initialized
+[2025-05-07 17:42:55] [INFO] Registering user: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] User registered: manager
+[2025-05-07 17:42:55] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:55] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] AuthService initialized
+[2025-05-07 17:42:55] [INFO] Registering user: manager
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:55] [INFO] User registered: manager
+[2025-05-07 17:42:55] [INFO] Store created: SchoolStore, founder: manager, id: 2
+[2025-05-07 17:42:55] [INFO] Added new listing: Notebook to store: 2, by: manager
+[2025-05-07 17:42:55] [INFO] Registering user: guest
+[2025-05-07 17:42:55] [INFO] Registering user: guest
+[2025-05-07 17:42:55] [INFO] Hashing password
+[2025-05-07 17:42:56] [INFO] User registered: guest
+[2025-05-07 17:42:56] [INFO] User registered: guest
+[2025-05-07 17:42:56] [INFO] Attempting to find user by id: guest
+[2025-05-07 17:42:56] [INFO] User found: guest
+[2025-05-07 17:42:56] [INFO] Executing purchase for user: guest
+[2025-05-07 17:42:56] [INFO] Purchase executed successfully for user: guest, total: 0.0
+[2025-05-07 17:42:56] [ERROR] Failed to execute regular purchase for user: guest. Reason: Payment failed for user: guest

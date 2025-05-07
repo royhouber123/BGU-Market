@@ -13,10 +13,12 @@ public class RegularPurchase {
             total += item.getUnitPrice() * item.getQuantity();
         }
         total=total-totalDiscountPrice;
-        paymentService.processPayment("User: " + userId + ", Amount: " + total);
+        boolean paymentSuccess=paymentService.processPayment("User: " + userId + ", Amount: " + total);
+        if (!paymentSuccess) {
+            throw new RuntimeException("Payment failed for user: " + userId);
+        }
         double totalWeight = calculateTotalWeight(purchasedItems); 
         shipmentService.ship(shippingAddress, userId, totalWeight);
-        
         return new Purchase(userId, purchasedItems, total, shippingAddress, contactInfo);
     }
 
