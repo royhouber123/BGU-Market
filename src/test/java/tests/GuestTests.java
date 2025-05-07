@@ -10,6 +10,7 @@ import market.domain.user.ShoppingCart;
 import market.domain.user.User;
 import market.middleware.TokenUtils;
 
+import java.io.EOFException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -145,12 +146,30 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
     @Test
-    void guest_purchasing_cart_fails_due_to_stock() {
-        ///
+    void guest_purchasing_cart_fails_due_to_stock() throws Exception { //there is a stock when added to bag but not when purchase???
+        userService.register(GUEST, "");
+        User guestUser = userService.getUserRepository().findById(GUEST);
+        guestUser.addProductToCart(storeId, listingId, quantity + 1); //bigger than available quantity
+        String shippingAddress = "123 Guest Street";
+        String contactInfo = "guest@example.com";
+        ShoppingCart guestCart = guestUser.getShoppingCart();
+        RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+            purchaseService.executePurchase(GUEST, guestCart, shippingAddress, contactInfo));
+        assertTrue(thrown.getMessage().toLowerCase().contains("stock"), "Expected failure due to stock issue, but got: " + thrown.getMessage());
     }
 
     @Test
-    void guest_purchasing_cart_fails_due_to_payment() {
-        ///
+    void guest_purchasing_cart_fails_due_to_payment() throws Exception { //after payment failes- what to do with the stock- it already reduced???
+        userService.register(GUEST, "");
+        User guestUser = userService.getUserRepository().findById(GUEST);
+        guestUser.addProductToCart(storeId, listingId, 1);
+        String shippingAddress = "123 Guest Street";
+        String contactInfo = "guest@example.com";
+        when(paymentService.processPayment(anyString())).thenReturn(false); //let the Mock returns False
+        ShoppingCart guestCart = guestUser.getShoppingCart();
+        RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+            purchaseService.executePurchase(GUEST, guestCart, shippingAddress, contactInfo));
+        assertTrue(thrown.getMessage().toLowerCase().contains("payment"),
+            "Expected failure due to payment issue, but got: " + thrown.getMessage());   
     }
 }  
