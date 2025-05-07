@@ -153,7 +153,56 @@ public class ListingRepository implements IListingRepository {
     }
 
 
+    @Override
+    public void disableListingsByStoreId(String storeId) {
+        listingsById.values().stream()
+            .filter(l -> l.getStoreId().equals(storeId))
+            .forEach(l -> {
+                synchronized (l) {
+                    l.disable();
+                }
+            });
+    }
     
+    @Override
+    public void enableListingsByStoreId(String storeId) {
+        listingsById.values().stream()
+            .filter(l -> l.getStoreId().equals(storeId))
+            .forEach(l -> {
+                synchronized (l) {
+                    l.enable();
+                }
+            });
+    }
+
+    
+
+    @Override
+    public double calculateStoreBagWithoutDiscount(Map<String, Integer> prodsToQuantity) throws Exception {
+        double result = 0.0;
+        for (Map.Entry<String, Integer> entry : prodsToQuantity.entrySet()) {
+            String listingId = entry.getKey();
+            int quantity = entry.getValue();
+
+            Listing l = getListingById(listingId);
+            if (l == null || !Boolean.TRUE.equals(l.isActive())) {
+                throw new Exception("Listing " + listingId + " not found or inactive.");
+            }
+            result += l.getPrice() * quantity;
+        }
+        return result;
+    }
+
+    @Override
+    public double ProductPrice(String listingId) throws Exception {
+        Listing l = getListingById(listingId);
+        if (l == null || !Boolean.TRUE.equals(l.isActive())) {
+            throw new Exception("Listing " + listingId + " not found or inactive.");
+        }
+        return l.getPrice();
+    }
+
+        
 
 }
 

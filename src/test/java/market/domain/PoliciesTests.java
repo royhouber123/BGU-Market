@@ -250,5 +250,8 @@ class PoliciesTests {
         @Override public List<Listing> getListingsByProductId(String productId) { return null; }
         @Override public List<Listing> getAllListings() { return null; }
         @Override public boolean purchaseFromListing(String listingId, int quantity) { return false; }
+        @Override public void disableAllListings(){}
+        @Override public void enableAllListings(){}
+
     }
 }

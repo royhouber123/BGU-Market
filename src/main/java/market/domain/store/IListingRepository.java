@@ -72,6 +72,11 @@ public interface IListingRepository {
 
     List<Listing> getListingsByCategory(String category);
     List<Listing> getListingsByCategoryAndStore(String category, String storeId);
+    void disableListingsByStoreId(String storeId);
+    void enableListingsByStoreId(String storeId);
+    double calculateStoreBagWithoutDiscount(Map<String, Integer> prodsToQuantity) throws Exception;
+    double ProductPrice(String listingId) throws Exception;
+
 
     
 }
