@@ -89,6 +89,7 @@ public class Store {
         if (!active)
             throw new Exception("the store:"+ storeID +" is already closed");
         active = false;
+        //need to update the status of all listings on store 
         return true;
     }
 
@@ -131,6 +132,7 @@ public class Store {
         if (active)
             throw new Exception("Store:" + storeID + " is already open");
         active = true;
+        //TODO: need to update all the listings status 
         return true;
     }
     /*

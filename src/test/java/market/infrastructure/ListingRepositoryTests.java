@@ -113,4 +113,63 @@ class ListingRepositoryTests {
         assertEquals(20, successCount.get());
         assertEquals(0, l.getQuantityAvailable());
     }
+
+
+    @Test
+    void testDisableEnableListingsByStoreId() {
+        // Disable all listings in store1
+        repository.disableListingsByStoreId("store1");
+
+        assertTrue(!listing1.isActive());
+        assertTrue(!listing2.isActive());
+        assertTrue(listing3.isActive()); // from store2, should remain active
+
+        // Enable all listings in store1
+        repository.enableListingsByStoreId("store1");
+
+        assertTrue(listing1.isActive());
+        assertTrue(listing2.isActive());
+        assertTrue(listing3.isActive()); // still active
+    }
+
+    @Test
+    void testCalculateStoreBagWithoutDiscountSuccess() throws Exception {
+        Map<String, Integer> items = new HashMap<>();
+        items.put(listing1.getListingId(), 2); // 2 * 100 = 200
+        items.put(listing2.getListingId(), 1); // 1 * 200 = 200
+
+        double total = repository.calculateStoreBagWithoutDiscount(items);
+        assertEquals(400.0, total);
+    }
+
+    @Test
+    void testCalculateStoreBagWithoutDiscountFailsOnInactive() {
+        listing1.disable(); // simulate store closed
+
+        Map<String, Integer> items = new HashMap<>();
+        items.put(listing1.getListingId(), 2); // inactive
+        items.put(listing2.getListingId(), 1);
+
+        Exception e = assertThrows(Exception.class, () ->
+            repository.calculateStoreBagWithoutDiscount(items)
+        );
+        assertTrue(e.getMessage().contains("not found or inactive"));
+    }
+
+    @Test
+    void testProductPriceSuccess() throws Exception {
+        double price = repository.ProductPrice(listing1.getListingId());
+        assertEquals(100.0, price);
+    }
+
+    @Test
+    void testProductPriceFailsOnInactive() {
+        listing2.disable();
+        Exception e = assertThrows(Exception.class, () ->
+            repository.ProductPrice(listing2.getListingId())
+        );
+        assertTrue(e.getMessage().contains("not found or inactive"));
+    }
+
+
 }

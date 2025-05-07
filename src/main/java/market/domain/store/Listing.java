@@ -21,7 +21,7 @@ public class Listing {
     private final PurchaseType purchaseType; // How it is purchased
     private double price;
     private String category = ""; //TODO: still need to add this to the constructor 
-    private Boolean isClosed=false;
+    private Boolean active;
 
 
     /**
@@ -43,6 +43,7 @@ public class Listing {
         this.quantityAvailable = quantityAvailable;
         this.purchaseType = purchaseType;
         this.price = price;
+        this.active= true;
     }
 
     /**
@@ -99,12 +100,16 @@ public class Listing {
     }
 
 
-    public void closeStore(){
-        this.isClosed=true;
+    public void disable(){
+        this.active=false;
     }
 
-    public void openStore(){
-        this.isClosed=false;
+    public void enable(){
+        this.active=true;
+    }
+
+    public boolean isActive(){
+        return active;
     }
     
 
