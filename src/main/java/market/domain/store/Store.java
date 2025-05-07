@@ -154,10 +154,10 @@ public class Store {
      */
     public boolean addNewOwner(String appointerID, String newOwnerID) throws Exception {
        if (!isOwner(appointerID))
-           throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+           throw new Exception("the user:"+appointerID+" is not an owner of the store: "+storeID);
 
         if (isOwner(newOwnerID))
-            throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
+            throw new Exception("the user:"+appointerID+" is already an owner of the store: "+storeID);
         storeClosedExeption();//actions are available only when open
         ownerToAssignedOwners.get(appointerID).add(newOwnerID);
         ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());

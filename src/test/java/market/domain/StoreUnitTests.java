@@ -51,7 +51,7 @@ class StoreUnitTests {
         Exception exception = assertThrows(Exception.class, () -> {
             store.addNewOwner(ownerA, ownerB);
         });
-        assertTrue(exception.getMessage().contains("is not a owner"), "Expected error for non-owner appointer");
+        assertTrue(exception.getMessage().contains("is not an owner"), "Expected error for non-owner appointer");
     }
 
     @Test
@@ -60,7 +60,7 @@ class StoreUnitTests {
         Exception exception = assertThrows(Exception.class, () -> {
             store.addNewOwner(founderID, ownerA);
         });
-        assertTrue(exception.getMessage().contains("already a owner"), "Expected error for already an owner");
+        assertTrue(exception.getMessage().contains("already an owner"), "Expected error for already an owner");
     }
 
     // ------------------------- Owner Removal Tests -------------------------
