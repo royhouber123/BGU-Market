@@ -50,7 +50,7 @@ public abstract class AcceptanceTestBase {
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();
 
-        purchaseService = new PurchaseService(storerepo, prep , userRepository,paymentService,shipmentService);
+        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService);
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
         
