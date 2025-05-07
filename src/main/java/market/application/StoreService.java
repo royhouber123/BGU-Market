@@ -409,7 +409,7 @@ assumes aggreement by 'apointerID''s appointer
     }
 
 
-
+//I think this function is not relevant any more. all purchases are from purchase service
     /**
      * Purchases quantity from a listing.
      *
