@@ -88,7 +88,7 @@ public class AuthService {
         logger.info("Logging in user: " + username);
         //DB Check 
         try {
-            Subscriber u = this.userRepository.findById(username);
+            User u = this.userRepository.findById(username);
             // Verify the provided password matches the stored hashed password
             if (!this.userRepository.verifyPassword(username, password)) {
                 logger.error("Invalid password for user: " + username);
