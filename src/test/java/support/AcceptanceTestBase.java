@@ -42,7 +42,7 @@ public abstract class AcceptanceTestBase {
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
         
         authService = new AuthService(userRepository);
-        userService = new UserService(userRepository, authService, roleRepository);
+        userService = new UserService(userRepository, authService);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         storeService = new StoreService(storerepo,userRepository,listingRepository); // Use the real implementation
