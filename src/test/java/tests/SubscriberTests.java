@@ -1,6 +1,4 @@
 package tests;
-
-import market.application.PurchaseService;
 import market.application.AuthService.AuthToken;
 import market.domain.purchase.Purchase;
 import market.domain.user.ShoppingCart;
