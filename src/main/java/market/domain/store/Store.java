@@ -93,6 +93,11 @@ public class Store {
         return true;
     }
 
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+    
+
     /**
      * Checks whether the store is currently open (active).
      *
@@ -113,6 +118,7 @@ public class Store {
             throw new Exception("Store:" + storeID + " is closed for now");
         }
     }
+
 
     /**
      * Reopens the store.

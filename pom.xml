@@ -110,6 +110,12 @@
         <artifactId>scala-library</artifactId>
         <version>2.13.0</version>
       </dependency>
+    
+      <dependency>
+        <groupId>net.smartcosmos</groupId>
+        <artifactId>smartcosmos-user-entity-devkit</artifactId>
+        <version>3.0.0</version>
+      </dependency>
     </dependencies>
 
 </project>

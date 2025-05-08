@@ -191,5 +191,12 @@ public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> li
         return usersInfo;
     }
 
+    @Override
+    public void save(Store store) {
+        storesById.put(store.getStoreID(), store);
+        storesByName.put(store.getName(), store);
+    }
+
+
 
 }

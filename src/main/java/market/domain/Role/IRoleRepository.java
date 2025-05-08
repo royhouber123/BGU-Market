@@ -95,6 +95,23 @@ public interface IRoleRepository {
      */
     public List<List<String>> removeOwner(String userId, String userIdToRemove, String store) throws Exception;
 
+        /**
+     * Retrieves all user IDs (owners or managers) with roles in a specific store.
+     *
+     * @param storeId the store to inspect
+     * @return List of user IDs with any role (owner, manager, founder)
+     */
+    List<String> getAllStoreUserIdsWithRoles(String storeId);
+
+    /**
+     * Removes all roles of a specific user in a given store (owner or manager).
+     *
+     * @param userId user to remove
+     * @param storeId store context
+     */
+    void removeAllRolesForUserInStore(String userId, String storeId);
+
+
 
 
 }

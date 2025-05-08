@@ -10,6 +10,8 @@ public interface IStoreRepository {
     public Store getStoreByID(String storeID);
     public void addStore(Store store) throws Exception;
     public void removeStore(String storeName) throws Exception;
+    public void save(Store store);
+
 
     public boolean containsStore(String storeName);
 
@@ -17,4 +19,7 @@ public interface IStoreRepository {
     public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock);
 
     public Map<String,List<Role>> getUsersRoles(String userName);
+
+    
+
 }

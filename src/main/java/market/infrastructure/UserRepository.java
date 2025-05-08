@@ -1,7 +1,6 @@
 package market.infrastructure;
 
 import market.domain.user.*;
-import market.domain.user.Subscriber;
 import utils.Logger;
 import utils.PasswordUtil;
 
@@ -25,6 +24,11 @@ public class UserRepository implements IUserRepository {
         u2.addProductToCart("111", "productC", 2);
         userMap.put(u2.getUserName(), u2);
         passwordMap.put(u2.getUserName(), PasswordUtil.hashPassword("pw2"));
+
+        Admin admin = new Admin("adminUser");
+        userMap.put(admin.getUserName(), admin);
+        passwordMap.put(admin.getUserName(), PasswordUtil.hashPassword("adminPw"));
+
     }
 
     public Subscriber findById(String name) {
@@ -118,4 +122,10 @@ public class UserRepository implements IUserRepository {
         logger.info("Cart retrieved for user: " + name);
         return u.getShoppingCart();
     }
+
+    public void saveAdmin(Admin admin, String password) {
+        userMap.put(admin.getUserName(), admin);
+        passwordMap.put(admin.getUserName(), PasswordUtil.hashPassword(password));
+    }
+    
 }
