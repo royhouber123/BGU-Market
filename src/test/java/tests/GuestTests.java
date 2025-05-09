@@ -22,30 +22,25 @@ public class GuestTests extends AcceptanceTestBase {
 
     private static final String GUEST = "guest";
     private static final String MANAGER = "manager";
-    private static final String PW = "1234";
     private String storeId;
     private String listingId;
-    private String productName = "Notebook";
-    private String productDescription = "Simple notebook";
     private int quantity = 5;
-    private double price = 25.0;
-
 
     @BeforeEach
     void setUp() throws Exception {
-        userService.getUserRepository().register(MANAGER, PW);
-        storeId = storeService.createStore("SchoolStore", MANAGER);
-        listingId=storeService.addNewListing(
+        userService.getUserRepository().register(MANAGER, "1234"); //Register a store manager who will own the store and add products
+        storeId = storeService.createStore("SchoolStore", MANAGER); //Create a new store named "SchoolStore" with the manager as the founder
+        listingId=storeService.addNewListing( //Add a new product listing ("Notebook") to the created store
             MANAGER,
             storeId,
             "p1",
-            productName,
-            productDescription,
+            "Notebook",
+            "Simple notebook",
             quantity,
-            price
+            25.0
         );
-        when(paymentService.processPayment(anyString())).thenReturn(true);
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("SHIP123");
+        when(paymentService.processPayment(anyString())).thenReturn(true); //Stub the payment service to always return success
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("SHIP123"); //Stub the shipment service to always return a fixed shipment ID
     }
 
 
@@ -126,49 +121,55 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_purchases_cart_successfully() throws Exception {
-        userService.register(GUEST, ""); //to change- guest doesnt need to register
-        User guestUser=userService.getUserRepository().findById(GUEST); //this function returns subscriber- error
-        guestUser.addProductToCart(storeId, listingId, 1);
-        String shippingAddress = "123 Guest Street";
-        String contactInfo = "guest@example.com";
-        ShoppingCart guestCart = guestUser.getShoppingCart();
+        userService.register(GUEST); //Register the guest user
+        User guestUser=userService.getUserRepository().findById(GUEST); //Retrieve the guest user from the repository
+        guestUser.addProductToCart(storeId, listingId, 1); //Add one unit of the product to the guest's shopping cart
+        String shippingAddress = "123 Guest Street"; 
+        String contactInfo = "guest@example.com"; 
+        ShoppingCart guestCart = guestUser.getShoppingCart(); //Retrieve the guest's current shopping cart
         Purchase purchase = purchaseService.executePurchase(GUEST, guestCart, shippingAddress, contactInfo);
+        //Assert that the purchase was successfully completed (i.e., not null)
         assertNotNull(purchase, "Purchase should not be null");
+        //Assert that the correct user is recorded in the purchase
         assertEquals(GUEST, purchase.getUserId(), "Buyer ID should be guest");
-        /////
+        //Reload the user from the repository to ensure updated state (after purchase)
         User refreshedGuest = userService.getUserRepository().findById(GUEST);
         ShoppingCart refreshedCart = refreshedGuest.getShoppingCart();
+        //Assert that the cart is now empty after purchase
         assertTrue(refreshedCart.getAllStoreBags().isEmpty(), "Shopping cart should be empty after purchase");
-        /////
-        ///assertTrue(guestCart.getAllStoreBags().size()==0, "Shopping cart should be empty after purchase");
+        //Check that stock was reduced by 1 unit after purchase
         int remainingStock = storeService.getListingRepository().getListingById(listingId).getQuantityAvailable();
         assertEquals(quantity - 1, remainingStock, "Stock should decrease by purchased amount");
     }
 
     @Test
     void guest_purchasing_cart_fails_due_to_stock() throws Exception { //there is a stock when added to bag but not when purchase???
-        userService.register(GUEST, "");
-        User guestUser = userService.getUserRepository().findById(GUEST);
-        guestUser.addProductToCart(storeId, listingId, quantity + 1); //bigger than available quantity
+        userService.register(GUEST); //Register the guest user
+        User guestUser = userService.getUserRepository().findById(GUEST); //Retrieve the guest user from the repository
+        guestUser.addProductToCart(storeId, listingId, quantity + 1); //Add a quantity larger than the available stock to the cart
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
-        ShoppingCart guestCart = guestUser.getShoppingCart();
+        ShoppingCart guestCart = guestUser.getShoppingCart(); //Get the cart containing the excessive quantity
+        //Attempt to execute the purchase — it should fail due to insufficient stock
         RuntimeException thrown = assertThrows(RuntimeException.class, () ->
             purchaseService.executePurchase(GUEST, guestCart, shippingAddress, contactInfo));
+        //Verify that the error message indicates a stock issue
         assertTrue(thrown.getMessage().toLowerCase().contains("stock"), "Expected failure due to stock issue, but got: " + thrown.getMessage());
     }
 
     @Test
     void guest_purchasing_cart_fails_due_to_payment() throws Exception { //after payment failes- what to do with the stock- it already reduced???
-        userService.register(GUEST, "");
-        User guestUser = userService.getUserRepository().findById(GUEST);
-        guestUser.addProductToCart(storeId, listingId, 1);
+        userService.register(GUEST, ""); //Register the guest user
+        User guestUser = userService.getUserRepository().findById(GUEST); //Retrieve the guest user from the repository
+        guestUser.addProductToCart(storeId, listingId, 1); //Add a valid product to the guest's cart
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
-        when(paymentService.processPayment(anyString())).thenReturn(false); //let the Mock returns False
-        ShoppingCart guestCart = guestUser.getShoppingCart();
+        when(paymentService.processPayment(anyString())).thenReturn(false); //Simulate a payment failure by mocking the payment service
+        ShoppingCart guestCart = guestUser.getShoppingCart(); //Get the current state of the guest's shopping cart
+        //Attempt to execute the purchase — it should fail due to payment issue
         RuntimeException thrown = assertThrows(RuntimeException.class, () ->
             purchaseService.executePurchase(GUEST, guestCart, shippingAddress, contactInfo));
+        // Confirm the error message indicates a payment problem
         assertTrue(thrown.getMessage().toLowerCase().contains("payment"),
             "Expected failure due to payment issue, but got: " + thrown.getMessage());   
     }
