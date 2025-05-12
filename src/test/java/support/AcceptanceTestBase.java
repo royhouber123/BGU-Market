@@ -4,9 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.Mockito.mock;
 
 import market.application.AuthService;
-import market.application.ProductService;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
+import market.application.ProductService;
 import market.application.PurchaseService;
 import market.application.StoreService;
 import market.application.UserService;
@@ -61,7 +61,7 @@ public abstract class AcceptanceTestBase {
     /* 1️⃣  register a user and log in – returns the tokens */
     protected AuthService.AuthToken registarAndLogin(String userName) throws Exception {
         userService.register(userName, "pw");
-        return authService.login(userName, "pw");
+        return (authService.login(userName, "pw")).getData();
     }
 
 

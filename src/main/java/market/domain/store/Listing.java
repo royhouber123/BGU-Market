@@ -20,7 +20,7 @@ public class Listing {
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
     private double price;
-    private String category = ""; //TODO: still need to add this to the constructor 
+    private String category ; //TODO: still need to add this to the constructor 
     private Boolean active;
 
 
@@ -44,6 +44,8 @@ public class Listing {
         this.productDescription = productDescription;
         this.quantityAvailable = quantityAvailable;
         this.purchaseType = purchaseType;
+        if (price<0 )
+            throw new IllegalArgumentException("the price of a products needs to be possitive");
         this.price = price;
         this.active= true;
     }
