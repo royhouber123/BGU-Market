@@ -13,7 +13,7 @@ public class RegularPurchase {
             total += item.getUnitPrice() * item.getQuantity();
         }
         total=total-totalDiscountPrice;
-        boolean paymentSuccess=paymentService.processPayment("User: " + userId + ", Amount: " + total);
+        boolean paymentSuccess=paymentService.processPayment("User: " + userId + ", Amount: " + total).getData();
         if (!paymentSuccess) {
             throw new RuntimeException("Payment failed for user: " + userId);
         }
