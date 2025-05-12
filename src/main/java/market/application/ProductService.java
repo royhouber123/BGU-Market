@@ -50,7 +50,7 @@ public class ProductService {
      */
     public List<Listing> searchInStoreByName(String storeId, String query) {
         if (query == null || query.isBlank()) return Collections.emptyList();
-        return listingRepository.getListingsByProductNameAndStore(query, storeId).stream()
+        return listingRepository.getListingsByStoreId(storeId).stream()
                 .filter(l -> l.getProductName().toLowerCase().contains(query.toLowerCase()))
                 .collect(Collectors.toList());
     }
