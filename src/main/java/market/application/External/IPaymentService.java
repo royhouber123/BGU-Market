@@ -1,8 +1,10 @@
 package market.application.External;
 
+import utils.ApiResponse;
+
 public interface IPaymentService {
-    boolean processPayment(String paymentDetails);
-    void refundPayment(String paymentId);
-    String getPaymentStatus(String paymentId);
-    void cancelPayment(String paymentId);
+    ApiResponse<Boolean> processPayment(String paymentDetails);
+    ApiResponse<Void> refundPayment(String paymentId);
+    ApiResponse<String> getPaymentStatus(String paymentId);
+    ApiResponse<Void> cancelPayment(String paymentId);
 }
