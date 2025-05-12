@@ -20,19 +20,30 @@ import static org.mockito.Mockito.*;
 
 public class GuestTests extends AcceptanceTestBase {
 
+    private String storeId;
+    
+    
     private static final String GUEST = "guest";
     private static final String MANAGER = "manager";
-    private String storeId;
+    private String storeId1;
     private String listingId;
     private int quantity = 5;
 
     @BeforeEach
     void setUp() throws Exception {
+        userService.register("user1", "password1");
+        userService.register("user2", "password2");
+        storeId = this.storeService.createStore("store1", "1");
+
+
+
+
+
         userService.getUserRepository().register(MANAGER, "1234"); //Register a store manager who will own the store and add products
-        storeId = storeService.createStore("SchoolStore", MANAGER); //Create a new store named "SchoolStore" with the manager as the founder
+        storeId1 = storeService.createStore("SchoolStore", MANAGER); //Create a new store named "SchoolStore" with the manager as the founder
         listingId=storeService.addNewListing( //Add a new product listing ("Notebook") to the created store
             MANAGER,
-            storeId,
+            storeId1,
             "p1",
             "Notebook",
             "office",
@@ -61,7 +72,7 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
     @Test
-    void guest_registers_with_invalid_email() {
+    void guest_registers_with_short_password() {
         ///
     }
 
@@ -106,17 +117,52 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
     @Test
-    void guest_searches_in_specific_store() {
+    void guest_searches_in_specific_store_exists() {
         ///
     }
 
     @Test
-    void guest_adds_product_to_cart() {
+    void guest_searches_in_specific_store_doesnt_exist() {
         ///
     }
 
     @Test
-    void guest_updates_cart_quantity_and_removes_item() {
+    void guest_searches_in_specific_store_no_matching_products() {
+        ///
+    }
+
+    @Test
+    void guest_adds_product_to_cart_valid() {
+        ///
+    }
+
+    @Test
+    void guest_adds_product_to_cart_product_doesnt_exist() {
+        ///
+    }
+
+    @Test
+    void guest_adds_product_to_cart_not_enough_quantity_in_stock() {
+        ///
+    }
+
+    @Test
+    void guest_views_cart_contents_success() {
+        ///
+    }
+
+    @Test
+    void guest_edit_cart_contents_success() {
+        ///
+    }
+
+    @Test
+    void guest_edit_cart_contents_product_not_in_cart() {
+        ///
+    }
+
+    @Test
+    void guest_edit_cart_contents_product_to_zero_stock() {
         ///
     }
 
@@ -124,7 +170,7 @@ public class GuestTests extends AcceptanceTestBase {
     void guest_purchases_cart_successfully() throws Exception {
         userService.register(GUEST); //Register the guest user
         User guestUser=userService.getUserRepository().findById(GUEST); //Retrieve the guest user from the repository
-        guestUser.addProductToCart(storeId, listingId, 1); //Add one unit of the product to the guest's shopping cart
+        guestUser.addProductToCart(storeId1, listingId, 1); //Add one unit of the product to the guest's shopping cart
         String shippingAddress = "123 Guest Street"; 
         String contactInfo = "guest@example.com"; 
         ShoppingCart guestCart = guestUser.getShoppingCart(); //Retrieve the guest's current shopping cart
@@ -147,7 +193,7 @@ public class GuestTests extends AcceptanceTestBase {
     void guest_purchasing_cart_fails_due_to_stock() throws Exception { //there is a stock when added to bag but not when purchase???
         userService.register(GUEST); //Register the guest user
         User guestUser = userService.getUserRepository().findById(GUEST); //Retrieve the guest user from the repository
-        guestUser.addProductToCart(storeId, listingId, quantity + 1); //Add a quantity larger than the available stock to the cart
+        guestUser.addProductToCart(storeId1, listingId, quantity + 1); //Add a quantity larger than the available stock to the cart
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
         ShoppingCart guestCart = guestUser.getShoppingCart(); //Get the cart containing the excessive quantity
@@ -162,7 +208,7 @@ public class GuestTests extends AcceptanceTestBase {
     void guest_purchasing_cart_fails_due_to_payment() throws Exception { //after payment failes- what to do with the stock- it already reduced???
         userService.register(GUEST, ""); //Register the guest user
         User guestUser = userService.getUserRepository().findById(GUEST); //Retrieve the guest user from the repository
-        guestUser.addProductToCart(storeId, listingId, 1); //Add a valid product to the guest's cart
+        guestUser.addProductToCart(storeId1, listingId, 1); //Add a valid product to the guest's cart
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
         when(paymentService.processPayment(anyString())).thenReturn(false); //Simulate a payment failure by mocking the payment service
