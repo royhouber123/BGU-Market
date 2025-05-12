@@ -38,11 +38,11 @@ public class BidPurchaseTest {
         BidPurchase.setStoreRepository(storeRepository);
 
         paymentService = mock(IPaymentService.class);
-        when(paymentService.processPayment(anyString())).thenReturn(true);
+        when(paymentService.processPayment(anyString()).getData()).thenReturn(true);
         BidPurchase.setPaymentService(paymentService);
 
         shipmentService = mock(IShipmentService.class);
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("Shipping successful");
+        when(shipmentService.ship(anyString(), anyString(), anyDouble()).getData()).thenReturn("Shipping successful");
         BidPurchase.setShippingService(shipmentService);
     }
 
