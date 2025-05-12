@@ -85,7 +85,7 @@ public class AuthService {
         }
     }
 
-    public ApiResponse<AuthToken> login(String username, String password) throws Exception {
+    public ApiResponse<AuthToken> login(String username, String password) {
         logger.info("Logging in user: " + username);
         //DB Check 
         try {
@@ -93,7 +93,7 @@ public class AuthService {
             // Verify the provided password matches the stored hashed password
             if (!this.userRepository.verifyPassword(username, password)) {
                 logger.error("Invalid password for user: " + username);
-                throw new Exception("Invalid username or password");
+                return ApiResponse.fail("Invalid username or password");
             }
             String token = generateToken(u).getData();
             logger.info("User logged in successfully");

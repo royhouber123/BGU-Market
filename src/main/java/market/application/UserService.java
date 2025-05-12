@@ -19,7 +19,7 @@ public class UserService {
     }
 
     /** Register a brand-new guest. */
-    public ApiResponse<Void> register(String userName) throws Exception {
+    public ApiResponse<Void> register(String userName) {
         logger.info("[UserService] Registering guest: " + userName);
         try {
             repo.register(userName);
@@ -32,7 +32,7 @@ public class UserService {
     }
 
     /** Register a brand-new user. */
-    public ApiResponse<Void> register(String userName, String password) throws Exception {
+    public ApiResponse<Void> register(String userName, String password) {
         logger.info("[UserService] Registering user: " + userName);
         try {
             repo.register(userName, password);
@@ -46,7 +46,7 @@ public class UserService {
 
 
     /** Delete an existing user entirely. */
-    public ApiResponse<Void> deleteUser() throws Exception {
+    public ApiResponse<Void> deleteUser() {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Deleting user: " + userName);
         try {
@@ -60,7 +60,7 @@ public class UserService {
     }
 
     /** Fetch a user object (if any). */
-    public ApiResponse<User> getUser() throws Exception {
+    public ApiResponse<User> getUser() {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Fetching user: " + userName);
         try {
@@ -74,7 +74,7 @@ public class UserService {
     }
 
     /** Change the user’s log-in name (throws if conflict). */
-    public ApiResponse<Boolean> changeUserName(String newName) throws Exception {
+    public ApiResponse<Boolean> changeUserName(String newName) {
         String oldName = extractUserNameFromToken();
         logger.info("[UserService] Changing username from '" + oldName + "' to '" + newName + "'.");
         try {
@@ -88,7 +88,7 @@ public class UserService {
     }
 
     /** Update the stored password (mock plaintext for now). */
-    public ApiResponse<Boolean> changePassword(String newPassword) throws Exception {
+    public ApiResponse<Boolean> changePassword(String newPassword) {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Changing password for user: " + userName);
         try {
@@ -103,7 +103,7 @@ public class UserService {
 
     public ApiResponse<Void> addProductToCart(String storeId,
                                  String productName,
-                                 int quantity) throws Exception {
+                                 int quantity) {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Adding product to cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
         try {
@@ -119,7 +119,7 @@ public class UserService {
 
     public ApiResponse<Void> removeProductFromCart(String storeId,
                                       String productName,
-                                      int quantity) throws Exception {
+                                      int quantity) {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Removing product from cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
         try {
@@ -133,7 +133,7 @@ public class UserService {
         }
     }
 
-    public ApiResponse<Void> clearCart() throws Exception {
+    public ApiResponse<Void> clearCart() {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Clearing cart for user: " + userName);
         try {
@@ -147,7 +147,7 @@ public class UserService {
         }
     }
 
-    public ApiResponse<ShoppingCart> getCart() throws Exception {
+    public ApiResponse<ShoppingCart> getCart() {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Getting cart for user: " + userName);
         try {
