@@ -47,7 +47,7 @@ public class StoreService {
             logger.info("Store created: " + storeName + ", founder: " + founderId + ", id: " + storeIDs);            
             //((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "Founder");
             
-            return ApiResponse.ok(storeIDs);
+            return ApiResponse.ok(store.getStoreID());
             //LOG - store added
         } catch (Exception e) {
             logger.error("Failed to create store: " + storeName + ", founder: " + founderId + ". Reason: " + e.getMessage());
@@ -66,7 +66,7 @@ public class StoreService {
      * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
      * @throws Exception if the store does not exist or the closure fails internally.
      */
-    public ApiResponse<Void> closeStore(String storeID, String userName) {
+    public ApiResponse<String> closeStore(String storeID, String userName) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
@@ -94,7 +94,7 @@ public class StoreService {
             }
 
             logger.info("Store closed: " + storeID + ", by user: " + userName);
-            return ApiResponse.ok(null);
+            return ApiResponse.ok(storeID);
 
         } catch (Exception e) {
             logger.error("Error closing store: " + storeID + ", by user: " + userName + ". Reason: " + e.getMessage());
@@ -112,7 +112,7 @@ public class StoreService {
      * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
      * @throws Exception if the store does not exist or the reopening fails internally.
      */
-    public ApiResponse<Void> openStore(String storeID, String userName) {
+    public ApiResponse<String> openStore(String storeID, String userName) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
@@ -125,7 +125,7 @@ public class StoreService {
 
             //TODO:need to notify all the owners and managers
 
-            return ApiResponse.ok(null);
+            return ApiResponse.ok(storeID);
 
         } catch (Exception e) {
             logger.error("Error opening store: " + storeID + ", by user: " + userName + ". Reason: " + e.getMessage());
@@ -251,7 +251,6 @@ public class StoreService {
 
             return ApiResponse.ok(removedWorkers);
         } catch (Exception e) {
-            ret.get(0).add(e.getMessage());
             logger.error("Error removing owner: " + toRemove + " from store: " + storeID + ". Reason: " + e.getMessage());
             return ApiResponse.fail("Error removing owner: " + e.getMessage());
         }
@@ -429,8 +428,11 @@ public class StoreService {
             if (s == null)
                 return ApiResponse.fail("Store doesn't exist");
             logger.info("Removed listing: " + listingId + " from store: " + storeID + ", by: " + userName);
-            s.removeListing(userName, listingId);
-            return ApiResponse.ok(null);
+            if (s.removeListing(userName, listingId))
+                return ApiResponse.ok(null);
+            else {
+                logger.error("Error removing listing: " + listingId + " from store: " + storeID );
+                return ApiResponse.fail("Error removing listing: " + listingId + " from store: " + storeID);}
         } catch (Exception e) {
             logger.error("Error removing listing: " + listingId + " from store: " + storeID + ". Reason: " + e.getMessage());
             return ApiResponse.fail("Error removing listing: " + listingId + " from store: " + storeID + ". Reason: " + e.getMessage());
@@ -475,15 +477,15 @@ public class StoreService {
         return ApiResponse.ok(s.calculateStoreBagWithDiscount(prod));
     }
 
-    public ApiResponse<String> getProductListing(String storeID, String productID) {
 
-        //TODO: implement this method to get product listing
-        return ApiResponse.ok(null);
+
+    public ApiResponse<Boolean> isOwner(String storeID, String userID){
+        Store s = storeRepository.getStoreByID(storeID);
+        return ApiResponse.ok(s.isOwner(userID));
     }
 
-
-    public ApiResponse<Boolean> checkAndUpdateStock(String storeID, String productID, int quantity) {
-        //TODO: implement this method to check and update stock
-        return ApiResponse.ok(true);
+     public ApiResponse<Boolean> isManager(String storeID, String userID){
+        Store s = storeRepository.getStoreByID(storeID);
+        return ApiResponse.ok(s.isManager(userID));
     }
 }

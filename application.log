@@ -1819,3 +1819,516 @@
 [2025-05-12 15:10:48] [INFO] Executing purchase for user: guest
 [2025-05-12 15:10:48] [INFO] Purchase executed successfully for user: guest, total: 0.0
 [2025-05-12 15:10:48] [ERROR] Failed to execute regular purchase for user: guest. Reason: Payment failed for user: guest
+[2025-05-12 18:24:23] [INFO] Hashing password
+[2025-05-12 18:24:23] [INFO] Hashing password
+[2025-05-12 18:24:25] [INFO] AuthService initialized
+[2025-05-12 18:24:25] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:25] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:25] [INFO] Added new listing: Keyboard to store: 2, by: 200
+[2025-05-12 18:24:25] [ERROR] Error adding listing: Keyboard to store: 2. Reason: User 200 doesn't have permission to ADD listing!
+[2025-05-12 18:24:26] [INFO] Hashing password
+[2025-05-12 18:24:26] [INFO] Hashing password
+[2025-05-12 18:24:26] [INFO] AuthService initialized
+[2025-05-12 18:24:26] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:26] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:26] [ERROR] Attempted to create store with existing name: GadgetStore
+[2025-05-12 18:24:26] [INFO] Hashing password
+[2025-05-12 18:24:26] [INFO] Hashing password
+[2025-05-12 18:24:26] [INFO] AuthService initialized
+[2025-05-12 18:24:26] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:26] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:26] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:26] [INFO] Removed owner: 200 from store: 2, by: 100
+[2025-05-12 18:24:26] [INFO] Hashing password
+[2025-05-12 18:24:26] [INFO] Hashing password
+[2025-05-12 18:24:26] [INFO] AuthService initialized
+[2025-05-12 18:24:26] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:26] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:26] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:26] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] AuthService initialized
+[2025-05-12 18:24:27] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:27] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:27] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] AuthService initialized
+[2025-05-12 18:24:27] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:27] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:27] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:27] [INFO] Added new manager: 300 to store: 2, by: 200
+[2025-05-12 18:24:27] [INFO] Added permission: 1 to manager: 300 in store: 2, by: 200
+[2025-05-12 18:24:27] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 200
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] AuthService initialized
+[2025-05-12 18:24:27] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:27] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:27] [INFO] Added new owner: OWNER_B to store: 2, by: 100
+[2025-05-12 18:24:27] [ERROR] Error adding owner: OWNER_B to store: 2. Reason: the user:100 is already an owner of the store: 2
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] AuthService initialized
+[2025-05-12 18:24:27] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:27] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:27] [ERROR] Error removing owner: 100 from store: 2. Reason: 100 is the founder of store:2
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:27] [INFO] Hashing password
+[2025-05-12 18:24:28] [INFO] AuthService initialized
+[2025-05-12 18:24:28] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:28] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:28] [INFO] Added new listing: Headset to store: 2, by: 100
+[2025-05-12 18:24:28] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:28] [INFO] Added new manager: 300 to store: 2, by: 200
+[2025-05-12 18:24:28] [INFO] Removed listing: 06d3d24e-12f2-4896-ab8d-c191df35c3cb from store: 2, by: 300
+[2025-05-12 18:24:28] [ERROR] Error removing listing: 06d3d24e-12f2-4896-ab8d-c191df35c3cb from store: 2. Reason: User 300 doesn't have permission to REMOVE listing!
+[2025-05-12 18:24:28] [INFO] Hashing password
+[2025-05-12 18:24:28] [INFO] Hashing password
+[2025-05-12 18:24:28] [INFO] AuthService initialized
+[2025-05-12 18:24:28] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:28] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:28] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:28] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 18:24:28] [INFO] Hashing password
+[2025-05-12 18:24:28] [INFO] Hashing password
+[2025-05-12 18:24:28] [INFO] AuthService initialized
+[2025-05-12 18:24:28] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:28] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:28] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-05-12 18:24:28] [INFO] Removed listing: 171e5c9a-a08d-46a0-b69c-77dbd4b8bb21 from store: 2, by: 100
+[2025-05-12 18:24:33] [INFO] Hashing password
+[2025-05-12 18:24:33] [INFO] Hashing password
+[2025-05-12 18:24:34] [INFO] AuthService initialized
+[2025-05-12 18:24:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [INFO] Added new listing: Keyboard to store: 2, by: 200
+[2025-05-12 18:24:35] [ERROR] Error adding listing: Keyboard to store: 2. Reason: User 200 doesn't have permission to ADD listing!
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] AuthService initialized
+[2025-05-12 18:24:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [ERROR] Attempted to create store with existing name: GadgetStore
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] AuthService initialized
+[2025-05-12 18:24:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:35] [INFO] Removed owner: 200 from store: 2, by: 100
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] AuthService initialized
+[2025-05-12 18:24:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] AuthService initialized
+[2025-05-12 18:24:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] AuthService initialized
+[2025-05-12 18:24:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:35] [INFO] Added new manager: 300 to store: 2, by: 200
+[2025-05-12 18:24:35] [INFO] Added permission: 1 to manager: 300 in store: 2, by: 200
+[2025-05-12 18:24:35] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 200
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] AuthService initialized
+[2025-05-12 18:24:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:35] [INFO] Added new owner: OWNER_B to store: 2, by: 100
+[2025-05-12 18:24:35] [ERROR] Error adding owner: OWNER_B to store: 2. Reason: the user:100 is already an owner of the store: 2
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:35] [INFO] Hashing password
+[2025-05-12 18:24:36] [INFO] AuthService initialized
+[2025-05-12 18:24:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:36] [ERROR] Error removing owner: 100 from store: 2. Reason: 100 is the founder of store:2
+[2025-05-12 18:24:36] [INFO] Hashing password
+[2025-05-12 18:24:36] [INFO] Hashing password
+[2025-05-12 18:24:36] [INFO] AuthService initialized
+[2025-05-12 18:24:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:36] [INFO] Added new listing: Headset to store: 2, by: 100
+[2025-05-12 18:24:36] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 18:24:36] [INFO] Added new manager: 300 to store: 2, by: 200
+[2025-05-12 18:24:36] [INFO] Removed listing: dc067fbc-fce9-4ba1-b02f-f3622d1f89b6 from store: 2, by: 300
+[2025-05-12 18:24:36] [ERROR] Error removing listing: dc067fbc-fce9-4ba1-b02f-f3622d1f89b6 from store: 2. Reason: User 300 doesn't have permission to REMOVE listing!
+[2025-05-12 18:24:36] [INFO] Hashing password
+[2025-05-12 18:24:36] [INFO] Hashing password
+[2025-05-12 18:24:36] [INFO] AuthService initialized
+[2025-05-12 18:24:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:36] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 18:24:36] [INFO] Hashing password
+[2025-05-12 18:24:36] [INFO] Hashing password
+[2025-05-12 18:24:36] [INFO] AuthService initialized
+[2025-05-12 18:24:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 18:24:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 18:24:36] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-05-12 18:24:36] [INFO] Removed listing: 75392692-9586-49e1-ad0f-7d24fd197300 from store: 2, by: 100
+[2025-05-12 20:19:16] [INFO] Hashing password
+[2025-05-12 20:19:16] [INFO] Hashing password
+[2025-05-12 20:19:18] [INFO] AuthService initialized
+[2025-05-12 20:19:18] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:19:18] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:19:18] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:19:18] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 20:19:25] [INFO] Hashing password
+[2025-05-12 20:19:26] [INFO] Hashing password
+[2025-05-12 20:19:27] [INFO] AuthService initialized
+[2025-05-12 20:19:28] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:19:28] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:19:28] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:19:28] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 20:22:25] [INFO] Hashing password
+[2025-05-12 20:22:25] [INFO] Hashing password
+[2025-05-12 20:22:26] [INFO] AuthService initialized
+[2025-05-12 20:22:26] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:22:26] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:22:26] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:22:26] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 20:26:41] [INFO] Hashing password
+[2025-05-12 20:26:41] [INFO] Hashing password
+[2025-05-12 20:26:43] [INFO] AuthService initialized
+[2025-05-12 20:26:43] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:26:43] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:26:43] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:26:43] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 20:26:43] [ERROR] Error adding listing: Tablet to store: 2. Reason: the price of a products needs to be possitive
+[2025-05-12 20:41:07] [INFO] Hashing password
+[2025-05-12 20:41:07] [INFO] Hashing password
+[2025-05-12 20:41:09] [INFO] AuthService initialized
+[2025-05-12 20:41:09] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:41:09] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:41:09] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:41:09] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 20:41:12] [INFO] Hashing password
+[2025-05-12 20:41:12] [INFO] Hashing password
+[2025-05-12 20:41:15] [INFO] AuthService initialized
+[2025-05-12 20:41:15] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:41:15] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:41:15] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:41:15] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 20:41:15] [ERROR] Error adding listing: Tablet to store: 2. Reason: the price of a products needs to be possitive
+[2025-05-12 20:41:18] [INFO] Hashing password
+[2025-05-12 20:41:19] [INFO] Hashing password
+[2025-05-12 20:41:21] [INFO] AuthService initialized
+[2025-05-12 20:41:21] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:41:21] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:41:21] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-05-12 20:41:21] [INFO] Removed listing: c8fa9317-c181-4677-861f-b606f4fcaf65 from store: 2, by: 100
+[2025-05-12 20:42:52] [INFO] Hashing password
+[2025-05-12 20:42:52] [INFO] Hashing password
+[2025-05-12 20:42:54] [INFO] AuthService initialized
+[2025-05-12 20:42:54] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:42:54] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:42:54] [INFO] Removed listing: omer from store: 2, by: 100
+[2025-05-12 20:46:00] [INFO] Hashing password
+[2025-05-12 20:46:00] [INFO] Hashing password
+[2025-05-12 20:46:02] [INFO] AuthService initialized
+[2025-05-12 20:46:02] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:46:02] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:46:02] [INFO] Removed listing: omer from store: 2, by: 100
+[2025-05-12 20:46:02] [ERROR] Error removing listing: omer from store: 2
+[2025-05-12 20:46:10] [INFO] Hashing password
+[2025-05-12 20:46:11] [INFO] Hashing password
+[2025-05-12 20:46:13] [INFO] AuthService initialized
+[2025-05-12 20:46:13] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:46:13] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:46:13] [INFO] Removed listing: omer from store: 2, by: 100
+[2025-05-12 20:46:13] [ERROR] Error removing listing: omer from store: 2
+[2025-05-12 20:49:08] [INFO] Hashing password
+[2025-05-12 20:49:08] [INFO] Hashing password
+[2025-05-12 20:49:09] [INFO] AuthService initialized
+[2025-05-12 20:49:09] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:49:09] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:49:09] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-05-12 20:49:09] [INFO] Store closed: 2, by user: 100
+[2025-05-12 20:49:09] [INFO] Removed listing: ac7b09ed-6f35-420e-9efa-9df2935e87df from store: 2, by: 100
+[2025-05-12 20:49:09] [ERROR] Error removing listing: ac7b09ed-6f35-420e-9efa-9df2935e87df from store: 2. Reason: Store:2 is closed for now
+[2025-05-12 20:50:07] [INFO] Hashing password
+[2025-05-12 20:50:07] [INFO] Hashing password
+[2025-05-12 20:50:08] [INFO] AuthService initialized
+[2025-05-12 20:50:08] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:50:08] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:50:08] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-05-12 20:50:08] [INFO] Store closed: 2, by user: 100
+[2025-05-12 20:50:08] [INFO] Removed listing: 174e1a9f-aa1d-4ac9-8310-95e7346ebdd5 from store: 2, by: 100
+[2025-05-12 20:50:08] [ERROR] Error removing listing: 174e1a9f-aa1d-4ac9-8310-95e7346ebdd5 from store: 2. Reason: Store:2 is closed for now
+[2025-05-12 20:55:11] [INFO] Hashing password
+[2025-05-12 20:55:11] [INFO] Hashing password
+[2025-05-12 20:55:12] [INFO] AuthService initialized
+[2025-05-12 20:55:12] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:55:12] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:55:12] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 20:57:11] [INFO] Hashing password
+[2025-05-12 20:57:12] [INFO] Hashing password
+[2025-05-12 20:57:13] [INFO] AuthService initialized
+[2025-05-12 20:57:13] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 20:57:13] [INFO] Store retrieved: GadgetStore
+[2025-05-12 20:57:13] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 20:57:13] [ERROR] Error adding owner: 200 to store: 2. Reason: the user:100 is already an owner of the store: 2
+[2025-05-12 21:05:16] [INFO] Hashing password
+[2025-05-12 21:05:16] [INFO] Hashing password
+[2025-05-12 21:05:17] [INFO] AuthService initialized
+[2025-05-12 21:05:18] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:05:18] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:05:18] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:05:18] [INFO] Removed owner: 200 from store: 2, by: 100
+[2025-05-12 21:09:05] [INFO] Hashing password
+[2025-05-12 21:09:05] [INFO] Hashing password
+[2025-05-12 21:09:06] [INFO] AuthService initialized
+[2025-05-12 21:09:06] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:09:06] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:09:06] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:09:06] [INFO] Added new owner: 300 to store: 2, by: 100
+[2025-05-12 21:09:06] [ERROR] Error removing owner: 200 from store: 2. Reason: 300 didn't assign 200 to be owner of store:2
+[2025-05-12 21:10:17] [INFO] Hashing password
+[2025-05-12 21:10:17] [INFO] Hashing password
+[2025-05-12 21:10:18] [INFO] AuthService initialized
+[2025-05-12 21:10:18] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:10:18] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:10:18] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:10:18] [INFO] Added new owner: 300 to store: 2, by: 100
+[2025-05-12 21:10:18] [ERROR] Error removing owner: 200 from store: 2. Reason: 300 didn't assign 200 to be owner of store:2
+[2025-05-12 21:11:18] [INFO] Hashing password
+[2025-05-12 21:11:18] [INFO] Hashing password
+[2025-05-12 21:11:20] [INFO] AuthService initialized
+[2025-05-12 21:11:20] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:11:20] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:11:20] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:11:20] [INFO] Store closed: 2, by user: 100
+[2025-05-12 21:11:20] [ERROR] Error removing owner: 200 from store: 2. Reason: Store:2 is closed for now
+[2025-05-12 21:12:12] [INFO] Hashing password
+[2025-05-12 21:12:12] [INFO] Hashing password
+[2025-05-12 21:12:14] [INFO] AuthService initialized
+[2025-05-12 21:12:14] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:12:14] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:12:14] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:12:14] [INFO] Store closed: 2, by user: 100
+[2025-05-12 21:12:14] [ERROR] Error removing owner: 200 from store: 2. Reason: Store:2 is closed for now
+[2025-05-12 21:19:48] [INFO] Hashing password
+[2025-05-12 21:19:48] [INFO] Hashing password
+[2025-05-12 21:19:49] [INFO] AuthService initialized
+[2025-05-12 21:19:49] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:19:49] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:19:49] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-12 21:19:49] [ERROR] Error adding manager: 300 to store: 2. Reason: the user:100 is already a owner of the store: 2
+[2025-05-12 21:20:59] [INFO] Hashing password
+[2025-05-12 21:20:59] [INFO] Hashing password
+[2025-05-12 21:21:00] [INFO] AuthService initialized
+[2025-05-12 21:21:00] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:00] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:00] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-12 21:21:00] [ERROR] Error adding manager: 300 to store: 2. Reason: the user:300 is already a manager of the store: 2
+[2025-05-12 21:21:31] [INFO] Hashing password
+[2025-05-12 21:21:31] [INFO] Hashing password
+[2025-05-12 21:21:32] [INFO] AuthService initialized
+[2025-05-12 21:21:32] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:32] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:32] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:32] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 21:21:32] [ERROR] Error adding listing: Tablet to store: 2. Reason: the price of a products needs to be possitive
+[2025-05-12 21:21:32] [INFO] Hashing password
+[2025-05-12 21:21:32] [INFO] Hashing password
+[2025-05-12 21:21:32] [INFO] AuthService initialized
+[2025-05-12 21:21:32] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:32] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:32] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] AuthService initialized
+[2025-05-12 21:21:33] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:33] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] AuthService initialized
+[2025-05-12 21:21:33] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:33] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:33] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-05-12 21:21:33] [INFO] Store closed: 2, by user: 100
+[2025-05-12 21:21:33] [INFO] Removed listing: 5cca5853-c127-4fc4-bb46-76a9be39eaf8 from store: 2, by: 100
+[2025-05-12 21:21:33] [ERROR] Error removing listing: 5cca5853-c127-4fc4-bb46-76a9be39eaf8 from store: 2. Reason: Store:2 is closed for now
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] AuthService initialized
+[2025-05-12 21:21:33] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:33] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:33] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] AuthService initialized
+[2025-05-12 21:21:33] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:33] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] AuthService initialized
+[2025-05-12 21:21:33] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:33] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] AuthService initialized
+[2025-05-12 21:21:33] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:33] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:33] [INFO] AuthService initialized
+[2025-05-12 21:21:33] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:33] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:33] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:21:33] [INFO] Added new owner: 300 to store: 2, by: 100
+[2025-05-12 21:21:33] [ERROR] Error removing owner: 200 from store: 2. Reason: 300 didn't assign 200 to be owner of store:2
+[2025-05-12 21:21:33] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] AuthService initialized
+[2025-05-12 21:21:34] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:34] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] AuthService initialized
+[2025-05-12 21:21:34] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:34] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:34] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:21:34] [INFO] Removed owner: 200 from store: 2, by: 100
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] AuthService initialized
+[2025-05-12 21:21:34] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:34] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] AuthService initialized
+[2025-05-12 21:21:34] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:34] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:34] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] AuthService initialized
+[2025-05-12 21:21:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] AuthService initialized
+[2025-05-12 21:21:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] AuthService initialized
+[2025-05-12 21:21:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:35] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-12 21:21:35] [ERROR] Error adding manager: 300 to store: 2. Reason: the user:300 is already a manager of the store: 2
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] AuthService initialized
+[2025-05-12 21:21:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:35] [INFO] AuthService initialized
+[2025-05-12 21:21:35] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:35] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:35] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] AuthService initialized
+[2025-05-12 21:21:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] AuthService initialized
+[2025-05-12 21:21:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] AuthService initialized
+[2025-05-12 21:21:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] AuthService initialized
+[2025-05-12 21:21:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:36] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:36] [INFO] AuthService initialized
+[2025-05-12 21:21:36] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:36] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:36] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] AuthService initialized
+[2025-05-12 21:21:37] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:37] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] AuthService initialized
+[2025-05-12 21:21:37] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:37] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] AuthService initialized
+[2025-05-12 21:21:37] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:37] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:37] [INFO] Added new listing: Mouse to store: 2, by: 100
+[2025-05-12 21:21:37] [INFO] Removed listing: ee1d045b-fbef-4deb-b7a9-f61b6097eecb from store: 2, by: 100
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] AuthService initialized
+[2025-05-12 21:21:37] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:37] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:37] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:21:37] [INFO] Store closed: 2, by user: 100
+[2025-05-12 21:21:37] [ERROR] Error removing owner: 200 from store: 2. Reason: Store:2 is closed for now
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] AuthService initialized
+[2025-05-12 21:21:37] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:37] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] AuthService initialized
+[2025-05-12 21:21:37] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:37] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] AuthService initialized
+[2025-05-12 21:21:37] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:37] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:37] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] AuthService initialized
+[2025-05-12 21:21:38] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:38] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] AuthService initialized
+[2025-05-12 21:21:38] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:38] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] AuthService initialized
+[2025-05-12 21:21:38] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:38] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:38] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:38] [INFO] Added new listing: Tablet to store: 2, by: 100
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] AuthService initialized
+[2025-05-12 21:21:38] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:38] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:38] [INFO] Removed listing: omer from store: 2, by: 100
+[2025-05-12 21:21:38] [ERROR] Error removing listing: omer from store: 2
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] Hashing password
+[2025-05-12 21:21:38] [INFO] AuthService initialized
+[2025-05-12 21:21:38] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-12 21:21:38] [INFO] Store retrieved: GadgetStore
+[2025-05-12 21:21:38] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-12 21:21:38] [ERROR] Error adding owner: 200 to store: 2. Reason: the user:100 is already an owner of the store: 2
