@@ -61,10 +61,7 @@ public abstract class AcceptanceTestBase {
     /* 1️⃣  register a user and log in – returns the tokens */
     protected AuthService.AuthToken registarAndLogin(String userName) throws Exception {
         userService.register(userName, "pw");
-        return authService.login(userName, "pw");
-    }
-
-
-   
+        return authService.login(userName, "pw").getData(); 
+    }  
   
 }
