@@ -27,9 +27,9 @@ class ListingRepositoryTests {
     void setup() {
         repository = new ListingRepository();
 
-        listing1 = new Listing("store1", "prod1", "Product1", "desc", 10, PurchaseType.REGULAR, 100);
-        listing2 = new Listing("store1", "prod2", "Product2", "desc", 5, PurchaseType.REGULAR, 200);
-        listing3 = new Listing("store2", "prod1", "Product1", "desc", 8, PurchaseType.REGULAR, 150);
+        listing1 = new Listing("store1", "prod1", "Product1","category", "desc", 10, PurchaseType.REGULAR, 100);
+        listing2 = new Listing("store1", "prod2", "Product2", "category", "desc", 5, PurchaseType.REGULAR, 200);
+        listing3 = new Listing("store2", "prod1", "Product1", "category", "desc", 8, PurchaseType.REGULAR, 150);
 
         repository.addListing(listing1);
         repository.addListing(listing2);
@@ -87,7 +87,7 @@ class ListingRepositoryTests {
         CountDownLatch latch = new CountDownLatch(numThreads);
         AtomicInteger successCount = new AtomicInteger(0);
 
-        Listing l = new Listing("storeX", "prodX", "ConcurrentProduct", "desc", 20, PurchaseType.REGULAR, 50);
+        Listing l = new Listing("storeX", "prodX", "ConcurrentProduct", "category", "desc", 20, PurchaseType.REGULAR, 50);
         repository.addListing(l);
 
         for (int i = 0; i < numThreads; i++) {

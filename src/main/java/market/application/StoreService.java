@@ -370,13 +370,13 @@ assumes aggreement by 'apointerID''s appointer
      * @param price Price per unit.
      * @return "succeed" or error message.
      */
-    public String addNewListing(String userName, String storeID, String productId, String productName, String productDescription, int quantity, double price) {
+    public String addNewListing(String userName, String storeID, String productId, String productName, String productCategory, String productDescription, int quantity, double price) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new Exception("Store doesn't exist");
             logger.info("Added new listing: " + productName + " to store: " + storeID + ", by: " + userName);
-            return s.addNewListing(userName, productId, productName, productDescription, quantity, price);
+            return s.addNewListing(userName, productId, productName, productCategory, productDescription, quantity, price);
         } catch (Exception e) {
             logger.error("Error adding listing: " + productName + " to store: " + storeID + ". Reason: " + e.getMessage());
             return e.getMessage();

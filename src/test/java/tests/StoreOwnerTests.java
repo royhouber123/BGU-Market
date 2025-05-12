@@ -47,14 +47,14 @@ public class StoreOwnerTests extends AcceptanceTestBase {
         StoreDTO dto = storeService.getStore(STORE_NAME);
         String res = storeService.addNewListing(
                 FOUNDER, dto.getStoreID(),
-                "1", "Tablet", "Android tablet", 5, 899);
+                "1", "Tablet", "Electronic", "Android tablet", 5, 899);
         assertNotNull(res);
     }
 
     @Test
     void owner_removes_product_from_store() {
         // arrange
-        String listingId= storeService.addNewListing(FOUNDER, storeId, "p‑2", "Mouse", "Wireless", 4, 129.9);
+        String listingId= storeService.addNewListing(FOUNDER, storeId, "p‑2", "Mouse", "Electronic", "Wireless", 4, 129.9);
                                        
         // act
         String res = storeService.removeListing(FOUNDER, storeId, listingId);
@@ -104,14 +104,14 @@ void create_store_with_duplicate_name_fails() {
 @Test
 void non_owner_cannot_add_listing() { //only one not working
     String res = storeService.addNewListing(
-            OWNER_A, storeId, "1", "Keyboard", "Mech", 3, 199.0);
+            OWNER_A, storeId, "1", "Keyboard", "Electronic", "Mech", 3, 199.0);
     assertTrue(res.contains("not a owner") || res.contains("doesn't have"));
 }
 
     @Test
     void manager_without_permission_cannot_remove_listing() {
         // founder adds listing
-        String listingId= storeService.addNewListing(FOUNDER, storeId, "p‑4", "Headset", "BT", 2, 299.0);
+        String listingId= storeService.addNewListing(FOUNDER, storeId, "p‑4", "Headset", "Electronic", "BT", 2, 299.0);
 
         // owner promotes manager but gives **no** permissions
         storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
