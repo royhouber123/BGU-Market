@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.Mockito.mock;
 
 import market.application.AuthService;
+import market.application.ProductService;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.application.PurchaseService;
@@ -30,6 +31,7 @@ public abstract class AcceptanceTestBase {
     protected UserService userService;
     protected StoreService storeService;
     protected AuthService authService;
+    protected ProductService productService; 
     protected IPaymentService paymentService;
     protected IShipmentService shipmentService;
     protected PurchaseService purchaseService;
@@ -46,6 +48,7 @@ public abstract class AcceptanceTestBase {
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         storeService = new StoreService(storerepo,userRepository,listingRepository); // Use the real implementation
+        productService = new ProductService(listingRepository);
         paymentService = mock(IPaymentService.class); // Mock external service
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();

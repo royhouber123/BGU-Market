@@ -86,6 +86,7 @@ public class UserRepository implements IUserRepository {
             logger.error("[UserRepository] User with name '" + name + "' does not exist.");
             throw new RuntimeException("User with name '" + name + "' does not exist.");
         }
+        guestMap.remove(name);
         userMap.remove(name);
         passwordMap.remove(name);
         logger.info("[UserRepository] User deleted: " + name);
