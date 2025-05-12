@@ -273,7 +273,7 @@ public class StoreService {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null){
                 logger.error("Attempted to add manager to non-existent store: " + storeID);
-                throw new Exception("store doesn't exist");
+                return ApiResponse.fail("store doesn't exist");
             }
             if (s.addNewManager(appointerID,newManagerName)){
                 logger.info("Added new manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
@@ -309,7 +309,7 @@ public class StoreService {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.error("Attempted to add permission to non-existent store: " + storeID);
-                throw new Exception("store doesn't exist");
+                return ApiResponse.fail("store doesn't exist");
             }
             if (s.addPermissionToManager(managerID, appointerID, permissionID)) {
                 logger.info("Added permission: " + permissionID + " to manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
@@ -340,7 +340,7 @@ public class StoreService {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.error("Attempted to get permissions for non-existent store: " + storeID);
-                throw new Exception("store doesn't exist");
+                return ApiResponse.fail("store doesn't exist");
             }
             logger.info("Retrieved permissions for manager: " + managerID + " in store: " + storeID + ", by: " + whoIsAsking);
             return ApiResponse.ok(s.getManagersPermmisions(managerID, whoIsAsking));
@@ -368,7 +368,7 @@ public class StoreService {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.error("Attempted to remove permission from non-existent store: " + storeID);
-                throw new Exception("store doesn't exist");
+                return ApiResponse.fail("store doesn't exist");
             }
             if (s.removePermissionFromManager(managerID, permissionID, appointerID)) {
                 logger.info("Removed permission: " + permissionID + " from manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
@@ -401,7 +401,7 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
-                throw new Exception("Store doesn't exist");
+                return ApiResponse.fail("Store doesn't exist");
             logger.info("Added new listing: " + productName + " to store: " + storeID + ", by: " + userName);
             return ApiResponse.ok(s.addNewListing(userName, productId, productName, productCategory, productDescription, quantity, price));
         } catch (Exception e) {
@@ -426,7 +426,7 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
-                throw new Exception("Store doesn't exist");
+                return ApiResponse.fail("Store doesn't exist");
             logger.info("Removed listing: " + listingId + " from store: " + storeID + ", by: " + userName);
             if (s.removeListing(userName, listingId))
                 return ApiResponse.ok(null);

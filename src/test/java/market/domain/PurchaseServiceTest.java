@@ -45,8 +45,8 @@ class PurchaseServiceTest {
         storeRepository = mock(IStoreRepository.class);
         store = mock(Store.class);
 
-        when(paymentService.processPayment(anyString())).thenReturn(true);
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("OK");
+        when(paymentService.processPayment(anyString()).getData()).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyDouble()).getData()).thenReturn("OK");
 
         when(storeRepository.getStoreByID(storeId)).thenReturn(store);
         when(store.isPurchaseAllowed(anyMap())).thenReturn(true);
