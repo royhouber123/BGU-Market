@@ -59,7 +59,7 @@ public class StoreService {
      * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
      * @throws Exception if the store does not exist or the closure fails internally.
      */
-    public String closeStore(String storeID,String userName) throws Exception {
+    public String closeStore(String storeID,String userName) {
         try
         {
             Store s = storeRepository.getStoreByID(storeID);
@@ -127,7 +127,7 @@ public class StoreService {
 
     
 
-    public StoreDTO getStore(String storeName) throws Exception {
+    public StoreDTO getStore(String storeName) {
         Store store = storeRepository.getStoreByName(storeName);
         if(store == null) {
             logger.error("Attempted to get non-existent store: " + storeName);
