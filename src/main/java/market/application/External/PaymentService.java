@@ -1,33 +1,36 @@
 package market.application.External;
 
+import utils.ApiResponse;
+
 public class PaymentService implements IPaymentService {
     // This class is a placeholder for the payment service implementation.
     // In a real-world application, this would contain methods to process payments,
     // handle payment gateways, and manage transactions.
     
     @Override
-    public boolean processPayment(String paymentDetails) {
+    public ApiResponse<Boolean> processPayment(String paymentDetails) {
         // Logic to process payment
         System.out.println("Processing payment with details: " + paymentDetails);
-        return true;
+        return ApiResponse.ok(true);
     }
 
     @Override
-    public void refundPayment(String paymentId) {
-
+    public ApiResponse<Void> refundPayment(String paymentId) {
         System.out.println("Refunding payment with ID: " + paymentId);
+        return ApiResponse.ok(null);
     }
 
     @Override
-    public String getPaymentStatus(String paymentId) {
+    public ApiResponse<String> getPaymentStatus(String paymentId) {
         // Logic to get payment status
-        return "Payment status for ID: " + paymentId;
+        return ApiResponse.ok("Payment status for ID: " + paymentId);
     }
 
     @Override
-    public void cancelPayment(String paymentId) {
+    public ApiResponse<Void> cancelPayment(String paymentId) {
         // Logic to cancel payment
         System.out.println("Cancelling payment with ID: " + paymentId);
+        return ApiResponse.ok(null);
     }
     
 }

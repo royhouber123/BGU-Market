@@ -9,6 +9,8 @@ import support.AcceptanceTestBase;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -30,8 +32,28 @@ class SubscriberTests extends AcceptanceTestBase {
         this.first_proudct_in_user1_store  = this.storeService.createStore("store1", "1");
        
 
+<<<<<<< HEAD
        
         
+=======
+        // --- subscriber exists ------------------------------------------------
+        userService.getUserRepository().register(SUB, PW);
+
+
+        // --- create store + one listing --------------------------------------
+        storeService.createStore("GadgetStore", "100");          // founderId
+        storeId = storeService.getStore("GadgetStore").getStoreID();
+        storeService.addNewListing("sub01",
+                                   storeId,
+                                   "m1",
+                                   "Mouse",
+                                   "Electronic",
+                                   "Wireless mouse",
+                                   5,
+                                   100);
+        productid = "m1";
+        // --- stub external ports ---------------------------------------------
+>>>>>>> 3c0b135a106dce9c56840e44819716476daa622b
         when(paymentService.processPayment(anyString())).thenReturn(true);
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("123");
 

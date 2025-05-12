@@ -31,6 +31,7 @@ class StoreProductManagerUnitTests {
                 "store123",           // storeId
                 productId,             // productId
                 productName,           // productName
+                "category",
                 "Test Description",    // productDescription
                 10,                    // quantityAvailable
                 PurchaseType.REGULAR,  // purchaseType
@@ -61,7 +62,7 @@ class StoreProductManagerUnitTests {
     @Test
     void testAddListingWithWrongStoreIdFails() {
         Listing wrongStoreListing = new Listing(
-                "wrongStore", "p3", "ProductC", "Wrong description", 5, PurchaseType.REGULAR, 50
+                "wrongStore", "p3", "ProductC", "category", "Wrong description", 5, PurchaseType.REGULAR, 50
         );
 
         Exception e = assertThrows(IllegalArgumentException.class, () -> {

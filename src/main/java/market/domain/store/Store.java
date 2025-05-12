@@ -181,7 +181,7 @@ public class Store {
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
 
         if (isManager(newManagerID))
-            throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
+            throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
         storeClosedExeption();//actions are available only when open
         Manager newManager = new Manager(newManagerID, appointerID);
         return ownerToAssignedManagers.get(appointerID).add(newManager);
@@ -463,7 +463,7 @@ public class Store {
      * @return {@code true} if listing was added successfully.
      * @throws Exception if user lacks permission.
      */
-    public String addNewListing(String userID, String productId, String productName, String productDescription, int quantity, double unitPrice) throws Exception {
+    public String addNewListing(String userID, String productId, String productName, String productCategory, String productDescription, int quantity, double unitPrice) throws Exception {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
         storeClosedExeption();//actions are available only when open
@@ -471,6 +471,7 @@ public class Store {
                 this.storeID,
                 productId,
                 productName,
+                productCategory,
                 productDescription,
                 quantity,
                 PurchaseType.REGULAR,

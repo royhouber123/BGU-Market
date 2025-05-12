@@ -36,8 +36,8 @@ class RegularPurchaseTest {
         paymentService = mock(IPaymentService.class);
         shipmentService = mock(IShipmentService.class);
 
-        when(paymentService.processPayment(anyString())).thenReturn(true);
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("OK");
+        when(paymentService.processPayment(anyString()).getData()).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyDouble()).getData()).thenReturn("OK");
 
         regularPurchase = new RegularPurchase();
     }

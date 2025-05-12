@@ -235,7 +235,7 @@ class PoliciesTests {
         private final Map<String, Listing> dummyListings = new HashMap<>();
 
         public void addDummyListing(String productId, double price) {
-            Listing listing = new Listing("store1", productId, "Dummy Product", "A dummy product", 10, market.domain.purchase.PurchaseType.REGULAR, (int) price);
+            Listing listing = new Listing("store1", productId, "Dummy Product", "category", "A dummy product", 10, market.domain.purchase.PurchaseType.REGULAR, (int) price);
             dummyListings.put(productId, listing);
         }
 

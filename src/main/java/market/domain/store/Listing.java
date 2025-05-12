@@ -20,7 +20,7 @@ public class Listing {
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
     private double price;
-    private String category = ""; //TODO: still need to add this to the constructor 
+    private String category ; //TODO: still need to add this to the constructor 
     private Boolean active;
 
 
@@ -30,18 +30,22 @@ public class Listing {
      * @param storeId              ID of the store offering this listing.
      * @param productId            ID of the product.
      * @param productName          Product name.
+     * @param productCategory      Product category.
      * @param productDescription   Product description.
      * @param quantityAvailable    Quantity available.
      * @param purchaseType     Purchase behavior (regular, auction, bid).
      */
-    public Listing(String storeId, String productId, String productName, String productDescription, int quantityAvailable, PurchaseType purchaseType, double price) {
+    public Listing(String storeId, String productId, String productName, String productCategory, String productDescription, int quantityAvailable, PurchaseType purchaseType, double price) {
         this.listingId = UUID.randomUUID().toString();
         this.storeId = storeId;
         this.productId = productId;
         this.productName = productName;
+        this.category = category;
         this.productDescription = productDescription;
         this.quantityAvailable = quantityAvailable;
         this.purchaseType = purchaseType;
+        if (price<0 )
+            throw new IllegalArgumentException("the price of a products needs to be possitive");
         this.price = price;
         this.active= true;
     }
