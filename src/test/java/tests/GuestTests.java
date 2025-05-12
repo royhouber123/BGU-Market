@@ -35,6 +35,7 @@ public class GuestTests extends AcceptanceTestBase {
             storeId,
             "p1",
             "Notebook",
+            "office",
             "Simple notebook",
             quantity,
             25.0

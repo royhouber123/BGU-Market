@@ -124,8 +124,8 @@ class StoreRepositoryTests {
     @Test
     void testUpdateStockForPurchasedItemsSuccess() throws Exception {
         // Prepare data: add a listing manually
-        store1.addNewListing("founder1", "prod1", "Product1", "desc", 10, 100);
-        store2.addNewListing("founder2", "prod2", "Product2", "desc", 5, 200);
+        store1.addNewListing("founder1", "prod1", "Product1", "category", "desc", 10, 100);
+        store2.addNewListing("founder2", "prod2", "Product2", "category", "desc", 5, 200);
 
         Map<String, Map<String, Integer>> shoppingBags = new HashMap<>();
         Map<String, Integer> store1Bag = new HashMap<>();
@@ -146,7 +146,7 @@ class StoreRepositoryTests {
 
     @Test
     void testUpdateStockForPurchasedItemsFailureInsufficientStock() throws Exception {
-        store1.addNewListing("founder1", "prod1", "Product1", "desc", 1, 100);
+        store1.addNewListing("founder1", "prod1", "Product1", "category", "desc", 1, 100);
 
         Map<String, Map<String, Integer>> shoppingBags = new HashMap<>();
         Map<String, Integer> store1Bag = new HashMap<>();

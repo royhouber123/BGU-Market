@@ -98,10 +98,10 @@ public class PurchaseService {
         }
     }
 
-    public void openAuction(String userId, String storeId, String productId, String productName, String productDescription, int startingPrice, long endTimeMillis) {
+    public void openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
-            store.addNewListing(userId, productId, productName, productDescription, 1, startingPrice);
+            store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice);
             AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
             logger.info("Auction opened: store " + storeId + ", product " + productId + ", by user " + userId);
         } catch (Exception e) {

@@ -463,7 +463,7 @@ public class Store {
      * @return {@code true} if listing was added successfully.
      * @throws Exception if user lacks permission.
      */
-    public String addNewListing(String userID, String productId, String productName, String productDescription, int quantity, double unitPrice) throws Exception {
+    public String addNewListing(String userID, String productId, String productName, String productCategory, String productDescription, int quantity, double unitPrice) throws Exception {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
         storeClosedExeption();//actions are available only when open
@@ -471,6 +471,7 @@ public class Store {
                 this.storeID,
                 productId,
                 productName,
+                productCategory,
                 productDescription,
                 quantity,
                 PurchaseType.REGULAR,
