@@ -133,5 +133,57 @@ void owner_cannot_add_same_owner_twice() {
     String res = storeService.addAdditionalStoreOwner(FOUNDER, "OWNER_B", storeId);
     assertTrue(res.contains("already"));
 }
+
+
+
+// #######################################################
+@Test public void owner_addNewProductToStore_positive() {}
+@Test public void owner_addNewProductToStore_negative_InvalidPrice() {}
+@Test public void owner_addNewProductToStore_alternate_ProductWithSameName() {}
+
+@Test public void owner_removeProductFromStore_positive() {}
+@Test public void owner_removeProductFromStore_negative_ProductNotFound() {}
+@Test public void owner_removeProductFromStore_alternate_InactiveStore() {}
+
+@Test public void owner_editProductFromStore_positive() {}
+@Test public void owner_editProductFromStore_negative_InValidPrice() {}
+@Test public void owner_editProductFromStore_alternate_ProductNotFound() {}
+
+@Test public void owner_editStorePurchasePolicy_positive() {}
+@Test public void owner_editStorePurchasePolicy_negative() {}
+@Test public void owner_editStorePurchasePolicy_alternate() {}
+
+@Test public void owner_editStoreDiscountPolicy_positive() {}
+@Test public void owner_editStoreDiscountPolicy_negative_InValidObjectToCreatePolicyTo() {}
+@Test public void owner_editStoreDiscountPolicy_alternate_InActiveStore() {}
+
+@Test public void owner_appointAdditionalStoreOwner_positive() {}
+@Test public void owner_appointAdditionalStoreOwner_negative_AlreadyAnOwner() {}
+@Test public void owner_appointAdditionalStoreOwner_alternate_TheSuppervisorDoesntAcceptTheAppointment() {}
+
+@Test public void owner_removeStoreOwner_positive() {}
+@Test public void owner_removeStoreOwner_negative_TryingToRemoveOwnerNotApointedByHim() {}
+@Test public void owner_removeStoreOwner_alternate_InactiveStore() {}
+
+@Test public void owner_appointStoreManager_positive() {}
+@Test public void owner_appointStoreManager_negative_alreadyManager() {}
+@Test public void owner_appointStoreManager_alternate_apoointmentDicline() {}
+
+@Test public void owner_editStoreManagerPermissions_positive() {}
+@Test public void owner_editStoreManagerPermissions_negative_NotManager() {}
+@Test public void owner_editStoreManagerPermissions_alternate_NotTheAppointerOfManager() {}
+
+@Test public void owner_requestStoreRoles_positive() {}
+@Test public void owner_requestStoreRoles_negative() {}
+@Test public void owner_requestStoreRoles_alternate() {}
+
+@Test public void owner_respondToUserMessages_positive() {}
+@Test public void owner_respondToUserMessages_negative() {}
+@Test public void owner_respondToUserMessages_alternate() {}
+
+@Test public void owner_viewStorePurchaseHistory_positive() {}
+@Test public void owner_viewStorePurchaseHistory_negative() {}
+@Test public void owner_viewStorePurchaseHistory_alternate() {}
+
    
 }
