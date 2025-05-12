@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,6 +84,30 @@ public class FounderTests extends AcceptanceTestBase {
             message.contains("founder") || message.contains("already an owner"),
             "Expected error message to mention founder restriction or duplicate ownership"
         );
+    }
+
+    @Test
+    void founder_closes_store_success() {
+        assertTrue(storeService.getStore(storeName).isActive());
+        String result = storeService.closeStore(storeId, founderID);
+        assertEquals("success", result);
+        assertFalse(storeService.getStore(storeName).isActive());
+    }
+
+    @Test
+    void founder_closes_store_fail_user_is_not_founder() {
+        assertTrue(storeService.getStore(storeName).isActive());
+        String result = storeService.closeStore(storeId, ownerA);
+        assertNotEquals("success", result, "Expected to fail because user is not the store's founder");
+        assertTrue(storeService.getStore(storeName).isActive());
+    }
+
+    @Test
+    void founder_closes_store_fail_store_is_already_inactive() {
+        String result1 = storeService.closeStore(storeId, founderID);
+        assertEquals("success", result1);
+        String result2 = storeService.closeStore(storeId, founderID);
+        assertNotEquals("success", result2, "Expected to fail because store is already closed");
     }
 
 }
