@@ -46,8 +46,7 @@ public class UserService {
 
 
     /** Delete an existing user entirely. */
-    public ApiResponse<Void> deleteUser() {
-        String userName = extractUserNameFromToken();
+    public ApiResponse<Void> deleteUser(String userName) {
         logger.info("[UserService] Deleting user: " + userName);
         try {
             repo.delete(userName);

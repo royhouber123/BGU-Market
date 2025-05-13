@@ -35,14 +35,18 @@ public abstract class AcceptanceTestBase {
     protected IPaymentService paymentService;
     protected IShipmentService shipmentService;
     protected PurchaseService purchaseService;
+    protected StoreRepository storeRepository;
+    protected IListingRepository listingRepository;
+    
     
     @BeforeEach
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
-        IListingRepository listingRepository = new ListingRepository();
+        listingRepository = new ListingRepository();
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
-        
+        storeRepository = new StoreRepository();
+         
         authService = new AuthService(userRepository);
         userService = new UserService(userRepository, authService);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
