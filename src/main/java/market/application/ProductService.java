@@ -72,7 +72,7 @@ public class ProductService {
             if (query == null || query.isBlank())
                 return ApiResponse.ok(Collections.emptyList());
 
-            List<Listing> result = listingRepository.getListingsByProductNameAndStore(query, storeId).stream()
+            List<Listing> result = listingRepository.getListingsByStoreId(storeId).stream()
                     .filter(l -> l.getProductName().toLowerCase().contains(query.toLowerCase()))
                     .collect(Collectors.toList());
 

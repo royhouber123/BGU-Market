@@ -2,6 +2,8 @@ package market.domain.purchase;
 
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
+import utils.ApiResponse;
+
 import java.util.List;
 
 public class RegularPurchase {
@@ -13,8 +15,8 @@ public class RegularPurchase {
             total += item.getUnitPrice() * item.getQuantity();
         }
         total=total-totalDiscountPrice;
-        boolean paymentSuccess=paymentService.processPayment("User: " + userId + ", Amount: " + total).getData();
-        if (!paymentSuccess) {
+        ApiResponse<Boolean> paymentResponse = paymentService.processPayment("User: " + userId + ", Amount: " + total);
+        if (!paymentResponse.isSuccess() || paymentResponse.getData() == null || !paymentResponse.getData()) {
             throw new RuntimeException("Payment failed for user: " + userId);
         }
         double totalWeight = calculateTotalWeight(purchasedItems); 
