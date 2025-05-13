@@ -3,6 +3,8 @@ package market.domain;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.domain.purchase.*;
+import utils.ApiResponse;
+
 import org.junit.jupiter.api.*;
 
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -36,8 +40,8 @@ class RegularPurchaseTest {
         paymentService = mock(IPaymentService.class);
         shipmentService = mock(IShipmentService.class);
 
-        when(paymentService.processPayment(anyString()).getData()).thenReturn(true);
-        when(shipmentService.ship(anyString(), anyString(), anyDouble()).getData()).thenReturn("OK");
+        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
 
         regularPurchase = new RegularPurchase();
     }

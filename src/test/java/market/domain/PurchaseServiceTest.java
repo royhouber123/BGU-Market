@@ -6,6 +6,8 @@ import market.domain.purchase.*;
 import market.domain.store.Store;
 import market.domain.store.IStoreRepository;
 import market.domain.user.*;
+import utils.ApiResponse;
+
 import org.junit.jupiter.api.*;
 
 import java.util.HashMap;
@@ -45,8 +47,8 @@ class PurchaseServiceTest {
         storeRepository = mock(IStoreRepository.class);
         store = mock(Store.class);
 
-        when(paymentService.processPayment(anyString()).getData()).thenReturn(true);
-        when(shipmentService.ship(anyString(), anyString(), anyDouble()).getData()).thenReturn("OK");
+        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
 
         when(storeRepository.getStoreByID(storeId)).thenReturn(store);
         when(store.isPurchaseAllowed(anyMap())).thenReturn(true);

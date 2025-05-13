@@ -150,7 +150,7 @@ class StoreUnitTests {
         Exception ex = assertThrows(Exception.class, () -> {
             store.addNewManager(ownerA, ownerB); // ownerB is already a manager
         });
-        assertTrue(ex.getMessage().contains("already a owner"));
+        assertTrue(ex.getMessage().contains("already a manager"));
     }
 
     // ------------------------- Manager Permission Tests -------------------------
