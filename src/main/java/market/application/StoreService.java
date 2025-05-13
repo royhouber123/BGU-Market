@@ -7,6 +7,7 @@ import java.util.Set;
 
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
+import market.domain.store.Listing;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
@@ -487,5 +488,14 @@ public class StoreService {
      public ApiResponse<Boolean> isManager(String storeID, String userID){
         Store s = storeRepository.getStoreByID(storeID);
         return ApiResponse.ok(s.isManager(userID));
+    }
+
+
+    public ApiResponse<HashMap<StoreDTO,List<Listing>>> getInformationAboutStoresAndProducts(){
+        HashMap <StoreDTO,List<Listing>> res = new HashMap<>();
+        for (Store s: storeRepository.getAllActiveStores()){
+            res.put(new StoreDTO(s), s.getAllListings());
+        } 
+        return ApiResponse.ok(res);
     }
 }
