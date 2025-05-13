@@ -33,14 +33,14 @@ public class FounderTests extends AcceptanceTestBase {
     void founder_appoints_owner_successfully() {
         // Appoint ownerA as owner
         assertTrue(storeService.addAdditionalStoreOwner(founderID, ownerA,storeId).isSuccess());
-        //assertTrue(storeService.isOwner(ownerA), "ownerA should be an owner of the store");
+        assertTrue(storeService.isOwner(storeId, ownerA).getData());
     }
 
     @Test
     void founder_appoints_manager_successfully() {
         // Appoint ownerB as manager
         assertTrue(storeService.addNewManager(founderID,  ownerB,storeId).isSuccess());
-        // assertTrue(storeService.isManager(storeId, ownerB), "ownerB should be a manager of the store");
+        assertTrue(storeService.isManager(storeId, ownerB).getData());
     }
 
     @Test
@@ -78,15 +78,16 @@ public class FounderTests extends AcceptanceTestBase {
     @Test
     void founder_closes_store_success() {
         assertTrue(storeService.getStore(storeName).getData().isActive());
-        ApiResponse<Void> result = storeService.closeStore(storeId, founderID);
+        ApiResponse<String> result = storeService.closeStore(storeId, founderID);
         assertTrue(result.isSuccess());
         assertFalse(storeService.getStore(storeName).getData().isActive());
+        assertEquals(result.getData(), storeId);
     }
 
     @Test
     void founder_closes_store_fail_user_is_not_founder() {
         assertTrue(storeService.getStore(storeName).getData().isActive());
-        ApiResponse<Void> result = storeService.closeStore(storeId, ownerA);
+        ApiResponse<String> result = storeService.closeStore(storeId, ownerA);
         assertFalse(result.isSuccess());
         assertTrue(result.getError().contains("founder"));
         assertTrue(storeService.getStore(storeName).getData().isActive());
@@ -94,9 +95,10 @@ public class FounderTests extends AcceptanceTestBase {
 
     @Test
     void founder_closes_store_fail_store_is_already_inactive() {
-        ApiResponse<Void> result1 = storeService.closeStore(storeId, founderID);
+        ApiResponse<String> result1 = storeService.closeStore(storeId, founderID);
         assertTrue(result1.isSuccess());
-        ApiResponse<Void> result2 = storeService.closeStore(storeId, founderID);
+        assertEquals(result1.getData(), storeId);
+        ApiResponse<String> result2 = storeService.closeStore(storeId, founderID);
         assertFalse(result2.isSuccess());
         assertTrue(result2.getError().contains("already closed"));
     }
