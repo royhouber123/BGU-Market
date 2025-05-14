@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import market.application.AuthService.AuthToken;
 import market.domain.purchase.Purchase;
 import market.domain.store.Listing;
+import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
 import market.domain.user.ShoppingCart;
 import market.domain.user.User;
@@ -16,6 +17,7 @@ import market.middleware.TokenUtils;
 
 import java.io.EOFException;
 import java.util.List;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -34,8 +36,8 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
 
-    @Test
-    void guest_enters_system_initializes_cart() {
+    @Test /////////to change- need to use only user service functions/////////
+    void guest_enters_system_initializes_cart() { 
         //Step 1: Enter the system as a guest and verify success
         String guestName = "guest";
         ApiResponse<Void> registerResponse = userService.register(guestName);
@@ -53,7 +55,7 @@ public class GuestTests extends AcceptanceTestBase {
         assertTrue(cart.getAllStoreBags().isEmpty(), "Guest's shopping cart should be empty on registration");
     }
 
-    @Test
+    @Test /////////to change- need to use only user service functions/////////
     void guest_exits_system_cart_deleted() {
         //Step 1: Enter the system as a guest
         String guestName = "guest";
@@ -74,7 +76,7 @@ public class GuestTests extends AcceptanceTestBase {
                 }, "Expected cart retrieval to fail after guest deletion");
     }
 
-    @Test
+    @Test /////////to change- need to use only user service functions/////////
     void guest_registers_with_valid_details() {
         //Step 1: Attempt to register a new subscriber with valid credentials
         String username = "new_subscriber";
@@ -89,13 +91,6 @@ public class GuestTests extends AcceptanceTestBase {
         //Step 4: Check that the user exists in the repository
         User user = repo.findById(username);
         assertNotNull(user, "User should exist after registration");
-    }
-
-
-
-    @Test
-    void guest_registers_with_short_password() { //we need to agree about valid password- and the register function should check it
-        ///
     }
 
     @Test
@@ -120,18 +115,86 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
     @Test
-    void guest_gets_store_and_product_info_when_available() { //omer needs to implement the function in service
-        ///
+    void guest_gets_stores_and_product_info_when_available() { 
+        //Step 1: Register two managers
+        assertTrue(userService.register("manager1", "1234").isSuccess(), "Failed to register manager1");
+        assertTrue(userService.register("manager2", "1234").isSuccess(), "Failed to register manager2");
+        //Step 2: Each manager creates a store
+        String storeId1 = storeService.createStore("MyStore", "manager1").getData();
+        String storeId2 = storeService.createStore("AnotherStore", "manager2").getData();
+        //Step 3: Each store gets a product
+        storeService.addNewListing(
+            "manager1",
+            storeId1,
+            "p1",
+            "Blue Notebook",
+            "Stationery",
+            "A ruled blue notebook",
+            10,
+            15.0
+        ).getData();
+        storeService.addNewListing(
+            "manager2",
+            storeId2,
+            "p2",
+            "Red Pencil",
+            "Stationery",
+            "A bright red pencil",
+            20,
+            2.0
+        ).getData();
+        //Step 4: Call the method to retrieve store and product info
+        ApiResponse<HashMap<StoreDTO, List<Listing>>> response = storeService.getInformationAboutStoresAndProducts();
+        assertTrue(response.isSuccess(), "Failed to retrieve store and product information: " + response.getError());
+        //Step 5: Extract and validate store data
+        HashMap<StoreDTO, List<Listing>> storeInfo = response.getData();
+        assertFalse(storeInfo.isEmpty(), "Expected at least one store in the result");
+        //Step 6: Check that both stores are included
+        boolean store1Found = storeInfo.keySet().stream().anyMatch(dto -> dto.getName().equals("MyStore"));
+        boolean store2Found = storeInfo.keySet().stream().anyMatch(dto -> dto.getName().equals("AnotherStore"));
+        assertTrue(store1Found, "Expected to find 'MyStore' in the returned data");
+        assertTrue(store2Found, "Expected to find 'AnotherStore' in the returned data");
+        //Step 7: Check that both products are listed
+        boolean product1Found = storeInfo.values().stream()
+            .flatMap(List::stream)
+            .anyMatch(listing -> listing.getProductName().equals("Blue Notebook"));
+        boolean product2Found = storeInfo.values().stream()
+            .flatMap(List::stream)
+            .anyMatch(listing -> listing.getProductName().equals("Red Pencil"));
+        assertTrue(product1Found, "Expected to find the product 'Blue Notebook' in the returned listings");
+        assertTrue(product2Found, "Expected to find the product 'Red Pencil' in the returned listings");
     }
 
     @Test
-    void guest_gets_store_info_when_no_stores_available() { //omer needs to implement the function in service
-        ///
+    void guest_gets_store_info_when_no_stores_active() { 
+        //Step 1: Assume setup created a store with founder "1"
+        //Step 2: Close the store using founder ID from setup
+        ApiResponse<String> closeStoreResponse = storeService.closeStore(storeId, "1");
+        assertTrue(closeStoreResponse.isSuccess(), "Store closure failed");
+        //Step 3: Guest requests store info
+        ApiResponse<HashMap<StoreDTO, List<Listing>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
+        assertTrue(infoResponse.isSuccess(), "Failed to get store information");
+        //Step 4: Assert no active stores are returned
+        HashMap<StoreDTO, List<Listing>> data = infoResponse.getData();
+        assertNotNull(data, "Returned data should not be null");
+        assertTrue(data.isEmpty(), "Expected no active stores, but some were returned");
     }
 
     @Test
-    void guest_gets_store_info_when_store_has_no_products() { //omer needs to implement the function in service
-        ///
+    void guest_gets_store_info_when_store_has_no_products() { 
+        //Step 1: Use setup-created store (already exists and is active)
+        String founderId = "1"; //the same ID used in setUp() to create the store
+        //Step 2: Guest requests information about stores and their products
+        ApiResponse<HashMap<StoreDTO, List<Listing>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
+        assertTrue(infoResponse.isSuccess(), "Failed to retrieve store information");
+        //Step 3: Check that at least one store is returned
+        HashMap<StoreDTO, List<Listing>> data = infoResponse.getData();
+        assertNotNull(data, "Response data should not be null");
+        assertFalse(data.isEmpty(), "Expected at least one store");
+        //Step 4: Find the store with the expected ID and check its listings
+        boolean storeFoundWithNoProducts = data.entrySet().stream()
+            .anyMatch(entry -> entry.getKey().getStoreID().equals(storeId) && entry.getValue().isEmpty());
+        assertTrue(storeFoundWithNoProducts, "Expected the store to have no products listed");
     }
 
     @Test
@@ -309,7 +372,7 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
 
-    @Test
+    @Test /////////to change- need to use only user service functions/////////
     void guest_adds_product_to_cart_valid() {
         assertDoesNotThrow(() -> {
             //Step 1: Add a product to the cart of user1
@@ -367,7 +430,7 @@ public class GuestTests extends AcceptanceTestBase {
         ///
     }
 
-    @Test
+    @Test /////////to change- need to use only user service functions/////////
     void guest_purchases_cart_successfully(){
         //Step 1: Register a store manager and create a store
         assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
@@ -411,7 +474,7 @@ public class GuestTests extends AcceptanceTestBase {
         assertEquals(quantity - 1, remainingStock, "Stock should decrease by purchased amount");
     }
 
-    @Test
+    @Test /////////to change- need to use only user service functions/////////
     void guest_purchasing_cart_fails_due_to_stock() throws Exception { //there is a stock when added to bag but not when purchase???
         //Step 1: Register a store manager and create a store
         assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
@@ -445,7 +508,7 @@ public class GuestTests extends AcceptanceTestBase {
         assertTrue(response.getError().toLowerCase().contains("stock"), "Expected stock-related error, but got: " + response.getError());
     }
 
-    @Test
+    @Test /////////to change- need to use only user service functions/////////
     void guest_purchasing_cart_fails_due_to_payment() throws Exception { //after payment failes- what to do with the stock- it already reduced???
         //Step 1: Register a store manager and create a store
         assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
