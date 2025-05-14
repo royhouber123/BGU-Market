@@ -4227,3 +4227,86 @@
 [2025-05-13 03:48:20] [INFO] [UserRepository] Deleting user: user2
 [2025-05-13 03:48:20] [INFO] [UserRepository] User deleted: user2
 [2025-05-13 03:48:20] [INFO] [UserService] User deleted: user2
+[2025-05-13 23:57:57] [INFO] Hashing password
+[2025-05-13 23:57:57] [INFO] Hashing password
+[2025-05-13 23:57:58] [INFO] AuthService initialized
+[2025-05-13 23:57:58] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-13 23:57:58] [INFO] Store retrieved: GadgetStore
+[2025-05-13 23:57:58] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-13 23:57:58] [INFO] Added permission: 1 to manager: 300 in store: 2, by: 100
+[2025-05-13 23:57:58] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 100
+[2025-05-13 23:58:06] [INFO] Hashing password
+[2025-05-13 23:58:06] [INFO] Hashing password
+[2025-05-13 23:58:08] [INFO] AuthService initialized
+[2025-05-13 23:58:08] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-13 23:58:08] [INFO] Store retrieved: GadgetStore
+[2025-05-13 23:58:08] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-13 23:58:08] [INFO] Added permission: 1 to manager: 300 in store: 2, by: 100
+[2025-05-13 23:58:08] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 100
+[2025-05-13 23:59:12] [INFO] Hashing password
+[2025-05-13 23:59:12] [INFO] Hashing password
+[2025-05-13 23:59:13] [INFO] AuthService initialized
+[2025-05-13 23:59:13] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-13 23:59:13] [INFO] Store retrieved: GadgetStore
+[2025-05-13 23:59:13] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: the user:100 is not a owner of the store: 2
+[2025-05-14 00:00:57] [INFO] Hashing password
+[2025-05-14 00:00:57] [INFO] Hashing password
+[2025-05-14 00:00:58] [INFO] AuthService initialized
+[2025-05-14 00:00:58] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:00:58] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:00:58] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: the user:300 is not a manager of the store: 2
+[2025-05-14 00:01:02] [INFO] Hashing password
+[2025-05-14 00:01:02] [INFO] Hashing password
+[2025-05-14 00:01:04] [INFO] AuthService initialized
+[2025-05-14 00:01:04] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:01:04] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:01:04] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: the user:300 is not a manager of the store: 2
+[2025-05-14 00:05:55] [INFO] Hashing password
+[2025-05-14 00:05:55] [INFO] Hashing password
+[2025-05-14 00:05:56] [INFO] AuthService initialized
+[2025-05-14 00:05:56] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:05:56] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:05:56] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-14 00:05:56] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-14 00:05:56] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: user 200 cant add permission to manager 300 because he is not his appointer
+[2025-05-14 00:06:01] [INFO] Hashing password
+[2025-05-14 00:06:01] [INFO] Hashing password
+[2025-05-14 00:06:03] [INFO] AuthService initialized
+[2025-05-14 00:06:03] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:06:03] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:07:17] [INFO] Hashing password
+[2025-05-14 00:07:17] [INFO] Hashing password
+[2025-05-14 00:07:19] [INFO] AuthService initialized
+[2025-05-14 00:07:19] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:07:19] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:07:19] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-14 00:07:19] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-14 00:07:19] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: user 200 cant add permission to manager 300 because he is not his appointer
+[2025-05-14 00:07:19] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 100
+[2025-05-14 00:07:24] [INFO] Hashing password
+[2025-05-14 00:07:24] [INFO] Hashing password
+[2025-05-14 00:07:25] [INFO] AuthService initialized
+[2025-05-14 00:07:26] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:07:26] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:07:26] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-14 00:07:26] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-14 00:07:26] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: user 200 cant add permission to manager 300 because he is not his appointer
+[2025-05-14 00:07:26] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 100
+[2025-05-14 00:07:29] [INFO] Hashing password
+[2025-05-14 00:07:29] [INFO] Hashing password
+[2025-05-14 00:07:32] [INFO] AuthService initialized
+[2025-05-14 00:07:32] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:07:32] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:07:32] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-14 00:07:32] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-14 00:07:32] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: user 200 cant add permission to manager 300 because he is not his appointer
+[2025-05-14 00:07:32] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 100
+[2025-05-14 00:07:39] [INFO] Hashing password
+[2025-05-14 00:07:39] [INFO] Hashing password
+[2025-05-14 00:07:40] [INFO] AuthService initialized
+[2025-05-14 00:07:40] [INFO] Store created: GadgetStore, founder: 100, id: 2
+[2025-05-14 00:07:40] [INFO] Store retrieved: GadgetStore
+[2025-05-14 00:07:40] [INFO] Added new manager: 300 to store: 2, by: 100
+[2025-05-14 00:07:40] [INFO] Added new owner: 200 to store: 2, by: 100
+[2025-05-14 00:07:40] [ERROR] Error adding permission: 1 to manager: 300 in store: 2. Reason: user 200 cant add permission to manager 300 because he is not his appointer
+[2025-05-14 00:07:40] [INFO] Retrieved permissions for manager: 300 in store: 2, by: 100

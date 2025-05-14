@@ -1,6 +1,7 @@
 package tests;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import market.domain.store.Listing;
+import market.domain.store.Store;
 import market.domain.store.StoreDTO;
 import support.AcceptanceTestBase;
 import utils.ApiResponse;
@@ -231,10 +233,31 @@ public class StoreOwnerTests extends AcceptanceTestBase {
 @Test public void owner_appointStoreManager_alternate_apoointmentDicline() {}
 
 
+@Test public void owner_editStoreManagerPermissions_positive() {
+    storeService.addNewManager(FOUNDER, MANAGER, storeId);
+    ApiResponse res = storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
+    assertTrue(res.isSuccess());
+    Set<Integer> check = storeService.getManagersPermissions(MANAGER, FOUNDER, storeId).getData();
+    assertTrue(()->check.contains(Store.Permission.EDIT_PRODUCTS.getCode()));
+}
 
-@Test public void owner_editStoreManagerPermissions_positive() {}
-@Test public void owner_editStoreManagerPermissions_negative_NotManager() {}
-@Test public void owner_editStoreManagerPermissions_alternate_NotTheAppointerOfManager() {}
+
+@Test public void owner_editStoreManagerPermissions_negative_NotManager() {
+    ApiResponse res = storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
+    assertFalse(res.isSuccess());
+    assertTrue(res.getError().toLowerCase().contains("not a manager"));
+}
+
+
+@Test public void owner_editStoreManagerPermissions_alternate_NotTheAppointerOfManager() {
+    storeService.addNewManager(FOUNDER, MANAGER, storeId);
+    storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
+    ApiResponse res = storeService.addPermissionToManager(MANAGER, OWNER_A, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
+    assertFalse(res.isSuccess());
+    assertTrue(res.getError().toLowerCase().contains("cant add permission"));
+    Set<Integer> check = storeService.getManagersPermissions(MANAGER, FOUNDER, storeId).getData();
+    assertFalse(()->check.contains(Store.Permission.EDIT_PRODUCTS.getCode()));
+}
 
 @Test public void owner_requestStoreRoles_positive() {}
 @Test public void owner_requestStoreRoles_negative() {}
