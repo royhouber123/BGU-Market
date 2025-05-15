@@ -499,6 +499,42 @@ public class Store {
         return storeProductsManager.removeListing(listingId);
     }
 
+     public boolean editPriceForListing(String userID, String listingId,double newPrice) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+
+        storeClosedExeption();//actions are available only when open
+        return storeProductsManager.editPriceForListing(listingId,newPrice);
+    }
+
+    public boolean editProductName(String userID, String listingId, String newName) throws Exception {
+    if (!checkProductsPermission(userID))
+        throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+    storeClosedExeption();
+    return storeProductsManager.editProductName(listingId, newName);
+}
+
+    public boolean editProductDescription(String userID, String listingId, String newDescription) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+        storeClosedExeption();
+        return storeProductsManager.editProductDescription(listingId, newDescription);
+    }
+
+    public boolean editProductQuantity(String userID, String listingId, int newQuantity) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+        storeClosedExeption();
+        return storeProductsManager.editProductQuantity(listingId, newQuantity);
+    }
+
+    public boolean editProductCategory(String userID, String listingId, String newCategory) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+        storeClosedExeption();
+        return storeProductsManager.editProductCategory(listingId, newCategory);
+    }
+
     /**
      * Purchases quantity from a specific listing.
      *

@@ -58,41 +58,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
 
 
 
-//--------------------------------------------- Negative tests -----------------------------------------------------//
 
-
-// @Test
-// void non_owner_cannot_add_listing() { //only one not working
-//     String res = storeService.addNewListing(
-//             OWNER_A, storeId, "1", "Keyboard", "Electronic", "Mech", 3, 199.0);
-//     assertTrue(res.contains("not a owner") || res.contains("doesn't have"));
-// }
-
-//     @Test
-//     void manager_without_permission_cannot_remove_listing() {
-//         // founder adds listing
-//         String listingId= storeService.addNewListing(FOUNDER, storeId, "p‑4", "Headset", "Electronic", "BT", 2, 299.0);
-
-//         // owner promotes manager but gives **no** permissions
-//         storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
-//         storeService.addNewManager(OWNER_A, MANAGER, storeId);
-
-//         String res = storeService.removeListing(MANAGER, storeId, listingId);
-//         assertTrue(res.contains("permission"));
-//     }  //also omer and dayan need to change the create listing to return listing id
-
-// @Test
-// void cannot_remove_founder() {
-//     String res = storeService.removeOwner(OWNER_A, FOUNDER, storeId).get(0).get(0);
-//     assertTrue(res.contains(" is the founder") || res.contains("not a owner"));
-// }
-
-// @Test
-// void owner_cannot_add_same_owner_twice() {
-//     storeService.addAdditionalStoreOwner(FOUNDER, "OWNER_B", storeId);
-//     String res = storeService.addAdditionalStoreOwner(FOUNDER, "OWNER_B", storeId);
-//     assertTrue(res.contains("already"));
-// }
 
 
 
@@ -265,9 +231,56 @@ public class StoreOwnerTests extends AcceptanceTestBase {
 
 
 // still need to write the edit functionality!!!!!!!!!!!
-@Test public void owner_editProductFromStore_positive() {}
-@Test public void owner_editProductFromStore_negative_InValidPrice() {}
-@Test public void owner_editProductFromStore_alternate_ProductNotFound() {}
+@Test
+public void owner_editProductFromStore_positive() {
+    String listingId = storeService.addNewListing(
+            FOUNDER,
+            storeId,
+            "p‑2",
+            "Mouse",
+            "Electronic",
+            "Wireless",
+            4,
+            129.9
+    ).getData();
+
+    ApiResponse<Boolean> res = storeService.editListingPrice(FOUNDER, storeId, listingId, 99.9);
+    assertTrue(res.isSuccess());
+
+    ApiResponse<Listing> updated = productService.getListing(listingId);
+    assertTrue(updated.isSuccess());
+    assertEquals(99.9, updated.getData().getPrice());
+}
+
+@Test
+public void owner_editProductFromStore_negative_InValidPrice() {
+    String listingId = storeService.addNewListing(
+            FOUNDER,
+            storeId,
+            "p‑3",
+            "Keyboard",
+            "Electronic",
+            "Mechanical",
+            5,
+            229.0
+    ).getData();
+
+    ApiResponse<Boolean> res = storeService.editListingPrice(FOUNDER, storeId, listingId, -10.0);
+    assertFalse(res.isSuccess());
+    assertTrue(res.getError().toLowerCase().contains("illegal price"));
+}
+
+
+
+@Test
+public void owner_editProductFromStore_alternate_ProductNotFound() {
+    String fakeListingId = "non-existent-id";
+
+    ApiResponse<Boolean> res = storeService.editListingPrice(FOUNDER, storeId, fakeListingId, 150.0);
+    assertFalse(res.isSuccess());
+    assertTrue(res.getError().toLowerCase().contains("not found"));
+}
+
 
 
 @Test public void owner_editStorePurchasePolicy_positive() {}

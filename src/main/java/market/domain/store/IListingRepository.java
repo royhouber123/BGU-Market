@@ -76,7 +76,11 @@ public interface IListingRepository {
     void enableListingsByStoreId(String storeId);
     double calculateStoreBagWithoutDiscount(Map<String, Integer> prodsToQuantity) throws Exception;
     double ProductPrice(String listingId) throws Exception;
-
+    boolean editPriceForListing(String listingId, Double newPrice)throws Exception;
+    void editProductName(String listingId, String newName) throws Exception;
+    void editProductDescription(String listingId, String newDescription) throws Exception;
+    void editProductQuantity(String listingId, int newQuantity) throws Exception;
+    void editProductCategory(String listingId, String newCategory) throws Exception;
 
     
 }
