@@ -1,9 +1,11 @@
 package market.domain.store.Policies;
 
-import market.domain.store.Store;
-
 import java.util.Map;
 
+import market.domain.store.IStoreProductsManager;
+import market.dto.AddPurchasePolicyDTO;
+
 public interface PurchasePolicy {
-    boolean isPurchaseAllowed(Map<String, Integer> listings);
+    boolean isPurchaseAllowed(Map<String, Integer> listings, IStoreProductsManager productManager);
+    AddPurchasePolicyDTO toDTO();
 }

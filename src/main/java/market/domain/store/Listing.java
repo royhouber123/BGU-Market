@@ -20,7 +20,7 @@ public class Listing {
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
     private double price;
-    private String category ; //TODO: still need to add this to the constructor 
+    private String category = "";
     private Boolean active;
 
 
@@ -40,7 +40,7 @@ public class Listing {
         this.storeId = storeId;
         this.productId = productId;
         this.productName = productName;
-        this.category = category;
+        this.category = productCategory;
         this.productDescription = productDescription;
         this.quantityAvailable = quantityAvailable;
         this.purchaseType = purchaseType;

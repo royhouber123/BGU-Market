@@ -36,11 +36,7 @@ public class Store {
     // if manager 1 assign manager 2, so manager2 in managers[manager1]
 
 
-    //TODO: implement manager interface (probably state design pattern) with appropriate permissions
-
     private HashMap<String, List<Manager>> ownerToAssignedManagers;
-
-
 
     private IStoreProductsManager storeProductsManager;
 
@@ -520,18 +516,18 @@ public class Store {
     }
 
     /**
- * Retrieves all the listings available in the store.
- * <p>
- * This method gathers all listings managed by the {@link IStoreProductsManager}
- * and returns them as a list. Each listing represents a product available for purchase
- * in the store.
- * </p>
- *
- * @return A {@link List} of {@link Listing} objects representing all products listed in the store.
- */
-public List<Listing> getAllListings() {
-    return storeProductsManager.getAllListings();
-}
+     * Retrieves all the listings available in the store.
+     * <p>
+     * This method gathers all listings managed by the {@link IStoreProductsManager}
+     * and returns them as a list. Each listing represents a product available for purchase
+     * in the store.
+     * </p>
+     *
+     * @return A {@link List} of {@link Listing} objects representing all products listed in the store.
+     */
+    public List<Listing> getAllListings() {
+        return storeProductsManager.getAllListings();
+    }
 
     /**
      * Adds a new purchase policy to the store.
@@ -639,7 +635,7 @@ public List<Listing> getAllListings() {
 
 
     public double calculateStoreBagWithDiscount(Map<String,Integer> prodsToQuantity){
-        return policyHandler.calculateDiscount(prodsToQuantity);
+        return policyHandler.calculateDiscount(prodsToQuantity, this.storeProductsManager);
     }
 
     public double calculateStoreBagWithoutDiscount(Map<String,Integer> prodsToQuantity) throws Exception {
@@ -667,16 +663,16 @@ public List<Listing> getAllListings() {
         double price = ProductPrice(prodId);
         Map<String, Integer> map = new HashMap<>();
         map.put(prodId,(Integer)1);
-        double discount = policyHandler.calculateDiscount(map);
+        double discount = policyHandler.calculateDiscount(map, this.storeProductsManager);
         return price - discount;
     }
 
     public boolean isPurchaseAllowed(Map<String, Integer> listings) {
-        return policyHandler.isPurchaseAllowed(listings);
+        return policyHandler.isPurchaseAllowed(listings, this.storeProductsManager);
     }
 
 
-        public List<Listing> getListingsByProductName(String productName) {
+    public List<Listing> getListingsByProductName(String productName) {
         return storeProductsManager.getListingsByProductName(productName);
     }
 

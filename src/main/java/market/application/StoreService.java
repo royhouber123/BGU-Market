@@ -19,13 +19,11 @@ public class StoreService {
     private IStoreRepository storeRepository;
     private IListingRepository listingRepository;
     private String storeIDs ="1";
-    private IUserRepository userRepository;
     private Logger logger = Logger.getInstance();
 
     public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository) {
         this.storeRepository = storeRepository;
         storeIDs = storeRepository.getNextStoreID();
-        this.userRepository = userRepository;
         this.listingRepository = listingRepository;
     }
 

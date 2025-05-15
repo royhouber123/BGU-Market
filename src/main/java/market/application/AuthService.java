@@ -7,7 +7,6 @@ import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import market.domain.user.IUserRepository;
-import market.domain.user.Subscriber;
 import market.domain.user.User;
 import utils.ApiResponse;
 
