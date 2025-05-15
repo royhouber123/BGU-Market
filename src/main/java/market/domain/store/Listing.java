@@ -20,7 +20,7 @@ public class Listing {
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
     private double price;
-    private String category = ""; //TODO: still need to add this to the constructor 
+    private String category = "";
     private Boolean active;
 
 

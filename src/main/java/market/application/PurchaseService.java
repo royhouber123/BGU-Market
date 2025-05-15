@@ -4,10 +4,7 @@ import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.domain.purchase.*;
 import market.domain.user.*;
-import market.infrastructure.*;
-import market.application.StoreService;
 import market.domain.store.*;
-import market.domain.store.Policies.*;
 import utils.Logger;
 
 import java.util.*;

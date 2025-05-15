@@ -35,7 +35,6 @@ public class StoreService {
             logger.error("Attempted to create store with existing name: " + storeName);
             throw new Exception("The storeName '" + storeName + "' already exists");
         }
-        String id = storeIDs;
         storeIDs = String.valueOf(Integer.valueOf(storeIDs) + 1);
         Store store = new Store(String.valueOf(storeIDs),storeName, founderId,listingRepository);
         //Who is responsable to manage the store id's????????

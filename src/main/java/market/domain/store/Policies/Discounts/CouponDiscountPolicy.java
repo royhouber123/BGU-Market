@@ -1,8 +1,6 @@
 package market.domain.store.Policies.Discounts;
 
 import market.domain.store.IStoreProductsManager;
-import market.domain.store.Listing;
-import market.domain.store.Store;
 import market.domain.store.Policies.DiscountPolicy;
 import market.dto.AddDiscountDTO;
 

@@ -1,18 +1,14 @@
 package market.domain.purchase;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TimerTask;
 
-import market.application.StoreService;
 import market.domain.store.*;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
-import market.infrastructure.StoreRepository;
 
 import java.util.Timer;
 

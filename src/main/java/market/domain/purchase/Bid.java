@@ -2,7 +2,6 @@ package market.domain.purchase;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 
 public class Bid {
 
