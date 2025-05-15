@@ -1,6 +1,10 @@
 package market.domain.store.Policies;
 
+import market.domain.store.IStoreProductsManager;
 import market.domain.store.Store;
+import market.domain.store.Policies.Discounts.CompositeDiscountPolicy;
+import market.domain.store.Policies.Discounts.DiscountCombinationType;
+import market.domain.store.Policies.Policies.DefaultPurchasePolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,9 +57,9 @@ public class PolicyHandler {
     }
 
     // Check if purchase is allowed (all policies must approve)
-    public boolean isPurchaseAllowed(Map<String, Integer> listings) {
+    public boolean isPurchaseAllowed(Map<String, Integer> listings, IStoreProductsManager productManager ) {
         for (PurchasePolicy policy : policies) {
-            if (!policy.isPurchaseAllowed(listings)) {
+            if (!policy.isPurchaseAllowed(listings, productManager)) {
                 return false;
             }
         }
@@ -63,8 +67,8 @@ public class PolicyHandler {
     }
 
     // Calculate total discount
-    public double calculateDiscount(Map<String, Integer> listings) {
-        return discountPolicy.calculateDiscount(listings);
+    public double calculateDiscount(Map<String, Integer> listings, IStoreProductsManager productManager) {
+        return discountPolicy.calculateDiscount(listings, productManager);
     }
 
     public List<PurchasePolicy> getPolicies() {

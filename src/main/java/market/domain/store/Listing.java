@@ -40,7 +40,7 @@ public class Listing {
         this.storeId = storeId;
         this.productId = productId;
         this.productName = productName;
-        this.category = category;
+        this.category = productCategory;
         this.productDescription = productDescription;
         this.quantityAvailable = quantityAvailable;
         this.purchaseType = purchaseType;

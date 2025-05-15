@@ -1,8 +1,11 @@
-package market.domain.store.Policies;
+package market.domain.store.Policies.Discounts;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
 import market.domain.store.Store;
+import market.domain.store.Policies.DiscountPolicy;
+import market.dto.AddDiscountDTO;
+
 import java.util.Map;
 
 public class CouponDiscountPolicy implements DiscountPolicy {
@@ -28,10 +31,24 @@ public class CouponDiscountPolicy implements DiscountPolicy {
     }
 
     @Override
-    public double calculateDiscount(Map<String, Integer> listings) {
+    public double calculateDiscount(Map<String, Integer> listings,IStoreProductsManager productManager) {
         if (couponUsed) {
             return discountAmount;
         }
         return 0.0;
+    }
+
+    @Override
+    public AddDiscountDTO toDTO() {
+        return new AddDiscountDTO(
+            "COUPON",           // type
+            null,               // scope (not applicable)
+            null,               // scopeId
+            discountAmount,     // value (fixed amount)
+            validCouponCode,    // couponCode
+            null,               // condition (not applicable)
+            null,               // subDiscounts (not applicable)
+            null                // combinationType (not applicable)
+        );
     }
 }

@@ -1,4 +1,4 @@
-package market.domain.store.Policies;
+package market.domain.store.Policies.Discounts;
 
 public enum DiscountCombinationType {
     SUM,    // Add all discounts together
