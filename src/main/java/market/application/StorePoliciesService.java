@@ -11,6 +11,7 @@ import market.domain.store.Policies.Discounts.DiscountPolicyFactory;
 import market.domain.store.Policies.Policies.PurchasePolicyFactory;
 import market.dto.AddDiscountDTO;
 import market.dto.AddPurchasePolicyDTO;
+import utils.ApiResponse;
 import utils.Logger;
 
 public class StorePoliciesService {
@@ -30,14 +31,14 @@ public class StorePoliciesService {
      * @param discountDTO the discount DTO to add
      * @return true if successful, false otherwise
      */
-    public boolean addDiscount(String storeId, String userId, AddDiscountDTO discountDTO) {
+    public ApiResponse<Boolean> addDiscount(String storeId, String userId, AddDiscountDTO discountDTO) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
-            return store.addDiscount(userId, policy);
+            return ApiResponse.ok(store.addDiscount(userId, policy));
         } catch (Exception e) {
             logger.info("Failed to add discount: " + e.getMessage());
-            return false;
+            return ApiResponse.fail(e.getMessage());
         }
     }
 
@@ -49,14 +50,14 @@ public class StorePoliciesService {
      * @param discountDTO the discount DTO to remove
      * @return true if successful, false otherwise
      */
-    public boolean removeDiscount(String storeId, String userId, AddDiscountDTO discountDTO) {
+    public ApiResponse<Boolean> removeDiscount(String storeId, String userId, AddDiscountDTO discountDTO) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
-            return store.removeDiscount(userId, policy);
+            return ApiResponse.ok(store.removeDiscount(userId, policy));
         } catch (Exception e) {
             logger.info("Failed to remove discount: " + e.getMessage());
-            return false;
+            return ApiResponse.fail(e.getMessage());
         }
     }
 
@@ -67,16 +68,16 @@ public class StorePoliciesService {
      * @param userId  the user requesting the discounts
      * @return list of discount DTOs or an empty list on failure
      */
-    public List<AddDiscountDTO> getDiscounts(String storeId, String userId) {
+    public ApiResponse<List<AddDiscountDTO>> getDiscounts(String storeId, String userId) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
-            return store.getDiscountPolicies(userId)
+            return ApiResponse.ok(store.getDiscountPolicies(userId)
                         .stream()
                         .map(DiscountPolicy::toDTO)
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toList()));
         } catch (Exception e) {
             logger.info("Failed to retrieve discounts: " + e.getMessage());
-            return List.of();
+            return ApiResponse.fail(e.getMessage());
         }
     }
 
@@ -88,15 +89,15 @@ public class StorePoliciesService {
      * @param dto     The DTO representing the purchase policy.
      * @return {@code true} if added successfully, {@code false} otherwise.
      */
-    public boolean addPurchasePolicy(String storeId, String userId, AddPurchasePolicyDTO dto) {
+    public ApiResponse<Boolean> addPurchasePolicy(String storeId, String userId, AddPurchasePolicyDTO dto) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
-            return store.addPolicy(userId, policy);
+            return ApiResponse.ok(store.addPolicy(userId, policy));
         } catch (Exception e) {
             // Log or handle exception
             logger.info("Failed to add purchase policy: " + e.getMessage());
-            return false;
+            return ApiResponse.fail(e.getMessage());
         }
     }
 
@@ -108,14 +109,14 @@ public class StorePoliciesService {
      * @param dto     The DTO representing the purchase policy to remove.
      * @return {@code true} if removed successfully, {@code false} otherwise.
      */
-    public boolean removePurchasePolicy(String storeId, String userId, AddPurchasePolicyDTO dto) {
+    public ApiResponse<Boolean> removePurchasePolicy(String storeId, String userId, AddPurchasePolicyDTO dto) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
-            return store.removePolicy(userId, policy);
+            return ApiResponse.ok(store.removePolicy(userId, policy));
         } catch (Exception e) {
             logger.info("Failed to remove purchase policy: " + e.getMessage());
-            return false;
+            return ApiResponse.fail(e.getMessage());
         }
     }
 
@@ -126,15 +127,15 @@ public class StorePoliciesService {
      * @param userId  ID of the user requesting the policies.
      * @return List of DTOs representing the purchase policies, or an empty list on failure.
      */
-    public List<AddPurchasePolicyDTO> getPurchasePolicies(String storeId, String userId) {
+    public ApiResponse<List<AddPurchasePolicyDTO>> getPurchasePolicies(String storeId, String userId) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
-            return store.getPolicies(userId).stream()
+            return ApiResponse.ok(store.getPolicies(userId).stream()
                     .map(PurchasePolicy::toDTO)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         } catch (Exception e) {
             logger.info("Failed to retrieve purchase policies: " + e.getMessage());
-            return List.of();
+            return ApiResponse.fail(e.getMessage());
         }
     }
 }
