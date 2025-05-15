@@ -15,8 +15,8 @@ public class Listing {
     private final String listingId;          // Unique ID for this listing
     private final String storeId;             // ID of the store that owns this listing
     private final String productId;           // ID of the product type
-    private final String productName;         // Product display name
-    private final String productDescription;  // Product description
+    private  String productName;         // Product display name
+    private  String productDescription;  // Product description
     private int quantityAvailable;            // Stock for this listing
     private final PurchaseType purchaseType; // How it is purchased
     private double price;
@@ -115,6 +115,38 @@ public class Listing {
     public boolean isActive(){
         return active;
     }
+
+    public void setPrice(double newPrice) {
+    if (newPrice < 0) {
+        throw new IllegalArgumentException("Price must be non-negative");
+    }
+    this.price = newPrice;
+}
+
+    public void setProductName(String newName) {
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name cannot be null or empty");
+        }
+        this.productName = newName;
+    }
+
+    public void setProductDescription(String newDescription) {
+        this.productDescription = (newDescription != null) ? newDescription : "";
+    }
+
+    public void setQuantityAvailable(int newQuantity) {
+        if (newQuantity < 0) {
+            throw new IllegalArgumentException("Quantity must be non-negative");
+        }
+        this.quantityAvailable = newQuantity;
+    }
+
+    public void setCategory(String newCategory) {
+        this.category = (newCategory != null) ? newCategory : "";
+    }
+
+
+    
     
 
 }

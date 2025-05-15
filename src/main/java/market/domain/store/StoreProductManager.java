@@ -82,5 +82,30 @@ public class StoreProductManager implements IStoreProductsManager {
     public void enableAllListings() {
         listingRepository.enableListingsByStoreId(storeId);
     }
+
+    @Override
+    public Boolean editPriceForListing(String listingId,double newPrice) throws Exception{
+        return listingRepository.editPriceForListing(listingId, newPrice);
+    }
+    @Override
+    public Boolean editProductName(String listingId, String newName) throws Exception {
+        listingRepository.editProductName(listingId, newName);
+        return true;
+    }
+    @Override
+    public Boolean editProductDescription(String listingId, String newDescription) throws Exception {
+        listingRepository.editProductDescription(listingId, newDescription);
+        return true;
+    }
+    @Override
+    public Boolean editProductQuantity(String listingId, int newQuantity) throws Exception {
+        listingRepository.editProductQuantity(listingId, newQuantity);
+        return true;
+    }
+    @Override
+    public Boolean editProductCategory(String listingId, String newCategory) throws Exception {
+        listingRepository.editProductCategory(listingId, newCategory);
+        return true;
+    }
     
 }

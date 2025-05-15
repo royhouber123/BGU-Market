@@ -35,7 +35,7 @@ public class StoreService {
         try {
             // ? - do we need store type
             if(storeRepository.containsStore(storeName)) {
-                logger.error("Attempted to create store with existing name: " + storeName);
+                logger.debug("Attempted to create store with existing name: " + storeName);
                 return ApiResponse.fail("The storeName '" + storeName + "' already exists");
             }
             String id = storeIDs;
@@ -69,12 +69,12 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
-                logger.error("Attempted to close non-existent store: " + storeID);
+                logger.debug("Attempted to close non-existent store: " + storeID);
                 return ApiResponse.fail("store doesn't exist");
             }
 
             if (!s.closeStore(userName)) {
-                logger.error("Failed to close store: " + storeID);
+                logger.debug("Failed to close store: " + storeID);
                 return ApiResponse.fail("store can't be closed");
             }
 
@@ -115,7 +115,7 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
-                logger.error("Attempted to open non-existent store: " + storeID);
+                logger.debug("Attempted to open non-existent store: " + storeID);
                 return ApiResponse.fail("store doesn't exist");
             }
 
@@ -145,7 +145,7 @@ public class StoreService {
         try {
             Store store = storeRepository.getStoreByName(storeName);
             if (store == null) {
-                logger.error("Attempted to get non-existent store: " + storeName);
+                logger.debug("Attempted to get non-existent store: " + storeName);
                 return ApiResponse.fail("Store '" + storeName + "' does not exist");
             }
             logger.info("Store retrieved: " + storeName);
@@ -165,7 +165,7 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
-                logger.error("Attempted to add owner to non-existent store: " + storeID);
+                logger.debug("Attempted to add owner to non-existent store: " + storeID);
                 return ApiResponse.fail("store doesn't exist");
             }
 
@@ -200,12 +200,12 @@ public class StoreService {
                 logger.info("Founder " + appointerID + " added new owner: " + newOwnerId + " to store: " + storeID);
             } else {
                 if (s.isOwner(newOwnerId)) {
-                    logger.error(newOwnerId + " is already an Owner of store:" + storeID);
+                    logger.debug(newOwnerId + " is already an Owner of store:" + storeID);
                     return ApiResponse.fail(newOwnerId + " is already an Owner of store:" + storeID);
                 }
 
                 if (!s.isOwner(appointerID)) {
-                    logger.error(appointerID + " is NOT an Owner of store:" + storeID);
+                    logger.debug(appointerID + " is NOT an Owner of store:" + storeID);
                     return ApiResponse.fail(appointerID + " is NOT an Owner of store:" + storeID);
                 }
 
@@ -271,7 +271,7 @@ public class StoreService {
         try{
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null){
-                logger.error("Attempted to add manager to non-existent store: " + storeID);
+                logger.debug("Attempted to add manager to non-existent store: " + storeID);
                 return ApiResponse.fail("store doesn't exist");
             }
             if (s.addNewManager(appointerID,newManagerName)){
@@ -307,7 +307,7 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
-                logger.error("Attempted to add permission to non-existent store: " + storeID);
+                logger.debug("Attempted to add permission to non-existent store: " + storeID);
                 return ApiResponse.fail("store doesn't exist");
             }
             if (s.addPermissionToManager(managerID, appointerID, permissionID)) {
@@ -338,7 +338,7 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
-                logger.error("Attempted to get permissions for non-existent store: " + storeID);
+                logger.debug("Attempted to get permissions for non-existent store: " + storeID);
                 return ApiResponse.fail("store doesn't exist");
             }
             logger.info("Retrieved permissions for manager: " + managerID + " in store: " + storeID + ", by: " + whoIsAsking);
@@ -366,7 +366,7 @@ public class StoreService {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
-                logger.error("Attempted to remove permission from non-existent store: " + storeID);
+                logger.debug("Attempted to remove permission from non-existent store: " + storeID);
                 return ApiResponse.fail("store doesn't exist");
             }
             if (s.removePermissionFromManager(managerID, permissionID, appointerID)) {
@@ -435,6 +435,72 @@ public class StoreService {
         } catch (Exception e) {
             logger.error("Error removing listing: " + listingId + " from store: " + storeID + ". Reason: " + e.getMessage());
             return ApiResponse.fail("Error removing listing: " + listingId + " from store: " + storeID + ". Reason: " + e.getMessage());
+        }
+    }
+
+    public ApiResponse<Boolean> editListingPrice(String userName, String storeID, String listingId, double newPrice) {
+    try {
+        Store s = storeRepository.getStoreByID(storeID);
+        if (s == null)
+            return ApiResponse.fail("Store doesn't exist");
+        logger.info("User " + userName + " editing price for listing " + listingId + " in store " + storeID);
+        return ApiResponse.ok(s.editPriceForListing(userName, listingId, newPrice));
+    } catch (Exception e) {
+        logger.error("Error editing price for listing: " + listingId + ". Reason: " + e.getMessage());
+        return ApiResponse.fail("Error editing price: " + e.getMessage());
+    }
+    }
+
+
+    public ApiResponse<Boolean> editListingProductName(String userName, String storeID, String listingId, String newName) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null)
+                return ApiResponse.fail("Store doesn't exist");
+            logger.info("User " + userName + " editing name for listing " + listingId + " in store " + storeID);
+            return ApiResponse.ok(s.editProductName(userName, listingId, newName));
+        } catch (Exception e) {
+            logger.error("Error editing product name for listing: " + listingId + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error editing product name: " + e.getMessage());
+        }
+    }
+
+    public ApiResponse<Boolean> editListingDescription(String userName, String storeID, String listingId, String newDescription) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null)
+                return ApiResponse.fail("Store doesn't exist");
+            logger.info("User " + userName + " editing description for listing " + listingId + " in store " + storeID);
+            return ApiResponse.ok(s.editProductDescription(userName, listingId, newDescription));
+        } catch (Exception e) {
+            logger.error("Error editing description for listing: " + listingId + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error editing description: " + e.getMessage());
+        }
+    }
+
+    public ApiResponse<Boolean> editListingQuantity(String userName, String storeID, String listingId, int newQuantity) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null)
+                return ApiResponse.fail("Store doesn't exist");
+            logger.info("User " + userName + " editing quantity for listing " + listingId + " in store " + storeID);
+            return ApiResponse.ok(s.editProductQuantity(userName, listingId, newQuantity));
+        } catch (Exception e) {
+            logger.error("Error editing quantity for listing: " + listingId + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error editing quantity: " + e.getMessage());
+        }
+    }
+
+    public ApiResponse<Boolean> editListingCategory(String userName, String storeID, String listingId, String newCategory) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null)
+                return ApiResponse.fail("Store doesn't exist");
+            logger.info("User " + userName + " editing category for listing " + listingId + " in store " + storeID);
+            return ApiResponse.ok(s.editProductCategory(userName, listingId, newCategory));
+        } catch (Exception e) {
+            logger.error("Error editing category for listing: " + listingId + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error editing category: " + e.getMessage());
         }
     }
 

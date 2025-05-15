@@ -144,6 +144,17 @@ class PoliciesTests {
         @Override public boolean purchaseFromListing(String listingId, int quantity) { return false; }
         @Override public void disableAllListings(){}
         @Override public void enableAllListings(){}
+        
+        @Override public Boolean editPriceForListing(String listingId,double newPrice) {return true;}
+
+
+        @Override public Boolean editProductName(String listingId, String newName){return true;}
+
+        @Override public Boolean editProductDescription(String listingId, String newDescription){return true;}
+
+        @Override public Boolean editProductQuantity(String listingId, int newQuantity) {return true;}
+
+        @Override public Boolean editProductCategory(String listingId, String newCategory) {return true;}
 
     }
 }
