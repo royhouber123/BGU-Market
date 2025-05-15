@@ -1,7 +1,9 @@
 package market.application.External;
 
+import utils.ApiResponse;
+
 public interface IShipmentService {
-    String ship(String address, String recipient, double weight);
-    void cancel(String trackingId); 
-    String getShippingInfo(String trackingId); 
+    ApiResponse<String> ship(String address, String recipient, double weight);
+    ApiResponse<Void> cancel(String trackingId); 
+    ApiResponse<String> getShippingInfo(String trackingId); 
 }

@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import market.domain.Role.Role;
 import market.domain.store.IStoreRepository;
@@ -191,5 +191,15 @@ public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> li
         return usersInfo;
     }
 
+    @Override
+    public List<Store> getAllStores(){
+        return new ArrayList<>(storesByName.values());
+    }
+
+    @Override
+    public List<Store> getAllActiveStores(){
+        return storesByName.values().stream()
+                .filter(s -> s.isActive()).collect(Collectors.toList());
+    }
 
 }

@@ -44,6 +44,8 @@ public class Listing {
         this.productDescription = productDescription;
         this.quantityAvailable = quantityAvailable;
         this.purchaseType = purchaseType;
+        if (price<0 )
+            throw new IllegalArgumentException("the price of a products needs to be possitive");
         this.price = price;
         this.active= true;
     }

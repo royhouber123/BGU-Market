@@ -177,7 +177,7 @@ public class Store {
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
 
         if (isManager(newManagerID))
-            throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
+            throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
         storeClosedExeption();//actions are available only when open
         Manager newManager = new Manager(newManagerID, appointerID);
         return ownerToAssignedManagers.get(appointerID).add(newManager);
@@ -199,7 +199,7 @@ public class Store {
         if(!isOwner(appointerID))
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
         if(!isManager(managerID))
-            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+            throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
         storeClosedExeption();//actions are available only when open
         Manager manager = getManager(managerID);
         Permission p = Permission.fromCode(permissionID); //if invalid code, exception is thrown here
