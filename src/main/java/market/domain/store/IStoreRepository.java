@@ -19,5 +19,7 @@ public interface IStoreRepository {
     public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock);
 
     public Map<String,List<Role>> getUsersRoles(String userName);
+    List<Store> getAllActiveStores();
+
 
 }

@@ -199,6 +199,10 @@ public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> li
     }
 
     @Override
-
+    public List<Store> getAllActiveStores() {
+    return storesById.values().stream()
+            .filter(Store::isActive)
+            .collect(Collectors.toList());
+}
 
 }
