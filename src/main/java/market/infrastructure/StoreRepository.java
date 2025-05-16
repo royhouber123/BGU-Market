@@ -65,6 +65,13 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
+    public void save(Store store) {
+        storesById.put(store.getStoreID(), store);
+        storesByName.put(store.getName(), store);
+}
+
+
+    @Override
     public String getNextStoreID() {
         if(storesById.isEmpty()) {
             return "1";
@@ -192,14 +199,10 @@ public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> li
     }
 
     @Override
-    public List<Store> getAllStores(){
-        return new ArrayList<>(storesByName.values());
-    }
-
-    @Override
-    public List<Store> getAllActiveStores(){
-        return storesByName.values().stream()
-                .filter(s -> s.isActive()).collect(Collectors.toList());
-    }
+    public List<Store> getAllActiveStores() {
+    return storesById.values().stream()
+            .filter(Store::isActive)
+            .collect(Collectors.toList());
+}
 
 }

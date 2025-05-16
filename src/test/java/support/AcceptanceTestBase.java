@@ -21,7 +21,7 @@ import market.infrastructure.StoreRepository;
 import market.infrastructure.UserRepository;
 
 /**
- * Base class for acceptance tests.
+ * Base class for Acceptance tests.
  */
 public abstract class AcceptanceTestBase {
 
@@ -68,6 +68,8 @@ public abstract class AcceptanceTestBase {
 
         return authService.login(userName, "pw").getData(); 
     }  
+
+    // restore after deletion
 
   
 }
