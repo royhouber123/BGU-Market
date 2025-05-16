@@ -1,8 +1,12 @@
-package market.domain.store.Policies;
+package market.domain.store.Policies.Discounts;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import market.domain.store.IStoreProductsManager;
+import market.domain.store.Policies.DiscountPolicy;
+import market.dto.AddDiscountDTO;
 
 public class CompositeDiscountPolicy implements DiscountPolicy {
     private List<DiscountPolicy> policies;
@@ -32,16 +36,16 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
     }
 
     @Override
-    public double calculateDiscount(Map<String, Integer> listings) {
+    public double calculateDiscount(Map<String, Integer> listings, IStoreProductsManager productManager) {
         double result = 0.0;
 
         if (combinationType == DiscountCombinationType.SUM) {
             for (DiscountPolicy policy : policies) {
-                result += policy.calculateDiscount(listings);
+                result += policy.calculateDiscount(listings, productManager);
             }
         } else if (combinationType == DiscountCombinationType.MAXIMUM) {
             for (DiscountPolicy policy : policies) {
-                double discount = policy.calculateDiscount(listings);
+                double discount = policy.calculateDiscount(listings, productManager);
                 if (discount > result) {
                     result = discount;
                 }
@@ -49,5 +53,22 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
         }
 
         return result;
+    }
+
+    public AddDiscountDTO toDTO() {
+        List<AddDiscountDTO> subs = policies.stream()
+            .map(DiscountPolicy::toDTO)
+            .toList();
+
+        return new AddDiscountDTO(
+            "COMPOSITE",
+            null,
+            null,
+            0,
+            null,
+            null,
+            subs,
+            combinationType.name()
+        );
     }
 }

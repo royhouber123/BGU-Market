@@ -20,6 +20,4 @@ public interface IStoreRepository {
 
     public Map<String,List<Role>> getUsersRoles(String userName);
 
-    
-
 }

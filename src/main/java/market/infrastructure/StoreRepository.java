@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import market.domain.Role.Role;
 import market.domain.store.IStoreRepository;
@@ -192,11 +192,6 @@ public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> li
     }
 
     @Override
-    public void save(Store store) {
-        storesById.put(store.getStoreID(), store);
-        storesByName.put(store.getName(), store);
-    }
-
 
 
 }

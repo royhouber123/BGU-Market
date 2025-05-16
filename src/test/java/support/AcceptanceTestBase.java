@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import market.application.AuthService;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
+import market.application.ProductService;
 import market.application.PurchaseService;
 import market.application.StoreService;
 import market.application.UserService;
@@ -30,22 +31,28 @@ public abstract class AcceptanceTestBase {
     protected UserService userService;
     protected StoreService storeService;
     protected AuthService authService;
+    protected ProductService productService; 
     protected IPaymentService paymentService;
     protected IShipmentService shipmentService;
     protected PurchaseService purchaseService;
+    protected StoreRepository storeRepository;
+    protected IListingRepository listingRepository;
+    
     
     @BeforeEach
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
-        IListingRepository listingRepository = new ListingRepository();
+        listingRepository = new ListingRepository();
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
-        
+        storeRepository = new StoreRepository();
+         
         authService = new AuthService(userRepository);
-        userService = new UserService(userRepository, authService, roleRepository);
+        userService = new UserService(userRepository, authService);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         storeService = new StoreService(storerepo,userRepository,listingRepository); // Use the real implementation
+        productService = new ProductService(listingRepository);
         paymentService = mock(IPaymentService.class); // Mock external service
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();
@@ -58,10 +65,9 @@ public abstract class AcceptanceTestBase {
     /* 1️⃣  register a user and log in – returns the tokens */
     protected AuthService.AuthToken registarAndLogin(String userName) throws Exception {
         userService.register(userName, "pw");
-        return authService.login(userName, "pw");
-    }
 
+        return authService.login(userName, "pw").getData(); 
+    }  
 
-   
   
 }
