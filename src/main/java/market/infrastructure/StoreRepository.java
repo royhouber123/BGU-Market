@@ -65,6 +65,13 @@ public class StoreRepository implements IStoreRepository {
     }
 
     @Override
+    public void save(Store store) {
+        storesById.put(store.getStoreID(), store);
+        storesByName.put(store.getName(), store);
+}
+
+
+    @Override
     public String getNextStoreID() {
         if(storesById.isEmpty()) {
             return "1";
