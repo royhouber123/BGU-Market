@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Product } from "@/entities/Product";
-import Header from "../components/Header";
-import ProductCard from "../components/ProductCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import productService from "../services/productService";
+import Header from "../components/Header.jsx";
+import ProductCard from "../components/ProductCard.jsx";
+import AuthDialog from "../components/AuthDialog.jsx";
+import MiniCart from "../components/MiniCart.jsx";
+import { Skeleton, Chip } from "@mui/material";
+import Box from "@mui/material/Box";
 
 export default function SearchResults() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showMiniCart, setShowMiniCart] = useState(false);
   const urlParams = new URLSearchParams(window.location.search);
   const searchQuery = urlParams.get("q") || "";
   const categoryFilter = urlParams.get("category") || "";
@@ -19,29 +23,20 @@ export default function SearchResults() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const allProducts = await Product.list();
-      let filteredProducts = allProducts;
-
-      // Filter by search query if present
+      let results;
       if (searchQuery) {
-        filteredProducts = filteredProducts.filter((product) =>
-          product.title.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        results = await productService.searchProducts(searchQuery);
+      } else if (categoryFilter) {
+        results = await productService.getProductsByCategory(categoryFilter);
+      } else {
+        results = await productService.getAllProducts();
       }
-
-      // Filter by category if present
-      if (categoryFilter) {
-        filteredProducts = filteredProducts.filter(
-          (product) =>
-            product.category.toLowerCase() === categoryFilter.toLowerCase()
-        );
-      }
-
-      setProducts(filteredProducts);
+      setProducts(results);
     } catch (error) {
       console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const getPageTitle = () => {
@@ -55,7 +50,7 @@ export default function SearchResults() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
@@ -63,9 +58,15 @@ export default function SearchResults() {
           <div className="flex items-center mt-2">
             <p className="text-gray-600">Showing {products.length} items</p>
             {categoryFilter && (
-              <Badge className="ml-4 bg-blue-100 text-blue-800 hover:bg-blue-200">
-                Category: {categoryFilter}
-              </Badge>
+              <div className="inline-flex items-center gap-1 text-sm">
+                <span>Filtering by:</span>
+                <Chip 
+                  label={categoryFilter}
+                  variant="outlined" 
+                  color="primary"
+                  size="small"
+                />
+              </div>
             )}
           </div>
         </div>
@@ -107,7 +108,10 @@ export default function SearchResults() {
             </p>
           </div>
         )}
-      </main>
-    </div>
+      </main>      
+      {/* Add conditional rendering for auth and cart components */}
+      {showAuthDialog && <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+      {showMiniCart && <MiniCart onClose={() => setShowMiniCart(false)} />}
+    </Box>
   );
 }

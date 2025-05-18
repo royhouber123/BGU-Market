@@ -1,15 +1,14 @@
 import React from "react";
-import Header from "../components/Header";
-import { Button } from "@/components/ui/button";
+import Header from "../components/Header.jsx";
+import FeaturedSection from "../components/FeaturedSection.jsx";
+import { Button, Typography, Box, Paper } from "@mui/material";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import {
-  CheckCircle2,
-  ShoppingBag,
-  Truck,
-  Clock,
-  ChevronRight,
-} from "lucide-react";
+import { createPageUrl } from "../utils";
+import CheckIcon from "@mui/icons-material/Check";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 export default function OrderConfirmation() {
   // Generate a random order number
@@ -33,8 +32,10 @@ export default function OrderConfirmation() {
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            <div className="flex items-center justify-center mb-6">
+              <div className="bg-green-100 rounded-full p-3">
+                <CheckIcon style={{ width: '32px', height: '32px', color: '#16a34a' }} />
+              </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
               Order Confirmed!
@@ -67,32 +68,41 @@ export default function OrderConfirmation() {
           <div className="my-6">
             <h2 className="text-lg font-semibold mb-4">Shipping Information</h2>
             <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Truck className="w-5 h-5 text-gray-500 mt-1" />
+              <div className="flex items-center mb-3">
+                <LocalShippingIcon style={{ marginRight: '8px', color: '#2563eb' }} />
                 <div>
-                  <p className="font-medium">Estimated Delivery</p>
-                  <p className="text-gray-600">{formattedDeliveryDate}</p>
-                  <div className="flex items-center mt-3 text-sm text-green-600">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span>
-                      Shipping confirmation will be sent to your email
-                    </span>
-                  </div>
+                  <h3 className="font-medium text-gray-900">Shipping</h3>
+                  <p className="text-sm text-gray-500">Estimated delivery: 3-5 business days</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <AccessTimeIcon style={{ marginRight: '8px', color: '#2563eb' }} />
+                <div>
+                  <h3 className="font-medium text-gray-900">Order Processing</h3>
+                  <p className="text-sm text-gray-500">Your order will be processed within 24 hours</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
-            <Button variant="outline" className="w-full" asChild>
-              <Link to={createPageUrl("Home")}>
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Continue Shopping
-              </Link>
+            <Button 
+              variant="outlined" 
+              component={Link} 
+              to={createPageUrl("Home")}  
+              startIcon={<ShoppingBagIcon />}
+              fullWidth
+            >
+              Continue Shopping
             </Button>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+            
+            <Button 
+              variant="contained" 
+              color="primary" 
+              endIcon={<ArrowForwardIcon />}
+              fullWidth
+            >
               Track Your Order
-              <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
 
@@ -104,6 +114,15 @@ export default function OrderConfirmation() {
               </a>
             </p>
           </div>
+        </div>
+
+        {/* Add recommendations section */}
+        <div className="mt-12">
+          <FeaturedSection
+            title="You may also like"
+            subtitle="Recommended products for you"
+            limit={4}
+          />
         </div>
       </main>
     </div>
