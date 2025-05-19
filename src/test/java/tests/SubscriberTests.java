@@ -1,25 +1,21 @@
 package tests;
-import market.application.AuthService.AuthToken;
-import market.domain.purchase.Purchase;
-import market.domain.store.Listing;
-import market.domain.store.StoreDTO;
-import market.domain.user.ShoppingCart;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.jsonwebtoken.lang.Assert;
+import market.domain.store.Listing;
+import market.domain.store.StoreDTO;
+import market.domain.user.ShoppingCart;
+import market.domain.user.User;
+import market.middleware.TokenUtils; // Ensure this is the correct package for the User class
 import support.AcceptanceTestBase;
 import utils.ApiResponse;
-
-import java.util.List;
-import market.domain.user.User; // Ensure this is the correct package for the User class
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 /**
  * Acceptance-level scenarios for a subscriber.
@@ -215,13 +211,26 @@ class SubscriberTests extends AcceptanceTestBase {
             10,
             1000).getData();
 
+        // Generate token and inject
+        String token = authService.generateToken(user1).getData();
+        TokenUtils.setMockToken(token);  // <<--- Key step!
+
+        // Call method under test
+        ApiResponse<Void> res = userService.addProductToCart(storeid1, listing_id1, 2);
+        assertTrue(res.isSuccess());
+
+        // Assert
+    
+
         ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
-        cart.addProduct(storeid1, listing_id1, 2);
+       // cart.addProduct(storeid1, listing_id1, 2);
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
 
         //clean up
         this.listingRepository.removeListing(listing_id1);
         this.storeService.closeStore(storeid1, user1.getUserName());
+         TokenUtils.clearMockToken();
+
     }
     @Test
     void add_proudct_to_storebag_no_product(){   //dosent check if the product is in the store tell omer/dayan to fix it
