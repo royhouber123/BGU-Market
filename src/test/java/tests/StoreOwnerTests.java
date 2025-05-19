@@ -225,12 +225,9 @@ public class StoreOwnerTests extends AcceptanceTestBase {
     assertFalse(()->check.contains(Store.Permission.EDIT_PRODUCTS.getCode()));
 }
 
-@Test public void owner_requestStoreRoles_positive() {}
-@Test public void owner_requestStoreRoles_negative() {}
-@Test public void owner_requestStoreRoles_alternate() {}
 
 
-// still need to write the edit functionality!!!!!!!!!!!
+
 @Test
 public void owner_editProductFromStore_positive() {
     String listingId = storeService.addNewListing(
@@ -292,6 +289,9 @@ public void owner_editProductFromStore_alternate_ProductNotFound() {
 @Test public void owner_editStoreDiscountPolicy_negative_InValidObjectToCreatePolicyTo() {}
 @Test public void owner_editStoreDiscountPolicy_alternate_InActiveStore() {}
    
+
+
+//doesnt support this functionality!!!!
 @Test public void owner_respondToUserMessages_positive() {}
 @Test public void owner_respondToUserMessages_negative() {}
 @Test public void owner_respondToUserMessages_alternate() {}
@@ -300,4 +300,7 @@ public void owner_editProductFromStore_alternate_ProductNotFound() {
 @Test public void owner_viewStorePurchaseHistory_negative() {}
 @Test public void owner_viewStorePurchaseHistory_alternate() {}
 
+@Test public void owner_requestStoreRoles_positive() {}
+@Test public void owner_requestStoreRoles_negative() {}
+@Test public void owner_requestStoreRoles_alternate() {}
 }
