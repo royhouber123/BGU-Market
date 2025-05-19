@@ -36,7 +36,7 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test
     void guest_enters_system_initializes_cart() { 
         //Step 1: Enter the system as a guest and verify success
         String guestName = "guest";
@@ -55,7 +55,7 @@ public class GuestTests extends AcceptanceTestBase {
         assertTrue(cart.getAllStoreBags().isEmpty(), "Guest's shopping cart should be empty on registration");
     }
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test
     void guest_exits_system_cart_deleted() {
         //Step 1: Enter the system as a guest
         String guestName = "guest";
@@ -69,14 +69,15 @@ public class GuestTests extends AcceptanceTestBase {
         ShoppingCart cart = userRepository.getCart(guestName);
         assertNotNull(cart, "Cart should exist after guest registers");
         //Step 5: Simulate guest leaving the system (e.g., closing the browser)
-        userRepository.delete(guestName);
+        ApiResponse<Void> deleteResponse = userService.deleteUser(guestName);
+        assertTrue(deleteResponse.isSuccess(), "Failed to delete guest user: " + deleteResponse.getError());
         //Step 6: Attempt to access the guest's cart again — should throw an exception
         assertThrows(RuntimeException.class, () -> {
                 userService.getUserRepository().getData().getCart(guestName);
                 }, "Expected cart retrieval to fail after guest deletion");
     }
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test
     void guest_registers_with_valid_details() {
         //Step 1: Attempt to register a new subscriber with valid credentials
         String username = "new_subscriber";
@@ -372,29 +373,42 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test 
     void guest_adds_product_to_cart_valid() {
-        assertDoesNotThrow(() -> {
-            //Step 1: Add a product to the cart of user1
-            ApiResponse<IUserRepository> repoResp1 = userService.getUserRepository();
-            assertTrue(repoResp1.isSuccess(), "Failed to retrieve user repository: " + repoResp1.getError());
-            IUserRepository userRepository1 = repoResp1.getData();
-            userRepository1.findById("user1").addProductToCart(storeId, "gvina", 2);
-            //Step 2: Retrieve the cart and verify that the product was added with correct quantity
-            ApiResponse<IUserRepository> repoResp2 = userService.getUserRepository();
-            assertTrue(repoResp2.isSuccess(), "Failed to retrieve user repository: " + repoResp2.getError());
-            ShoppingCart cartBefore = repoResp2.getData().getCart("user1");
-            assertEquals(2, cartBefore.getStoreBag(storeId).getProductQuantity("gvina"),
-                "Expected quantity of 'gvina' in store bag should be 2");
-            //Step 3: Remove the product from the cart
-            userRepository1.findById("user1").removeProductFromCart(storeId, "gvina", 2);
-            //Step 4: Verify the store bag was removed after deleting all products from it
-            ApiResponse<IUserRepository> repoResp3 = userService.getUserRepository();
-            assertTrue(repoResp3.isSuccess(), "Failed to retrieve user repository: " + repoResp3.getError());
-            ShoppingCart cartAfter = repoResp3.getData().getCart("user1");
-            assertNull(cartAfter.getStoreBag(storeId),
-                "Store bag should be null after removing all quantities of the product");
-        });
+        //Step 1: Register a new guest user named "Hadas"
+        userService.register("Hadas");
+        //Step 2: Retrieve the user repository and get the User object
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guest=userRep.findById("Hadas");
+        //Step 3: Generate a token for the guest and set it as the current mock token
+        String token = authService.generateToken(guest).getData();
+        TokenUtils.setMockToken(token);
+        //Step 4: Add a new product listing (Gvina) to the store as the founder ("1")
+        String listingIdOfGvina=storeService.addNewListing(
+            "1",
+            storeId,
+            "123",
+            "Gvina",
+            "food",
+            "Gvina",
+            10,
+            5.0
+        ).getData();
+        //Step 5: Guest adds 2 units of the product to their cart
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId, listingIdOfGvina, 2);
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
+        //Step 6: Retrieve the guest's shopping cart and verify product quantity
+        ShoppingCart cart = userRep.getCart("Hadas"); 
+        assertEquals(2, cart.getStoreBag(storeId).getProductQuantity(listingIdOfGvina),
+            "Expected quantity of 'gvina' in store bag should be 2");
+        //Step 7: Guest removes the same quantity of the product from the cart
+        ApiResponse<Void> removeProductResponse = userService.removeProductFromCart(storeId, listingIdOfGvina, 2);
+        assertTrue(removeProductResponse.isSuccess(), "Failed to remove product from cart: " + removeProductResponse.getError());
+        //Step 8: Verify that the store bag was removed (cart is empty for that store)
+        assertNull(cart.getStoreBag(storeId),
+            "Store bag should be null after removing all quantities of the product");
+        //Step 9: Clear the mock token
+        TokenUtils.clearMockToken();
     }
 
 
@@ -430,12 +444,13 @@ public class GuestTests extends AcceptanceTestBase {
         ///
     }
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test 
     void guest_purchases_cart_successfully(){
-        //Step 1: Register a store manager and create a store
+        //Step 1: Register a store manager
         assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
+        //Step 2: Create a new store by the manager
         String storeId1 = storeService.createStore("SchoolStore", "manager").getData();
-        //Step 2: Add a product to the store
+        //Step 3: Add a new listing (Notebook) to the store
         int quantity=5;
         String listingId=storeService.addNewListing( 
             "manager",
@@ -447,39 +462,47 @@ public class GuestTests extends AcceptanceTestBase {
             quantity,
             25.0
         ).getData();
-        //Step 3: Stub payment and shipment services to simulate success
+        //Step 4: Stub the payment and shipment services to simulate success
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
-        //Step 4: Enter as a guest and add the product to their cart
+        //Step 5: Register a guest user and simulate using a token
         userService.register("guest");
-        User guestUser=userService.getUserRepository().getData().findById("guest"); 
-        guestUser.addProductToCart(storeId1, listingId, 1);
-        //Step 5: Prepare shipping details and retrieve the guest's cart
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guestUser=userRep.findById("guest"); 
+        String token = authService.generateToken(guestUser).getData();
+        TokenUtils.setMockToken(token);
+        //Step 6: Add one notebook to the guest's shopping cart
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId1, listingId, 1);
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
+        //Step 7: Define shipping and contact info for the purchase
         String shippingAddress = "123 Guest Street"; 
         String contactInfo = "guest@example.com"; 
         ShoppingCart guestCart = guestUser.getShoppingCart();
-        //Step 6: Execute the purchase and verify success
+        //Step 8: Execute the purchase
         ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase("guest", guestCart, shippingAddress, contactInfo);
         assertTrue(purchaseResponse.isSuccess(), "Purchase failed: " + purchaseResponse.getError());
-        //Step 7: Validate purchase object and buyer identity
+        //Step 9: Validate that the purchase object is correct and belongs to the guest
         Purchase purchase = purchaseResponse.getData();
         assertNotNull(purchase, "Purchase should not be null");
         assertEquals("guest", purchase.getUserId(), "Buyer ID should be guest");
-        //Step 8: Verify the guest's cart is now empty
+        //Step 10: Verify that the cart is empty after successful purchase
         User refreshedGuest = userService.getUserRepository().getData().findById("guest");
         ShoppingCart refreshedCart = refreshedGuest.getShoppingCart();
         assertTrue(refreshedCart.getAllStoreBags().isEmpty(), "Shopping cart should be empty after purchase");
-        //Step 9: Check that product stock was reduced accordingly
+        //Step 11: Verify that the store stock was reduced by the purchased quantity
         int remainingStock = storeService.getListingRepository().getData().getListingById(listingId).getQuantityAvailable();
         assertEquals(quantity - 1, remainingStock, "Stock should decrease by purchased amount");
+        //Step 12: Clear the mock token
+        TokenUtils.clearMockToken();
     }
 
-    @Test /////////to change- need to use only user service functions/////////
-    void guest_purchasing_cart_fails_due_to_stock() throws Exception { //there is a stock when added to bag but not when purchase???
-        //Step 1: Register a store manager and create a store
+    @Test 
+    void guest_purchasing_cart_fails_due_to_stock() { //there is a stock when added to bag but not when purchase???
+        //Step 1: Register a store manager
         assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
+        //Step 2: Create a new store by the manager
         String storeId1 = storeService.createStore("SchoolStore", "manager").getData();
-        //Step 2: Add a product to the store with limited stock
+        //Step 3: Add a product to the store with limited stock (5 units)
         int quantity=5;
         String listingId=storeService.addNewListing( 
             "manager",
@@ -491,29 +514,38 @@ public class GuestTests extends AcceptanceTestBase {
             quantity,
             25.0
         ).getData();
-        //Step 3: Stub payment and shipment services to always succeed
+        //Step 4: Stub the payment and shipment services to simulate success (even though stock will fail)
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
-        //Step 4: Register a guest and add a quantity exceeding available stock
-        userService.register("guest"); 
-        User guestUser = userService.getUserRepository().getData().findById("guest"); 
-        guestUser.addProductToCart(storeId1, listingId, quantity + 1); 
-        //Step 5: Attempt to purchase and verify failure due to stock limitation
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
+        //Step 5: Register a guest user and authenticate using a mock token 
+        userService.register("guest");
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guestUser=userRep.findById("guest"); 
+        String token = authService.generateToken(guestUser).getData();
+        TokenUtils.setMockToken(token);
+        //Step 6: Add more items to the cart than are available in stock (6 > 5)
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId1, listingId, quantity + 1); 
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
+        //Step 7: Prepare shipping and contact information
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
         ShoppingCart guestCart = guestUser.getShoppingCart(); 
+        //Step 8: Attempt to execute purchase — should fail due to insufficient stock
         ApiResponse<Purchase> response = purchaseService.executePurchase("guest", guestCart, shippingAddress, contactInfo);
-        //Step 6: Check that the response indicates failure and the error is related to stock
+        //Step 9: Validate that the purchase failed and the error message is stock-related
         assertFalse(response.isSuccess(), "Expected purchase to fail due to stock limit");
         assertTrue(response.getError().toLowerCase().contains("stock"), "Expected stock-related error, but got: " + response.getError());
+        //Step 10: Clear the mock token to clean up
+        TokenUtils.clearMockToken();
     }
 
-    @Test /////////to change- need to use only user service functions/////////
-    void guest_purchasing_cart_fails_due_to_payment() throws Exception { //after payment failes- what to do with the stock- it already reduced???
-        //Step 1: Register a store manager and create a store
+    @Test 
+    void guest_purchasing_cart_fails_due_to_payment() { //after payment failes- what to do with the stock- it already reduced???
+        //Step 1: Register a store manager
         assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
+        //Step 2: Create a new store owned by the manager
         String storeId1 = storeService.createStore("SchoolStore", "manager").getData();
-        //Step 2: Add a new listing to the store
+        //Step 3: Add a product listing ("Notebook") with a stock of 5
         int quantity=5;
         String listingId=storeService.addNewListing( //Add a new product listing ("Notebook") to the created store
             "manager",
@@ -525,24 +557,28 @@ public class GuestTests extends AcceptanceTestBase {
             quantity,
             25.0
         ).getData();
-        //Step 3: Mock payment and shipment services
-        //Simulate payment failure response from the payment service
+        //Step 4: Stub services: simulate payment failure but allow shipment (to isolate payment failure)
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.fail("Simulated payment failure"));
-        //Simulate successful shipment response
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
-        //Step 4: Enter as a guest user
-        userService.register("guest"); 
-        User guestUser = userService.getUserRepository().getData().findById("guest"); 
-        //Step 5: Add a product to the guest's shopping cart
-        guestUser.addProductToCart(storeId1, listingId, 1); 
-        //Step 6: Prepare guest's cart and purchase details
+        //Step 5: Register a guest and simulate login via token
+        userService.register("guest");
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guestUser=userRep.findById("guest"); 
+        String token = authService.generateToken(guestUser).getData();
+        TokenUtils.setMockToken(token);
+        //Step 6: Add 1 unit of the notebook to the guest's shopping cart
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId1, listingId, 1); 
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError()); 
+        //Step 7: Define shipping and contact info
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
         ShoppingCart guestCart = guestUser.getShoppingCart();
-        //Step 7: Attempt to execute the purchase 
+        //Step 8: Attempt to execute purchase — should fail due to payment error
         ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase("guest", guestCart, shippingAddress, contactInfo);
-        //Step 8: Assert that the purchase failed due to payment
+        //Step 9: Verify that the purchase failed and the error is payment-related
         assertFalse(purchaseResponse.isSuccess(), "Expected purchase to fail due to payment issue");
-        assertTrue(purchaseResponse.getError().toLowerCase().contains("payment"), "Expected failure due to payment issue, but got: " + purchaseResponse.getError()); 
+        assertTrue(purchaseResponse.getError().toLowerCase().contains("payment"), "Expected failure due to payment issue, but got: " + purchaseResponse.getError());
+        //Step 10: Clear the mock token to clean up
+        TokenUtils.clearMockToken(); 
     }
 }  
