@@ -3940,3 +3940,194 @@
 [2025-05-19 13:21:09] [INFO] Added permission: 1 to manager: 300 in store: 2, by: 100
 [2025-05-19 13:21:09] [INFO] Added new listing: Camera to store: 2, by: 100
 [2025-05-19 13:21:09] [INFO] User 300 editing price for listing d1bfc9af-7be5-42cf-ae2e-b37406d42044 in store 2
+[2025-05-19 13:42:48] [INFO] Hashing password
+[2025-05-19 13:42:48] [INFO] Hashing password
+[2025-05-19 13:42:49] [INFO] Hashing password
+[2025-05-19 13:42:49] [INFO] AuthService initialized
+[2025-05-19 13:42:49] [INFO] [UserService] Registering user: user1
+[2025-05-19 13:42:49] [INFO] [UserRepository] Registering user: user1
+[2025-05-19 13:42:49] [INFO] Hashing password
+[2025-05-19 13:42:50] [INFO] [UserRepository] User registered: user1
+[2025-05-19 13:42:50] [INFO] [UserService] User registered: user1
+[2025-05-19 13:42:50] [INFO] [UserService] Registering user: user2
+[2025-05-19 13:42:50] [INFO] [UserRepository] Registering user: user2
+[2025-05-19 13:42:50] [INFO] Hashing password
+[2025-05-19 13:42:50] [INFO] [UserRepository] User registered: user2
+[2025-05-19 13:42:50] [INFO] [UserService] User registered: user2
+[2025-05-19 13:42:50] [INFO] [UserService] Registering user: user3
+[2025-05-19 13:42:50] [INFO] [UserRepository] Registering user: user3
+[2025-05-19 13:42:50] [INFO] Hashing password
+[2025-05-19 13:42:50] [INFO] [UserRepository] User registered: user3
+[2025-05-19 13:42:50] [INFO] [UserService] User registered: user3
+[2025-05-19 13:42:50] [INFO] [UserRepository] Getting cart for user: user3
+[2025-05-19 13:42:50] [INFO] [UserRepository] Cart retrieved for user: user3
+[2025-05-19 13:42:50] [INFO] [UserService] Deleting user: user3
+[2025-05-19 13:42:50] [INFO] [UserRepository] Deleting user: user3
+[2025-05-19 13:42:50] [INFO] [UserRepository] User deleted: user3
+[2025-05-19 13:42:50] [INFO] [UserService] User deleted: user3
+[2025-05-19 13:42:50] [INFO] [UserService] Deleting user: user1
+[2025-05-19 13:42:50] [INFO] [UserRepository] Deleting user: user1
+[2025-05-19 13:42:50] [INFO] [UserRepository] User deleted: user1
+[2025-05-19 13:42:50] [INFO] [UserService] User deleted: user1
+[2025-05-19 13:42:50] [INFO] [UserService] Deleting user: user2
+[2025-05-19 13:42:50] [INFO] [UserRepository] Deleting user: user2
+[2025-05-19 13:42:50] [INFO] [UserRepository] User deleted: user2
+[2025-05-19 13:42:50] [INFO] [UserService] User deleted: user2
+[2025-05-19 13:43:51] [INFO] Hashing password
+[2025-05-19 13:43:51] [INFO] Hashing password
+[2025-05-19 13:43:51] [INFO] Hashing password
+[2025-05-19 13:43:52] [INFO] AuthService initialized
+[2025-05-19 13:43:52] [INFO] [UserService] Registering user: user1
+[2025-05-19 13:43:52] [INFO] [UserRepository] Registering user: user1
+[2025-05-19 13:43:52] [INFO] Hashing password
+[2025-05-19 13:43:52] [INFO] [UserRepository] User registered: user1
+[2025-05-19 13:43:52] [INFO] [UserService] User registered: user1
+[2025-05-19 13:43:52] [INFO] [UserService] Registering user: user2
+[2025-05-19 13:43:52] [INFO] [UserRepository] Registering user: user2
+[2025-05-19 13:43:52] [INFO] Hashing password
+[2025-05-19 13:43:53] [INFO] [UserRepository] User registered: user2
+[2025-05-19 13:43:53] [INFO] [UserService] User registered: user2
+[2025-05-19 13:43:53] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 13:43:53] [INFO] [UserRepository] User found: user1
+[2025-05-19 13:43:53] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-19 13:43:53] [INFO] [UserRepository] Attempting to find user by id: user2
+[2025-05-19 13:43:53] [INFO] [UserRepository] User found: user2
+[2025-05-19 13:43:53] [INFO] Store created: store2, founder: user2, id: 3
+[2025-05-19 13:43:53] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-19 13:43:53] [INFO] Added new listing: iphone to store: 3, by: user2
+[2025-05-19 13:43:53] [INFO] Store closed: 2, by user: user1
+[2025-05-19 13:43:53] [INFO] Store closed: 3, by user: user2
+[2025-05-19 13:43:53] [INFO] [UserService] Deleting user: user1
+[2025-05-19 13:43:53] [INFO] [UserRepository] Deleting user: user1
+[2025-05-19 13:43:53] [INFO] [UserRepository] User deleted: user1
+[2025-05-19 13:43:53] [INFO] [UserService] User deleted: user1
+[2025-05-19 13:43:53] [INFO] [UserService] Deleting user: user2
+[2025-05-19 13:43:53] [INFO] [UserRepository] Deleting user: user2
+[2025-05-19 13:43:53] [INFO] [UserRepository] User deleted: user2
+[2025-05-19 13:43:53] [INFO] [UserService] User deleted: user2
+[2025-05-19 14:15:55] [INFO] Hashing password
+[2025-05-19 14:15:55] [INFO] Hashing password
+[2025-05-19 14:15:56] [INFO] Hashing password
+[2025-05-19 14:15:57] [INFO] AuthService initialized
+[2025-05-19 14:15:57] [INFO] [UserService] Registering user: user1
+[2025-05-19 14:15:57] [INFO] [UserRepository] Registering user: user1
+[2025-05-19 14:15:57] [INFO] Hashing password
+[2025-05-19 14:15:57] [INFO] [UserRepository] User registered: user1
+[2025-05-19 14:15:57] [INFO] [UserService] User registered: user1
+[2025-05-19 14:15:57] [INFO] [UserService] Registering user: user2
+[2025-05-19 14:15:57] [INFO] [UserRepository] Registering user: user2
+[2025-05-19 14:15:57] [INFO] Hashing password
+[2025-05-19 14:15:57] [INFO] [UserRepository] User registered: user2
+[2025-05-19 14:15:57] [INFO] [UserService] User registered: user2
+[2025-05-19 14:15:57] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:15:57] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:15:57] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-19 14:15:57] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-19 14:15:57] [INFO] Generating token for user: user1
+[2025-05-19 14:15:57] [INFO] Token generated for user: user1
+[2025-05-19 14:15:57] [INFO] Parsing token
+[2025-05-19 14:15:57] [INFO] Token parsed successfully
+[2025-05-19 14:15:57] [INFO] [UserService] Adding product to cart for user: user1, storeId: 2, product: iPad, quantity: 2
+[2025-05-19 14:15:57] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:15:57] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:15:57] [INFO] [UserService] Product added to cart for user: user1
+[2025-05-19 14:15:57] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-19 14:15:57] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-19 14:15:57] [INFO] [UserService] Deleting user: user1
+[2025-05-19 14:15:57] [INFO] [UserRepository] Deleting user: user1
+[2025-05-19 14:15:57] [INFO] [UserRepository] User deleted: user1
+[2025-05-19 14:15:57] [INFO] [UserService] User deleted: user1
+[2025-05-19 14:15:57] [INFO] [UserService] Deleting user: user2
+[2025-05-19 14:15:57] [INFO] [UserRepository] Deleting user: user2
+[2025-05-19 14:15:57] [INFO] [UserRepository] User deleted: user2
+[2025-05-19 14:15:57] [INFO] [UserService] User deleted: user2
+[2025-05-19 14:17:15] [INFO] Hashing password
+[2025-05-19 14:17:15] [INFO] Hashing password
+[2025-05-19 14:17:15] [INFO] Hashing password
+[2025-05-19 14:17:16] [INFO] AuthService initialized
+[2025-05-19 14:17:16] [INFO] [UserService] Registering user: user1
+[2025-05-19 14:17:16] [INFO] [UserRepository] Registering user: user1
+[2025-05-19 14:17:16] [INFO] Hashing password
+[2025-05-19 14:17:16] [INFO] [UserRepository] User registered: user1
+[2025-05-19 14:17:16] [INFO] [UserService] User registered: user1
+[2025-05-19 14:17:16] [INFO] [UserService] Registering user: user2
+[2025-05-19 14:17:16] [INFO] [UserRepository] Registering user: user2
+[2025-05-19 14:17:16] [INFO] Hashing password
+[2025-05-19 14:17:16] [INFO] [UserRepository] User registered: user2
+[2025-05-19 14:17:16] [INFO] [UserService] User registered: user2
+[2025-05-19 14:17:16] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:17:16] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:17:16] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-19 14:17:16] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-19 14:17:16] [INFO] Generating token for user: user1
+[2025-05-19 14:17:16] [INFO] Token generated for user: user1
+[2025-05-19 14:17:29] [INFO] Parsing token
+[2025-05-19 14:17:29] [INFO] Token parsed successfully
+[2025-05-19 14:17:37] [INFO] [UserService] Adding product to cart for user: user1, storeId: 2, product: iPad, quantity: 2
+[2025-05-19 14:17:42] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:17:42] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:17:44] [INFO] [UserService] Product added to cart for user: user1
+[2025-05-19 14:18:46] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-19 14:18:46] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-19 14:19:58] [INFO] Hashing password
+[2025-05-19 14:19:58] [INFO] Hashing password
+[2025-05-19 14:19:58] [INFO] Hashing password
+[2025-05-19 14:19:59] [INFO] AuthService initialized
+[2025-05-19 14:19:59] [INFO] [UserService] Registering user: user1
+[2025-05-19 14:19:59] [INFO] [UserRepository] Registering user: user1
+[2025-05-19 14:19:59] [INFO] Hashing password
+[2025-05-19 14:19:59] [INFO] [UserRepository] User registered: user1
+[2025-05-19 14:19:59] [INFO] [UserService] User registered: user1
+[2025-05-19 14:19:59] [INFO] [UserService] Registering user: user2
+[2025-05-19 14:19:59] [INFO] [UserRepository] Registering user: user2
+[2025-05-19 14:19:59] [INFO] Hashing password
+[2025-05-19 14:19:59] [INFO] [UserRepository] User registered: user2
+[2025-05-19 14:19:59] [INFO] [UserService] User registered: user2
+[2025-05-19 14:19:59] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:19:59] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:19:59] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-19 14:19:59] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-19 14:19:59] [INFO] Generating token for user: user1
+[2025-05-19 14:19:59] [INFO] Token generated for user: user1
+[2025-05-19 14:20:20] [INFO] Parsing token
+[2025-05-19 14:20:21] [INFO] Token parsed successfully
+[2025-05-19 14:20:22] [INFO] [UserService] Adding product to cart for user: user1, storeId: 2, product: iPad, quantity: 2
+[2025-05-19 14:20:23] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:20:23] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:21:17] [INFO] Hashing password
+[2025-05-19 14:21:17] [INFO] Hashing password
+[2025-05-19 14:21:17] [INFO] Hashing password
+[2025-05-19 14:21:19] [INFO] AuthService initialized
+[2025-05-19 14:21:19] [INFO] [UserService] Registering user: user1
+[2025-05-19 14:21:19] [INFO] [UserRepository] Registering user: user1
+[2025-05-19 14:21:19] [INFO] Hashing password
+[2025-05-19 14:21:19] [INFO] [UserRepository] User registered: user1
+[2025-05-19 14:21:19] [INFO] [UserService] User registered: user1
+[2025-05-19 14:21:19] [INFO] [UserService] Registering user: user2
+[2025-05-19 14:21:19] [INFO] [UserRepository] Registering user: user2
+[2025-05-19 14:21:19] [INFO] Hashing password
+[2025-05-19 14:21:19] [INFO] [UserRepository] User registered: user2
+[2025-05-19 14:21:19] [INFO] [UserService] User registered: user2
+[2025-05-19 14:21:19] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:21:19] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:21:19] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-19 14:21:19] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-19 14:21:19] [INFO] Generating token for user: user1
+[2025-05-19 14:21:19] [INFO] Token generated for user: user1
+[2025-05-19 14:21:19] [INFO] Parsing token
+[2025-05-19 14:21:19] [INFO] Token parsed successfully
+[2025-05-19 14:21:19] [INFO] [UserService] Adding product to cart for user: user1, storeId: 2, product: 1020bc8b-0cd4-465e-8fc1-e0a1bdba53ef, quantity: 2
+[2025-05-19 14:21:19] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-19 14:21:19] [INFO] [UserRepository] User found: user1
+[2025-05-19 14:21:19] [INFO] [UserService] Product added to cart for user: user1
+[2025-05-19 14:21:19] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-19 14:21:19] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-19 14:21:19] [INFO] Store closed: 2, by user: user1
+[2025-05-19 14:21:19] [INFO] [UserService] Deleting user: user1
+[2025-05-19 14:21:19] [INFO] [UserRepository] Deleting user: user1
+[2025-05-19 14:21:19] [INFO] [UserRepository] User deleted: user1
+[2025-05-19 14:21:19] [INFO] [UserService] User deleted: user1
+[2025-05-19 14:21:19] [INFO] [UserService] Deleting user: user2
+[2025-05-19 14:21:19] [INFO] [UserRepository] Deleting user: user2
+[2025-05-19 14:21:19] [INFO] [UserRepository] User deleted: user2
+[2025-05-19 14:21:19] [INFO] [UserService] User deleted: user2
