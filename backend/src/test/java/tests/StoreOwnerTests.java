@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import market.domain.store.Listing;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
+import market.dto.AddDiscountDTO;
+import market.dto.AddPurchasePolicyDTO;
 import support.AcceptanceTestBase;
 import utils.ApiResponse;
 
@@ -279,15 +281,180 @@ public void owner_editProductFromStore_alternate_ProductNotFound() {
 }
 
 
+@Test
+public void owner_addStoreDiscountPolicy_positive() {
+    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
 
-@Test public void owner_editStorePurchasePolicy_positive() {}
-@Test public void owner_editStorePurchasePolicy_negative() {}
-@Test public void owner_editStorePurchasePolicy_alternate() {}
+    AddDiscountDTO dto = new AddDiscountDTO(
+        "PERCENTAGE",                 // type
+        "PRODUCT",                 // scope
+        "p1",                      // scopeId (dummy product ID)
+        0.2,                       // value = 20% discount
+        null,                     // couponCode
+        null,                     // condition
+        List.of(),                // subDiscounts
+        "SUM"                     // combinationType
+    );
+
+    storeService.addNewListing(FOUNDER, storeId, "p1", "TV", "Electronics", "Smart TV", 10, 2000);
+    ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, FOUNDER, dto);
+
+    assertTrue(res.isSuccess());
+    assertTrue(res.getData());
+}
 
 
-@Test public void owner_editStoreDiscountPolicy_positive() {}
-@Test public void owner_editStoreDiscountPolicy_negative_InValidObjectToCreatePolicyTo() {}
+//need to check valid value of discount!!!!
+// @Test
+// public void owner_addStoreDiscountPolicy_negative_invalidValue() {
+//     String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+
+//     AddDiscountDTO dto = new AddDiscountDTO(
+//         "PERCENTAGE",              // type
+//         "PRODUCT",                 // scope
+//         "p1",                      // scopeId
+//         78,                      //  invalid negative discount
+//         null,
+//         null,
+//         List.of(),
+//         "SUM"
+//     );
+
+//     storeService.addNewListing(FOUNDER, storeId, "p1", "Laptop", "Electronics", "Gaming Laptop", 3, 3500);
+
+//     ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, FOUNDER, dto);
+
+//     assertFalse(res.isSuccess());
+//     assertTrue(res.getError().toLowerCase().contains("invalid"));  // adjust message as needed
+// }
+
+
+@Test
+public void owner_addStoreDiscountPolicy_alternate_inactiveStore() {
+    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+
+    storeService.addNewListing(FOUNDER, storeId, "p1", "Fridge", "Appliances", "Energy Saver", 5, 1200);
+
+    // Close the store before adding discount
+    storeService.closeStore(storeId, FOUNDER);
+
+    AddDiscountDTO dto = new AddDiscountDTO(
+        "PERCENTAGE",
+        "PRODUCT",
+        "p1",
+        0.1,
+        null,
+        null,
+        List.of(),
+        "SUM"
+    );
+
+    ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, FOUNDER, dto);
+
+    assertFalse(res.isSuccess());
+    assertTrue(res.getError().toLowerCase().contains("closed"));  // adjust message as needed
+}
+
+@Test
+public void owner_editStoreDiscountPolicy_positive() {
+    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+    storeService.addNewListing(FOUNDER, storeId, "p1", "Tablet", "Electronics", "Android Tablet", 5, 1000);
+
+    // Original discount
+    AddDiscountDTO oldDiscount = new AddDiscountDTO(
+        "PERCENTAGE", "PRODUCT", "p1", 0.1, null, null, List.of(), "SUM"
+    );
+
+    storePoliciesService.addDiscount(storeId, FOUNDER, oldDiscount);
+
+    // Remove old and add new (edit)
+    storePoliciesService.removeDiscount(storeId, FOUNDER, oldDiscount);
+    AddDiscountDTO newDiscount = new AddDiscountDTO(
+        "PERCENTAGE", "PRODUCT", "p1", 0.2, null, null, List.of(), "SUM"
+    );
+    ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, FOUNDER, newDiscount);
+
+    assertTrue(res.isSuccess());
+    assertTrue(res.getData());
+}
+
+
+
+//also need to check valid values!!!!!!!!!!! 
+// @Test
+// public void owner_editStoreDiscountPolicy_negative_InValidObjectToCreatePolicyTo() {
+//     String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+//     storeService.addNewListing(FOUNDER, storeId, "p1", "TV", "Electronics", "Smart TV", 4, 2500);
+
+//     // Invalid discount object (missing type, invalid value)
+//     AddDiscountDTO invalid = new AddDiscountDTO(
+//         null,           // ❌ invalid type
+//         "PRODUCT",
+//         "p1",
+//         -0.3,           // ❌ invalid value
+//         null,
+//         null,
+//         List.of(),
+//         "SUM"
+//     );
+
+//     ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, FOUNDER, invalid);
+
+//     assertFalse(res.isSuccess());
+//     assertTrue(res.getError().toLowerCase().contains("unsupported discount type"));  // Adjust as needed
+// }
+
 @Test public void owner_editStoreDiscountPolicy_alternate_InActiveStore() {}
+
+
+@Test
+public void owner_editStorePurchasePolicy_positive() {
+    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+
+    AddPurchasePolicyDTO oldPolicy = new AddPurchasePolicyDTO("MINITEMS", 2);
+    storePoliciesService.addPurchasePolicy(storeId, FOUNDER, oldPolicy);
+
+    // Remove the old policy and add a new one (edit)
+    storePoliciesService.removePurchasePolicy(storeId, FOUNDER, oldPolicy);
+    AddPurchasePolicyDTO newPolicy = new AddPurchasePolicyDTO("MINITEMS", 5);
+
+    ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, FOUNDER, newPolicy);
+    assertTrue(res.isSuccess());
+    assertTrue(res.getData());
+}
+
+@Test
+public void owner_editStorePurchasePolicy_negative_InValidObjectToCreatePolicyTo() {
+    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+
+    // Invalid policy: null type, negative value
+    AddPurchasePolicyDTO invalidPolicy = new AddPurchasePolicyDTO(null, -3);
+
+    ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, FOUNDER, invalidPolicy);
+
+    assertFalse(res.isSuccess());
+    assertTrue(res.getError().toLowerCase().contains("type")); 
+}
+
+
+
+@Test
+public void owner_editStorePurchasePolicy_alternate_InActiveStore() {
+    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+
+    storeService.closeStore(storeId, FOUNDER);
+
+    AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MAXITEMS", 10);
+
+    ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, FOUNDER, policy);
+
+    assertFalse(res.isSuccess());
+    assertTrue(res.getError().toLowerCase().contains("closed")); // Adjust based on actual message
+}
+
+
+
+
    
 
 

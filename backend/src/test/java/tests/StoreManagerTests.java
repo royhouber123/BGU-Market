@@ -1,5 +1,7 @@
 package tests;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import market.domain.store.Listing;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
+import market.dto.AddDiscountDTO;
+import market.dto.AddPurchasePolicyDTO;
 import support.AcceptanceTestBase;
 import utils.ApiResponse;
 
@@ -183,13 +187,109 @@ public class StoreManagerTests extends AcceptanceTestBase {
         assertTrue(res.getError().toLowerCase().contains("not found"));
     }
 
-    @Test public void manager_editStorePurchasePolicy_positive() {}
-    @Test public void manager_editStorePurchasePolicy_negative_NoPermission() {}
-    @Test public void manager_editStorePurchasePolicy_alternate_InActiveStore() {}
+    @Test
+    public void manager_editStorePurchasePolicy_positive() {
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
 
-    @Test public void manager_editStoreDiscountPolicy_positive() {}
-    @Test public void manager_editStoreDiscountPolicy_negative_NoPermission() {}
-    @Test public void manager_editStoreDiscountPolicy_alternate_InValidObjectToCreatePolicyTo() {}
+        storeService.addNewManager(FOUNDER, MANAGER, storeId);
+        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
+
+        AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MINITEMS", 2);
+
+        ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
+        assertTrue(res.isSuccess());
+        assertTrue(res.getData());
+    }
+
+
+
+    @Test
+    public void manager_editStorePurchasePolicy_negative_NoPermission() {
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+
+        storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
+
+        AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MINPRICE", 300);
+
+        ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
+        assertFalse(res.isSuccess());
+        assertTrue(res.getError().toLowerCase().contains("permission"));
+    }
+
+
+    @Test
+    public void manager_editStorePurchasePolicy_alternate_InActiveStore() {
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+
+        storeService.addNewManager(FOUNDER, MANAGER, storeId);
+        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
+
+        storeService.closeStore(storeId, FOUNDER);
+
+        AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MAXITEMS", 15);
+
+        ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
+        assertFalse(res.isSuccess());
+        assertTrue(res.getError().toLowerCase().contains("closed"));
+    }
+
+
+
+
+    @Test
+    public void manager_editStoreDiscountPolicy_positive() {
+        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300);
+
+        storeService.addNewManager(FOUNDER, MANAGER, storeId);
+        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
+
+        AddDiscountDTO dto = new AddDiscountDTO(
+            "PERCENTAGE", "PRODUCT", "p1", 0.25, null, null, List.of(), "SUM"
+        );
+
+        ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, MANAGER, dto);
+        assertTrue(res.isSuccess());
+        assertTrue(res.getData());
+    }
+
+    @Test
+    public void manager_editStoreDiscountPolicy_negative_NoPermission() {
+        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Camera", "Electronics", "DSLR", 3, 2500);
+
+        storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
+
+        AddDiscountDTO dto = new AddDiscountDTO(
+            "PERCENTAGE", "PRODUCT", "p1", 0.1, null, null, List.of(), "SUM"
+        );
+
+        ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, MANAGER, dto);
+        assertFalse(res.isSuccess());
+        assertTrue(res.getError().toLowerCase().contains("permission"));
+    }
+
+
+
+    @Test
+    public void manager_editStoreDiscountPolicy_alternate_InValidObjectToCreatePolicyTo() {
+        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200);
+
+        storeService.addNewManager(FOUNDER, MANAGER, storeId);
+        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
+
+        AddDiscountDTO invalid = new AddDiscountDTO(
+            null, "PRODUCT", "p1", -0.4, null, null, List.of(), "SUM" // ❌ invalid
+        );
+
+        ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, MANAGER, invalid);
+        assertFalse(res.isSuccess());
+        assertTrue(res.getError().toLowerCase().contains("null")); // Adjust as needed
+    }
+
+    
 
     @Test public void manager_requestStoreRoles_positive() {}
     @Test public void manager_requestStoreRoles_negative() {}
