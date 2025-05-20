@@ -8,6 +8,7 @@ import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.application.ProductService;
 import market.application.PurchaseService;
+import market.application.StorePoliciesService;
 import market.application.StoreService;
 import market.application.UserService;
 import market.domain.Role.IRoleRepository;
@@ -35,6 +36,7 @@ public abstract class AcceptanceTestBase {
     protected IPaymentService paymentService;
     protected IShipmentService shipmentService;
     protected PurchaseService purchaseService;
+    protected StorePoliciesService storePoliciesService;
     protected StoreRepository storeRepository;
     protected IListingRepository listingRepository;
     
@@ -52,6 +54,7 @@ public abstract class AcceptanceTestBase {
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         storeService = new StoreService(storerepo,userRepository,listingRepository); // Use the real implementation
+        storePoliciesService = new StorePoliciesService(storerepo);
         productService = new ProductService(listingRepository);
         paymentService = mock(IPaymentService.class); // Mock external service
         shipmentService = mock(IShipmentService.class); // Mock external service
