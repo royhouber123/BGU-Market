@@ -3304,3 +3304,1746 @@
 [2025-05-16 17:30:12] [INFO] [UserRepository] Deleting user: user2
 [2025-05-16 17:30:12] [INFO] [UserRepository] User deleted: user2
 [2025-05-16 17:30:12] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:54] [INFO] Hashing password
+[2025-05-18 03:21:54] [INFO] Hashing password
+[2025-05-18 03:21:54] [INFO] Hashing password
+[2025-05-18 03:21:55] [INFO] AuthService initialized
+[2025-05-18 03:21:55] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:55] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:55] [INFO] Hashing password
+[2025-05-18 03:21:55] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:55] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:55] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:55] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:55] [INFO] Hashing password
+[2025-05-18 03:21:55] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:55] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:55] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:55] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:55] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:55] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:55] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:55] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:55] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:55] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:55] [INFO] Hashing password
+[2025-05-18 03:21:55] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] AuthService initialized
+[2025-05-18 03:21:56] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:56] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:56] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:56] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:56] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:56] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:56] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:56] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] AuthService initialized
+[2025-05-18 03:21:56] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:56] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:56] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:56] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:21:56] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:21:56] [INFO] [UserRepository] Attempting to find user by id: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] User found: user2
+[2025-05-18 03:21:56] [INFO] Store created: store2, founder: user2, id: 3
+[2025-05-18 03:21:56] [INFO] Store closed: 2, by user: user1
+[2025-05-18 03:21:56] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:56] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:56] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:56] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:56] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:56] [INFO] AuthService initialized
+[2025-05-18 03:21:56] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:56] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:56] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:57] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:57] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:57] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:57] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:57] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:57] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:57] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] AuthService initialized
+[2025-05-18 03:21:57] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:57] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:57] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:57] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:57] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:57] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:57] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:57] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] AuthService initialized
+[2025-05-18 03:21:57] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:57] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:57] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:57] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:57] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:21:57] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:21:57] [INFO] Store closed: 2, by user: user1
+[2025-05-18 03:21:57] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:57] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:57] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:57] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:57] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:57] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:57] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] AuthService initialized
+[2025-05-18 03:21:58] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:58] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:58] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:58] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:58] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:58] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:58] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:58] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:58] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:58] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:58] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:58] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:58] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:58] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] AuthService initialized
+[2025-05-18 03:21:58] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:58] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:58] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:58] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:58] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:58] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:58] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:58] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:58] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:58] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:58] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:58] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:58] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:58] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:58] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:58] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] AuthService initialized
+[2025-05-18 03:21:59] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:59] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:59] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:59] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:59] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:59] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:59] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:59] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:59] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:59] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:59] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] AuthService initialized
+[2025-05-18 03:21:59] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:21:59] [INFO] [UserService] User registered: user1
+[2025-05-18 03:21:59] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:21:59] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:21:59] [INFO] [UserService] User registered: user2
+[2025-05-18 03:21:59] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:21:59] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:21:59] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:21:59] [INFO] Store retrieved: store1
+[2025-05-18 03:21:59] [DEBUG] Attempted to close non-existent store: null
+[2025-05-18 03:21:59] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:21:59] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:21:59] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:21:59] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:21:59] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:21:59] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:21:59] [INFO] AuthService initialized
+[2025-05-18 03:21:59] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:21:59] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:21:59] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:00] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:00] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:00] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:00] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:00] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:00] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:00] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] AuthService initialized
+[2025-05-18 03:22:00] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:00] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:00] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:00] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:00] [INFO] [UserService] Registering user: user3
+[2025-05-18 03:22:00] [INFO] [UserRepository] Registering user: user3
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] [UserRepository] User registered: user3
+[2025-05-18 03:22:00] [INFO] [UserService] User registered: user3
+[2025-05-18 03:22:00] [INFO] [UserRepository] Getting cart for user: user3
+[2025-05-18 03:22:00] [INFO] [UserRepository] Cart retrieved for user: user3
+[2025-05-18 03:22:00] [INFO] [UserService] Deleting user: user3
+[2025-05-18 03:22:00] [INFO] [UserRepository] Deleting user: user3
+[2025-05-18 03:22:00] [INFO] [UserRepository] User deleted: user3
+[2025-05-18 03:22:00] [INFO] [UserService] User deleted: user3
+[2025-05-18 03:22:00] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:00] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:00] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:00] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] AuthService initialized
+[2025-05-18 03:22:00] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:00] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:00] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:00] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:00] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:00] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:00] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:00] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:00] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:00] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:00] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] AuthService initialized
+[2025-05-18 03:22:01] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:01] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:01] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:01] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:22:01] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:22:01] [INFO] [UserRepository] Attempting to find user by id: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] User found: user2
+[2025-05-18 03:22:01] [INFO] Store created: store2, founder: user2, id: 3
+[2025-05-18 03:22:01] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:22:01] [INFO] Added new listing: iphone to store: 3, by: user2
+[2025-05-18 03:22:01] [INFO] Store closed: 2, by user: user1
+[2025-05-18 03:22:01] [INFO] Store closed: 3, by user: user2
+[2025-05-18 03:22:01] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:01] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:01] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:01] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] AuthService initialized
+[2025-05-18 03:22:01] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:01] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:01] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:01] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:01] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:01] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:01] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:01] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:01] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:01] [INFO] AuthService initialized
+[2025-05-18 03:22:01] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:01] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:01] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:02] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:02] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:02] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:02] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:02] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:02] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:02] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] AuthService initialized
+[2025-05-18 03:22:02] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:02] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:02] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:02] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:02] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:02] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:02] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:02] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] AuthService initialized
+[2025-05-18 03:22:02] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:02] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:02] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:02] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:02] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:02] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:02] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:02] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:02] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:02] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:02] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] AuthService initialized
+[2025-05-18 03:22:03] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:03] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:03] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:03] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:03] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:03] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:03] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:03] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] AuthService initialized
+[2025-05-18 03:22:03] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:03] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:03] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:03] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:03] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:03] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:03] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:03] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] AuthService initialized
+[2025-05-18 03:22:03] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:03] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:03] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:03] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:03] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:03] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:03] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:03] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:03] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:03] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:03] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] AuthService initialized
+[2025-05-18 03:22:04] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:04] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:04] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:04] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:22:04] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:22:04] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:22:04] [INFO] Store closed: 2, by user: user1
+[2025-05-18 03:22:04] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:04] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:04] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:04] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] AuthService initialized
+[2025-05-18 03:22:04] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:04] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:04] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:04] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:04] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:04] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:04] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:04] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] AuthService initialized
+[2025-05-18 03:22:04] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:04] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:04] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:04] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:04] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:04] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:04] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:04] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:04] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:04] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:04] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:04] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] AuthService initialized
+[2025-05-18 03:22:05] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:05] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:05] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:05] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:05] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:05] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:05] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:05] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] AuthService initialized
+[2025-05-18 03:22:05] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:05] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:05] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:05] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:22:05] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:22:05] [INFO] Store retrieved: store1
+[2025-05-18 03:22:05] [DEBUG] Attempted to close non-existent store: null
+[2025-05-18 03:22:05] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:05] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:05] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:05] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] AuthService initialized
+[2025-05-18 03:22:05] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:05] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:05] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:05] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:05] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:05] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:05] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:06] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:06] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:06] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:06] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:06] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] AuthService initialized
+[2025-05-18 03:22:06] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:06] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:06] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:06] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:06] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:06] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:06] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:06] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] AuthService initialized
+[2025-05-18 03:22:06] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:22:06] [INFO] [UserService] User registered: user1
+[2025-05-18 03:22:06] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:22:06] [INFO] Hashing password
+[2025-05-18 03:22:06] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:22:06] [INFO] [UserService] User registered: user2
+[2025-05-18 03:22:06] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:22:06] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:22:06] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:22:06] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:22:06] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:22:06] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:30:00] [INFO] Hashing password
+[2025-05-18 03:30:00] [INFO] Hashing password
+[2025-05-18 03:30:00] [INFO] Hashing password
+[2025-05-18 03:30:01] [INFO] AuthService initialized
+[2025-05-18 03:30:01] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:30:01] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:30:01] [INFO] Hashing password
+[2025-05-18 03:30:02] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:30:02] [INFO] [UserService] User registered: user1
+[2025-05-18 03:30:02] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:30:02] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:30:02] [INFO] Hashing password
+[2025-05-18 03:30:02] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:30:02] [INFO] [UserService] User registered: user2
+[2025-05-18 03:30:02] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:30:02] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:30:02] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:30:02] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:30:02] [ERROR] [UserService] Token is missing from request context
+[2025-05-18 03:30:02] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:30:02] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:30:02] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:30:02] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:30:02] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:30:02] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:30:02] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:30:02] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:30:41] [INFO] Hashing password
+[2025-05-18 03:30:41] [INFO] Hashing password
+[2025-05-18 03:30:41] [INFO] Hashing password
+[2025-05-18 03:30:43] [INFO] AuthService initialized
+[2025-05-18 03:30:43] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:30:43] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:30:43] [INFO] Hashing password
+[2025-05-18 03:30:43] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:30:43] [INFO] [UserService] User registered: user1
+[2025-05-18 03:30:43] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:30:43] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:30:43] [INFO] Hashing password
+[2025-05-18 03:30:43] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:30:43] [INFO] [UserService] User registered: user2
+[2025-05-18 03:30:43] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:30:43] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:30:43] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:30:43] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:30:43] [ERROR] [UserService] Token is missing from request context
+[2025-05-18 03:30:43] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:30:43] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:30:43] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:30:43] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:30:43] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:30:43] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:30:43] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:30:43] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:31:53] [INFO] Hashing password
+[2025-05-18 03:31:53] [INFO] Hashing password
+[2025-05-18 03:31:53] [INFO] Hashing password
+[2025-05-18 03:31:54] [INFO] AuthService initialized
+[2025-05-18 03:31:54] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:31:54] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:31:54] [INFO] Hashing password
+[2025-05-18 03:31:54] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:31:54] [INFO] [UserService] User registered: user1
+[2025-05-18 03:31:54] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:31:54] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:31:54] [INFO] Hashing password
+[2025-05-18 03:31:54] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:31:54] [INFO] [UserService] User registered: user2
+[2025-05-18 03:31:54] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:31:54] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:31:54] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:31:54] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:32:24] [ERROR] [UserService] Token is missing from request context
+[2025-05-18 03:37:55] [INFO] Hashing password
+[2025-05-18 03:37:55] [INFO] Hashing password
+[2025-05-18 03:37:55] [INFO] Hashing password
+[2025-05-18 03:37:56] [INFO] AuthService initialized
+[2025-05-18 03:37:56] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:37:56] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:37:56] [INFO] Hashing password
+[2025-05-18 03:37:57] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:37:57] [INFO] [UserService] User registered: user1
+[2025-05-18 03:37:57] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:37:57] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:37:57] [INFO] Hashing password
+[2025-05-18 03:37:57] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:37:57] [INFO] [UserService] User registered: user2
+[2025-05-18 03:37:57] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:37:57] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:37:57] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:37:57] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:37:57] [ERROR] [UserService] Token is missing from request context
+[2025-05-18 03:37:57] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:37:57] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:37:57] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:37:57] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:37:57] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:37:57] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:37:57] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:37:57] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:39:06] [INFO] Hashing password
+[2025-05-18 03:39:07] [INFO] Hashing password
+[2025-05-18 03:39:07] [INFO] Hashing password
+[2025-05-18 03:39:08] [INFO] AuthService initialized
+[2025-05-18 03:39:08] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:08] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:08] [INFO] Hashing password
+[2025-05-18 03:39:08] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:08] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:08] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:08] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:08] [INFO] Hashing password
+[2025-05-18 03:39:08] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:08] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:08] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:08] [INFO] Logging in user: user1
+[2025-05-18 03:39:08] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:39:08] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:39:08] [INFO] [UserRepository] Verifying password for user: user1
+[2025-05-18 03:39:08] [INFO] Verifying password
+[2025-05-18 03:39:08] [INFO] [UserRepository] Password verification successful for user: user1
+[2025-05-18 03:39:08] [INFO] Generating token for user: user1
+[2025-05-18 03:39:08] [INFO] Token generated for user: user1
+[2025-05-18 03:39:08] [INFO] User logged in successfully
+[2025-05-18 03:39:08] [INFO] Hashing password
+[2025-05-18 03:39:08] [INFO] Hashing password
+[2025-05-18 03:39:08] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] AuthService initialized
+[2025-05-18 03:39:09] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:09] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:09] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:09] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:09] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:09] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:09] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:09] [INFO] [UserService] Registering user: m1
+[2025-05-18 03:39:09] [INFO] [UserRepository] Registering user: m1
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] [UserRepository] User registered: m1
+[2025-05-18 03:39:09] [INFO] [UserService] User registered: m1
+[2025-05-18 03:39:09] [INFO] Store created: StoreAlpha, founder: m1, id: 3
+[2025-05-18 03:39:09] [INFO] Added new listing: Notebook Classic to store: 3, by: m1
+[2025-05-18 03:39:09] [INFO] Added new listing: Notebook Pro to store: 3, by: m1
+[2025-05-18 03:39:09] [INFO] Added new listing: Marker Red to store: 3, by: m1
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] AuthService initialized
+[2025-05-18 03:39:09] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:09] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:09] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:09] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:09] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:09] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:09] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:09] [INFO] [UserService] Registering user: manager
+[2025-05-18 03:39:09] [INFO] [UserRepository] Registering user: manager
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] [UserRepository] User registered: manager
+[2025-05-18 03:39:09] [INFO] [UserService] User registered: manager
+[2025-05-18 03:39:09] [INFO] Store created: SchoolStore, founder: manager, id: 3
+[2025-05-18 03:39:09] [INFO] Added new listing: Notebook to store: 3, by: manager
+[2025-05-18 03:39:09] [INFO] [UserService] Registering guest: guest
+[2025-05-18 03:39:09] [INFO] [UserRepository] Registering guest: guest
+[2025-05-18 03:39:09] [INFO] [UserRepository] Guest registered: guest
+[2025-05-18 03:39:09] [INFO] [UserService] Guest registered: guest
+[2025-05-18 03:39:09] [INFO] [UserRepository] Attempting to find user by id: guest
+[2025-05-18 03:39:09] [INFO] [UserRepository] User found: guest
+[2025-05-18 03:39:09] [INFO] Executing purchase for user: guest
+[2025-05-18 03:39:09] [INFO] Purchase executed successfully for user: guest, total: 0.0
+[2025-05-18 03:39:09] [INFO] [UserRepository] Attempting to find user by id: guest
+[2025-05-18 03:39:09] [INFO] [UserRepository] User found: guest
+[2025-05-18 03:39:09] [INFO] [UserRepository] Attempting to find user by id: guest
+[2025-05-18 03:39:09] [INFO] [UserRepository] User found: guest
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:09] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] AuthService initialized
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:10] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: manager1
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: manager1
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: manager1
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: manager1
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: manager2
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: manager2
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: manager2
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: manager2
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: manager3
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: manager3
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: manager3
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: manager3
+[2025-05-18 03:39:10] [INFO] Store created: StoreA, founder: manager1, id: 3
+[2025-05-18 03:39:10] [INFO] Store created: StoreB, founder: manager2, id: 4
+[2025-05-18 03:39:10] [INFO] Store created: StoreC, founder: manager3, id: 5
+[2025-05-18 03:39:10] [INFO] Added new listing: Notebook Classic to store: 3, by: manager1
+[2025-05-18 03:39:10] [INFO] Added new listing: Notebook Deluxe to store: 4, by: manager2
+[2025-05-18 03:39:10] [INFO] Added new listing: Yellow Pencil to store: 5, by: manager3
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] AuthService initialized
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:10] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:10] [INFO] [UserService] Registering user: managerX
+[2025-05-18 03:39:10] [INFO] [UserRepository] Registering user: managerX
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:10] [INFO] [UserRepository] User registered: managerX
+[2025-05-18 03:39:10] [INFO] [UserService] User registered: managerX
+[2025-05-18 03:39:10] [INFO] Store created: UniqueStore, founder: managerX, id: 3
+[2025-05-18 03:39:10] [INFO] Added new listing: Stapler to store: 3, by: managerX
+[2025-05-18 03:39:10] [INFO] Added new listing: Paper Clips to store: 3, by: managerX
+[2025-05-18 03:39:10] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] AuthService initialized
+[2025-05-18 03:39:11] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:11] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:11] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:11] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:11] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:11] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:11] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] AuthService initialized
+[2025-05-18 03:39:11] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:11] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:11] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:11] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:11] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:11] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:11] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] AuthService initialized
+[2025-05-18 03:39:11] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:11] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:11] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:11] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:11] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:11] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:11] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:12] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:12] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:12] [INFO] [UserService] Registering user: manager1
+[2025-05-18 03:39:12] [INFO] [UserRepository] Registering user: manager1
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] [UserRepository] User registered: manager1
+[2025-05-18 03:39:12] [INFO] [UserService] User registered: manager1
+[2025-05-18 03:39:12] [INFO] [UserService] Registering user: manager2
+[2025-05-18 03:39:12] [INFO] [UserRepository] Registering user: manager2
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] [UserRepository] User registered: manager2
+[2025-05-18 03:39:12] [INFO] [UserService] User registered: manager2
+[2025-05-18 03:39:12] [INFO] Store created: StoreA, founder: manager1, id: 3
+[2025-05-18 03:39:12] [INFO] Added new listing: Notebook to store: 3, by: manager1
+[2025-05-18 03:39:12] [INFO] Store created: StoreB, founder: manager2, id: 4
+[2025-05-18 03:39:12] [INFO] Added new listing: Pencil Case to store: 4, by: manager2
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] AuthService initialized
+[2025-05-18 03:39:12] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:12] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:12] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:12] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:12] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:12] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:12] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] AuthService initialized
+[2025-05-18 03:39:12] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:12] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:12] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:12] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:12] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:12] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:12] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:12] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:12] [INFO] [UserService] Registering user: manager
+[2025-05-18 03:39:12] [INFO] [UserRepository] Registering user: manager
+[2025-05-18 03:39:12] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] [UserRepository] User registered: manager
+[2025-05-18 03:39:13] [INFO] [UserService] User registered: manager
+[2025-05-18 03:39:13] [INFO] Store created: SchoolStore, founder: manager, id: 3
+[2025-05-18 03:39:13] [INFO] Added new listing: Notebook to store: 3, by: manager
+[2025-05-18 03:39:13] [INFO] [UserService] Registering guest: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] Registering guest: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] Guest registered: guest
+[2025-05-18 03:39:13] [INFO] [UserService] Guest registered: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] Attempting to find user by id: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] User found: guest
+[2025-05-18 03:39:13] [INFO] Executing purchase for user: guest
+[2025-05-18 03:39:13] [ERROR] Failed to execute regular purchase for user: guest. Reason: Not enough stock for listing: 8e0ace5c-9a83-43be-8076-16a1b7bbcf51
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] AuthService initialized
+[2025-05-18 03:39:13] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:13] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:13] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:13] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:13] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:13] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:13] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] AuthService initialized
+[2025-05-18 03:39:13] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:13] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:13] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:13] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:13] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:13] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:13] [INFO] [UserService] Registering guest: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] Registering guest: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] Guest registered: guest
+[2025-05-18 03:39:13] [INFO] [UserService] Guest registered: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] Getting cart for user: guest
+[2025-05-18 03:39:13] [INFO] [UserRepository] Cart retrieved for user: guest
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:13] [INFO] AuthService initialized
+[2025-05-18 03:39:13] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:13] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:13] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:14] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:14] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:14] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:14] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:14] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:14] [INFO] Logging in user: user2
+[2025-05-18 03:39:14] [INFO] [UserRepository] Attempting to find user by id: user2
+[2025-05-18 03:39:14] [INFO] [UserRepository] User found: user2
+[2025-05-18 03:39:14] [INFO] [UserRepository] Verifying password for user: user2
+[2025-05-18 03:39:14] [INFO] Verifying password
+[2025-05-18 03:39:14] [INFO] [UserRepository] Password verification failed for user: user2
+[2025-05-18 03:39:14] [ERROR] Invalid password for user: user2
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] AuthService initialized
+[2025-05-18 03:39:14] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:14] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:14] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:14] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:14] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:14] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:14] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] AuthService initialized
+[2025-05-18 03:39:14] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:14] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:14] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:14] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:14] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:14] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:14] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:14] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] AuthService initialized
+[2025-05-18 03:39:15] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:15] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:15] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:15] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:15] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:15] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:15] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:15] [INFO] [UserService] Registering user: new_subscriber
+[2025-05-18 03:39:15] [INFO] [UserRepository] Registering user: new_subscriber
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] [UserRepository] User registered: new_subscriber
+[2025-05-18 03:39:15] [INFO] [UserService] User registered: new_subscriber
+[2025-05-18 03:39:15] [INFO] [UserRepository] Attempting to find user by id: new_subscriber
+[2025-05-18 03:39:15] [INFO] [UserRepository] User found: new_subscriber
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] AuthService initialized
+[2025-05-18 03:39:15] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:15] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:15] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:15] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:15] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:15] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:15] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:15] [INFO] AuthService initialized
+[2025-05-18 03:39:15] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:15] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:15] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:16] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:16] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:16] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:16] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:16] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:16] [INFO] Store closed: 2, by user: 1
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] AuthService initialized
+[2025-05-18 03:39:16] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:16] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:16] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:16] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:16] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:16] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:16] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] AuthService initialized
+[2025-05-18 03:39:16] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:16] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:16] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:16] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:16] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:16] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:16] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:16] [INFO] [UserService] Registering guest: guest
+[2025-05-18 03:39:16] [INFO] [UserRepository] Registering guest: guest
+[2025-05-18 03:39:16] [INFO] [UserRepository] Guest registered: guest
+[2025-05-18 03:39:16] [INFO] [UserService] Guest registered: guest
+[2025-05-18 03:39:16] [INFO] [UserRepository] Getting cart for user: guest
+[2025-05-18 03:39:16] [INFO] [UserRepository] Cart retrieved for user: guest
+[2025-05-18 03:39:16] [INFO] [UserRepository] Deleting user: guest
+[2025-05-18 03:39:16] [INFO] [UserRepository] User deleted: guest
+[2025-05-18 03:39:16] [INFO] [UserRepository] Getting cart for user: guest
+[2025-05-18 03:39:16] [ERROR] [UserRepository] User with name 'guest' not found.
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:16] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] AuthService initialized
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:17] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:17] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:17] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: manager1
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: manager1
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] [UserRepository] User registered: manager1
+[2025-05-18 03:39:17] [INFO] [UserService] User registered: manager1
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: manager2
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: manager2
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] [UserRepository] User registered: manager2
+[2025-05-18 03:39:17] [INFO] [UserService] User registered: manager2
+[2025-05-18 03:39:17] [INFO] Store created: MyStore, founder: manager1, id: 3
+[2025-05-18 03:39:17] [INFO] Store created: AnotherStore, founder: manager2, id: 4
+[2025-05-18 03:39:17] [INFO] Added new listing: Blue Notebook to store: 3, by: manager1
+[2025-05-18 03:39:17] [INFO] Added new listing: Red Pencil to store: 4, by: manager2
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] AuthService initialized
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:17] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:17] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:17] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] AuthService initialized
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:17] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:39:17] [INFO] [UserService] User registered: user1
+[2025-05-18 03:39:17] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:39:17] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:39:17] [INFO] Hashing password
+[2025-05-18 03:39:18] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:39:18] [INFO] [UserService] User registered: user2
+[2025-05-18 03:39:18] [INFO] Store created: store1, founder: 1, id: 2
+[2025-05-18 03:39:18] [INFO] [UserService] Registering user: manager
+[2025-05-18 03:39:18] [INFO] [UserRepository] Registering user: manager
+[2025-05-18 03:39:18] [INFO] Hashing password
+[2025-05-18 03:39:18] [INFO] [UserRepository] User registered: manager
+[2025-05-18 03:39:18] [INFO] [UserService] User registered: manager
+[2025-05-18 03:39:18] [INFO] Store created: SchoolStore, founder: manager, id: 3
+[2025-05-18 03:39:18] [INFO] Added new listing: Notebook to store: 3, by: manager
+[2025-05-18 03:39:18] [INFO] [UserService] Registering guest: guest
+[2025-05-18 03:39:18] [INFO] [UserRepository] Registering guest: guest
+[2025-05-18 03:39:18] [INFO] [UserRepository] Guest registered: guest
+[2025-05-18 03:39:18] [INFO] [UserService] Guest registered: guest
+[2025-05-18 03:39:18] [INFO] [UserRepository] Attempting to find user by id: guest
+[2025-05-18 03:39:18] [INFO] [UserRepository] User found: guest
+[2025-05-18 03:39:18] [INFO] Executing purchase for user: guest
+[2025-05-18 03:39:18] [INFO] Purchase executed successfully for user: guest, total: 0.0
+[2025-05-18 03:39:18] [ERROR] Failed to execute regular purchase for user: guest. Reason: Payment failed for user: guest
+[2025-05-18 03:45:06] [INFO] Hashing password
+[2025-05-18 03:45:06] [INFO] Hashing password
+[2025-05-18 03:45:06] [INFO] Hashing password
+[2025-05-18 03:45:08] [INFO] AuthService initialized
+[2025-05-18 03:45:08] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:45:08] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:45:08] [INFO] Hashing password
+[2025-05-18 03:45:08] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:45:08] [INFO] [UserService] User registered: user1
+[2025-05-18 03:45:08] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:45:08] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:45:08] [INFO] Hashing password
+[2025-05-18 03:45:08] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:45:08] [INFO] [UserService] User registered: user2
+[2025-05-18 03:45:08] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:45:08] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:45:08] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:45:08] [INFO] Executing purchase for user: 2
+[2025-05-18 03:45:08] [ERROR] Failed to update stock for purchased items.
+[2025-05-18 03:45:08] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:45:08] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:45:08] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:45:08] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:45:08] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:45:08] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:45:08] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:45:08] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:46:18] [INFO] Hashing password
+[2025-05-18 03:46:18] [INFO] Hashing password
+[2025-05-18 03:46:18] [INFO] Hashing password
+[2025-05-18 03:46:19] [INFO] AuthService initialized
+[2025-05-18 03:46:19] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:46:19] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:46:19] [INFO] Hashing password
+[2025-05-18 03:46:19] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:46:19] [INFO] [UserService] User registered: user1
+[2025-05-18 03:46:19] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:46:19] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:46:19] [INFO] Hashing password
+[2025-05-18 03:46:19] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:46:19] [INFO] [UserService] User registered: user2
+[2025-05-18 03:46:22] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:46:22] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:46:24] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:46:40] [INFO] Executing purchase for user: 2
+[2025-05-18 03:47:43] [INFO] Hashing password
+[2025-05-18 03:47:43] [INFO] Hashing password
+[2025-05-18 03:47:43] [INFO] Hashing password
+[2025-05-18 03:47:44] [INFO] AuthService initialized
+[2025-05-18 03:47:44] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:47:44] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:47:44] [INFO] Hashing password
+[2025-05-18 03:47:44] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:47:44] [INFO] [UserService] User registered: user1
+[2025-05-18 03:47:44] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:47:44] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:47:44] [INFO] Hashing password
+[2025-05-18 03:47:44] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:47:44] [INFO] [UserService] User registered: user2
+[2025-05-18 03:47:44] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:47:44] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:47:44] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:47:44] [INFO] Executing purchase for user: 2
+[2025-05-18 03:47:44] [ERROR] Failed to update stock for purchased items.
+[2025-05-18 03:47:44] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:47:44] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:47:44] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:47:44] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:47:44] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:47:44] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:47:44] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:47:44] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:51:25] [INFO] Hashing password
+[2025-05-18 03:51:25] [INFO] Hashing password
+[2025-05-18 03:51:26] [INFO] Hashing password
+[2025-05-18 03:51:27] [INFO] AuthService initialized
+[2025-05-18 03:51:27] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:51:27] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:51:27] [INFO] Hashing password
+[2025-05-18 03:51:27] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:51:27] [INFO] [UserService] User registered: user1
+[2025-05-18 03:51:27] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:51:27] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:51:27] [INFO] Hashing password
+[2025-05-18 03:51:27] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:51:27] [INFO] [UserService] User registered: user2
+[2025-05-18 03:51:27] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:51:27] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:51:27] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:51:27] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:51:27] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:51:27] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:51:27] [INFO] Executing purchase for user: 2
+[2025-05-18 03:51:27] [INFO] Purchase executed successfully for user: 2, total: 0.0
+[2025-05-18 03:51:27] [ERROR] Failed to execute regular purchase for user: 2. Reason: Payment failed for user: 2
+[2025-05-18 03:51:27] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:51:27] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:51:27] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:51:27] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:51:27] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:51:27] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:51:27] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:51:27] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:54:05] [INFO] Hashing password
+[2025-05-18 03:54:05] [INFO] Hashing password
+[2025-05-18 03:54:05] [INFO] Hashing password
+[2025-05-18 03:54:06] [INFO] AuthService initialized
+[2025-05-18 03:54:06] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:54:06] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:54:06] [INFO] Hashing password
+[2025-05-18 03:54:06] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:54:06] [INFO] [UserService] User registered: user1
+[2025-05-18 03:54:06] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:54:06] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:54:06] [INFO] Hashing password
+[2025-05-18 03:54:06] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:54:06] [INFO] [UserService] User registered: user2
+[2025-05-18 03:54:06] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:54:06] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:54:06] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:54:06] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:54:06] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:54:06] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:54:06] [INFO] Executing purchase for user: 2
+[2025-05-18 03:54:06] [INFO] Purchase executed successfully for user: 2, total: 0.0
+[2025-05-18 03:54:06] [ERROR] Failed to execute regular purchase for user: 2. Reason: Payment failed for user: 2
+[2025-05-18 03:54:06] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:54:06] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:54:06] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:54:06] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:54:06] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:54:06] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:54:06] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:54:06] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:55:11] [INFO] Hashing password
+[2025-05-18 03:55:11] [INFO] Hashing password
+[2025-05-18 03:55:11] [INFO] Hashing password
+[2025-05-18 03:55:12] [INFO] AuthService initialized
+[2025-05-18 03:55:12] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:55:12] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:55:12] [INFO] Hashing password
+[2025-05-18 03:55:12] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:55:12] [INFO] [UserService] User registered: user1
+[2025-05-18 03:55:12] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:55:12] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:55:12] [INFO] Hashing password
+[2025-05-18 03:55:13] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:55:13] [INFO] [UserService] User registered: user2
+[2025-05-18 03:55:13] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:55:13] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:55:13] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:55:13] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:55:13] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:55:13] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:55:13] [INFO] Executing purchase for user: 2
+[2025-05-18 03:55:13] [INFO] Purchase executed successfully for user: 2, total: 0.0
+[2025-05-18 03:55:13] [ERROR] Failed to execute regular purchase for user: 2. Reason: Payment failed for user: 2
+[2025-05-18 03:55:13] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:55:13] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:55:13] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:55:13] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:55:13] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:55:13] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:55:13] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:55:13] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:55:32] [INFO] Hashing password
+[2025-05-18 03:55:33] [INFO] Hashing password
+[2025-05-18 03:55:33] [INFO] Hashing password
+[2025-05-18 03:55:34] [INFO] AuthService initialized
+[2025-05-18 03:55:34] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:55:34] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:55:34] [INFO] Hashing password
+[2025-05-18 03:55:34] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:55:34] [INFO] [UserService] User registered: user1
+[2025-05-18 03:55:34] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:55:34] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:55:34] [INFO] Hashing password
+[2025-05-18 03:55:34] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:55:34] [INFO] [UserService] User registered: user2
+[2025-05-18 03:55:34] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:55:34] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:55:34] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:55:34] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:55:34] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:55:34] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:55:34] [INFO] Executing purchase for user: 2
+[2025-05-18 03:55:34] [INFO] Purchase executed successfully for user: 2, total: 0.0
+[2025-05-18 03:55:34] [ERROR] Failed to execute regular purchase for user: 2. Reason: Payment failed for user: 2
+[2025-05-18 03:55:34] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:55:34] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:55:34] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:55:34] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:55:34] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:55:34] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:55:34] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:55:34] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:56:43] [INFO] Hashing password
+[2025-05-18 03:56:44] [INFO] Hashing password
+[2025-05-18 03:56:44] [INFO] Hashing password
+[2025-05-18 03:56:45] [INFO] AuthService initialized
+[2025-05-18 03:56:45] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:56:45] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:56:45] [INFO] Hashing password
+[2025-05-18 03:56:45] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:56:45] [INFO] [UserService] User registered: user1
+[2025-05-18 03:56:45] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:56:45] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:56:45] [INFO] Hashing password
+[2025-05-18 03:56:45] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:56:45] [INFO] [UserService] User registered: user2
+[2025-05-18 03:56:45] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:56:45] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:56:45] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:56:45] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:56:45] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:56:45] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:56:45] [INFO] Executing purchase for user: 2
+[2025-05-18 03:56:45] [INFO] Purchase executed successfully for user: 2, total: 0.0
+[2025-05-18 03:56:45] [ERROR] Failed to execute regular purchase for user: 2. Reason: Payment failed for user: 2
+[2025-05-18 03:56:45] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:56:45] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:56:45] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:56:45] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:56:45] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:56:45] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:56:45] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:56:45] [INFO] [UserService] User deleted: user2
+[2025-05-18 03:56:52] [INFO] Hashing password
+[2025-05-18 03:56:52] [INFO] Hashing password
+[2025-05-18 03:56:52] [INFO] Hashing password
+[2025-05-18 03:56:53] [INFO] AuthService initialized
+[2025-05-18 03:56:53] [INFO] [UserService] Registering user: user1
+[2025-05-18 03:56:53] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 03:56:53] [INFO] Hashing password
+[2025-05-18 03:56:54] [INFO] [UserRepository] User registered: user1
+[2025-05-18 03:56:54] [INFO] [UserService] User registered: user1
+[2025-05-18 03:56:54] [INFO] [UserService] Registering user: user2
+[2025-05-18 03:56:54] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 03:56:54] [INFO] Hashing password
+[2025-05-18 03:56:54] [INFO] [UserRepository] User registered: user2
+[2025-05-18 03:56:54] [INFO] [UserService] User registered: user2
+[2025-05-18 03:56:54] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 03:56:54] [INFO] [UserRepository] User found: user1
+[2025-05-18 03:56:54] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 03:56:54] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-18 03:56:54] [INFO] [UserRepository] Getting cart for user: user1
+[2025-05-18 03:56:54] [INFO] [UserRepository] Cart retrieved for user: user1
+[2025-05-18 03:56:54] [INFO] Executing purchase for user: 2
+[2025-05-18 03:56:54] [INFO] Purchase executed successfully for user: 2, total: 0.0
+[2025-05-18 03:56:54] [ERROR] Failed to execute regular purchase for user: 2. Reason: Payment failed for user: 2
+[2025-05-18 03:56:54] [INFO] [UserService] Deleting user: user1
+[2025-05-18 03:56:54] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 03:56:54] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 03:56:54] [INFO] [UserService] User deleted: user1
+[2025-05-18 03:56:54] [INFO] [UserService] Deleting user: user2
+[2025-05-18 03:56:54] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 03:56:54] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 03:56:54] [INFO] [UserService] User deleted: user2
+[2025-05-18 04:03:51] [INFO] Hashing password
+[2025-05-18 04:03:51] [INFO] Hashing password
+[2025-05-18 04:03:51] [INFO] Hashing password
+[2025-05-18 04:03:52] [INFO] AuthService initialized
+[2025-05-18 04:03:52] [INFO] [UserService] Registering user: user1
+[2025-05-18 04:03:52] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 04:03:52] [INFO] Hashing password
+[2025-05-18 04:03:53] [INFO] [UserRepository] User registered: user1
+[2025-05-18 04:03:53] [INFO] [UserService] User registered: user1
+[2025-05-18 04:03:53] [INFO] [UserService] Registering user: user2
+[2025-05-18 04:03:53] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 04:03:53] [INFO] Hashing password
+[2025-05-18 04:03:53] [INFO] [UserRepository] User registered: user2
+[2025-05-18 04:03:53] [INFO] [UserService] User registered: user2
+[2025-05-18 04:03:53] [INFO] [UserService] Registering user: user3
+[2025-05-18 04:03:53] [INFO] [UserRepository] Registering user: user3
+[2025-05-18 04:03:53] [INFO] Hashing password
+[2025-05-18 04:03:53] [INFO] [UserRepository] User registered: user3
+[2025-05-18 04:03:53] [INFO] [UserService] User registered: user3
+[2025-05-18 04:03:53] [INFO] [UserRepository] Attempting to find user by id: user3
+[2025-05-18 04:03:53] [INFO] [UserRepository] User found: user3
+[2025-05-18 04:03:53] [INFO] Generating token for user: user3
+[2025-05-18 04:03:53] [INFO] Token generated for user: user3
+[2025-05-18 04:03:53] [INFO] Logging out user
+[2025-05-18 04:03:53] [INFO] Parsing token
+[2025-05-18 04:03:53] [INFO] Token parsed successfully
+[2025-05-18 04:03:53] [INFO] [UserRepository] Deleting user: user3
+[2025-05-18 04:03:53] [INFO] [UserRepository] User deleted: user3
+[2025-05-18 04:03:53] [INFO] User logged out successfully
+[2025-05-18 04:03:53] [INFO] Validating token
+[2025-05-18 04:03:53] [INFO] Token valid
+[2025-05-18 04:03:53] [INFO] [UserService] Deleting user: user1
+[2025-05-18 04:03:53] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 04:03:53] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 04:03:53] [INFO] [UserService] User deleted: user1
+[2025-05-18 04:03:53] [INFO] [UserService] Deleting user: user2
+[2025-05-18 04:03:53] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 04:03:53] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 04:03:53] [INFO] [UserService] User deleted: user2
+[2025-05-18 04:05:13] [INFO] Hashing password
+[2025-05-18 04:05:13] [INFO] Hashing password
+[2025-05-18 04:05:13] [INFO] Hashing password
+[2025-05-18 04:05:14] [INFO] AuthService initialized
+[2025-05-18 04:05:15] [INFO] [UserService] Registering user: user1
+[2025-05-18 04:05:15] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 04:05:15] [INFO] Hashing password
+[2025-05-18 04:05:15] [INFO] [UserRepository] User registered: user1
+[2025-05-18 04:05:15] [INFO] [UserService] User registered: user1
+[2025-05-18 04:05:15] [INFO] [UserService] Registering user: user2
+[2025-05-18 04:05:15] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 04:05:15] [INFO] Hashing password
+[2025-05-18 04:05:15] [INFO] [UserRepository] User registered: user2
+[2025-05-18 04:05:15] [INFO] [UserService] User registered: user2
+[2025-05-18 04:05:15] [INFO] [UserService] Registering user: user3
+[2025-05-18 04:05:15] [INFO] [UserRepository] Registering user: user3
+[2025-05-18 04:05:15] [INFO] Hashing password
+[2025-05-18 04:05:15] [INFO] [UserRepository] User registered: user3
+[2025-05-18 04:05:15] [INFO] [UserService] User registered: user3
+[2025-05-18 04:05:15] [INFO] [UserRepository] Attempting to find user by id: user3
+[2025-05-18 04:05:15] [INFO] [UserRepository] User found: user3
+[2025-05-18 04:05:15] [INFO] Generating token for user: user3
+[2025-05-18 04:05:15] [INFO] Token generated for user: user3
+[2025-05-18 04:05:15] [INFO] Logging out user
+[2025-05-18 04:05:15] [INFO] Parsing token
+[2025-05-18 04:05:15] [INFO] Token parsed successfully
+[2025-05-18 04:05:15] [INFO] [UserRepository] Deleting user: user3
+[2025-05-18 04:05:15] [INFO] [UserRepository] User deleted: user3
+[2025-05-18 04:05:15] [INFO] User logged out successfully
+[2025-05-18 04:05:15] [INFO] [UserService] Deleting user: user1
+[2025-05-18 04:05:15] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 04:05:15] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 04:05:15] [INFO] [UserService] User deleted: user1
+[2025-05-18 04:05:15] [INFO] [UserService] Deleting user: user2
+[2025-05-18 04:05:15] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 04:05:15] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 04:05:15] [INFO] [UserService] User deleted: user2
+[2025-05-18 04:05:43] [INFO] Hashing password
+[2025-05-18 04:05:44] [INFO] Hashing password
+[2025-05-18 04:05:44] [INFO] Hashing password
+[2025-05-18 04:05:45] [INFO] AuthService initialized
+[2025-05-18 04:05:45] [INFO] [UserService] Registering user: user1
+[2025-05-18 04:05:45] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 04:05:45] [INFO] Hashing password
+[2025-05-18 04:05:45] [INFO] [UserRepository] User registered: user1
+[2025-05-18 04:05:45] [INFO] [UserService] User registered: user1
+[2025-05-18 04:05:45] [INFO] [UserService] Registering user: user2
+[2025-05-18 04:05:45] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 04:05:45] [INFO] Hashing password
+[2025-05-18 04:05:45] [INFO] [UserRepository] User registered: user2
+[2025-05-18 04:05:45] [INFO] [UserService] User registered: user2
+[2025-05-18 04:05:45] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 04:05:45] [INFO] [UserRepository] User found: user1
+[2025-05-18 04:05:45] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 04:05:45] [INFO] Store retrieved: store1
+[2025-05-18 04:05:45] [INFO] Store retrieved: store1
+[2025-05-18 04:05:45] [INFO] Store closed: 2, by user: user1
+[2025-05-18 04:05:45] [INFO] [UserService] Deleting user: user1
+[2025-05-18 04:05:45] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 04:05:45] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 04:05:45] [INFO] [UserService] User deleted: user1
+[2025-05-18 04:05:45] [INFO] [UserService] Deleting user: user2
+[2025-05-18 04:05:45] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 04:05:45] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 04:05:45] [INFO] [UserService] User deleted: user2
+[2025-05-18 04:06:11] [INFO] Hashing password
+[2025-05-18 04:06:11] [INFO] Hashing password
+[2025-05-18 04:06:11] [INFO] Hashing password
+[2025-05-18 04:06:12] [INFO] AuthService initialized
+[2025-05-18 04:06:12] [INFO] [UserService] Registering user: user1
+[2025-05-18 04:06:12] [INFO] [UserRepository] Registering user: user1
+[2025-05-18 04:06:12] [INFO] Hashing password
+[2025-05-18 04:06:13] [INFO] [UserRepository] User registered: user1
+[2025-05-18 04:06:13] [INFO] [UserService] User registered: user1
+[2025-05-18 04:06:13] [INFO] [UserService] Registering user: user2
+[2025-05-18 04:06:13] [INFO] [UserRepository] Registering user: user2
+[2025-05-18 04:06:13] [INFO] Hashing password
+[2025-05-18 04:06:13] [INFO] [UserRepository] User registered: user2
+[2025-05-18 04:06:13] [INFO] [UserService] User registered: user2
+[2025-05-18 04:06:13] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-18 04:06:13] [INFO] [UserRepository] User found: user1
+[2025-05-18 04:06:13] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-18 04:06:13] [INFO] Store retrieved: store1
+[2025-05-18 04:06:13] [INFO] Store retrieved: store1
+[2025-05-18 04:06:13] [DEBUG] Attempted to create store with existing name: store1
+[2025-05-18 04:06:13] [INFO] Store closed: 2, by user: user1
+[2025-05-18 04:06:13] [INFO] [UserService] Deleting user: user1
+[2025-05-18 04:06:13] [INFO] [UserRepository] Deleting user: user1
+[2025-05-18 04:06:13] [INFO] [UserRepository] User deleted: user1
+[2025-05-18 04:06:13] [INFO] [UserService] User deleted: user1
+[2025-05-18 04:06:13] [INFO] [UserService] Deleting user: user2
+[2025-05-18 04:06:13] [INFO] [UserRepository] Deleting user: user2
+[2025-05-18 04:06:13] [INFO] [UserRepository] User deleted: user2
+[2025-05-18 04:06:13] [INFO] [UserService] User deleted: user2
+[2025-05-20 08:51:30] [INFO] Hashing password
+[2025-05-20 08:51:31] [INFO] Hashing password
+[2025-05-20 08:51:31] [INFO] Hashing password
+[2025-05-20 08:51:32] [INFO] AuthService initialized
+[2025-05-20 08:51:32] [INFO] [UserService] Registering user: user1
+[2025-05-20 08:51:32] [INFO] [UserRepository] Registering user: user1
+[2025-05-20 08:51:32] [INFO] Hashing password
+[2025-05-20 08:51:32] [INFO] [UserRepository] User registered: user1
+[2025-05-20 08:51:32] [INFO] [UserService] User registered: user1
+[2025-05-20 08:51:32] [INFO] [UserService] Registering user: user2
+[2025-05-20 08:51:32] [INFO] [UserRepository] Registering user: user2
+[2025-05-20 08:51:32] [INFO] Hashing password
+[2025-05-20 08:51:32] [INFO] [UserRepository] User registered: user2
+[2025-05-20 08:51:32] [INFO] [UserService] User registered: user2
+[2025-05-20 08:51:32] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-20 08:51:32] [INFO] [UserRepository] User found: user1
+[2025-05-20 08:51:32] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-20 08:51:32] [INFO] Added new listing: ipad to store: 2, by: user1
+[2025-05-20 08:51:32] [INFO] Store closed: 2, by user: user1
+[2025-05-20 08:51:32] [INFO] [UserService] Deleting user: user1
+[2025-05-20 08:51:32] [INFO] [UserRepository] Deleting user: user1
+[2025-05-20 08:51:32] [INFO] [UserRepository] User deleted: user1
+[2025-05-20 08:51:32] [INFO] [UserService] User deleted: user1
+[2025-05-20 08:51:32] [INFO] [UserService] Deleting user: user2
+[2025-05-20 08:51:32] [INFO] [UserRepository] Deleting user: user2
+[2025-05-20 08:51:32] [INFO] [UserRepository] User deleted: user2
+[2025-05-20 08:51:32] [INFO] [UserService] User deleted: user2
+[2025-05-20 08:51:47] [INFO] Hashing password
+[2025-05-20 08:51:47] [INFO] Hashing password
+[2025-05-20 08:51:48] [INFO] Hashing password
+[2025-05-20 08:51:49] [INFO] AuthService initialized
+[2025-05-20 08:51:49] [INFO] [UserService] Registering user: user1
+[2025-05-20 08:51:49] [INFO] [UserRepository] Registering user: user1
+[2025-05-20 08:51:49] [INFO] Hashing password
+[2025-05-20 08:51:49] [INFO] [UserRepository] User registered: user1
+[2025-05-20 08:51:49] [INFO] [UserService] User registered: user1
+[2025-05-20 08:51:49] [INFO] [UserService] Registering user: user2
+[2025-05-20 08:51:49] [INFO] [UserRepository] Registering user: user2
+[2025-05-20 08:51:49] [INFO] Hashing password
+[2025-05-20 08:51:49] [INFO] [UserRepository] User registered: user2
+[2025-05-20 08:51:49] [INFO] [UserService] User registered: user2
+[2025-05-20 08:51:49] [INFO] [UserRepository] Attempting to find user by id: user1
+[2025-05-20 08:51:49] [INFO] [UserRepository] User found: user1
+[2025-05-20 08:51:49] [INFO] Store created: store1, founder: user1, id: 2
+[2025-05-20 08:51:49] [INFO] Store closed: 2, by user: user1
+[2025-05-20 08:51:49] [INFO] [UserService] Deleting user: user1
+[2025-05-20 08:51:49] [INFO] [UserRepository] Deleting user: user1
+[2025-05-20 08:51:49] [INFO] [UserRepository] User deleted: user1
+[2025-05-20 08:51:49] [INFO] [UserService] User deleted: user1
+[2025-05-20 08:51:49] [INFO] [UserService] Deleting user: user2
+[2025-05-20 08:51:49] [INFO] [UserRepository] Deleting user: user2
+[2025-05-20 08:51:49] [INFO] [UserRepository] User deleted: user2
+[2025-05-20 08:51:49] [INFO] [UserService] User deleted: user2
