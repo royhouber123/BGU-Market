@@ -1,11 +1,8 @@
 package tests;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +15,6 @@ import support.AcceptanceTestBase;
 import utils.ApiResponse;
 
 import market.domain.purchase.Purchase; // Add this import, adjust the package if needed
-import java.util.List;
-import market.domain.user.User; // Ensure this is the correct package for the User class
-import market.middleware.TokenUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -31,9 +25,9 @@ import static org.mockito.Mockito.*;
  * Acceptance-level scenarios for a subscriber.
  */
 class SubscriberTests extends AcceptanceTestBase {
-    String user1_storeid;
     
-
+    private final String SHIPPING_ADDRESS = "Subscriber Street";
+    private final String CONTACT_INFO = "Suscriber@example.com";
 
 
     
@@ -103,7 +97,7 @@ class SubscriberTests extends AcceptanceTestBase {
 
         // Clean up
         this.listingRepository.removeListing(listing_id);
-        this.storeService.closeStore(user1_storeid, user1_storeid);
+        this.storeService.closeStore(storeid, "user1");
         });
         
 
@@ -135,7 +129,7 @@ class SubscriberTests extends AcceptanceTestBase {
 
 
         // Clean up
-        this.storeService.closeStore(user1_storeid, user1_storeid);
+        this.storeService.closeStore(storeid, "user1");
         });
 
     }
@@ -258,10 +252,7 @@ class SubscriberTests extends AcceptanceTestBase {
         assertTrue(res.isSuccess());
 
         // Assert
-    
-
         ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
-       // cart.addProduct(storeid1, listing_id1, 2);
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
 
         //clean up
@@ -287,19 +278,76 @@ class SubscriberTests extends AcceptanceTestBase {
             10,
             1000).getData();
 
+        // Generate token and inject
+        String token = authService.generateToken(user1).getData();
+        TokenUtils.setMockToken(token);  // <<--- Key step!
+
+
+        // Call method under test
+        ApiResponse<Void> res = userService.addProductToCart(storeid1, listing_id1, 2);
+        assertTrue(res.isSuccess());
+        
+        // Assert
         ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
-        cart.addProduct(storeid1, listing_id1, 2);
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
         
 
         //clean up
         this.listingRepository.removeListing(listing_id1);
         this.storeService.closeStore(storeid1, user1.getUserName());
+        TokenUtils.clearMockToken();
         
     }
 
     @Test
     void purches_cart_successes() throws Exception {
+        User user1 = this.userService.getUserRepository().getData().findById("user1");
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String listing_id1 =this.storeService.addNewListing(
+            "user1", 
+            storeid1, 
+            "p1", 
+            "ipad", 
+            "electronics", 
+            "apple", 
+            10,
+            1000).getData();
+
+
+        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId")); 
+
+
+        // Generate token and inject
+        String token = authService.generateToken(user1).getData();
+        TokenUtils.setMockToken(token);  // <<--- Key step!
+        
+        // Call method under test
+        ApiResponse<Void> res = userService.addProductToCart(storeid1, listing_id1, 2);
+        assertTrue(res.isSuccess());
+        // Assert
+        ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
+        assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
+        
+        // Call purchase method
+        ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase("user1", cart, SHIPPING_ADDRESS, CONTACT_INFO);
+        assertTrue(purchaseResponse.isSuccess(), "Purchase should be successful");
+        assertNotNull(purchaseResponse.getData(), "Purchase data should not be null");
+
+
+        //verify that the cart is empty after successful purchase
+        ShoppingCart updatedCart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
+        assertTrue(updatedCart.getAllStoreBags().isEmpty(), "Shopping cart should be empty after purchase");
+
+        //verify that the store stock is updated
+        Listing listing = this.listingRepository.getListingById(listing_id1);
+        assertEquals(8, listing.getQuantityAvailable(), "Stock should be reduced by 2 after purchase");
+        
+        // Clean up
+        this.listingRepository.removeListing(listing_id1);
+        this.storeService.closeStore(storeid1, user1.getUserName());
+        TokenUtils.clearMockToken();
+
     }
 
     @Test
@@ -384,44 +432,191 @@ class SubscriberTests extends AcceptanceTestBase {
         this.storeService.closeStore(storeid, user1.getUserName());
     }
 
-    @Test
-    void rate_proudct_and_store_successes() throws Exception {
-       
-    }
+  
 
-    @Test
-    void rate_proudct_and_store_fail() throws Exception {
-    }
-
-    @Test
-    void send_message_to_store_successes() throws Exception {
-    }
-
-    @Test
-    void view_personal_purcheses_history_successes() throws Exception {
-        
-    }
 
 
     @Test
     void submit_bid_for_product_successes() throws Exception {
-    }
+    // Setup test data
+    User user1 = this.userService.getUserRepository().getData().findById("user1");
+    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData();
 
-    @Test
-    void submit_bid_for_product_fail() throws Exception {
-    }
+    String listing_id1 = this.storeService.addNewListing(
+        "user1", 
+        storeid1, 
+        "p1", 
+        "premium-phone", 
+        "electronics", 
+        "flagship smartphone", 
+        1,  // Limited quantity for bid
+        1500).getData();
 
+    // Generate token and inject
+    String token = authService.generateToken(user1).getData();
+    TokenUtils.setMockToken(token);
+    
+    // Configure mocks for successful bid
+    when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
+    when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
+    
+    double bidAmount = 1200.0; // Bid below list price
+    
+    // Submit bid
+    ApiResponse<Void> response = purchaseService.submitBid(
+        storeid1, 
+        listing_id1, 
+        "user1", 
+        bidAmount, 
+        SHIPPING_ADDRESS, 
+        CONTACT_INFO);
+    
+    // Assert
+    assertTrue(response.isSuccess(), "Bid submission should be successful");
+    
+    // Verify bid status 
+    ApiResponse<String> statusResponse = purchaseService.getBidStatus(storeid1, listing_id1, "user1");
+    assertTrue(statusResponse.isSuccess(), "Getting bid status should succeed");
+    assertEquals("Pending Approval", statusResponse.getData(), "Bid should be in PENDING status");
 
-    @Test
-    void purche_proudct_after_auction_succsesses() throws Exception {
-    }
+    // Clean up
+    this.listingRepository.removeListing(listing_id1);
+    this.storeService.closeStore(storeid1, user1.getUserName());
+    TokenUtils.clearMockToken();
+}
+
+@Test
+void submit_bid_for_product_fail() throws Exception {
+    // Setup test data
+    User user1 = this.userService.getUserRepository().getData().findById("user1");
+    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData();
+
+    String listing_id1 = this.storeService.addNewListing(
+        "user1", 
+        storeid1, 
+        "p1", 
+        "premium-phone", 
+        "electronics", 
+        "flagship smartphone", 
+        1,
+        1500).getData();
+
+    // Generate token and inject
+    String token = authService.generateToken(user1).getData();
+    TokenUtils.setMockToken(token);
+    
+    // Configure mocks
+    when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
+    when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
+    
+    // Attempt to submit an invalid bid (negative amount)
+    double invalidBidAmount = -500.0;
+    
+    // Submit invalid bid
+    ApiResponse<Void> response = purchaseService.submitBid(
+        storeid1, 
+        listing_id1, 
+        "user1", 
+        invalidBidAmount, 
+        SHIPPING_ADDRESS, 
+        CONTACT_INFO);
+    
+    // Assert
+    assertFalse(response.isSuccess(), "Bid submission should fail with negative amount");
+    assertTrue(response.getError().toLowerCase().contains("failed"), 
+        "Error message should indicate bid failure");
+    
+    // Clean up
+    this.listingRepository.removeListing(listing_id1);
+    this.storeService.closeStore(storeid1, user1.getUserName());
+    TokenUtils.clearMockToken();
+}
+
+@Test
+void purche_proudct_after_auction_succsesses() throws Exception {
+    // Setup test data
+    User user1 = this.userService.getUserRepository().getData().findById("user1");
+    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData();
+
+    String listing_id1 = this.storeService.addNewListing(
+        "user1", 
+        storeid1, 
+        "p1", 
+        "collectible-item", 
+        "collectibles", 
+        "rare collectible item", 
+        1,
+        2000).getData();
+    
+    // Setup end time for auction (1 minute from now)
+    long endTime = System.currentTimeMillis() + 60000;
+    
+    // Generate token and inject
+    String token = authService.generateToken(user1).getData();
+    TokenUtils.setMockToken(token);
+    
+    // Configure mocks for payment and shipping
+    when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
+    when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
+    
+    // Open auction for the item
+    ApiResponse<Void> openResponse = purchaseService.openAuction(
+        "user1", 
+        storeid1, 
+        listing_id1, 
+        "collectible-item", 
+        "collectibles", 
+        "rare collectible item", 
+        1500, // Starting price
+        endTime);
+    
+    assertTrue(openResponse.isSuccess(), "Opening auction should succeed");
+    
+    // Register another user for bidding
+    User user2 = this.userService.getUserRepository().getData().findById("user2");
+    String token2 = authService.generateToken(user2).getData();
+    
+    // Submit an offer
+    TokenUtils.setMockToken(token2);
+    ApiResponse<Void> offerResponse = purchaseService.submitOffer(
+        storeid1,
+        listing_id1,
+        "user2",
+        1800.0, // Offer price
+        SHIPPING_ADDRESS,
+        CONTACT_INFO);
+    
+    assertTrue(offerResponse.isSuccess(), "Submitting offer should succeed");
+    
+    // Check auction status
+    ApiResponse<Map<String, Object>> statusResponse = 
+        purchaseService.getAuctionStatus("user2", storeid1, listing_id1);
+    
+    assertTrue(statusResponse.isSuccess(), "Getting auction status should succeed");
+    assertNotNull(statusResponse.getData(), "Auction status data should not be null");
+    
+    Map<String, Object> status = statusResponse.getData();
+    
+    // UPDATED: Instead of checking for bidder, check for the current offer value
+    assertNotNull(status.get("currentMaxOffer"), "Current max offer should not be null");
+    assertEquals(1800.0, (Double)status.get("currentMaxOffer"), 0.001, 
+                "Current max offer should match the submitted bid");
+    
+    // Verify the starting price is correct
+    assertEquals(1500.0, (Double)status.get("startingPrice"), 0.001,
+                "Starting price should match what was set");
+    
+    // Verify time remaining is positive
+    assertTrue((Long)status.get("timeLeftMillis") > 0, 
+               "Auction should still have time remaining");
+    
+    // Clean up
+    this.listingRepository.removeListing(listing_id1);
+    this.storeService.closeStore(storeid1, user1.getUserName());
+    TokenUtils.clearMockToken();
+}
 
  
-
-    
-
-
-
 
    
 }
