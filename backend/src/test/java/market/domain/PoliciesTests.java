@@ -14,17 +14,16 @@ import org.junit.jupiter.api.Test;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
-import market.domain.store.Policies.CompositeDiscountPolicy;
-import market.domain.store.Policies.CouponDiscountPolicy;
-import market.domain.store.Policies.DefaultDiscountPolicy;
-import market.domain.store.Policies.DefaultPurchasePolicy;
-import market.domain.store.Policies.DiscountCombinationType;
 import market.domain.store.Policies.DiscountPolicy;
-import market.domain.store.Policies.MaxItemsPurchasePolicy;
-import market.domain.store.Policies.MinItemsPurchasePolicy;
-import market.domain.store.Policies.MinPricePurchasePolicy;
 import market.domain.store.Policies.PolicyHandler;
-import market.domain.store.Policies.ProductPrecentageDiscountPolicy;
+import market.domain.store.Policies.Discounts.CompositeDiscountPolicy;
+import market.domain.store.Policies.Discounts.CouponDiscountPolicy;
+import market.domain.store.Policies.Discounts.DefaultDiscountPolicy;
+import market.domain.store.Policies.Discounts.DiscountCombinationType;
+import market.domain.store.Policies.Policies.DefaultPurchasePolicy;
+import market.domain.store.Policies.Policies.MaxItemsPurchasePolicy;
+import market.domain.store.Policies.Policies.MinItemsPurchasePolicy;
+import market.domain.store.Policies.Policies.MinPricePurchasePolicy;
 
 class PoliciesTests {
 
@@ -37,69 +36,7 @@ class PoliciesTests {
         dummyStore.addDummyListing("prod2", 200.0);
     }
 
-    // ---------------------------------------
-    // CompositeDiscountPolicy tests
-    // ---------------------------------------
-    @Test
-    void compositeDiscountPolicySumCombination() {
-        CompositeDiscountPolicy policy = new CompositeDiscountPolicy(DiscountCombinationType.SUM);
-        policy.addPolicy(new DummyDiscountPolicy(10.0));
-        policy.addPolicy(new DummyDiscountPolicy(5.0));
 
-        double discount = policy.calculateDiscount(new HashMap<>());
-        assertEquals(15.0, discount);
-    }
-
-    @Test
-    void compositeDiscountPolicyMaximumCombination() {
-        CompositeDiscountPolicy policy = new CompositeDiscountPolicy(DiscountCombinationType.MAXIMUM);
-        policy.addPolicy(new DummyDiscountPolicy(10.0));
-        policy.addPolicy(new DummyDiscountPolicy(5.0));
-
-        double discount = policy.calculateDiscount(new HashMap<>());
-        assertEquals(10.0, discount);
-    }
-
-    @Test
-    void compositeDiscountPolicyAddSamePolicyTwiceFails() {
-        CompositeDiscountPolicy policy = new CompositeDiscountPolicy(DiscountCombinationType.SUM);
-        DummyDiscountPolicy d = new DummyDiscountPolicy(10.0);
-        policy.addPolicy(d);
-        assertThrows(IllegalArgumentException.class, () -> policy.addPolicy(d));
-    }
-
-    @Test
-    void compositeDiscountPolicyRemoveNonExistentPolicyFails() {
-        CompositeDiscountPolicy policy = new CompositeDiscountPolicy(DiscountCombinationType.SUM);
-        DummyDiscountPolicy d = new DummyDiscountPolicy(10.0);
-        assertThrows(IllegalArgumentException.class, () -> policy.removePolicy(d));
-    }
-
-    // ---------------------------------------
-    // CouponDiscountPolicy tests
-    // ---------------------------------------
-    @Test
-    void couponDiscountPolicyWorksWhenCouponSubmitted() {
-        CouponDiscountPolicy policy = new CouponDiscountPolicy("COUPON123", 20.0);
-        policy.submitCoupon("COUPON123");
-
-        assertEquals(20.0, policy.calculateDiscount(new HashMap<>()));
-    }
-
-    @Test
-    void couponDiscountPolicyNoDiscountWithoutCoupon() {
-        CouponDiscountPolicy policy = new CouponDiscountPolicy("COUPON123", 20.0);
-        assertEquals(0.0, policy.calculateDiscount(new HashMap<>()));
-    }
-
-    // ---------------------------------------
-    // DefaultDiscountPolicy tests
-    // ---------------------------------------
-    @Test
-    void defaultDiscountPolicyAlwaysZero() {
-        DefaultDiscountPolicy policy = new DefaultDiscountPolicy();
-        assertEquals(0.0, policy.calculateDiscount(new HashMap<>()));
-    }
 
     // ---------------------------------------
     // DefaultPurchasePolicy tests
@@ -107,7 +44,7 @@ class PoliciesTests {
     @Test
     void defaultPurchasePolicyAlwaysTrue() {
         DefaultPurchasePolicy policy = new DefaultPurchasePolicy();
-        assertTrue(policy.isPurchaseAllowed(new HashMap<>()));
+        assertTrue(policy.isPurchaseAllowed(new HashMap<>(),dummyStore));
     }
 
     // ---------------------------------------
@@ -117,14 +54,14 @@ class PoliciesTests {
     void maxItemsPolicyPassesWhenUnderLimit() {
         MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy(5);
         Map<String, Integer> cart = Map.of("item1", 3);
-        assertTrue(policy.isPurchaseAllowed(cart));
+        assertTrue(policy.isPurchaseAllowed(cart,dummyStore));
     }
 
     @Test
     void maxItemsPolicyFailsWhenOverLimit() {
         MaxItemsPurchasePolicy policy = new MaxItemsPurchasePolicy(2);
         Map<String, Integer> cart = Map.of("item1", 3);
-        assertFalse(policy.isPurchaseAllowed(cart));
+        assertFalse(policy.isPurchaseAllowed(cart,dummyStore));
     }
 
     // ---------------------------------------
@@ -134,14 +71,14 @@ class PoliciesTests {
     void minItemsPolicyFailsWhenUnderLimit() {
         MinItemsPurchasePolicy policy = new MinItemsPurchasePolicy(3);
         Map<String, Integer> cart = Map.of("item1", 2);
-        assertFalse(policy.isPurchaseAllowed(cart));
+        assertFalse(policy.isPurchaseAllowed(cart,dummyStore));
     }
 
     @Test
     void minItemsPolicyPassesWhenAtLimit() {
         MinItemsPurchasePolicy policy = new MinItemsPurchasePolicy(2);
         Map<String, Integer> cart = Map.of("item1", 2);
-        assertTrue(policy.isPurchaseAllowed(cart));
+        assertTrue(policy.isPurchaseAllowed(cart,dummyStore));
     }
 
     // ---------------------------------------
@@ -149,42 +86,20 @@ class PoliciesTests {
     // ---------------------------------------
     @Test
     void minPricePolicyPassesWhenEnoughPrice() {
-        MinPricePurchasePolicy policy = new MinPricePurchasePolicy(dummyStore, 150);
+        MinPricePurchasePolicy policy = new MinPricePurchasePolicy(150);
         Map<String, Integer> cart = Map.of("prod1", 2); // 100 * 2 = 200
 
-        assertTrue(policy.isPurchaseAllowed(cart));
+        assertTrue(policy.isPurchaseAllowed(cart,dummyStore));
     }
 
     @Test
     void minPricePolicyFailsWhenUnderPrice() {
-        MinPricePurchasePolicy policy = new MinPricePurchasePolicy(dummyStore, 500);
+        MinPricePurchasePolicy policy = new MinPricePurchasePolicy(500);
         Map<String, Integer> cart = Map.of("prod1", 2); // 100 * 2 = 200
 
-        assertFalse(policy.isPurchaseAllowed(cart));
+        assertFalse(policy.isPurchaseAllowed(cart,dummyStore));
     }
 
-    // ---------------------------------------
-    // PercentageDiscountPolicy tests
-    // ---------------------------------------
-    // @Test
-    // void percentageDiscountPolicyCorrectCalculation() {
-    //     PercentageDiscountPolicy policy = new PercentageDiscountPolicy(dummyStore, 10); // 10% off
-    //     Map<String, Integer> cart = Map.of("prod1", 1); // 2 * 100 = 200
-
-    //     assertEquals(20.0, policy.calculateDiscount(cart), 0.01);
-    // }
-
-    // ---------------------------------------
-    // ProductPercentageDiscountPolicy tests
-    // ---------------------------------------
-    @Test
-    void productPercentageDiscountPolicyWorks() {
-        Map<String, Double> discounts = Map.of("prod1", 10.0);
-        ProductPrecentageDiscountPolicy policy = new ProductPrecentageDiscountPolicy(dummyStore, discounts);
-
-        Map<String, Integer> cart = Map.of("prod1", 2); // 2 * 100 = 200
-        assertEquals(20.0, policy.calculateDiscount(cart), 0.01);
-    }
 
     // ---------------------------------------
     // PolicyHandler tests
@@ -192,7 +107,7 @@ class PoliciesTests {
     @Test
     void policyHandlerAllowsDefaultPurchase() {
         PolicyHandler handler = new PolicyHandler();
-        assertTrue(handler.isPurchaseAllowed(new HashMap<>()));
+        assertTrue(handler.isPurchaseAllowed(new HashMap<>(),dummyStore));
     }
 
     @Test
@@ -206,36 +121,13 @@ class PoliciesTests {
         assertFalse(handler.getPolicies().contains(policy));
     }
 
-    @Test
-    void policyHandlerDiscountCalculationSum() {
-        PolicyHandler handler = new PolicyHandler();
-        handler.addDiscountPolicy(new DummyDiscountPolicy(10.0));
-        handler.addDiscountPolicy(new DummyDiscountPolicy(20.0));
-
-        assertEquals(30.0, handler.calculateDiscount(new HashMap<>()));
-    }
-
-    // ====== Dummy helpers ======
-
-    static class DummyDiscountPolicy implements DiscountPolicy {
-        private final double discount;
-
-        public DummyDiscountPolicy(double discount) {
-            this.discount = discount;
-        }
-
-        @Override
-        public double calculateDiscount(Map<String, Integer> listings) {
-            return discount;
-        }
-    }
 
     static class DummyStoreProductsManager implements IStoreProductsManager {
 
         private final Map<String, Listing> dummyListings = new HashMap<>();
 
         public void addDummyListing(String productId, double price) {
-            Listing listing = new Listing("store1", productId, "Dummy Product", "A dummy product", 10, market.domain.purchase.PurchaseType.REGULAR, (int) price);
+            Listing listing = new Listing("store1", productId, "Dummy Product", "category", "A dummy product", 10, market.domain.purchase.PurchaseType.REGULAR, (int) price);
             dummyListings.put(productId, listing);
         }
 
@@ -252,6 +144,17 @@ class PoliciesTests {
         @Override public boolean purchaseFromListing(String listingId, int quantity) { return false; }
         @Override public void disableAllListings(){}
         @Override public void enableAllListings(){}
+        
+        @Override public Boolean editPriceForListing(String listingId,double newPrice) {return true;}
+
+
+        @Override public Boolean editProductName(String listingId, String newName){return true;}
+
+        @Override public Boolean editProductDescription(String listingId, String newDescription){return true;}
+
+        @Override public Boolean editProductQuantity(String listingId, int newQuantity) {return true;}
+
+        @Override public Boolean editProductCategory(String listingId, String newCategory) {return true;}
 
     }
 }

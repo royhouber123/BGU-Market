@@ -1,10 +1,5 @@
 package market.domain.purchase;
-import market.domain.user.ShoppingCart;
-import market.domain.user.StoreBag;
-import market.infrastructure.StoreRepository;
-import market.application.StoreService;
 import market.application.External.*;
-import market.domain.purchase.NotificationForPurchase;
 import market.domain.store.*;
 
 import java.util.*;

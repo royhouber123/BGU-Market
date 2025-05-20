@@ -25,6 +25,11 @@ public class UserRepository implements IUserRepository {
         u2.addProductToCart("111", "productC", 2);
         userMap.put(u2.getUserName(), u2);
         passwordMap.put(u2.getUserName(), PasswordUtil.hashPassword("pw2"));
+
+        Admin admin = new Admin("adminUser");
+        userMap.put(admin.getUserName(), admin);
+        passwordMap.put(admin.getUserName(), PasswordUtil.hashPassword("adminPw"));
+
     }
 
     // Search for user in both maps - guests and subscribers
@@ -86,6 +91,7 @@ public class UserRepository implements IUserRepository {
             logger.error("[UserRepository] User with name '" + name + "' does not exist.");
             throw new RuntimeException("User with name '" + name + "' does not exist.");
         }
+        guestMap.remove(name);
         userMap.remove(name);
         passwordMap.remove(name);
         logger.info("[UserRepository] User deleted: " + name);
@@ -133,4 +139,10 @@ public class UserRepository implements IUserRepository {
         logger.info("[UserRepository] Cart retrieved for user: " + name);
         return u.getShoppingCart();
     }
+
+    public void saveAdmin(Admin admin, String password) {
+        userMap.put(admin.getUserName(), admin);
+        passwordMap.put(admin.getUserName(), PasswordUtil.hashPassword(password));
+    }
+    
 }

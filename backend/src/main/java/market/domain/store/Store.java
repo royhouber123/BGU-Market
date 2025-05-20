@@ -36,11 +36,7 @@ public class Store {
     // if manager 1 assign manager 2, so manager2 in managers[manager1]
 
 
-    //TODO: implement manager interface (probably state design pattern) with appropriate permissions
-
     private HashMap<String, List<Manager>> ownerToAssignedManagers;
-
-
 
     private IStoreProductsManager storeProductsManager;
 
@@ -93,6 +89,11 @@ public class Store {
         return true;
     }
 
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+    
+
     /**
      * Checks whether the store is currently open (active).
      *
@@ -113,6 +114,7 @@ public class Store {
             throw new Exception("Store:" + storeID + " is closed for now");
         }
     }
+
 
     /**
      * Reopens the store.
@@ -181,7 +183,7 @@ public class Store {
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
 
         if (isManager(newManagerID))
-            throw new Exception("the user:"+appointerID+" is already a owner of the store: "+storeID);
+            throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
         storeClosedExeption();//actions are available only when open
         Manager newManager = new Manager(newManagerID, appointerID);
         return ownerToAssignedManagers.get(appointerID).add(newManager);
@@ -203,7 +205,7 @@ public class Store {
         if(!isOwner(appointerID))
             throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
         if(!isManager(managerID))
-            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+            throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
         storeClosedExeption();//actions are available only when open
         Manager manager = getManager(managerID);
         Permission p = Permission.fromCode(permissionID); //if invalid code, exception is thrown here
@@ -463,7 +465,7 @@ public class Store {
      * @return {@code true} if listing was added successfully.
      * @throws Exception if user lacks permission.
      */
-    public String addNewListing(String userID, String productId, String productName, String productDescription, int quantity, double unitPrice) throws Exception {
+    public String addNewListing(String userID, String productId, String productName, String productCategory, String productDescription, int quantity, double unitPrice) throws Exception {
         if (!checkProductsPermission(userID))
             throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
         storeClosedExeption();//actions are available only when open
@@ -471,6 +473,7 @@ public class Store {
                 this.storeID,
                 productId,
                 productName,
+                productCategory,
                 productDescription,
                 quantity,
                 PurchaseType.REGULAR,
@@ -498,6 +501,42 @@ public class Store {
         return storeProductsManager.removeListing(listingId);
     }
 
+     public boolean editPriceForListing(String userID, String listingId,double newPrice) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+
+        storeClosedExeption();//actions are available only when open
+        return storeProductsManager.editPriceForListing(listingId,newPrice);
+    }
+
+    public boolean editProductName(String userID, String listingId, String newName) throws Exception {
+    if (!checkProductsPermission(userID))
+        throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+    storeClosedExeption();
+    return storeProductsManager.editProductName(listingId, newName);
+}
+
+    public boolean editProductDescription(String userID, String listingId, String newDescription) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+        storeClosedExeption();
+        return storeProductsManager.editProductDescription(listingId, newDescription);
+    }
+
+    public boolean editProductQuantity(String userID, String listingId, int newQuantity) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+        storeClosedExeption();
+        return storeProductsManager.editProductQuantity(listingId, newQuantity);
+    }
+
+    public boolean editProductCategory(String userID, String listingId, String newCategory) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
+        storeClosedExeption();
+        return storeProductsManager.editProductCategory(listingId, newCategory);
+    }
+
     /**
      * Purchases quantity from a specific listing.
      *
@@ -519,18 +558,18 @@ public class Store {
     }
 
     /**
- * Retrieves all the listings available in the store.
- * <p>
- * This method gathers all listings managed by the {@link IStoreProductsManager}
- * and returns them as a list. Each listing represents a product available for purchase
- * in the store.
- * </p>
- *
- * @return A {@link List} of {@link Listing} objects representing all products listed in the store.
- */
-public List<Listing> getAllListings() {
-    return storeProductsManager.getAllListings();
-}
+     * Retrieves all the listings available in the store.
+     * <p>
+     * This method gathers all listings managed by the {@link IStoreProductsManager}
+     * and returns them as a list. Each listing represents a product available for purchase
+     * in the store.
+     * </p>
+     *
+     * @return A {@link List} of {@link Listing} objects representing all products listed in the store.
+     */
+    public List<Listing> getAllListings() {
+        return storeProductsManager.getAllListings();
+    }
 
     /**
      * Adds a new purchase policy to the store.
@@ -638,7 +677,7 @@ public List<Listing> getAllListings() {
 
 
     public double calculateStoreBagWithDiscount(Map<String,Integer> prodsToQuantity){
-        return policyHandler.calculateDiscount(prodsToQuantity);
+        return policyHandler.calculateDiscount(prodsToQuantity, this.storeProductsManager);
     }
 
     public double calculateStoreBagWithoutDiscount(Map<String,Integer> prodsToQuantity) throws Exception {
@@ -666,16 +705,16 @@ public List<Listing> getAllListings() {
         double price = ProductPrice(prodId);
         Map<String, Integer> map = new HashMap<>();
         map.put(prodId,(Integer)1);
-        double discount = policyHandler.calculateDiscount(map);
+        double discount = policyHandler.calculateDiscount(map, this.storeProductsManager);
         return price - discount;
     }
 
     public boolean isPurchaseAllowed(Map<String, Integer> listings) {
-        return policyHandler.isPurchaseAllowed(listings);
+        return policyHandler.isPurchaseAllowed(listings, this.storeProductsManager);
     }
 
 
-        public List<Listing> getListingsByProductName(String productName) {
+    public List<Listing> getListingsByProductName(String productName) {
         return storeProductsManager.getListingsByProductName(productName);
     }
 

@@ -77,6 +77,19 @@ void disableAllListings();
  */
 void enableAllListings();
 
+
+Boolean editPriceForListing(String listingId,double newPrice) throws Exception;
+
+
+Boolean editProductName(String listingId, String newName) throws Exception;
+
+Boolean editProductDescription(String listingId, String newDescription) throws Exception;
+
+Boolean editProductQuantity(String listingId, int newQuantity) throws Exception;
+
+Boolean editProductCategory(String listingId, String newCategory) throws Exception;
+
+
 }
 
 

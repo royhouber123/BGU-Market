@@ -4,6 +4,8 @@ import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.domain.purchase.*;
 import market.domain.store.IStoreRepository;
+import utils.ApiResponse;
+
 import org.junit.jupiter.api.*;
 
 import java.util.*;
@@ -38,11 +40,11 @@ public class BidPurchaseTest {
         BidPurchase.setStoreRepository(storeRepository);
 
         paymentService = mock(IPaymentService.class);
-        when(paymentService.processPayment(anyString())).thenReturn(true);
+        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
         BidPurchase.setPaymentService(paymentService);
 
         shipmentService = mock(IShipmentService.class);
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn("Shipping successful");
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
         BidPurchase.setShippingService(shipmentService);
     }
 

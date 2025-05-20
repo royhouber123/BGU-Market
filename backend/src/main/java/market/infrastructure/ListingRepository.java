@@ -202,6 +202,63 @@ public class ListingRepository implements IListingRepository {
         return l.getPrice();
     }
 
+    
+    @Override
+    public boolean editPriceForListing(String listingId, Double newPrice) throws Exception {
+        if (newPrice < 0)
+            throw new IllegalArgumentException("Illegal price for listing: " + listingId);
+
+        Listing l = getListingById(listingId);
+        if (l == null || !Boolean.TRUE.equals(l.isActive())) 
+            throw new Exception("Listing " + listingId + " not found or inactive.");
+
+        synchronized (l) {
+            l.setPrice(newPrice);
+        }
+        return true;
+    }
+
+     @Override
+    public void editProductName(String listingId, String newName) throws Exception {
+        Listing l = getListingById(listingId);
+        if (l == null || !Boolean.TRUE.equals(l.isActive()))
+            throw new Exception("Listing " + listingId + " not found or inactive.");
+        synchronized (l) {
+            l.setProductName(newName);
+        }
+    }
+
+    @Override
+    public void editProductDescription(String listingId, String newDescription) throws Exception {
+        Listing l = getListingById(listingId);
+        if (l == null || !Boolean.TRUE.equals(l.isActive()))
+            throw new Exception("Listing " + listingId + " not found or inactive.");
+        synchronized (l) {
+            l.setProductDescription(newDescription);
+        }
+    }
+
+    @Override
+    public void editProductQuantity(String listingId, int newQuantity) throws Exception {
+        Listing l = getListingById(listingId);
+        if (l == null || !Boolean.TRUE.equals(l.isActive()))
+            throw new Exception("Listing " + listingId + " not found or inactive.");
+        synchronized (l) {
+            l.setQuantityAvailable(newQuantity);
+        }
+    }
+
+    @Override
+    public void editProductCategory(String listingId, String newCategory) throws Exception {
+        Listing l = getListingById(listingId);
+        if (l == null || !Boolean.TRUE.equals(l.isActive()))
+            throw new Exception("Listing " + listingId + " not found or inactive.");
+        synchronized (l) {
+            l.setCategory(newCategory);
+        }
+    }
+
+
         
 
 }
