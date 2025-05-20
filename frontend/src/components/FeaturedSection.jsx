@@ -22,29 +22,56 @@ export default function FeaturedSection({
   subtitle,
   filter = {},
   limit = 4,
+  products: initialProducts = [],
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const fetchedProducts = await productService.filterProducts(
-          filter,
-          "-created_date",
-          limit
-        );
-        setProducts(fetchedProducts);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
+  // Create a function to build the "View All" link based on filter criteria
+  const createViewAllLink = () => {
+    const baseUrl = createPageUrl("SearchResults");
+    const params = new URLSearchParams();
+    
+    // Add any filter criteria to the URL
+    if (filter) {
+      if (filter.category) {
+        params.append('category', filter.category);
       }
-    };
+      if (filter.featured !== undefined) {
+        params.append('featured', filter.featured);
+      }
+    }
+    
+    // Return the URL with query parameters
+    return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+  };
+  
+  useEffect(() => {
+    // If initialProducts are provided, use them
+    if (initialProducts && initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setLoading(false);
+    } else {
+      // Otherwise, fetch products based on filter
+      const fetchProducts = async () => {
+        try {
+          setLoading(true);
+          const fetchedProducts = await productService.filterProducts(
+            filter,
+            "-created_date",
+            limit
+          );
+          setProducts(fetchedProducts);
+        } catch (error) {
+          console.error("Error fetching products:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchProducts();
-  }, []);
+      fetchProducts();
+    }
+  }, [filter, initialProducts]);
 
   return (
     <Box component="section" sx={{ py: 4 }}>
@@ -61,7 +88,7 @@ export default function FeaturedSection({
         </Box>
         <MuiLink
           component={Link}
-          to={createPageUrl("Home")}
+          to={createViewAllLink()}
           sx={{ 
             display: 'flex', 
             alignItems: 'center', 

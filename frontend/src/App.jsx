@@ -39,11 +39,10 @@ function App() {
             
             {/* Public routes */}
             <Route path="/" element={<Home />} /> {/* Home page */}
-            <Route path="/product" element={<ProductDetail />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/search" element={<SearchResults />} />
             
             {/* Protected routes that require authentication */}
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/watchlist" element={<WatchList />} />
             <Route path="/checkout" element={<Checkout />} />

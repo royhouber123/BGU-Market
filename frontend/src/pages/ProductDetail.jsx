@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import productService from "../services/productService";
 import userService from "../services/userService";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 // Import all relevant components
 import Header from "../components/Header.jsx";
 import MiniCart from "../components/MiniCart.jsx";
@@ -59,8 +59,8 @@ export default function ProductDetail() {
     });
   };
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get("id");
+  // Get productId from URL parameters
+  const { id: productId } = useParams();
 
   useEffect(() => {
     fetchProduct();
@@ -69,14 +69,31 @@ export default function ProductDetail() {
 
   const fetchProduct = async () => {
     try {
-      // In a real app, you would fetch a single product by ID
-      // For this example, we'll fetch all and find the one we want
+      // Try to fetch the product directly by ID first
+      try {
+        // Direct fetch by ID is more efficient
+        const foundProduct = await productService.getProductById(productId);
+        if (foundProduct) {
+          setProduct(foundProduct);
+          setMainImage(foundProduct.images?.[0] || "");
+          return;
+        }
+      } catch (idError) {
+        console.log("Could not fetch by ID directly, trying alternative approach");
+      }
+      
+      // Fallback: fetch all products and find the one we want
       const products = await productService.getAllProducts();
-      const foundProduct = products.find((p) => p.id === productId);
+      const foundProduct = products.find(
+        // Make sure to compare strings with strings
+        (p) => String(p.id) === String(productId)
+      );
 
       if (foundProduct) {
         setProduct(foundProduct);
         setMainImage(foundProduct.images?.[0] || "");
+      } else {
+        console.error("Product not found", productId);
       }
     } catch (error) {
       console.error("Error fetching product:", error);
@@ -92,15 +109,15 @@ export default function ProductDetail() {
       }
       const user = await userService.getProfile();
 
-      // Check if product is in cart
+      // Check if product is in cart - use string comparison to avoid type issues
       const cartItem = (user.cart || []).find(
-        (item) => item.productId === productId
+        (item) => String(item.productId) === String(productId)
       );
       setIsInCart(!!cartItem);
 
-      // Check if product is in watchlist
+      // Check if product is in watchlist - use string comparison to avoid type issues
       const watchlistItem = (user.watchlist || []).find(
-        (item) => item.productId === productId
+        (item) => String(item.productId) === String(productId)
       );
       setIsInWatchlist(!!watchlistItem);
     } catch (error) {
@@ -115,12 +132,21 @@ export default function ProductDetail() {
         return;
       }
       
+      if (!product) {
+        toast({
+          title: "Error",
+          description: "Product information not available",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const user = await userService.getProfile();
       const cart = user.cart || [];
 
-      // Check if product is already in cart
+      // Check if product is already in cart - use string comparison
       const existingItemIndex = cart.findIndex(
-        (item) => item.productId === productId
+        (item) => String(item.productId) === String(productId)
       );
 
       if (existingItemIndex > -1) {
@@ -164,13 +190,22 @@ export default function ProductDetail() {
         return;
       }
       
+      if (!product) {
+        toast({
+          title: "Error",
+          description: "Product information not available",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const user = await userService.getProfile();
       let watchlist = user.watchlist || [];
 
       if (isInWatchlist) {
-        // Remove from watchlist
+        // Remove from watchlist - use string comparison
         watchlist = watchlist.filter(
-          (item) => item.productId !== productId
+          (item) => String(item.productId) !== String(productId)
         );
         
         toast({
@@ -292,158 +327,105 @@ export default function ProductDetail() {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Product Images */}
-            <div>
-              <div className="aspect-square overflow-hidden rounded-lg mb-4 bg-gray-100">
+          {/* Product Title at the top */}
+          <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
+            {product.title}
+          </Typography>
+
+          {calculateTimeLeft() > 0 && (
+            <Typography variant="subtitle1" color="primary" sx={{ mb: 2, textAlign: 'center' }}>
+              {formatTimeLeft()}
+            </Typography>
+          )}
+
+          {/* Main content area with image in the center and details on the right */}
+          <Grid container spacing={4}>
+            {/* Left spacer on large screens */}
+            <Grid item xs={false} md={1} />
+            
+            {/* Product Images in the middle */}
+            <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Box sx={{ 
+                width: '100%', 
+                maxWidth: '500px',
+                aspectRatio: '1/1',
+                borderRadius: 2,
+                overflow: 'hidden',
+                mb: 2,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                bgcolor: 'background.paper'
+              }}>
                 <img
                   src={mainImage || product.images?.[0]}
                   alt={product.title}
-                  className="w-full h-full object-contain"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
                 />
-              </div>
+              </Box>
 
-              <div className="grid grid-cols-4 gap-2">
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 1, 
+                flexWrap: 'wrap', 
+                justifyContent: 'center',
+                maxWidth: '500px'
+              }}>
                 {product.images?.map((image, index) => (
-                  <div
+                  <Box
                     key={index}
-                    className={`aspect-square rounded border-2 overflow-hidden cursor-pointer ${
-                      image === mainImage
-                        ? "border-blue-500"
-                        : "border-transparent"
-                    }`}
+                    sx={{
+                      width: '70px',
+                      height: '70px',
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      border: image === mainImage ? '2px solid #1976d2' : '2px solid transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
                     onClick={() => setMainImage(image)}
                   >
                     <img
                       src={image}
                       alt={`${product.title} view ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                  </div>
+                  </Box>
                 ))}
-              </div>
-            </div>
-
-            {/* Product Details */}
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                {product.title}
-              </h1>
-
-              {calculateTimeLeft() > 0 && (
-                <div className="text-sm text-blue-600 mb-4">
-                  {formatTimeLeft()}
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 mb-4">
-                <Chip 
-                  label={product.condition ? product.condition.replace("_", " ") : "New"}
-                  variant="outlined"
-                  size="small"
-                />
-                <Chip 
-                  label={product.category || "Uncategorized"}
-                  variant="outlined"
-                  size="small"
-                />
-              </div>
-
-              <div className="text-3xl font-bold mb-2">
-                ${product.price?.toFixed(2) || "0.00"}
-              </div>
-
-              {product.shipping_cost === 0 ? (
-                <Typography variant="body2" color="success.main" gutterBottom>
-                  Free shipping
-                </Typography>
-              ) : (
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  +${product.shipping_cost?.toFixed(2) || "0.00"} shipping
-                </Typography>
-              )}
-
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                {product.description}
-              </Typography>
-
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
-                <Button 
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  startIcon={isInCart ? <CheckIcon /> : <ShoppingCartIcon />}
-                  onClick={addToCart}
-                >
-                  {isInCart ? "Added to Cart" : "Add to Cart"}
-                </Button>
-
-                <Button
-                  variant={isInWatchlist ? "contained" : "outlined"}
-                  color={isInWatchlist ? "error" : "primary"}
-                  fullWidth
-                  startIcon={<FavoriteIcon />}
-                  onClick={toggleWatchlist}
-                >
-                  {isInWatchlist ? "Watching" : "Add to Watchlist"}
-                </Button>
               </Box>
+            </Grid>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <StoreIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Sold by:{" "}
-                    <Box component="span" fontWeight="medium">
-                      {product.seller || "MarketPlace Seller"}
-                    </Box>
+            {/* Product Details on the right */}
+            <Grid item xs={12} md={5}>
+              <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
+                {/* Price and badges */}
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
+                  <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
+                    ${product.price?.toFixed(2) || "0.00"}
                   </Typography>
                 </Box>
-                
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <StarIcon fontSize="small" sx={{ mr: 1, color: 'warning.main' }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Top Rated Plus with fast shipping and excellent service
-                  </Typography>
-                </Box>
-                
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <SecurityIcon fontSize="small" sx={{ mr: 1, color: 'success.main' }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Money back guarantee
-                  </Typography>
-                </Box>
-                
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <LocalShippingIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Estimated delivery: 3-5 business days
-                  </Typography>
-                </Box>
-              </Box>
-            </div>
-          </div>
+                <Divider sx={{ my: 4 }} />
 
-          <Divider sx={{ my: 4 }} />
-
-          {/* Product Tabs */}
-          <Box sx={{ width: '100%', mb: 4 }}>
-            <Tabs 
-              value={tabValue}
-              onChange={handleTabChange}
-              aria-label="product details tabs"
-              sx={{ mb: 3 }}
-            >
-              <Tab label="Details" />
-              <Tab label="Shipping" />
-              <Tab label="Returns" />
-            </Tabs>
-            
-            {tabValue === 0 && (
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Product Details
-                </Typography>
+                {/* Product Tabs */}
+                <Box sx={{ width: '100%', mb: 4 }}>
+                  <Tabs 
+                    value={tabValue}
+                    onChange={handleTabChange}
+                    aria-label="product details tabs"
+                    sx={{ mb: 3 }}
+                  >
+                    <Tab label="Details" />
+                    <Tab label="Shipping" />
+                    <Tab label="Returns" />
+                  </Tabs>
+                  
+                  {tabValue === 0 && (
+                    <Box>
+                      <Typography variant="h6" gutterBottom>
+                        Product Details
+                      </Typography>
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <Paper variant="outlined" sx={{ p: 2 }}>
@@ -480,7 +462,7 @@ export default function ProductDetail() {
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                         <StoreIcon fontSize="small" sx={{ mr: 1 }} />
                         <Typography variant="body2">
-                          {product.seller || "MarketPlace Seller"}
+                          {product.seller?.name || "MarketPlace Seller"}
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -565,35 +547,39 @@ export default function ProductDetail() {
               </Box>
             )}
           </Box>
+              </Paper>
+            </Grid>
+            <Grid item xs={false} md={1} />
+        </Grid>
 
-          {/* Related Products Section */}
-          <FeaturedSection 
-            title="You may also like" 
-            subtitle="Similar products you might be interested in" 
-            limit={4} 
-          />
-        </div>
+        {/* Related Products Section */}
+        {/* <FeaturedSection 
+          title="You may also like" 
+          subtitle="Similar products you might be interested in" 
+          limit={4} 
+        /> */}
+      </div>
 
-        {/* Mini Cart and Auth Dialog with conditional rendering */}
-        {showMiniCart && <MiniCart onClose={() => setShowMiniCart(false)} />}
-        {showAuthDialog && <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
-        
-        {/* Snackbar for notifications */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar({...snackbar, open: false})}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      {/* Mini Cart and Auth Dialog with conditional rendering */}
+      {showMiniCart && <MiniCart onClose={() => setShowMiniCart(false)} />}
+      {showAuthDialog && <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+      
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({...snackbar, open: false})}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({...snackbar, open: false})} 
+          severity={snackbar.severity}
+          variant="filled"
         >
-          <Alert 
-            onClose={() => setSnackbar({...snackbar, open: false})} 
-            severity={snackbar.severity}
-            variant="filled"
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </main>
-    </Box>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </main>
+  </Box>
   );
 }

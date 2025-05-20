@@ -53,7 +53,7 @@ export default function ProductCard({ product }) {
 
   const handleProductClick = (e) => {
     e.preventDefault();
-    navigate(createPageUrl("ProductDetail") + `?id=${product.id}`);
+    navigate(`/product/${product.id}`);
   };
 
   const toggleWatchlist = async (e) => {

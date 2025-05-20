@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
   Grid,
   Typography,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 
 // Material‑UI icons
@@ -25,6 +27,10 @@ import AuthDialog from "../components/AuthDialog.jsx";
 export default function Home() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showMiniCart, setShowMiniCart] = useState(false);
+  const [stores, setStores] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const categories = [
     {
@@ -71,6 +77,105 @@ export default function Home() {
     },
   ];
 
+  useEffect(() => {
+    // USING MOCK DATA FOR NOW
+    // TODO: Replace with actual API calls when backend is ready
+    // Future backend integration:
+    // 1. Replace this with axios or fetch calls to the Spring Boot endpoints
+    // 2. Example API call: 
+    // axios.get('/api/products')
+    //   .then(response => setProducts(response.data))
+    //   .catch(err => setError(err.message))
+
+    const fetchData = () => {
+      setTimeout(() => {
+        // Mock stores data
+        const mockStores = [
+          { id: 1, name: 'Electronics Hub', description: 'All your electronic needs', products: 12 },
+          { id: 2, name: 'Fashion Outlet', description: 'Latest trends in fashion', products: 8 }
+        ];
+        
+        // Mock products data
+        const mockProducts = [
+          { 
+            id: 101, 
+            title: 'Wireless Headphones', 
+            price: 99.99, 
+            status: 'active',
+            images: ["https://source.unsplash.com/random/300x200?sig=101"],
+            category: "Electronics",
+            shipping_cost: 0,
+            featured: true
+          },
+          { 
+            id: 102, 
+            title: 'Smartphone Case', 
+            price: 19.99, 
+            status: 'active',
+            images: ["https://source.unsplash.com/random/300x200?sig=102"],
+            category: "Electronics",
+            shipping_cost: 0,
+            featured: true
+          },
+          { 
+            id: 103, 
+            title: 'Laptop Sleeve', 
+            price: 29.99, 
+            status: 'pending',
+            images: ["https://source.unsplash.com/random/300x200?sig=103"],
+            category: "Electronics",
+            shipping_cost: 0,
+            featured: false
+          },
+          { 
+            id: 104, 
+            title: 'Bluetooth Speaker', 
+            price: 79.99, 
+            status: 'active',
+            images: ["https://source.unsplash.com/random/300x200?sig=104"],
+            category: "Electronics",
+            shipping_cost: 0,
+            featured: true
+          }
+        ];
+        
+        setStores(mockStores);
+        setProducts(mockProducts);
+        setLoading(false);
+      }, 1500); // Simulate loading delay
+    };
+    
+    fetchData();
+    
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Header />
+        <Container>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Header />
+        <Container>
+          <Alert severity="error" sx={{ mt: 4 }}>{error}</Alert>
+        </Container>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Header />
@@ -107,16 +212,19 @@ export default function Home() {
           subtitle="Handpicked deals just for you"
           filter={{ featured: true }}
           limit={4}
+          products={products.filter(p => p.featured)}
         />
         <FeaturedSection
           title="New Arrivals"
           subtitle="Just hit the marketplace"
           limit={4}
+          products={products}
         />
         <FeaturedSection
           title="Ending Soon"
           subtitle="Get them before they're gone"
           limit={4}
+          products={products.slice(0, 2)}
         />
       </Container>
 
