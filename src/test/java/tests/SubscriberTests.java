@@ -1,18 +1,23 @@
 package tests;
-import market.application.AuthService.AuthToken;
-import market.domain.purchase.Purchase;
-import market.domain.store.Listing;
-import market.domain.store.StoreDTO;
-import market.domain.user.ShoppingCart;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.jsonwebtoken.lang.Assert;
+import market.domain.store.Listing;
+import market.domain.store.StoreDTO;
+import market.domain.user.ShoppingCart;
+import market.domain.user.User;
+import market.middleware.TokenUtils; // Ensure this is the correct package for the User class
 import support.AcceptanceTestBase;
 import utils.ApiResponse;
 
+import market.domain.purchase.Purchase; // Add this import, adjust the package if needed
 import java.util.List;
 import market.domain.user.User; // Ensure this is the correct package for the User class
 import market.middleware.TokenUtils;
@@ -244,20 +249,26 @@ class SubscriberTests extends AcceptanceTestBase {
             10,
             1000).getData();
 
-        // Generate a token for the user
+        // Generate token and inject
         String token = authService.generateToken(user1).getData();
-        ;
+        TokenUtils.setMockToken(token);  // <<--- Key step!
 
+        // Call method under test
+        ApiResponse<Void> res = userService.addProductToCart(storeid1, listing_id1, 2);
+        assertTrue(res.isSuccess());
 
+        // Assert
+    
 
-        // Simulate a token for the user
-        this.userService.addProductToCart(storeid1, "ipad", 2);
         ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
-        assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2"); // not work beacus of the token
+       // cart.addProduct(storeid1, listing_id1, 2);
+        assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
 
         //clean up
         this.listingRepository.removeListing(listing_id1);
         this.storeService.closeStore(storeid1, user1.getUserName());
+         TokenUtils.clearMockToken();
+
     }
  
 

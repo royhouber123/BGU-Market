@@ -26,57 +26,62 @@ import static org.mockito.Mockito.*;
 
 public class GuestTests extends AcceptanceTestBase {
 
+    private final String MANAGER1 = "manager1";
+    private final String MANAGER2 = "manager2";
+    private final String MANAGER3 = "manager3";
+    private final String MANAGER_PASSWORD = "1234";
+
+    private final String GUEST = "guest";
+    private final String SHIPPING_ADDRESS = "123 Guest Street";
+    private final String CONTACT_INFO = "guest@example.com";
+
     private String storeId;
 
     @BeforeEach
-    void setUp() throws Exception {
-        userService.register("user1", "password1"); //user1
-        userService.register("user2", "password2"); //user2
-        storeId = this.storeService.createStore("store1", "1").getData(); //manager1 create store
+    void setUp() throws Exception {        
+        userService.register(MANAGER1, MANAGER_PASSWORD);
+        userService.register(MANAGER2, MANAGER_PASSWORD);
+        userService.register(MANAGER3, MANAGER_PASSWORD);
+        userService.register(GUEST);
+        storeId = storeService.createStore("store1", MANAGER1).getData();
     }
 
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test
     void guest_enters_system_initializes_cart() { 
-        //Step 1: Enter the system as a guest and verify success
-        String guestName = "guest";
-        ApiResponse<Void> registerResponse = userService.register(guestName);
-        assertTrue(registerResponse.isSuccess(), "Enter as a guest failed: " + registerResponse.getError());
-        //Step 2: Retrieve the user repository and ensure it was retrieved successfully
+        //Step 1: Retrieve the user repository and ensure it was retrieved successfully
         ApiResponse<IUserRepository> repoResp = userService.getUserRepository();
         assertTrue(repoResp.isSuccess(), "Failed to retrieve user repository: " + repoResp.getError());
-        //Step 3: Extract the actual repository object from the response
+        //Step 2: Extract the actual repository object from the response
         IUserRepository userRepository = repoResp.getData();
-        //Step 4: Get the shopping cart for the guest user
-        ShoppingCart cart = userRepository.getCart(guestName);
-        //Step 5: Verify that the cart exists
+        //Step 3: Get the shopping cart for the guest user
+        ShoppingCart cart = userRepository.getCart(GUEST);
+        //Step 4: Verify that the cart exists
         assertNotNull(cart, "Guest's shopping cart should be initialized");
-        //Step 6: Verify that the cart is initially empty (no store bags)
+        //Step 5: Verify that the cart is initially empty (no store bags)
         assertTrue(cart.getAllStoreBags().isEmpty(), "Guest's shopping cart should be empty on registration");
     }
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test
     void guest_exits_system_cart_deleted() {
-        //Step 1: Enter the system as a guest
-        String guestName = "guest";
-        userService.register(guestName);
-        //Step 2: Retrieve the user repository and ensure it was retrieved successfully
+        //Step 1: Retrieve the user repository and ensure it was retrieved successfully
         ApiResponse<IUserRepository> repoResp = userService.getUserRepository();
         assertTrue(repoResp.isSuccess(), "Failed to retrieve user repository: " + repoResp.getError());
-        //Step 3: Extract the actual repository object from the response
+        //Step 2: Extract the actual repository object from the response
         IUserRepository userRepository = repoResp.getData();
-        //Step 4: Get the guest's cart to verify it was initialized
-        ShoppingCart cart = userRepository.getCart(guestName);
+        //Step 3: Get the guest's cart to verify it was initialized
+        ShoppingCart cart = userRepository.getCart(GUEST);
         assertNotNull(cart, "Cart should exist after guest registers");
-        //Step 5: Simulate guest leaving the system (e.g., closing the browser)
-        userRepository.delete(guestName);
-        //Step 6: Attempt to access the guest's cart again — should throw an exception
+        //Step 4: Simulate guest leaving the system (e.g., closing the browser)
+        ApiResponse<Void> deleteResponse = userService.deleteUser(GUEST);
+        assertTrue(deleteResponse.isSuccess(), "Failed to delete guest user: " + deleteResponse.getError());
+        //Step 5: Attempt to access the guest's cart again — should throw an exception
         assertThrows(RuntimeException.class, () -> {
-                userService.getUserRepository().getData().getCart(guestName);
+                userService.getUserRepository().getData().getCart(GUEST);
                 }, "Expected cart retrieval to fail after guest deletion");
     }
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test
     void guest_registers_with_valid_details() {
         //Step 1: Attempt to register a new subscriber with valid credentials
         String username = "new_subscriber";
@@ -95,8 +100,8 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_login_with_valid_credentials() {
-        //Step 1: Login with valid credentials (user was registered in @BeforeEach)
-        ApiResponse<AuthToken> loginResponse = authService.login("user1", "password1");
+        //Step 1: Login with valid credentials (manager1 was registered in @BeforeEach)
+        ApiResponse<AuthToken> loginResponse = authService.login(MANAGER1, MANAGER_PASSWORD);
         assertTrue(loginResponse.isSuccess(), "Login failed: " + loginResponse.getError());
         //Step 2: Retrieve the token from the login response
         AuthToken auth = loginResponse.getData();
@@ -108,7 +113,7 @@ public class GuestTests extends AcceptanceTestBase {
     @Test
     void guest_login_with_wrong_password() {
         //Step 1: Attempt to login with incorrect password
-        ApiResponse<AuthToken> loginResponse = authService.login("user2", "wrongPassword");
+        ApiResponse<AuthToken> loginResponse = authService.login(MANAGER1, "wrongPassword");
         //Step 2: Assert that login failed and contains an appropriate error message
         assertFalse(loginResponse.isSuccess(), "Login should fail with wrong password");
         assertNotNull(loginResponse.getError(), "Error message should be provided");
@@ -116,13 +121,10 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_gets_stores_and_product_info_when_available() { 
-        //Step 1: Register two managers
-        assertTrue(userService.register("manager1", "1234").isSuccess(), "Failed to register manager1");
-        assertTrue(userService.register("manager2", "1234").isSuccess(), "Failed to register manager2");
-        //Step 2: Each manager creates a store
-        String storeId1 = storeService.createStore("MyStore", "manager1").getData();
-        String storeId2 = storeService.createStore("AnotherStore", "manager2").getData();
-        //Step 3: Each store gets a product
+        //Step 1: Each manager creates a store
+        String storeId1 = storeService.createStore("MyStore", MANAGER1).getData();
+        String storeId2 = storeService.createStore("AnotherStore", MANAGER2).getData();
+        //Step 2: Each store gets a product
         storeService.addNewListing(
             "manager1",
             storeId1,
@@ -143,18 +145,18 @@ public class GuestTests extends AcceptanceTestBase {
             20,
             2.0
         ).getData();
-        //Step 4: Call the method to retrieve store and product info
+        //Step 3: Call the method to retrieve store and product info
         ApiResponse<HashMap<StoreDTO, List<Listing>>> response = storeService.getInformationAboutStoresAndProducts();
         assertTrue(response.isSuccess(), "Failed to retrieve store and product information: " + response.getError());
-        //Step 5: Extract and validate store data
+        //Step 4: Extract and validate store data
         HashMap<StoreDTO, List<Listing>> storeInfo = response.getData();
         assertFalse(storeInfo.isEmpty(), "Expected at least one store in the result");
-        //Step 6: Check that both stores are included
+        //Step 5: Check that both stores are included
         boolean store1Found = storeInfo.keySet().stream().anyMatch(dto -> dto.getName().equals("MyStore"));
         boolean store2Found = storeInfo.keySet().stream().anyMatch(dto -> dto.getName().equals("AnotherStore"));
         assertTrue(store1Found, "Expected to find 'MyStore' in the returned data");
         assertTrue(store2Found, "Expected to find 'AnotherStore' in the returned data");
-        //Step 7: Check that both products are listed
+        //Step 6: Check that both products are listed
         boolean product1Found = storeInfo.values().stream()
             .flatMap(List::stream)
             .anyMatch(listing -> listing.getProductName().equals("Blue Notebook"));
@@ -167,14 +169,13 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_gets_store_info_when_no_stores_active() { 
-        //Step 1: Assume setup created a store with founder "1"
-        //Step 2: Close the store using founder ID from setup
-        ApiResponse<String> closeStoreResponse = storeService.closeStore(storeId, "1");
+        //Step 1: Close the store using MANAGER1 ID from setup
+        ApiResponse<String> closeStoreResponse = storeService.closeStore(storeId, MANAGER1);
         assertTrue(closeStoreResponse.isSuccess(), "Store closure failed");
-        //Step 3: Guest requests store info
+        //Step 2: Guest requests store info
         ApiResponse<HashMap<StoreDTO, List<Listing>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
         assertTrue(infoResponse.isSuccess(), "Failed to get store information");
-        //Step 4: Assert no active stores are returned
+        //Step 3: Assert no active stores are returned
         HashMap<StoreDTO, List<Listing>> data = infoResponse.getData();
         assertNotNull(data, "Returned data should not be null");
         assertTrue(data.isEmpty(), "Expected no active stores, but some were returned");
@@ -182,16 +183,14 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_gets_store_info_when_store_has_no_products() { 
-        //Step 1: Use setup-created store (already exists and is active)
-        String founderId = "1"; //the same ID used in setUp() to create the store
-        //Step 2: Guest requests information about stores and their products
+        //Step 1: Guest requests information about stores and their products
         ApiResponse<HashMap<StoreDTO, List<Listing>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
         assertTrue(infoResponse.isSuccess(), "Failed to retrieve store information");
-        //Step 3: Check that at least one store is returned
+        //Step 2: Check that at least one store is returned
         HashMap<StoreDTO, List<Listing>> data = infoResponse.getData();
         assertNotNull(data, "Response data should not be null");
         assertFalse(data.isEmpty(), "Expected at least one store");
-        //Step 4: Find the store with the expected ID and check its listings
+        //Step 3: Find the store with the expected ID and check its listings
         boolean storeFoundWithNoProducts = data.entrySet().stream()
             .anyMatch(entry -> entry.getKey().getStoreID().equals(storeId) && entry.getValue().isEmpty());
         assertTrue(storeFoundWithNoProducts, "Expected the store to have no products listed");
@@ -199,141 +198,74 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_can_search_products_across_all_stores_by_keyword() {
-        assertDoesNotThrow(() -> {
-            //Step 1: Register 3 managers
-            assertTrue(userService.register("manager1", "1234").isSuccess(), "Failed to register manager1");
-            assertTrue(userService.register("manager2", "1234").isSuccess(), "Failed to register manager2");
-            assertTrue(userService.register("manager3", "1234").isSuccess(), "Failed to register manager3");
-            //Step 2: Create 3 stores, each owned by a different manager
-            String storeId1 = storeService.createStore("StoreA", "manager1").getData();
-            String storeId2 = storeService.createStore("StoreB", "manager2").getData();
-            String storeId3 = storeService.createStore("StoreC", "manager3").getData();
-            //Step 3: Add notebook to first store
-            storeService.addNewListing(
-                "manager1", storeId1, "p1", "Notebook Classic", "Stationery",
-                "Ruled notebook", 10, 15.0
-            );
-            //Step 4: Add notebook to second store
-            storeService.addNewListing(
-                "manager2", storeId2, "p2", "Notebook Deluxe", "Stationery",
-                "Premium notebook with hard cover", 5, 25.0
-            );
-            //Step 5: Add pencil to third store
-            storeService.addNewListing(
-                "manager3", storeId3, "p3", "Yellow Pencil", "Stationery",
-                "HB classic pencil", 30, 2.5
-            );
-            //Step 6: Search for "note" keyword (expect 2 results)
-            String keyword1 = "note";
-            ApiResponse<List<Listing>> noteSearchResponse = productService.searchByProductName(keyword1);
-            assertTrue(noteSearchResponse.isSuccess(), "Failed to search products by keyword: " + keyword1);
-            List<Listing> noteResults = noteSearchResponse.getData();
-            assertEquals(2, noteResults.size(), "Expected exactly 2 notebook products");
-            for (Listing listing : noteResults) {
-                assertTrue(
-                    listing.getProductName().toLowerCase().contains(keyword1),
-                    "Each product name should contain the keyword 'note'"
-                );
-            }
-            //Step 7: Search for "pencil" keyword (expect 1 result)
-            String keyword2 = "pencil";
-            ApiResponse<List<Listing>> pencilSearchResponse = productService.searchByProductName(keyword2);
-            assertTrue(pencilSearchResponse.isSuccess(), "Failed to search products by keyword: " + keyword2);
-            List<Listing> pencilResults = pencilSearchResponse.getData();
-            assertEquals(1, pencilResults.size(), "Expected exactly 1 pencil product");
+        //Step 1: Create 3 stores, each owned by a different manager
+        String storeId1 = storeService.createStore("StoreA", MANAGER1).getData();
+        String storeId2 = storeService.createStore("StoreB", MANAGER2).getData();
+        String storeId3 = storeService.createStore("StoreC", MANAGER3).getData();
+        //Step 2: Add notebook to first store
+        storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook Classic", "Stationery","Ruled notebook", 10, 15.0);
+        //Step 3: Add notebook to second store
+        storeService.addNewListing(MANAGER2, storeId2, "p2", "Notebook Deluxe", "Stationery","Premium notebook with hard cover", 5, 25.0);
+        //Step 4: Add pencil to third store
+        storeService.addNewListing(MANAGER3, storeId3, "p3", "Yellow Pencil", "Stationery","HB classic pencil", 30, 2.5);
+        //Step 5: Search for "note" keyword (expect 2 results)
+        String keyword1 = "note";
+        ApiResponse<List<Listing>> noteSearchResponse = productService.searchByProductName(keyword1);
+        assertTrue(noteSearchResponse.isSuccess(), "Failed to search products by keyword: " + keyword1);
+        List<Listing> noteResults = noteSearchResponse.getData();
+        assertEquals(2, noteResults.size(), "Expected exactly 2 notebook products");
+        for (Listing listing : noteResults) {
             assertTrue(
-                pencilResults.get(0).getProductName().toLowerCase().contains(keyword2),
-                "Pencil product name should contain the keyword 'pencil'"
+                listing.getProductName().toLowerCase().contains(keyword1),
+                "Each product name should contain the keyword 'note'"
             );
-        });
+        }
+        //Step 6: Search for "pencil" keyword (expect 1 result)
+        String keyword2 = "pencil";
+        ApiResponse<List<Listing>> pencilSearchResponse = productService.searchByProductName(keyword2);
+        assertTrue(pencilSearchResponse.isSuccess(), "Failed to search products by keyword: " + keyword2);
+        List<Listing> pencilResults = pencilSearchResponse.getData();
+        assertEquals(1, pencilResults.size(), "Expected exactly 1 pencil product");
+        assertTrue(
+            pencilResults.get(0).getProductName().toLowerCase().contains(keyword2),
+            "Pencil product name should contain the keyword 'pencil'"
+        );
     }
 
 
     @Test
     void guest_search_returns_empty_when_no_matches() {
-        //Step 1: Register two store managers
-        assertTrue(userService.register("manager1", "1234").isSuccess(), "Failed to register manager1");
-        assertTrue(userService.register("manager2", "1234").isSuccess(), "Failed to register manager2");
-        //Step 2: Create first store and add a notebook
-        String storeId1 = storeService.createStore("StoreA", "manager1").getData();
-        storeService.addNewListing(
-            "manager1",
-            storeId1,
-            "p1",
-            "Notebook",
-            "Stationery",
-            "Simple ruled notebook",
-            10,
-            12.5
-        );
-        //Step 3: Create second store and add a pencil case
-        String storeId2 = storeService.createStore("StoreB", "manager2").getData();
-        storeService.addNewListing(
-            "manager2",
-            storeId2,
-            "p2",
-            "Pencil Case",
-            "Stationery",
-            "Blue fabric pencil case",
-            8,
-            9.99
-        );
-        //Step 4: Search for a keyword that does not exist
+        //Step 1: Create two stores using pre-registered managers
+        String storeId1 = storeService.createStore("StoreA", MANAGER1).getData();
+        String storeId2 = storeService.createStore("StoreB", MANAGER2).getData();
+        //Step 2: Add products to the stores
+        storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook", "Stationery", "Simple ruled notebook", 10, 12.5);
+        storeService.addNewListing(MANAGER2, storeId2, "p2", "Pencil Case", "Stationery", "Blue fabric pencil case", 8, 9.99);
+        //Step 3: Search for a keyword that does not exist
         String keyword = "unicorn-rainbow-sandwich";
         ApiResponse<List<Listing>> searchResp = productService.searchByProductName(keyword);
         assertTrue(searchResp.isSuccess(), "Search failed: " + searchResp.getError());
         List<Listing> results = searchResp.getData();
-        //Step 5: Assert that no results were found
+        //Step 4: Assert that no results were found
         assertTrue(results.isEmpty(), "Expected no products to match a completely unrelated keyword");
     }
 
 
     @Test
     void guest_searches_in_specific_store_exists() {
-        //Step 1: Register a manager to own the store
-        assertTrue(userService.register("m1", "1234").isSuccess(), "Failed to register m1");
-        //Step 2: Create a store called StoreAlpha
-        String storeIdAlpha = storeService.createStore("StoreAlpha", "m1").getData();
-        //Step 3: Add two notebook-related products to StoreAlpha
-        storeService.addNewListing(
-            "m1",
-            storeIdAlpha,
-            "n1",
-            "Notebook Classic",
-            "Stationery",
-            "Basic notebook",
-            10,
-            12.5
-        );
-        storeService.addNewListing(
-            "m1",
-            storeIdAlpha,
-            "n2",
-            "Notebook Pro",
-            "Stationery",
-            "Premium notebook",
-            8,
-            18.0
-        );
-        //Step 4: Add a product that is unrelated to the search keyword
-        storeService.addNewListing(
-            "m1",
-            storeIdAlpha,
-            "n3",
-            "Marker Red",
-            "Stationery",
-            "Permanent red marker",
-            5,
-            4.0
-        );
-        //Step 5: Search for the keyword "note" in StoreAlpha
+        //Step 1: Add two notebook-related products to the setup-created store
+        storeService.addNewListing(MANAGER1, storeId, "n1", "Notebook Classic", "Stationery", "Basic notebook", 10, 12.5);
+        storeService.addNewListing(MANAGER1, storeId, "n2", "Notebook Pro", "Stationery", "Premium notebook", 8, 18.0);
+        //Step 2: Add an unrelated product
+        storeService.addNewListing(MANAGER1, storeId, "n3", "Marker Red", "Stationery", "Permanent red marker", 5, 4.0);
+        //Step 3: Search for the keyword "note" in the store
         String keyword = "note";
-        ApiResponse<List<Listing>> searchResp = productService.searchInStoreByName(storeIdAlpha, keyword);
+        ApiResponse<List<Listing>> searchResp = productService.searchInStoreByName(storeId, keyword);
         assertTrue(searchResp.isSuccess(), "Search in store failed: " + searchResp.getError());
-        List<Listing> resultsAlpha = searchResp.getData();
-        //Step 6: Validate that only notebook-related products are returned
-        assertEquals(2, resultsAlpha.size(), "Expected 2 notebook products in StoreAlpha");
-        for (Listing listing : resultsAlpha) {
+        List<Listing> results = searchResp.getData();
+        //Step 4: Validate that only notebook-related products are returned
+        assertEquals(2, results.size(), "Expected 2 notebook products in StoreAlpha");
+        for (Listing listing : results) {
             assertTrue(
                 listing.getProductName().toLowerCase().contains(keyword),
                 "Product name should contain the keyword 'note'"
@@ -357,44 +289,43 @@ public class GuestTests extends AcceptanceTestBase {
 
     @Test
     void guest_searches_in_specific_store_no_matching_products() {
-        //Step 1: Register a manager to be the owner of the store
-        assertTrue(userService.register("managerX", "1234").isSuccess(), "Failed to register managerX");
-        //Step 2: Create a store and add products that don't match the search keyword
-        String storeId = storeService.createStore("UniqueStore", "managerX").getData();
-        storeService.addNewListing("managerX", storeId, "p1", "Stapler", "Office Supplies", "Standard metal stapler", 5, 12.0);
-        storeService.addNewListing("managerX", storeId, "p2", "Paper Clips", "Office Supplies", "Pack of 100 clips", 10, 3.0);
-        //Step 3: Search for a product name that doesn't exist in the store
+        //Step 1: Add unrelated products to the store created in setup
+        storeService.addNewListing(MANAGER1, storeId, "p1", "Stapler", "Office Supplies", "Standard metal stapler", 5, 12.0);
+        storeService.addNewListing(MANAGER1, storeId, "p2", "Paper Clips", "Office Supplies", "Pack of 100 clips", 10, 3.0);
+        //Step 2: Search for a product name that doesn't exist in the store
         String keyword = "notebook";
         ApiResponse<List<Listing>> searchResp = productService.searchInStoreByName(storeId, keyword);
-        //Step 4: Assert the search was successful and returned no matching results
+        //Step 3: Assert the search was successful and returned no matching results
         assertTrue(searchResp.isSuccess(), "Search operation failed unexpectedly: " + searchResp.getError());
         assertTrue(searchResp.getData().isEmpty(), "Expected no results when no products match the keyword");
     }
 
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test 
     void guest_adds_product_to_cart_valid() {
-        assertDoesNotThrow(() -> {
-            //Step 1: Add a product to the cart of user1
-            ApiResponse<IUserRepository> repoResp1 = userService.getUserRepository();
-            assertTrue(repoResp1.isSuccess(), "Failed to retrieve user repository: " + repoResp1.getError());
-            IUserRepository userRepository1 = repoResp1.getData();
-            userRepository1.findById("user1").addProductToCart(storeId, "gvina", 2);
-            //Step 2: Retrieve the cart and verify that the product was added with correct quantity
-            ApiResponse<IUserRepository> repoResp2 = userService.getUserRepository();
-            assertTrue(repoResp2.isSuccess(), "Failed to retrieve user repository: " + repoResp2.getError());
-            ShoppingCart cartBefore = repoResp2.getData().getCart("user1");
-            assertEquals(2, cartBefore.getStoreBag(storeId).getProductQuantity("gvina"),
-                "Expected quantity of 'gvina' in store bag should be 2");
-            //Step 3: Remove the product from the cart
-            userRepository1.findById("user1").removeProductFromCart(storeId, "gvina", 2);
-            //Step 4: Verify the store bag was removed after deleting all products from it
-            ApiResponse<IUserRepository> repoResp3 = userService.getUserRepository();
-            assertTrue(repoResp3.isSuccess(), "Failed to retrieve user repository: " + repoResp3.getError());
-            ShoppingCart cartAfter = repoResp3.getData().getCart("user1");
-            assertNull(cartAfter.getStoreBag(storeId),
-                "Store bag should be null after removing all quantities of the product");
-        });
+        //Step 1: Retrieve the user repository and get the User object
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guest=userRep.findById(GUEST);
+        //Step 2: Generate a token for the guest and set it as the current mock token
+        String token = authService.generateToken(guest).getData();
+        TokenUtils.setMockToken(token);
+        //Step 3: Add a new product listing (Gvina) to the store as the manager1
+        String listingIdOfGvina=storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0).getData();
+        //Step 4: Guest adds 2 units of the product to their cart
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId, listingIdOfGvina, 2);
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
+        //Step 5: Retrieve the guest's shopping cart and verify product quantity
+        ShoppingCart cart = userRep.getCart(GUEST); 
+        assertEquals(2, cart.getStoreBag(storeId).getProductQuantity(listingIdOfGvina),
+            "Expected quantity of 'gvina' in store bag should be 2");
+        //Step 6: Guest removes the same quantity of the product from the cart
+        ApiResponse<Void> removeProductResponse = userService.removeProductFromCart(storeId, listingIdOfGvina, 2);
+        assertTrue(removeProductResponse.isSuccess(), "Failed to remove product from cart: " + removeProductResponse.getError());
+        //Step 7: Verify that the store bag was removed (cart is empty for that store)
+        assertNull(cart.getStoreBag(storeId),
+            "Store bag should be null after removing all quantities of the product");
+        //Step 8: Clear the mock token
+        TokenUtils.clearMockToken();
     }
 
 
@@ -430,119 +361,90 @@ public class GuestTests extends AcceptanceTestBase {
         ///
     }
 
-    @Test /////////to change- need to use only user service functions/////////
+    @Test 
     void guest_purchases_cart_successfully(){
-        //Step 1: Register a store manager and create a store
-        assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
-        String storeId1 = storeService.createStore("SchoolStore", "manager").getData();
-        //Step 2: Add a product to the store
+        //Step 1: Add a new listing (Notebook) to the existing store
         int quantity=5;
-        String listingId=storeService.addNewListing( 
-            "manager",
-            storeId1,
-            "p1",
-            "Notebook",
-            "writing",
-            "Simple notebook",
-            quantity,
-            25.0
-        ).getData();
-        //Step 3: Stub payment and shipment services to simulate success
+        String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0).getData();
+        //Step 2: Stub the payment and shipment services to simulate success
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
-        //Step 4: Enter as a guest and add the product to their cart
-        userService.register("guest");
-        User guestUser=userService.getUserRepository().getData().findById("guest"); 
-        guestUser.addProductToCart(storeId1, listingId, 1);
-        //Step 5: Prepare shipping details and retrieve the guest's cart
-        String shippingAddress = "123 Guest Street"; 
-        String contactInfo = "guest@example.com"; 
+        //Step 3: Generate a token for GUEST and set it as the current token
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guestUser=userRep.findById(GUEST); 
+        String token = authService.generateToken(guestUser).getData();
+        TokenUtils.setMockToken(token);
+        //Step 6: Add one notebook to the guest's shopping cart
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId, listingId, 1);
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
         ShoppingCart guestCart = guestUser.getShoppingCart();
-        //Step 6: Execute the purchase and verify success
-        ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase("guest", guestCart, shippingAddress, contactInfo);
+        //Step 7: Execute the purchase
+        ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO);
         assertTrue(purchaseResponse.isSuccess(), "Purchase failed: " + purchaseResponse.getError());
-        //Step 7: Validate purchase object and buyer identity
+        //Step 8: Validate that the purchase object is correct and belongs to the guest
         Purchase purchase = purchaseResponse.getData();
         assertNotNull(purchase, "Purchase should not be null");
-        assertEquals("guest", purchase.getUserId(), "Buyer ID should be guest");
-        //Step 8: Verify the guest's cart is now empty
-        User refreshedGuest = userService.getUserRepository().getData().findById("guest");
+        assertEquals(GUEST, purchase.getUserId(), "Buyer ID should be guest");
+        //Step 9: Verify that the cart is empty after successful purchase
+        User refreshedGuest = userService.getUserRepository().getData().findById(GUEST);
         ShoppingCart refreshedCart = refreshedGuest.getShoppingCart();
         assertTrue(refreshedCart.getAllStoreBags().isEmpty(), "Shopping cart should be empty after purchase");
-        //Step 9: Check that product stock was reduced accordingly
+        //Step 10: Verify that the store stock was reduced by the purchased quantity
         int remainingStock = storeService.getListingRepository().getData().getListingById(listingId).getQuantityAvailable();
         assertEquals(quantity - 1, remainingStock, "Stock should decrease by purchased amount");
+        //Step 11: Clear the mock token
+        TokenUtils.clearMockToken();
     }
 
-    @Test /////////to change- need to use only user service functions/////////
-    void guest_purchasing_cart_fails_due_to_stock() throws Exception { //there is a stock when added to bag but not when purchase???
-        //Step 1: Register a store manager and create a store
-        assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
-        String storeId1 = storeService.createStore("SchoolStore", "manager").getData();
-        //Step 2: Add a product to the store with limited stock
+    @Test 
+    void guest_purchasing_cart_fails_due_to_stock() { //there is a stock when added to bag but not when purchase???
+        //Step 1: Add a product to the existing store with limited stock (5 units)
         int quantity=5;
-        String listingId=storeService.addNewListing( 
-            "manager",
-            storeId1,
-            "p1",
-            "Notebook",
-            "writing",
-            "Simple notebook",
-            quantity,
-            25.0
-        ).getData();
-        //Step 3: Stub payment and shipment services to always succeed
+        String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0).getData();
+        //Step 2: Stub the payment and shipment services to simulate success (even though stock will fail)
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
-        //Step 4: Register a guest and add a quantity exceeding available stock
-        userService.register("guest"); 
-        User guestUser = userService.getUserRepository().getData().findById("guest"); 
-        guestUser.addProductToCart(storeId1, listingId, quantity + 1); 
-        //Step 5: Attempt to purchase and verify failure due to stock limitation
-        String shippingAddress = "123 Guest Street";
-        String contactInfo = "guest@example.com";
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
+        //Step 3: Generate a token for GUEST and set it as the current token
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guestUser=userRep.findById(GUEST); 
+        String token = authService.generateToken(guestUser).getData();
+        TokenUtils.setMockToken(token);
+        //Step 4: Add more items to the cart than are available in stock (6 > 5)
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId, listingId, quantity + 1); 
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
         ShoppingCart guestCart = guestUser.getShoppingCart(); 
-        ApiResponse<Purchase> response = purchaseService.executePurchase("guest", guestCart, shippingAddress, contactInfo);
-        //Step 6: Check that the response indicates failure and the error is related to stock
+        //Step 5: Attempt to execute purchase — should fail due to insufficient stock
+        ApiResponse<Purchase> response = purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO);
+        //Step 6: Validate that the purchase failed and the error message is stock-related
         assertFalse(response.isSuccess(), "Expected purchase to fail due to stock limit");
         assertTrue(response.getError().toLowerCase().contains("stock"), "Expected stock-related error, but got: " + response.getError());
+        //Step 7: Clear the mock token to clean up
+        TokenUtils.clearMockToken();
     }
 
-    @Test /////////to change- need to use only user service functions/////////
-    void guest_purchasing_cart_fails_due_to_payment() throws Exception { //after payment failes- what to do with the stock- it already reduced???
-        //Step 1: Register a store manager and create a store
-        assertTrue(userService.register("manager", "1234").isSuccess(), "Failed to register manager");
-        String storeId1 = storeService.createStore("SchoolStore", "manager").getData();
-        //Step 2: Add a new listing to the store
+    @Test 
+    void guest_purchasing_cart_fails_due_to_payment() { //after payment failes- what to do with the stock- it already reduced???
+        //Step 1: Add a product listing ("Notebook") with a stock of 5 to the existing store
         int quantity=5;
-        String listingId=storeService.addNewListing( //Add a new product listing ("Notebook") to the created store
-            "manager",
-            storeId1,
-            "p1",
-            "Notebook",
-            "writing",
-            "Simple notebook",
-            quantity,
-            25.0
-        ).getData();
-        //Step 3: Mock payment and shipment services
-        //Simulate payment failure response from the payment service
+        String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0).getData();
+        //Step 2: Stub services: simulate payment failure but allow shipment (to isolate payment failure)
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.fail("Simulated payment failure"));
-        //Simulate successful shipment response
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
-        //Step 4: Enter as a guest user
-        userService.register("guest"); 
-        User guestUser = userService.getUserRepository().getData().findById("guest"); 
-        //Step 5: Add a product to the guest's shopping cart
-        guestUser.addProductToCart(storeId1, listingId, 1); 
-        //Step 6: Prepare guest's cart and purchase details
-        String shippingAddress = "123 Guest Street";
-        String contactInfo = "guest@example.com";
+        //Step 3: Generate a token for GUEST and set it as the current token
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guestUser=userRep.findById(GUEST); 
+        String token = authService.generateToken(guestUser).getData();
+        TokenUtils.setMockToken(token);
+        //Step 4: Add 1 unit of the notebook to the guest's shopping cart
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId, listingId, 1); 
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError()); 
         ShoppingCart guestCart = guestUser.getShoppingCart();
-        //Step 7: Attempt to execute the purchase 
-        ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase("guest", guestCart, shippingAddress, contactInfo);
-        //Step 8: Assert that the purchase failed due to payment
+        //Step 5: Attempt to execute purchase — should fail due to payment error
+        ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO);
+        //Step 6: Verify that the purchase failed and the error is payment-related
         assertFalse(purchaseResponse.isSuccess(), "Expected purchase to fail due to payment issue");
-        assertTrue(purchaseResponse.getError().toLowerCase().contains("payment"), "Expected failure due to payment issue, but got: " + purchaseResponse.getError()); 
+        assertTrue(purchaseResponse.getError().toLowerCase().contains("payment"), "Expected failure due to payment issue, but got: " + purchaseResponse.getError());
+        //Step 7: Clear the mock token to clean up
+        TokenUtils.clearMockToken(); 
     }
 }  
