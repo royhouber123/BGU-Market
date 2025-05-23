@@ -26,7 +26,7 @@ public class UserService {
             logger.info("[UserService] Guest registered: " + userName);
             return ApiResponse.ok(null);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to register guest: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to register guest: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to register guest: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -39,7 +39,7 @@ public class UserService {
             logger.info("[UserService] User registered: " + userName);
             return ApiResponse.ok(null);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to register user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to register user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to register user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -53,7 +53,7 @@ public class UserService {
             logger.info("[UserService] User deleted: " + userName);
             return ApiResponse.ok(null);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to delete user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to delete user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to delete user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -67,7 +67,7 @@ public class UserService {
             logger.info("[UserService] User fetched: " + userName);
             return ApiResponse.ok(user);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to fetch user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to fetch user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to fetch user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -81,7 +81,7 @@ public class UserService {
             logger.info("[UserService] Username changed from '" + oldName + "' to '" + newName + "'.");
             return ApiResponse.ok(result);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to change username from '" + oldName + "' to '" + newName + "'. Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to change username from '" + oldName + "' to '" + newName + "'. Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to change username from '" + oldName + "' to '" + newName + "'. Exception: " + e.getMessage());
         }
     }
@@ -95,7 +95,7 @@ public class UserService {
             logger.info("[UserService] Password changed for user: " + userName);
             return ApiResponse.ok(result);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to change password for user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to change password for user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to change password for user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -111,7 +111,7 @@ public class UserService {
             logger.info("[UserService] Product added to cart for user: " + userName);
             return ApiResponse.ok(null);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to add product to cart for user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to add product to cart for user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to add product to cart for user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -127,7 +127,7 @@ public class UserService {
             logger.info("[UserService] Product removed from cart for user: " + userName);
             return ApiResponse.ok(null);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to remove product from cart for user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to remove product from cart for user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to remove product from cart for user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -141,7 +141,7 @@ public class UserService {
             logger.info("[UserService] Cart cleared for user: " + userName);
             return ApiResponse.ok(null);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to clear cart for user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to clear cart for user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to clear cart for user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -154,7 +154,7 @@ public class UserService {
             logger.info("[UserService] Cart retrieved for user: " + userName);
             return ApiResponse.ok(cart);
         } catch (Exception e) {
-            logger.error("[UserService] Failed to get cart for user: " + userName + ". Exception: " + e.getMessage());
+            logger.debug("[UserService] Failed to get cart for user: " + userName + ". Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to get cart for user: " + userName + ". Exception: " + e.getMessage());
         }
     }
@@ -162,7 +162,7 @@ public class UserService {
     private String extractUserNameFromToken() {
         String token = TokenUtils.getToken();
         if (token == null) {
-            logger.error("[UserService] Token is missing from request context");
+            logger.debug("[UserService] Token is missing from request context");
             throw new IllegalStateException("Token is missing from request context");
         }
         Claims claims = authService.parseToken(token).getData();
