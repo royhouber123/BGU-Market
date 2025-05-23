@@ -47,7 +47,7 @@ public class UserRepository implements IUserRepository {
     public void register(String name) {
         logger.info("[UserRepository] Registering guest: " + name);
         if (guestMap.containsKey(name)) {
-            logger.error("[UserRepository] Guest with name '" + name + "' already exists.");
+            logger.debug("[UserRepository] Guest with name '" + name + "' already exists.");
             throw new RuntimeException("Guest with name '" + name + "' already exists.");
         }
         User guest = new User(name);
@@ -58,7 +58,7 @@ public class UserRepository implements IUserRepository {
     public void register(String name, String pw) {
         logger.info("[UserRepository] Registering user: " + name);
         if (userMap.containsKey(name)) {
-            logger.error("[UserRepository] User with name '" + name + "' already exists.");
+            logger.debug("[UserRepository] User with name '" + name + "' already exists.");
             throw new RuntimeException("[UserRepository] User with name '" + name + "' already exists.");
         }
         Subscriber subscriber = new Subscriber(name);
@@ -72,7 +72,7 @@ public class UserRepository implements IUserRepository {
         logger.info("[UserRepository] Verifying password for user: " + username);
         String hashedPassword = passwordMap.get(username);
         if (hashedPassword == null) {
-            logger.error("[UserRepository] User with name '" + username + "' not found.");
+            logger.debug("[UserRepository] User with name '" + username + "' not found.");
             return false;
         }
         boolean isMatch = PasswordUtil.verifyPassword(plainPassword, hashedPassword);
@@ -88,7 +88,7 @@ public class UserRepository implements IUserRepository {
         logger.info("[UserRepository] Deleting user: " + name);
         boolean isExist = guestMap.containsKey(name) || userMap.containsKey(name);
         if (!isExist) {
-            logger.error("[UserRepository] User with name '" + name + "' does not exist.");
+            logger.debug("[UserRepository] User with name '" + name + "' does not exist.");
             throw new RuntimeException("User with name '" + name + "' does not exist.");
         }
         guestMap.remove(name);
@@ -100,11 +100,11 @@ public class UserRepository implements IUserRepository {
     public boolean changeUserName(String oldName, String newName) {
         logger.info("[UserRepository] Changing username from '" + oldName + "' to '" + newName + "'.");
         if (!userMap.containsKey(oldName)) {
-            logger.error("[UserRepository] User with name '" + oldName + "' does not exist.");
+            logger.debug("[UserRepository] User with name '" + oldName + "' does not exist.");
             throw new RuntimeException("User with name '" + oldName + "' does not exist.");
         }
         if (userMap.containsKey(newName)) {
-            logger.error("[UserRepository] User with name '" + newName + "' already exists.");
+            logger.debug("[UserRepository] User with name '" + newName + "' already exists.");
             throw new RuntimeException("User with name '" + newName + "' already exists.");
         }
         Subscriber u = userMap.remove(oldName);
@@ -120,7 +120,7 @@ public class UserRepository implements IUserRepository {
     public boolean changePassword(String name, String newPw) {
         logger.info("[UserRepository] Changing password for user: " + name);
         if (!passwordMap.containsKey(name)) {
-            logger.error("[UserRepository] Password for user '" + name + "' does not exist.");
+            logger.debug("[UserRepository] Password for user '" + name + "' does not exist.");
             throw new RuntimeException("Password for user '" + name + "' does not exist.");
         }
         passwordMap.put(name, PasswordUtil.hashPassword(newPw));
@@ -133,7 +133,7 @@ public class UserRepository implements IUserRepository {
         User u = guestMap.get(name) != null ? guestMap.get(name) : userMap.get(name);
         if(u == null)
         {
-            logger.error("[UserRepository] User with name '" + name + "' not found.");
+            logger.debug("[UserRepository] User with name '" + name + "' not found.");
             throw new RuntimeException("User with name '" + name + "' not found.");
         }
         logger.info("[UserRepository] Cart retrieved for user: " + name);

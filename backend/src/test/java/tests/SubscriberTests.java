@@ -61,6 +61,19 @@ class SubscriberTests extends AcceptanceTestBase {
             this.userService.deleteUser("user3");
         }
     
+    @Test
+    void register_a_user_failed_already_exists()
+    {
+        assertDoesNotThrow(() -> {
+            this.userService.register("user3", "password3");
+            ApiResponse<Void> response = this.userService.register("user3", "password4");
+            assertFalse(response.isSuccess(), "User registration should fail");
+            assertTrue(response.getError().toLowerCase().contains("already exists"), "Error message should indicate user already exists");
+            });
+
+            this.userService.deleteUser("user3");
+    }
+    
 
 
     @Test
