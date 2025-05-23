@@ -11,4 +11,6 @@ public interface IUserRepository {
     boolean verifyPassword(String userName, String plainPassword);
 
     ShoppingCart getCart(String userName);
+    
+    void saveAdmin(Admin admin, String password);
 }

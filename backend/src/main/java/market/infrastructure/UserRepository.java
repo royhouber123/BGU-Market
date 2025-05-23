@@ -6,7 +6,9 @@ import utils.PasswordUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserRepository implements IUserRepository {
 
     private static final Logger logger = Logger.getInstance();
@@ -16,6 +18,7 @@ public class UserRepository implements IUserRepository {
     private final Map<String, User> guestMap = new HashMap<>();
 
     public UserRepository() {
+        // Initialize with some default users (not including admin - will be handled by StartupConfig)
         Subscriber u1 = new Subscriber("username1");
         u1.addProductToCart("111", "productA", 1);
         userMap.put(u1.getUserName(), u1);
@@ -26,10 +29,7 @@ public class UserRepository implements IUserRepository {
         userMap.put(u2.getUserName(), u2);
         passwordMap.put(u2.getUserName(), PasswordUtil.hashPassword("pw2"));
 
-        Admin admin = new Admin("adminUser");
-        userMap.put(admin.getUserName(), admin);
-        passwordMap.put(admin.getUserName(), PasswordUtil.hashPassword("adminPw"));
-
+        // Admin user will be created by StartupConfig based on configuration
     }
 
     // Search for user in both maps - guests and subscribers
