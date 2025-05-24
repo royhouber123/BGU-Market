@@ -5,7 +5,7 @@ import java.util.Map;
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
 import market.domain.store.Policies.Discounts.Conditions.DiscountCondition;
-import market.dto.AddDiscountDTO;
+import market.dto.PolicyDTO;
 
 public class ConditionalDiscountPolicy implements DiscountPolicy {
 
@@ -25,10 +25,10 @@ public class ConditionalDiscountPolicy implements DiscountPolicy {
         return 0.0;
     }
 
-    public AddDiscountDTO toDTO() {
-        AddDiscountDTO innerDto = discount.toDTO();
+    public PolicyDTO.AddDiscountRequest toDTO() {
+        PolicyDTO.AddDiscountRequest innerDto = discount.toDTO();
 
-        return new AddDiscountDTO(
+        return new PolicyDTO.AddDiscountRequest(
             "CONDITIONAL",         // type
             innerDto.scope(),      // scope from inner discount
             innerDto.scopeId(),    // scopeId from inner discount

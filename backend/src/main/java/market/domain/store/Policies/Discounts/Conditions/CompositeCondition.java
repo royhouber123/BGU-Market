@@ -3,7 +3,7 @@ package market.domain.store.Policies.Discounts.Conditions;
 import java.util.Map;
 
 import market.domain.store.IStoreProductsManager;
-import market.dto.DiscountConditionDTO;
+import market.dto.PolicyDTO;
 
 import java.util.List;
 
@@ -29,12 +29,12 @@ public class CompositeCondition implements DiscountCondition {
     }
 
     @Override
-    public DiscountConditionDTO toDTO() {
-        List<DiscountConditionDTO> subDtos = conditions.stream()
+    public PolicyDTO.DiscountCondition toDTO() {
+        List<PolicyDTO.DiscountCondition> subDtos = conditions.stream()
             .map(DiscountCondition::toDTO)
             .toList();
 
-        return new DiscountConditionDTO(
+        return new PolicyDTO.DiscountCondition(
             "COMPOSITE",           // type
             Map.of(),              // no parameters for composite itself
             subDtos,               // subconditions recursively serialized

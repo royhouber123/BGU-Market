@@ -5,8 +5,7 @@ import market.domain.store.*;
 import market.domain.store.Policies.*;
 import market.domain.store.Policies.Discounts.*;
 import market.domain.store.Policies.Discounts.Conditions.*;
-import market.dto.AddDiscountDTO;
-import market.dto.DiscountConditionDTO;
+import market.dto.PolicyDTO;
 import market.infrastructure.ListingRepository;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +41,7 @@ public class DiscountPolicyDTOConversionTests {
     @Test
     void testPercentageTargetedDiscountDTO() {
         PercentageTargetedDiscount discount = new PercentageTargetedDiscount(DiscountTargetType.PRODUCT, milk.getProductId(), 10);
-        AddDiscountDTO dto = discount.toDTO();
+        PolicyDTO.AddDiscountRequest dto = discount.toDTO();
 
         assertEquals("PERCENTAGE", dto.type());
         assertEquals("PRODUCT", dto.scope());
@@ -54,7 +53,7 @@ public class DiscountPolicyDTOConversionTests {
     void testCouponDiscountPolicyDTO() {
         CouponDiscountPolicy coupon = new CouponDiscountPolicy("CODE123", 25);
         coupon.submitCoupon("CODE123");
-        AddDiscountDTO dto = coupon.toDTO();
+        PolicyDTO.AddDiscountRequest dto = coupon.toDTO();
 
         assertEquals("COUPON", dto.type());
         assertEquals("CODE123", dto.couponCode());
@@ -64,7 +63,7 @@ public class DiscountPolicyDTOConversionTests {
     @Test
     void testDefaultDiscountPolicyDTO() {
         DefaultDiscountPolicy def = new DefaultDiscountPolicy();
-        AddDiscountDTO dto = def.toDTO();
+        PolicyDTO.AddDiscountRequest dto = def.toDTO();
 
         assertEquals("DEFAULT", dto.type());
         assertEquals(0.0, dto.value());
@@ -73,7 +72,7 @@ public class DiscountPolicyDTOConversionTests {
     @Test
     void testProductQuantityConditionDTO() {
         DiscountCondition cond = new ProductQuantityCondition(milk.getProductId(), 3);
-        DiscountConditionDTO dto = cond.toDTO();
+        PolicyDTO.DiscountCondition dto = cond.toDTO();
 
         assertEquals("PRODUCT_QUANTITY_AT_LEAST", dto.type());
         assertEquals(milk.getProductId(), dto.params().get("productId"));
@@ -82,7 +81,7 @@ public class DiscountPolicyDTOConversionTests {
     @Test
     void testBasketTotalConditionDTO() {
         DiscountCondition cond = new BasketTotalCondition(100);
-        DiscountConditionDTO dto = cond.toDTO();
+        PolicyDTO.DiscountCondition dto = cond.toDTO();
 
         assertEquals("BASKET_TOTAL_AT_LEAST", dto.type());
         assertEquals(100.0, dto.params().get("minTotal"));
@@ -91,7 +90,7 @@ public class DiscountPolicyDTOConversionTests {
     @Test
     void testCategoryQuantityConditionDTO() {
         DiscountCondition cond = new CategoryQuantityCondition("Bakery", 2);
-        DiscountConditionDTO dto = cond.toDTO();
+        PolicyDTO.DiscountCondition dto = cond.toDTO();
 
         assertEquals("CATEGORY_QUANTITY_AT_LEAST", dto.type());
         assertEquals("Bakery", dto.params().get("category"));
@@ -102,7 +101,7 @@ public class DiscountPolicyDTOConversionTests {
         DiscountCondition cond1 = new ProductQuantityCondition(milk.getProductId(), 2);
         DiscountCondition cond2 = new BasketTotalCondition(50);
         CompositeCondition comp = new CompositeCondition(List.of(cond1, cond2), LogicOperator.AND);
-        DiscountConditionDTO dto = comp.toDTO();
+        PolicyDTO.DiscountCondition dto = comp.toDTO();
 
         assertEquals("COMPOSITE", dto.type());
         assertEquals("AND", dto.logic());
@@ -115,7 +114,7 @@ public class DiscountPolicyDTOConversionTests {
         DiscountPolicy discount = new PercentageTargetedDiscount(DiscountTargetType.CATEGORY, "Dairy", 10);
         ConditionalDiscountPolicy condPolicy = new ConditionalDiscountPolicy(cond, discount);
 
-        AddDiscountDTO dto = condPolicy.toDTO();
+        PolicyDTO.AddDiscountRequest dto = condPolicy.toDTO();
 
         assertEquals("CONDITIONAL", dto.type());
         assertEquals("CATEGORY", dto.scope());
@@ -131,7 +130,7 @@ public class DiscountPolicyDTOConversionTests {
         composite.addPolicy(d1);
         composite.addPolicy(d2);
 
-        AddDiscountDTO dto = composite.toDTO();
+        PolicyDTO.AddDiscountRequest dto = composite.toDTO();
 
         assertEquals("COMPOSITE", dto.type());
         assertEquals("SUM", dto.combinationType());

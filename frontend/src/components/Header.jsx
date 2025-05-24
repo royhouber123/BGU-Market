@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../utils";
-import userService from "../services/userService";
+import { useAuth } from "../contexts/AuthContext";
 
 import {
   AppBar,
@@ -27,33 +27,40 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import PersonIcon from "@mui/icons-material/Person";
+import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 
 import AuthDialog from "./AuthDialog";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { currentUser, isAuthenticated, logout } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [cart, setCart] = useState([]);
 
+  // For now, we'll use mock cart data since cart integration isn't complete
   useEffect(() => {
-    (async () => {
-      try {
-        if (userService.isAuthenticated()) {
-          const user = await userService.getProfile();
-          setCart(user.cart ?? []);
-        }
-      } catch {
-        /* ignore */
-      }
-    })();
-  }, []);
+    if (isAuthenticated && currentUser) {
+      // In the future, fetch cart from backend using authService
+      // For now, just set empty cart
+      setCart([]);
+    }
+  }, [isAuthenticated, currentUser]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     const query = new FormData(e.currentTarget).get("search")?.toString().trim();
     if (query) navigate(createPageUrl("SearchResults") + `?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/'); // Redirect to home after logout
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const navItems = [
@@ -148,15 +155,33 @@ export default function Header() {
                 </IconButton>
               ))}
 
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<PersonIcon />}
-                onClick={() => setAuthOpen(true)}
-                sx={{ borderRadius: 6, fontWeight: 700, textTransform: "none" }}
-              >
-                Sign in
-              </Button>
+              {/* Authentication Button */}
+              {isAuthenticated && currentUser ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Hello, {currentUser.userName || 'User'}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<LogoutIcon />}
+                    onClick={handleLogout}
+                    sx={{ borderRadius: 6, fontWeight: 700, textTransform: "none" }}
+                  >
+                    Logout
+                  </Button>
+                </Box>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<PersonIcon />}
+                  onClick={() => setAuthOpen(true)}
+                  sx={{ borderRadius: 6, fontWeight: 700, textTransform: "none" }}
+                >
+                  Sign in
+                </Button>
+              )}
             </Box>
 
             {/* ——— Mobile hamburger ——— */}
@@ -212,12 +237,29 @@ export default function Header() {
           </List>
           <Divider />
           <List>
-            <ListItemButton onClick={() => { setAuthOpen(true); setDrawerOpen(false); }}>
-              <ListItemIcon>
-                <PersonIcon />
-              </ListItemIcon>
-              <ListItemText primary="Sign in" />
-            </ListItemButton>
+            {isAuthenticated && currentUser ? (
+              <>
+                <ListItemButton disabled>
+                  <ListItemIcon>
+                    <PersonIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={`Hello, ${currentUser.userName || 'User'}`} />
+                </ListItemButton>
+                <ListItemButton onClick={() => { handleLogout(); setDrawerOpen(false); }}>
+                  <ListItemIcon>
+                    <LogoutIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Logout" />
+                </ListItemButton>
+              </>
+            ) : (
+              <ListItemButton onClick={() => { setAuthOpen(true); setDrawerOpen(false); }}>
+                <ListItemIcon>
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText primary="Sign in" />
+              </ListItemButton>
+            )}
           </List>
         </Box>
       </Drawer>

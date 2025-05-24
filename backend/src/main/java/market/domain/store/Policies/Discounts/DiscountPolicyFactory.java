@@ -3,13 +3,13 @@ package market.domain.store.Policies.Discounts;
 import market.domain.store.Policies.DiscountPolicy;
 import market.domain.store.Policies.Discounts.Conditions.ConditionFactory;
 import market.domain.store.Policies.Discounts.Conditions.DiscountCondition;
-import market.dto.AddDiscountDTO;
+import market.dto.PolicyDTO;
 
 import java.util.List;
 
 public class DiscountPolicyFactory {
 
-    public static DiscountPolicy fromDTO(AddDiscountDTO dto) {
+    public static DiscountPolicy fromDTO(PolicyDTO.AddDiscountRequest dto) {
         String type = dto.type().toUpperCase();
 
         return switch (type) {
@@ -29,7 +29,7 @@ public class DiscountPolicyFactory {
             case "COMPOSITE" -> {
                 DiscountCombinationType combinationType = DiscountCombinationType.valueOf(dto.combinationType().toUpperCase());
                 CompositeDiscountPolicy composite = new CompositeDiscountPolicy(combinationType);
-                for (AddDiscountDTO sub : dto.subDiscounts()) {
+                for (PolicyDTO.AddDiscountRequest sub : dto.subDiscounts()) {
                     composite.addPolicy(fromDTO(sub));  // recursive
                 }
                 yield composite;

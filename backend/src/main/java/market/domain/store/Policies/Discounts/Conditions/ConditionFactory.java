@@ -2,11 +2,11 @@ package market.domain.store.Policies.Discounts.Conditions;
 
 import java.util.List;
 
-import market.dto.DiscountConditionDTO;
+import market.dto.PolicyDTO;
 
 public class ConditionFactory {
 
-    public static DiscountCondition fromDTO(DiscountConditionDTO dto) {
+    public static DiscountCondition fromDTO(PolicyDTO.DiscountCondition dto) {
         return switch (dto.type().toUpperCase()) {
             case "BASKET_TOTAL_AT_LEAST" ->
                 ConditionFactory.basketTotalAtLeast((Double) dto.params().get("threshold"));

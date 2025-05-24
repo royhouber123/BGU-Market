@@ -1,7 +1,7 @@
 package market.controllers;
 
 import market.application.AuthService;
-import market.dto.LoginRequest;
+import market.dto.AuthDTO;
 import utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class AuthController {
      * POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthService.AuthToken>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthService.AuthToken>> login(@RequestBody AuthDTO.LoginRequest request) {
         ApiResponse<AuthService.AuthToken> response = authService.login(request.username(), request.password());
         return ResponseEntity.ok(response);
     }

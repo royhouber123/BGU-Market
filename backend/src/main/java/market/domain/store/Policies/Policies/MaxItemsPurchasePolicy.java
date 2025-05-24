@@ -2,7 +2,7 @@ package market.domain.store.Policies.Policies;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.PurchasePolicy;
-import market.dto.AddPurchasePolicyDTO;
+import market.dto.PolicyDTO;
 
 import java.util.Map;
 
@@ -23,7 +23,7 @@ public class MaxItemsPurchasePolicy implements PurchasePolicy {
     }
 
     @Override
-    public AddPurchasePolicyDTO toDTO() {
-        return new AddPurchasePolicyDTO("MAXITEMS", maxItems);
+    public PolicyDTO.AddPurchasePolicyRequest toDTO() {
+        return new PolicyDTO.AddPurchasePolicyRequest("MAXITEMS", maxItems);
     }
 }

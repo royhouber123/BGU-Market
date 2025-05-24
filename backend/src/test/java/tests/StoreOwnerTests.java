@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 import market.domain.store.Listing;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
-import market.dto.AddDiscountDTO;
-import market.dto.AddPurchasePolicyDTO;
+import market.dto.PolicyDTO;
 import support.AcceptanceTestBase;
 import utils.ApiResponse;
 
@@ -285,7 +284,7 @@ public void owner_editProductFromStore_alternate_ProductNotFound() {
 public void owner_addStoreDiscountPolicy_positive() {
     String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
 
-    AddDiscountDTO dto = new AddDiscountDTO(
+    PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
         "PERCENTAGE",                 // type
         "PRODUCT",                 // scope
         "p1",                      // scopeId (dummy product ID)
@@ -338,7 +337,7 @@ public void owner_addStoreDiscountPolicy_alternate_inactiveStore() {
     // Close the store before adding discount
     storeService.closeStore(storeId, FOUNDER);
 
-    AddDiscountDTO dto = new AddDiscountDTO(
+    PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
         "PERCENTAGE",
         "PRODUCT",
         "p1",
@@ -361,7 +360,7 @@ public void owner_editStoreDiscountPolicy_positive() {
     storeService.addNewListing(FOUNDER, storeId, "p1", "Tablet", "Electronics", "Android Tablet", 5, 1000);
 
     // Original discount
-    AddDiscountDTO oldDiscount = new AddDiscountDTO(
+    PolicyDTO.AddDiscountRequest oldDiscount = new PolicyDTO.AddDiscountRequest(
         "PERCENTAGE", "PRODUCT", "p1", 0.1, null, null, List.of(), "SUM"
     );
 
@@ -369,7 +368,7 @@ public void owner_editStoreDiscountPolicy_positive() {
 
     // Remove old and add new (edit)
     storePoliciesService.removeDiscount(storeId, FOUNDER, oldDiscount);
-    AddDiscountDTO newDiscount = new AddDiscountDTO(
+    PolicyDTO.AddDiscountRequest newDiscount = new PolicyDTO.AddDiscountRequest(
         "PERCENTAGE", "PRODUCT", "p1", 0.2, null, null, List.of(), "SUM"
     );
     ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, FOUNDER, newDiscount);
@@ -411,12 +410,12 @@ public void owner_editStoreDiscountPolicy_positive() {
 public void owner_editStorePurchasePolicy_positive() {
     String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
 
-    AddPurchasePolicyDTO oldPolicy = new AddPurchasePolicyDTO("MINITEMS", 2);
+    PolicyDTO.AddPurchasePolicyRequest oldPolicy = new PolicyDTO.AddPurchasePolicyRequest("MINITEMS", 2);
     storePoliciesService.addPurchasePolicy(storeId, FOUNDER, oldPolicy);
 
     // Remove the old policy and add a new one (edit)
     storePoliciesService.removePurchasePolicy(storeId, FOUNDER, oldPolicy);
-    AddPurchasePolicyDTO newPolicy = new AddPurchasePolicyDTO("MINITEMS", 5);
+    PolicyDTO.AddPurchasePolicyRequest newPolicy = new PolicyDTO.AddPurchasePolicyRequest("MINITEMS", 5);
 
     ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, FOUNDER, newPolicy);
     assertTrue(res.isSuccess());
@@ -428,7 +427,7 @@ public void owner_editStorePurchasePolicy_negative_InValidObjectToCreatePolicyTo
     String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
 
     // Invalid policy: null type, negative value
-    AddPurchasePolicyDTO invalidPolicy = new AddPurchasePolicyDTO(null, -3);
+    PolicyDTO.AddPurchasePolicyRequest invalidPolicy = new PolicyDTO.AddPurchasePolicyRequest(null, -3);
 
     ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, FOUNDER, invalidPolicy);
 
@@ -444,7 +443,7 @@ public void owner_editStorePurchasePolicy_alternate_InActiveStore() {
 
     storeService.closeStore(storeId, FOUNDER);
 
-    AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MAXITEMS", 10);
+    PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MAXITEMS", 10);
 
     ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, FOUNDER, policy);
 

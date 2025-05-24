@@ -27,9 +27,18 @@ export const authService = {
   login: async (username, password) => {
     try {
       const response = await apiClient.post('/auth/login', { username, password });
-      return response.data; // Should return { token: 'jwt-token' }
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { token: apiResponse.data.token }; // Extract token from AuthToken object
+      } else {
+        throw new Error(apiResponse.error || 'Login failed');
+      }
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to login');
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to login');
     }
   },
 
@@ -38,7 +47,10 @@ export const authService = {
     try {
       await apiClient.post('/auth/logout', { token });
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to logout');
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to logout');
     }
   },
 
@@ -46,19 +58,43 @@ export const authService = {
   getCurrentUser: async (token) => {
     try {
       const response = await apiClient.get('/users/me');
-      return response.data;
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return apiResponse.data;
+      } else {
+        throw new Error(apiResponse.error || 'Failed to get user information');
+      }
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to get user information');
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to get user information');
     }
   },
 
   // Register a new user
   register: async (userData) => {
     try {
-      const response = await apiClient.post('/users/register', userData);
-      return response.data;
+      // Map frontend format to backend format (exclude email as backend doesn't expect it)
+      const registerRequest = {
+        username: userData.userName || userData.username,
+        password: userData.password
+      };
+      
+      const response = await apiClient.post('/users/register', registerRequest);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { success: true, message: 'Registration successful!' };
+      } else {
+        throw new Error(apiResponse.error || 'Registration failed');
+      }
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to register user');
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to register user');
     }
   }
 };

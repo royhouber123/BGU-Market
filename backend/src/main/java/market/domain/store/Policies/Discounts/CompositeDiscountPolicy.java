@@ -6,7 +6,7 @@ import java.util.Map;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
-import market.dto.AddDiscountDTO;
+import market.dto.PolicyDTO;
 
 public class CompositeDiscountPolicy implements DiscountPolicy {
     private List<DiscountPolicy> policies;
@@ -55,12 +55,12 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
         return result;
     }
 
-    public AddDiscountDTO toDTO() {
-        List<AddDiscountDTO> subs = policies.stream()
+    public PolicyDTO.AddDiscountRequest toDTO() {
+        List<PolicyDTO.AddDiscountRequest> subs = policies.stream()
             .map(DiscountPolicy::toDTO)
             .toList();
 
-        return new AddDiscountDTO(
+        return new PolicyDTO.AddDiscountRequest(
             "COMPOSITE",
             null,
             null,

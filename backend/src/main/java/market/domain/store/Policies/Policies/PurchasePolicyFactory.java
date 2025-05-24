@@ -2,7 +2,7 @@ package market.domain.store.Policies.Policies;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.PurchasePolicy;
-import market.dto.AddPurchasePolicyDTO;
+import market.dto.PolicyDTO;
 
 public class PurchasePolicyFactory {
     public static PurchasePolicy createPolicy(String type, int value) {
@@ -14,7 +14,7 @@ public class PurchasePolicyFactory {
         };
     }
 
-    public static PurchasePolicy fromDTO(AddPurchasePolicyDTO dto) {
+    public static PurchasePolicy fromDTO(PolicyDTO.AddPurchasePolicyRequest dto) {
         return createPolicy(dto.type(), dto.value());
     }
 }

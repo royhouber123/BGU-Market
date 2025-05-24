@@ -4,7 +4,7 @@ import market.domain.store.Listing;
 import market.domain.store.Policies.Policies.*;
 import market.domain.store.Policies.PurchasePolicy;
 import market.domain.store.StoreProductManager;
-import market.dto.AddPurchasePolicyDTO;
+import market.dto.PolicyDTO;
 import market.infrastructure.ListingRepository;
 import market.domain.purchase.PurchaseType;
 import market.domain.store.IStoreProductsManager;
@@ -38,7 +38,7 @@ public class PurchasePolicySerializationTests {
     @Test
     void testMinItemsPolicySerialization() {
         PurchasePolicy original = new MinItemsPurchasePolicy(3);
-        AddPurchasePolicyDTO dto = original.toDTO();
+        PolicyDTO.AddPurchasePolicyRequest dto = original.toDTO();
 
         assertEquals("MINITEMS", dto.type());
         assertEquals(3, dto.value());
@@ -51,7 +51,7 @@ public class PurchasePolicySerializationTests {
     @Test
     void testMaxItemsPolicySerialization() {
         PurchasePolicy original = new MaxItemsPurchasePolicy(3);
-        AddPurchasePolicyDTO dto = original.toDTO();
+        PolicyDTO.AddPurchasePolicyRequest dto = original.toDTO();
 
         assertEquals("MAXITEMS", dto.type());
         assertEquals(3, dto.value());
@@ -64,7 +64,7 @@ public class PurchasePolicySerializationTests {
     @Test
     void testMinPricePolicySerialization() {
         PurchasePolicy original = new MinPricePurchasePolicy(20);
-        AddPurchasePolicyDTO dto = original.toDTO();
+        PolicyDTO.AddPurchasePolicyRequest dto = original.toDTO();
 
         assertEquals("MINPRICE", dto.type());
         assertEquals(20, dto.value());
@@ -83,7 +83,7 @@ public class PurchasePolicySerializationTests {
         );
 
         for (PurchasePolicy original : policies) {
-            AddPurchasePolicyDTO dto = original.toDTO();
+            PolicyDTO.AddPurchasePolicyRequest dto = original.toDTO();
             PurchasePolicy recreated = PurchasePolicyFactory.fromDTO(dto);
 
             assertEquals(original.getClass(), recreated.getClass());
