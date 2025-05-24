@@ -20,7 +20,11 @@ This directory contains comprehensive curl examples for all API endpoints in the
   - Store creation and management
   - Owner and manager operations
   - Product listing management
-  - Store policies and discounts
+
+- **[Store Policies API Examples](store_policies_api_examples.md)** - Store policy management endpoints
+  - Discount policy management (percentage, fixed, conditional, composite)
+  - Purchase policy management (min/max items, min price)
+  - Policy retrieval and removal
 
 - **[Purchase API Examples](purchase_api_examples.md)** - Purchase and transaction endpoints
   - Regular purchase execution
@@ -196,6 +200,7 @@ backend/src/main/java/market/controllers/docs/
 ├── auth_api_examples.md      # Authentication API examples
 ├── user_api_examples.md      # User management API examples
 ├── store_api_examples.md     # Store management API examples
+├── store_policies_api_examples.md  # Store policy management API examples
 ├── purchase_api_examples.md  # Purchase and transaction API examples
 └── product_api_examples.md   # Product search and information API examples
 ```
