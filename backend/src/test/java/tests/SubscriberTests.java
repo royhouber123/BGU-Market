@@ -81,7 +81,7 @@ class SubscriberTests extends AcceptanceTestBase {
         
         assertDoesNotThrow(() -> {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
         String listing_id =this.storeService.addNewListing(
             "user1", 
             storeid, 
@@ -123,7 +123,7 @@ class SubscriberTests extends AcceptanceTestBase {
     void  get_information_about_stores_and_products_success_no_products(){
         assertDoesNotThrow(() -> {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
 
         
@@ -149,10 +149,10 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void search_for_product_across_all_stores_successes(){
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
         User user2 = this.userService.getUserRepository().getData().findById("user2");
-        String storeid2  = this.storeService.createStore("store2", user2.getUserName()).getData();
+        String storeid2  = this.storeService.createStore("store2", user2.getUserName()).getData().storeId();
 
         String listing_id1 =this.storeService.addNewListing(
             "user1", 
@@ -183,8 +183,8 @@ class SubscriberTests extends AcceptanceTestBase {
         //clean up
         this.listingRepository.removeListing(listing_id1);
         this.listingRepository.removeListing(listing_id2);
-        this.storeService.closeStore(storeid1, user1.getUserName());
-        this.storeService.closeStore(storeid2, user2.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
+        this.storeService.closeStore(storeid2, "user2");
 
     }
 
@@ -192,10 +192,10 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void search_for_product_across_all_stores_no_product(){
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
         User user2 = this.userService.getUserRepository().getData().findById("user2");
-        String storeid2  = this.storeService.createStore("store2", user2.getUserName()).getData();
+        String storeid2  = this.storeService.createStore("store2", user2.getUserName()).getData().storeId();
 
 
 
@@ -203,12 +203,12 @@ class SubscriberTests extends AcceptanceTestBase {
         assertTrue(ipad.isEmpty(), "Product search should return empty list");
 
         //clean up
-        this.storeService.closeStore(storeid1, user1.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
     }
     @Test
     void search_for_product_in_store_successes(){
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
         String listing_id1 =this.storeService.addNewListing(
             "user1", 
@@ -226,25 +226,25 @@ class SubscriberTests extends AcceptanceTestBase {
 
         //clean up
         this.listingRepository.removeListing(listing_id1);
-        this.storeService.closeStore(storeid1, user1.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
 
     }
     @Test
     void search_for_product_in_store_no_product(){
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
         List<Listing> ipad = this.productService.searchInStoreByName(storeid1, "ipad").getData();
         assertTrue(ipad.isEmpty(), "Product search should return empty list");
 
         //clean up
-        this.storeService.closeStore(storeid1, user1.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
 
     }
     @Test
     void add_proudct_to_storebag_successes(){
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
         String listing_id1 =this.storeService.addNewListing(
             "user1", 
@@ -265,12 +265,12 @@ class SubscriberTests extends AcceptanceTestBase {
         assertTrue(res.isSuccess());
 
         // Assert
-        ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
+        ShoppingCart cart = this.userService.getUserRepository().getData().getCart("user1");
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
 
         //clean up
         this.listingRepository.removeListing(listing_id1);
-        this.storeService.closeStore(storeid1, user1.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
          TokenUtils.clearMockToken();
 
     }
@@ -279,7 +279,7 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void view_and_edit_shopping_cart_successes() throws Exception {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
         String listing_id1 =this.storeService.addNewListing(
             "user1", 
@@ -301,13 +301,13 @@ class SubscriberTests extends AcceptanceTestBase {
         assertTrue(res.isSuccess());
         
         // Assert
-        ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
+        ShoppingCart cart = this.userService.getUserRepository().getData().getCart("user1");
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
         
 
         //clean up
         this.listingRepository.removeListing(listing_id1);
-        this.storeService.closeStore(storeid1, user1.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
         TokenUtils.clearMockToken();
         
     }
@@ -315,7 +315,7 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void purches_cart_successes() throws Exception {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
         String listing_id1 =this.storeService.addNewListing(
             "user1", 
             storeid1, 
@@ -339,7 +339,7 @@ class SubscriberTests extends AcceptanceTestBase {
         ApiResponse<Void> res = userService.addProductToCart(storeid1, listing_id1, 2);
         assertTrue(res.isSuccess());
         // Assert
-        ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
+        ShoppingCart cart = this.userService.getUserRepository().getData().getCart("user1");
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
         
         // Call purchase method
@@ -349,7 +349,7 @@ class SubscriberTests extends AcceptanceTestBase {
 
 
         //verify that the cart is empty after successful purchase
-        ShoppingCart updatedCart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
+        ShoppingCart updatedCart = this.userService.getUserRepository().getData().getCart("user1");
         assertTrue(updatedCart.getAllStoreBags().isEmpty(), "Shopping cart should be empty after purchase");
 
         //verify that the store stock is updated
@@ -358,7 +358,7 @@ class SubscriberTests extends AcceptanceTestBase {
         
         // Clean up
         this.listingRepository.removeListing(listing_id1);
-        this.storeService.closeStore(storeid1, user1.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
         TokenUtils.clearMockToken();
 
     }
@@ -366,7 +366,7 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void purches_cart_no_product() throws Exception {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
         String shippingAddress = "123 Guest Street";
         String contactInfo = "guest@example.com";
         ShoppingCart cart = user1.getShoppingCart();
@@ -374,14 +374,14 @@ class SubscriberTests extends AcceptanceTestBase {
         assertFalse(purchaseResponse.isSuccess(), "Purchase should fail due to empty cart");
         assertTrue(purchaseResponse.getError().toLowerCase().contains("fail"), "Error message should indicate empty cart");  
         // Clean up
-        this.storeService.closeStore(storeid1, user1.getUserName());
+        this.storeService.closeStore(storeid1, "user1");
         
     }
 
     @Test
     void purches_cart_no_enough_money_no_real_credit_card() throws Exception {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid1  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
         String listing_id1 =this.storeService.addNewListing(
             "user1", 
             storeid1, 
@@ -392,7 +392,7 @@ class SubscriberTests extends AcceptanceTestBase {
             10,
             1000).getData();
 
-        ShoppingCart cart = this.userService.getUserRepository().getData().getCart(user1.getUserName());
+        ShoppingCart cart = this.userService.getUserRepository().getData().getCart("user1");
         cart.addProduct(storeid1, listing_id1, 2);
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
         
@@ -420,29 +420,29 @@ class SubscriberTests extends AcceptanceTestBase {
     @Test
     void open_a_store() throws Exception {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
         assertNotNull(storeid, "Store ID should not be null");
         assertTrue(this.storeService.getStore("store1").isSuccess(), "Store should be successfully opened");
         assertTrue(this.storeService.getStore("store1").getData().isActive(), "Store should be active");
         // Clean up
-        this.storeService.closeStore(storeid, user1.getUserName());
+        this.storeService.closeStore(storeid, "user1");
     }
 
     @Test
     void open_a_store_fail() throws Exception {
         User user1 = this.userService.getUserRepository().getData().findById("user1");
-        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData();
+        String storeid  = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
         assertNotNull(storeid, "Store ID should not be null");
         assertTrue(this.storeService.getStore("store1").isSuccess(), "Store should be successfully opened");
         assertTrue(this.storeService.getStore("store1").getData().isActive(), "Store should be active");
 
         // Attempt to open the same store again
-        ApiResponse<String> result = this.storeService.createStore("store1", user1.getUserName());
+        ApiResponse<market.dto.StoreDTO.CreateStoreResponse> result = this.storeService.createStore("store1", user1.getUserName());
         assertFalse(result.isSuccess(), "Opening the same store should fail");
         assertTrue(result.getError().toLowerCase().contains("already exists"), "Error message should indicate store already exists");
 
         // Clean up
-        this.storeService.closeStore(storeid, user1.getUserName());
+        this.storeService.closeStore(storeid, "user1");
     }
 
   
@@ -453,7 +453,7 @@ class SubscriberTests extends AcceptanceTestBase {
     void submit_bid_for_product_successes() throws Exception {
     // Setup test data
     User user1 = this.userService.getUserRepository().getData().findById("user1");
-    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData();
+    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
     String listing_id1 = this.storeService.addNewListing(
         "user1", 
@@ -494,7 +494,7 @@ class SubscriberTests extends AcceptanceTestBase {
 
     // Clean up
     this.listingRepository.removeListing(listing_id1);
-    this.storeService.closeStore(storeid1, user1.getUserName());
+    this.storeService.closeStore(storeid1, "user1");
     TokenUtils.clearMockToken();
 }
 
@@ -502,7 +502,7 @@ class SubscriberTests extends AcceptanceTestBase {
 void submit_bid_for_product_fail() throws Exception {
     // Setup test data
     User user1 = this.userService.getUserRepository().getData().findById("user1");
-    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData();
+    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
     String listing_id1 = this.storeService.addNewListing(
         "user1", 
@@ -541,7 +541,7 @@ void submit_bid_for_product_fail() throws Exception {
     
     // Clean up
     this.listingRepository.removeListing(listing_id1);
-    this.storeService.closeStore(storeid1, user1.getUserName());
+    this.storeService.closeStore(storeid1, "user1");
     TokenUtils.clearMockToken();
 }
 
@@ -549,7 +549,7 @@ void submit_bid_for_product_fail() throws Exception {
 void purche_proudct_after_auction_succsesses() throws Exception {
     // Setup test data
     User user1 = this.userService.getUserRepository().getData().findById("user1");
-    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData();
+    String storeid1 = this.storeService.createStore("store1", user1.getUserName()).getData().storeId();
 
     String listing_id1 = this.storeService.addNewListing(
         "user1", 
@@ -625,7 +625,7 @@ void purche_proudct_after_auction_succsesses() throws Exception {
     
     // Clean up
     this.listingRepository.removeListing(listing_id1);
-    this.storeService.closeStore(storeid1, user1.getUserName());
+    this.storeService.closeStore(storeid1, "user1");
     TokenUtils.clearMockToken();
 }
 

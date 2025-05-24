@@ -43,7 +43,7 @@ public class GuestTests extends AcceptanceTestBase {
         userService.register(MANAGER2, MANAGER_PASSWORD);
         userService.register(MANAGER3, MANAGER_PASSWORD);
         userService.register(GUEST);
-        storeId = storeService.createStore("store1", MANAGER1).getData();
+        storeId = storeService.createStore("store1", MANAGER1).getData().storeId();
     }
 
 
@@ -122,8 +122,8 @@ public class GuestTests extends AcceptanceTestBase {
     @Test
     void guest_gets_stores_and_product_info_when_available() { 
         //Step 1: Each manager creates a store
-        String storeId1 = storeService.createStore("MyStore", MANAGER1).getData();
-        String storeId2 = storeService.createStore("AnotherStore", MANAGER2).getData();
+        String storeId1 = storeService.createStore("MyStore", MANAGER1).getData().storeId();
+        String storeId2 = storeService.createStore("AnotherStore", MANAGER2).getData().storeId();
         //Step 2: Each store gets a product
         storeService.addNewListing(
             "manager1",
@@ -199,9 +199,9 @@ public class GuestTests extends AcceptanceTestBase {
     @Test
     void guest_can_search_products_across_all_stores_by_keyword() {
         //Step 1: Create 3 stores, each owned by a different manager
-        String storeId1 = storeService.createStore("StoreA", MANAGER1).getData();
-        String storeId2 = storeService.createStore("StoreB", MANAGER2).getData();
-        String storeId3 = storeService.createStore("StoreC", MANAGER3).getData();
+        String storeId1 = storeService.createStore("StoreA", MANAGER1).getData().storeId();
+        String storeId2 = storeService.createStore("StoreB", MANAGER2).getData().storeId();
+        String storeId3 = storeService.createStore("StoreC", MANAGER3).getData().storeId();
         //Step 2: Add notebook to first store
         storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook Classic", "Stationery","Ruled notebook", 10, 15.0);
         //Step 3: Add notebook to second store
@@ -236,8 +236,8 @@ public class GuestTests extends AcceptanceTestBase {
     @Test
     void guest_search_returns_empty_when_no_matches() {
         //Step 1: Create two stores using pre-registered managers
-        String storeId1 = storeService.createStore("StoreA", MANAGER1).getData();
-        String storeId2 = storeService.createStore("StoreB", MANAGER2).getData();
+        String storeId1 = storeService.createStore("StoreA", MANAGER1).getData().storeId();
+        String storeId2 = storeService.createStore("StoreB", MANAGER2).getData().storeId();
         //Step 2: Add products to the stores
         storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook", "Stationery", "Simple ruled notebook", 10, 12.5);
         storeService.addNewListing(MANAGER2, storeId2, "p2", "Pencil Case", "Stationery", "Blue fabric pencil case", 8, 9.99);

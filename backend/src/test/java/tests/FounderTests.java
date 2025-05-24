@@ -26,7 +26,7 @@ public class FounderTests extends AcceptanceTestBase {
 
     @BeforeEach
     void setUpTestData() throws Exception {
-        storeId = storeService.createStore(storeName, founderID).getData();
+        storeId = storeService.createStore(storeName, founderID).getData().storeId();
     }
 
     @Test

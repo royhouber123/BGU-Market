@@ -7,6 +7,10 @@ public class StoreDTO {
         String founderId
     ) {}
     
+    public record CreateStoreResponse(
+        String storeId
+    ) {}
+    
     public record AddManagerRequest(
         String appointerID,
         String newManagerName,
@@ -24,13 +28,6 @@ public class StoreDTO {
         String appointerID,
         int permissionID,
         String storeID
-    ) {}
-    
-    public record CreateStoreResponse(
-        String storeId,
-        String storeName,
-        boolean success,
-        String message
     ) {}
     
     public record AddManagerResponse(

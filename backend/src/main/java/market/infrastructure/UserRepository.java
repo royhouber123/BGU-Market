@@ -99,30 +99,51 @@ public class UserRepository implements IUserRepository {
 
     public boolean changeUserName(String oldName, String newName) {
         logger.info("[UserRepository] Changing username from '" + oldName + "' to '" + newName + "'.");
+        
+        // Guest users cannot change usernames
+        if (guestMap.containsKey(oldName)) {
+            logger.debug("[UserRepository] Guest users cannot change usernames: " + oldName);
+            throw new RuntimeException("Guest users cannot change usernames.");
+        }
+        
+        // Check if user exists in subscriber map
         if (!userMap.containsKey(oldName)) {
             logger.debug("[UserRepository] User with name '" + oldName + "' does not exist.");
             throw new RuntimeException("User with name '" + oldName + "' does not exist.");
         }
-        if (userMap.containsKey(newName)) {
+        
+        // Check if new name already exists in either map
+        if (userMap.containsKey(newName) || guestMap.containsKey(newName)) {
             logger.debug("[UserRepository] User with name '" + newName + "' already exists.");
             throw new RuntimeException("User with name '" + newName + "' already exists.");
         }
+        
+        // Change username for subscriber
         Subscriber u = userMap.remove(oldName);
         u.setUserName(newName);
         userMap.put(newName, u);
 
         String pw = passwordMap.remove(oldName);
         passwordMap.put(newName, pw);
-        logger.info("Username changed from '" + oldName + "' to '" + newName + "'.");
+        logger.info("Subscriber username changed from '" + oldName + "' to '" + newName + "'.");
         return true;
     }
 
     public boolean changePassword(String name, String newPw) {
         logger.info("[UserRepository] Changing password for user: " + name);
+        
+        // Check if user is a guest (guests don't have passwords)
+        if (guestMap.containsKey(name)) {
+            logger.debug("[UserRepository] Cannot change password for guest user: " + name);
+            throw new RuntimeException("Guest users do not have passwords to change.");
+        }
+        
+        // Check if user is a subscriber and has a password
         if (!passwordMap.containsKey(name)) {
             logger.debug("[UserRepository] Password for user '" + name + "' does not exist.");
             throw new RuntimeException("Password for user '" + name + "' does not exist.");
         }
+        
         passwordMap.put(name, PasswordUtil.hashPassword(newPw));
         logger.info("[UserRepository] Password changed for user: " + name);
         return true;

@@ -31,7 +31,7 @@ public class StoreService {
     /*
     * return storeId
     */
-    public ApiResponse<String> createStore(String storeName, String founderId) {
+    public ApiResponse<market.dto.StoreDTO.CreateStoreResponse> createStore(String storeName, String founderId) {
         try {
             // ? - do we need store type
             if(storeRepository.containsStore(storeName)) {
@@ -46,7 +46,7 @@ public class StoreService {
             logger.info("Store created: " + storeName + ", founder: " + founderId + ", id: " + storeIDs);            
             //((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "Founder");
             
-            return ApiResponse.ok(store.getStoreID());
+            return ApiResponse.ok(new market.dto.StoreDTO.CreateStoreResponse(store.getStoreID()));
             //LOG - store added
         } catch (Exception e) {
             logger.error("Failed to create store: " + storeName + ", founder: " + founderId + ". Reason: " + e.getMessage());
