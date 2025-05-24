@@ -72,14 +72,21 @@ public class UserService {
         }
     }
 
-    /** Change the user’s log-in name (throws if conflict). */
-    public ApiResponse<Boolean> changeUserName(String newName) {
+    /** Change the user's log-in name (throws if conflict). Returns new JWT token. */
+    public ApiResponse<String> changeUserName(String newName) {
         String oldName = extractUserNameFromToken();
         logger.info("[UserService] Changing username from '" + oldName + "' to '" + newName + "'.");
         try {
             boolean result = repo.changeUserName(oldName, newName);
-            logger.info("[UserService] Username changed from '" + oldName + "' to '" + newName + "'.");
-            return ApiResponse.ok(result);
+            if (result) {
+                // Generate new token with updated username
+                User updatedUser = repo.findById(newName);
+                String newToken = authService.generateToken(updatedUser).getData();
+                logger.info("[UserService] Username changed from '" + oldName + "' to '" + newName + "' and new token generated.");
+                return ApiResponse.ok(newToken);
+            } else {
+                return ApiResponse.fail("[UserService] Failed to change username from '" + oldName + "' to '" + newName + "'.");
+            }
         } catch (Exception e) {
             logger.debug("[UserService] Failed to change username from '" + oldName + "' to '" + newName + "'. Exception: " + e.getMessage());
             return ApiResponse.fail("[UserService] Failed to change username from '" + oldName + "' to '" + newName + "'. Exception: " + e.getMessage());

@@ -22,6 +22,18 @@ This directory contains comprehensive curl examples for all API endpoints in the
   - Product listing management
   - Store policies and discounts
 
+- **[Purchase API Examples](purchase_api_examples.md)** - Purchase and transaction endpoints
+  - Regular purchase execution
+  - Auction operations and offers
+  - Bid submission and management
+  - Purchase history retrieval
+
+- **[Product API Examples](product_api_examples.md)** - Product search and information endpoints
+  - Product search across all stores
+  - Store-specific product listings
+  - Product information retrieval
+  - Price-sorted product views
+
 ## Quick Start Guide
 
 ### 1. Authentication Flow
@@ -183,7 +195,9 @@ backend/src/main/java/market/controllers/docs/
 ├── README.md                 # This file - overview and navigation
 ├── auth_api_examples.md      # Authentication API examples
 ├── user_api_examples.md      # User management API examples
-└── store_api_examples.md     # Store management API examples
+├── store_api_examples.md     # Store management API examples
+├── purchase_api_examples.md  # Purchase and transaction API examples
+└── product_api_examples.md   # Product search and information API examples
 ```
 
 ## Contributing

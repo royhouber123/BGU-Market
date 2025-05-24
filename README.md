@@ -336,72 +336,12 @@ Content-Type: application/json
 }
 ```
 
-### 📖 API Response Format
-
-All APIs return responses in the following consistent format:
-
-```json
-{
-  "success": boolean,
-  "data": object|array|null,
-  "error": string|null
-}
-```
-
-**Success Response Example:**
-```json
-{
-  "success": true,
-  "data": {
-    "userId": "user123",
-    "totalPrice": 199.99,
-    "products": [...]
-  },
-  "error": null
-}
-```
-
-**Error Response Example:**
-```json
-{
-  "success": false,
-  "data": null,
-  "error": "Shopping cart is empty"
-}
-```
-
-### 🧪 Testing Purchase APIs
-
-Use the provided test scripts to test all Purchase API endpoints:
-
-```bash
-# Comprehensive endpoint testing
-chmod +x test_purchase_endpoints.sh
-./test_purchase_endpoints.sh
-
-# Realistic scenario testing
-chmod +x test_purchase_realistic.sh
-./test_purchase_realistic.sh
-```
-
-**Manual Testing Examples:**
-
-```bash
-# Test purchase execution
-curl -X POST "http://localhost:8080/api/purchases/execute" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": "testuser1",
-    "shippingAddress": "123 Main Street, City, State",
-    "contactInfo": "user@example.com"
-  }'
-
-# Test user purchase history
-curl -X GET "http://localhost:8080/api/purchases/user/testuser1"
-
-# Test bid status
-curl -X GET "http://localhost:8080/api/purchases/bid/status/store1/product1/user1"
-```
+### 📖 API Documentation
+- **[📁 Complete Documentation](docs/README.md)** - Main documentation hub
+- **[🔐 Auth API Examples](docs/auth_api_examples.md)** - Login, logout, token validation
+- **[👤 User API Examples](docs/user_api_examples.md)** - Registration, profile, shopping cart
+- **[🏪 Store API Examples](docs/store_api_examples.md)** - Store management, products, permissions
+- **[🛒 Purchase API Examples](docs/purchase_api_examples.md)** - Purchases, auctions, bids, history
 
 ### 📋 Complete API Documentation
 

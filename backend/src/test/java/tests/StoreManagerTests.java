@@ -28,7 +28,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
     @BeforeEach
     void init() throws Exception {
         // fresh repo & services already built in AcceptanceTestBase.setup()
-        this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData();
+        this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData().storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();
         assertNotNull(dto, "store should exist after creation");
     }
@@ -188,7 +188,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @Test
     public void manager_editStorePurchasePolicy_positive() {
-        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
@@ -204,7 +204,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @Test
     public void manager_editStorePurchasePolicy_negative_NoPermission() {
-        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
 
@@ -218,7 +218,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @Test
     public void manager_editStorePurchasePolicy_alternate_InActiveStore() {
-        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
@@ -237,7 +237,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @Test
     public void manager_editStoreDiscountPolicy_positive() {
-        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
 
         storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300);
 
@@ -255,7 +255,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @Test
     public void manager_editStoreDiscountPolicy_negative_NoPermission() {
-        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
         storeService.addNewListing(FOUNDER, storeId, "p1", "Camera", "Electronics", "DSLR", 3, 2500);
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
@@ -273,7 +273,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @Test
     public void manager_editStoreDiscountPolicy_alternate_InValidObjectToCreatePolicyTo() {
-        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
         storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200);
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId);

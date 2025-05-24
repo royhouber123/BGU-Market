@@ -66,10 +66,11 @@ public class UserController {
     /**
      * Change username
      * PUT /api/users/username
+     * Returns new JWT token for the updated username
      */
     @PutMapping("/username")
-    public ResponseEntity<ApiResponse<Boolean>> changeUsername(@RequestBody UserDTO.ChangeUsernameRequest request) {
-        ApiResponse<Boolean> response = userService.changeUserName(request.newUsername());
+    public ResponseEntity<ApiResponse<String>> changeUsername(@RequestBody UserDTO.ChangeUsernameRequest request) {
+        ApiResponse<String> response = userService.changeUserName(request.newUsername());
         return ResponseEntity.ok(response);
     }
 

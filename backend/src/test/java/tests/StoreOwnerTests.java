@@ -34,7 +34,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
     @BeforeEach
     void init() throws Exception {
         // fresh repo & services already built in AcceptanceTestBase.setup()
-        this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData();
+        this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData().storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();
         assertNotNull(dto, "store should exist after creation");
     }
@@ -280,9 +280,8 @@ public void owner_editProductFromStore_alternate_ProductNotFound() {
 }
 
 
-@Test
-public void owner_addStoreDiscountPolicy_positive() {
-    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+@Test public void owner_addStoreDiscountPolicy_positive() {
+    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
 
     PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
         "PERCENTAGE",                 // type
@@ -330,7 +329,7 @@ public void owner_addStoreDiscountPolicy_positive() {
 
 @Test
 public void owner_addStoreDiscountPolicy_alternate_inactiveStore() {
-    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
 
     storeService.addNewListing(FOUNDER, storeId, "p1", "Fridge", "Appliances", "Energy Saver", 5, 1200);
 
@@ -356,7 +355,7 @@ public void owner_addStoreDiscountPolicy_alternate_inactiveStore() {
 
 @Test
 public void owner_editStoreDiscountPolicy_positive() {
-    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData();
+    String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
     storeService.addNewListing(FOUNDER, storeId, "p1", "Tablet", "Electronics", "Android Tablet", 5, 1000);
 
     // Original discount
@@ -408,7 +407,7 @@ public void owner_editStoreDiscountPolicy_positive() {
 
 @Test
 public void owner_editStorePurchasePolicy_positive() {
-    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
 
     PolicyDTO.AddPurchasePolicyRequest oldPolicy = new PolicyDTO.AddPurchasePolicyRequest("MINITEMS", 2);
     storePoliciesService.addPurchasePolicy(storeId, FOUNDER, oldPolicy);
@@ -424,7 +423,7 @@ public void owner_editStorePurchasePolicy_positive() {
 
 @Test
 public void owner_editStorePurchasePolicy_negative_InValidObjectToCreatePolicyTo() {
-    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
 
     // Invalid policy: null type, negative value
     PolicyDTO.AddPurchasePolicyRequest invalidPolicy = new PolicyDTO.AddPurchasePolicyRequest(null, -3);
@@ -439,7 +438,7 @@ public void owner_editStorePurchasePolicy_negative_InValidObjectToCreatePolicyTo
 
 @Test
 public void owner_editStorePurchasePolicy_alternate_InActiveStore() {
-    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData();
+    String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
 
     storeService.closeStore(storeId, FOUNDER);
 

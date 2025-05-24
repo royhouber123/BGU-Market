@@ -6,6 +6,8 @@ import market.domain.purchase.*;
 import market.domain.user.*;
 import market.domain.store.*;
 import market.domain.store.Policies.*;
+import market.middleware.TokenUtils;
+import io.jsonwebtoken.Claims;
 import utils.ApiResponse;
 import utils.Logger;
 
@@ -176,7 +178,16 @@ public class PurchaseService {
     // Bid Purchase:
     public ApiResponse<Void> submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
         try {
-            Set<String> approvers = storeRepository.getStoreByID(storeId).getApproversForBid();
+            // Check if store exists first
+            Store store = storeRepository.getStoreByID(storeId);
+            if (store == null) {
+                return ApiResponse.fail("Store not found with ID: " + storeId + ". Please ensure the store exists before submitting a bid.");
+            }
+            
+            Set<String> approvers = store.getApproversForBid();
+            if (approvers == null || approvers.isEmpty()) {
+                return ApiResponse.fail("No approvers found for store " + storeId + ". Cannot process bid without approvers.");
+            }
     
             BidPurchase.submitBid(
                 storeRepository,
@@ -315,6 +326,47 @@ public class PurchaseService {
         }
         if (!bidOfUser.getRequiredApprovers().contains(approverId)) {
             throw new RuntimeException("User " + approverId + " does not have permission to approve/reject/propose counter offer this bid.");
+        }
+    }
+
+    // New method to handle purchase using JWT token
+    public ApiResponse<String> executePurchaseByUsername(String token, String paymentDetails, String shippingAddress) {
+        try {
+            // Extract username from token (simplified approach without AuthService dependency)
+            Claims claims = io.jsonwebtoken.Jwts.parserBuilder()
+                .setSigningKey(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+                    io.jsonwebtoken.io.Decoders.BASE64URL.decode("JMvzGmTQtUL4OWwh-JAiawZXbxKKrFssCXZtkC_ZUKc")))
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+            String username = claims.getSubject();
+            
+            if (username == null) {
+                return ApiResponse.fail("Invalid token: no username found");
+            }
+            
+            // Get user and execute purchase
+            User user = userRepository.findById(username);
+            if (user == null) {
+                return ApiResponse.fail("User not found: " + username);
+            }
+            
+            ShoppingCart cart = user.getShoppingCart();
+            if (cart == null || cart.getAllStoreBags().isEmpty()) {
+                return ApiResponse.fail("Shopping cart is empty");
+            }
+            
+            ApiResponse<Purchase> result = executePurchase(username, cart, shippingAddress, paymentDetails);
+            if (result.isSuccess()) {
+                Purchase purchase = result.getData();
+                return ApiResponse.ok("Purchase completed successfully. Total: $" + purchase.getTotalPrice() + 
+                                    " at " + purchase.getTimestamp());
+            } else {
+                return ApiResponse.fail(result.getError());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to execute purchase for token. Reason: " + e.getMessage());
+            return ApiResponse.fail("Failed to execute purchase: " + e.getMessage());
         }
     }
 }

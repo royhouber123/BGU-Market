@@ -31,8 +31,8 @@ public class StoreController {
      * POST /api/stores/create
      */
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<String>> createStore(@RequestBody market.dto.StoreDTO.CreateStoreRequest request) {
-        ApiResponse<String> response = storeService.createStore(request.storeName(), request.founderId());
+    public ResponseEntity<ApiResponse<market.dto.StoreDTO.CreateStoreResponse>> createStore(@RequestBody market.dto.StoreDTO.CreateStoreRequest request) {
+        ApiResponse<market.dto.StoreDTO.CreateStoreResponse> response = storeService.createStore(request.storeName(), request.founderId());
         return ResponseEntity.ok(response);
     }
 
