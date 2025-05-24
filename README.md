@@ -10,6 +10,7 @@ A full-stack e-commerce application built with Spring Boot backend and React fro
 - [Frontend Setup](#frontend-setup)
 - [Running the Application](#running-the-application)
 - [Configuration](#configuration)
+- [API Documentation](#api-documentation)
 - [Testing](#testing)
 - [Default Admin Credentials](#default-admin-credentials)
 
@@ -175,10 +176,246 @@ cp backend/src/main/resources/config.properties.example backend/src/main/resourc
 
 Then modify the values as needed.
 
+## 📚 API Documentation
+
+The BGU Market backend provides comprehensive REST APIs for all market operations. Below are the main API controllers and their endpoints:
+
+### 🛒 Purchase API (`/api/purchases`)
+
+The Purchase Controller handles all purchase-related operations including regular purchases, auctions, and bid-based negotiations.
+
+#### Regular Purchase Operations
+
+**Execute Purchase**
+```bash
+POST /api/purchases/execute
+Content-Type: application/json
+
+{
+  "userId": "string",
+  "shippingAddress": "string",
+  "contactInfo": "string"
+}
+```
+
+#### Auction Operations
+
+**Submit Auction Offer**
+```bash
+POST /api/purchases/auction/offer
+Content-Type: application/json
+
+{
+  "storeId": "string",
+  "productId": "string", 
+  "userId": "string",
+  "offerPrice": number,
+  "shippingAddress": "string",
+  "contactInfo": "string"
+}
+```
+
+**Open New Auction**
+```bash
+POST /api/purchases/auction/open
+Content-Type: application/json
+
+{
+  "userId": "string",
+  "storeId": "string",
+  "productId": "string",
+  "productName": "string",
+  "productCategory": "string",
+  "productDescription": "string",
+  "startingPrice": number,
+  "endTimeMillis": number
+}
+```
+
+**Get Auction Status**
+```bash
+GET /api/purchases/auction/status/{userId}/{storeId}/{productId}
+```
+
+#### Bid Operations
+
+**Submit Bid**
+```bash
+POST /api/purchases/bid/submit
+Content-Type: application/json
+
+{
+  "storeId": "string",
+  "productId": "string",
+  "userId": "string", 
+  "offerPrice": number,
+  "shippingAddress": "string",
+  "contactInfo": "string"
+}
+```
+
+**Approve/Reject Bid**
+```bash
+POST /api/purchases/bid/approve
+POST /api/purchases/bid/reject
+Content-Type: application/json
+
+{
+  "storeId": "string",
+  "productId": "string",
+  "userId": "string",
+  "approverId": "string"
+}
+```
+
+**Counter Bid Operations**
+```bash
+POST /api/purchases/bid/counter
+POST /api/purchases/bid/counter/accept
+POST /api/purchases/bid/counter/decline
+```
+
+**Get Bid Status**
+```bash
+GET /api/purchases/bid/status/{storeId}/{productId}/{userId}
+```
+
+#### Purchase History
+
+**Get User Purchases**
+```bash
+GET /api/purchases/user/{userId}
+```
+
+**Get Store Purchases**
+```bash
+GET /api/purchases/store/{storeId}
+```
+
+### 👤 User API (`/api/users`)
+
+**User Registration**
+```bash
+POST /api/users/register/guest
+POST /api/users/register
+Content-Type: application/json
+
+{
+  "username": "string",
+  "password": "string"  // Optional for guest
+}
+```
+
+**Shopping Cart Operations**
+```bash
+POST /api/users/cart/add
+POST /api/users/cart/remove
+GET /api/users/cart
+DELETE /api/users/cart
+```
+
+### 🏪 Store API (`/api/stores`)
+
+**Store Management**
+```bash
+POST /api/stores/create
+GET /api/stores/{storeId}
+POST /api/stores/{storeId}/products
+```
+
+### 🔐 Authentication API (`/api/auth`)
+
+**Login**
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+### 📖 API Response Format
+
+All APIs return responses in the following consistent format:
+
+```json
+{
+  "success": boolean,
+  "data": object|array|null,
+  "error": string|null
+}
+```
+
+**Success Response Example:**
+```json
+{
+  "success": true,
+  "data": {
+    "userId": "user123",
+    "totalPrice": 199.99,
+    "products": [...]
+  },
+  "error": null
+}
+```
+
+**Error Response Example:**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": "Shopping cart is empty"
+}
+```
+
+### 🧪 Testing Purchase APIs
+
+Use the provided test scripts to test all Purchase API endpoints:
+
+```bash
+# Comprehensive endpoint testing
+chmod +x test_purchase_endpoints.sh
+./test_purchase_endpoints.sh
+
+# Realistic scenario testing
+chmod +x test_purchase_realistic.sh
+./test_purchase_realistic.sh
+```
+
+**Manual Testing Examples:**
+
+```bash
+# Test purchase execution
+curl -X POST "http://localhost:8080/api/purchases/execute" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "testuser1",
+    "shippingAddress": "123 Main Street, City, State",
+    "contactInfo": "user@example.com"
+  }'
+
+# Test user purchase history
+curl -X GET "http://localhost:8080/api/purchases/user/testuser1"
+
+# Test bid status
+curl -X GET "http://localhost:8080/api/purchases/bid/status/store1/product1/user1"
+```
+
+### 📋 Complete API Documentation
+
+For detailed API documentation with all endpoints, request/response examples, and error codes, see:
+
+- **Purchase API**: `backend/src/main/java/market/controllers/docs/purchase_api_documentation.md`
+- **Controller Source**: `backend/src/main/java/market/controllers/`
+
 ## 🧪 Testing
 
 ### API Testing
-Use the provided script to test API endpoints:
+
+**General API Testing:**
+Use the provided script to test basic API endpoints:
 
 ```bash
 chmod +x test_api.sh
@@ -190,10 +427,58 @@ This script tests:
 - User registration
 - Guest registration
 
+**Purchase API Testing:**
+Use the specialized Purchase API test scripts:
+
+```bash
+# Comprehensive endpoint testing (all 13 endpoints)
+chmod +x test_purchase_endpoints.sh
+./test_purchase_endpoints.sh
+
+# Realistic scenario testing with data setup
+chmod +x test_purchase_realistic.sh
+./test_purchase_realistic.sh
+```
+
+The Purchase API tests cover:
+- ✅ Regular purchase execution
+- ✅ Auction operations (submit offers, open auctions, get status)
+- ✅ Bid operations (submit, approve, reject, counter-offers)
+- ✅ Purchase history retrieval
+- ✅ Error handling and validation
+
 ### Manual Testing
 - **Frontend**: Use the web interface at `http://localhost:3000`
-- **Backend**: Use tools like Postman or curl
+- **Backend APIs**: Use tools like Postman, curl, or the provided test scripts
 - **Database**: Check data via H2 console at `http://localhost:8080/h2-console`
+
+### API Testing Examples
+
+**Test Purchase Execution:**
+```bash
+curl -X POST "http://localhost:8080/api/purchases/execute" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "testuser1",
+    "shippingAddress": "123 Main Street, City, State",
+    "contactInfo": "user@example.com"
+  }'
+```
+
+**Test User Registration:**
+```bash
+curl -X POST "http://localhost:8080/api/users/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newuser",
+    "password": "password123"
+  }'
+```
+
+**Test Purchase History:**
+```bash
+curl -X GET "http://localhost:8080/api/purchases/user/testuser1"
+```
 
 ### H2 Database Console Access
 - **URL**: `http://localhost:8080/h2-console`
@@ -265,10 +550,16 @@ cd frontend
 npm install
 npm start
 
+# Testing
+chmod +x test_api.sh && ./test_api.sh                    # Basic API tests
+chmod +x test_purchase_endpoints.sh && ./test_purchase_endpoints.sh    # Purchase API tests
+chmod +x test_purchase_realistic.sh && ./test_purchase_realistic.sh    # Realistic purchase tests
+
 # Access
 # Frontend: http://localhost:3000
 # Backend: http://localhost:8080
 # Database: http://localhost:8080/h2-console
+# Purchase API: http://localhost:8080/api/purchases
 ```
 
 **Happy coding! 🎉**
