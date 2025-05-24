@@ -91,6 +91,33 @@ public class PurchaseService {
         }
     }
     
+    // Overloaded method for simplified API access - automatically gets user's cart
+    public ApiResponse<String> executePurchase(int userId, String paymentDetails, String shippingAddress) {
+        try {
+            String userIdStr = String.valueOf(userId);
+            User user = userRepository.findById(userIdStr);
+            if (user == null) {
+                return ApiResponse.fail("User not found: " + userId);
+            }
+            
+            ShoppingCart cart = user.getShoppingCart();
+            if (cart == null || cart.getAllStoreBags().isEmpty()) {
+                return ApiResponse.fail("Shopping cart is empty");
+            }
+            
+            ApiResponse<Purchase> result = executePurchase(userIdStr, cart, shippingAddress, paymentDetails);
+            if (result.isSuccess()) {
+                Purchase purchase = result.getData();
+                return ApiResponse.ok("Purchase completed successfully. Total: $" + purchase.getTotalPrice() + 
+                                    " at " + purchase.getTimestamp());
+            } else {
+                return ApiResponse.fail(result.getError());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to execute simplified purchase for user: " + userId + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Failed to execute purchase: " + e.getMessage());
+        }
+    }
 
     // Auction Purchase
     public ApiResponse<Void> submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
