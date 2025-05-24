@@ -9,6 +9,7 @@ Welcome to the BGU Market API documentation! This directory contains all the RES
 - **[🔐 Auth API Examples](docs/auth_api_examples.md)** - Login, logout, token validation
 - **[👤 User API Examples](docs/user_api_examples.md)** - Registration, profile, shopping cart
 - **[🏪 Store API Examples](docs/store_api_examples.md)** - Store management, products, permissions
+- **[🏷️ Store Policies API Examples](docs/store_policies_api_examples.md)** - Store discount and purchase policies
 - **[🛒 Purchase API Examples](docs/purchase_api_examples.md)** - Purchases, auctions, bids, history
 - **[📦 Product API Examples](docs/product_api_examples.md)** - Product search, listings, information
 
@@ -78,6 +79,14 @@ Welcome to the BGU Market API documentation! This directory contains all the RES
 
 **[📖 View Documentation](docs/store_api_examples.md)**
 
+### 🏷️ StorePoliciesController.java
+**Endpoints**: `/api/stores/{storeId}/policies/*`
+- Store discount policy management
+- Store purchase policy management
+- Policy retrieval and validation
+
+**[📖 View Documentation](docs/store_policies_api_examples.md)**
+
 ### 🛒 PurchaseController.java
 **Endpoints**: `/api/purchases/*`
 - Purchase execution and processing
@@ -104,6 +113,7 @@ backend/src/main/java/market/controllers/
 ├── AuthController.java          # Authentication endpoints
 ├── UserController.java          # User management endpoints  
 ├── StoreController.java         # Store management endpoints
+├── StorePoliciesController.java # Store policy management endpoints
 ├── PurchaseController.java      # Purchase and transaction endpoints
 ├── ProductController.java       # Product search and information endpoints
 └── docs/                        # Detailed API documentation
@@ -111,6 +121,7 @@ backend/src/main/java/market/controllers/
     ├── auth_api_examples.md     # Auth API curl examples
     ├── user_api_examples.md     # User API curl examples
     ├── store_api_examples.md    # Store API curl examples
+    ├── store_policies_api_examples.md  # Store policies API curl examples
     ├── purchase_api_examples.md # Purchase API curl examples
     ├── product_api_examples.md  # Product API curl examples
     └── test_all_apis.sh         # Automated test script

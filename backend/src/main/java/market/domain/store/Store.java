@@ -616,7 +616,7 @@ public class Store {
      * @throws Exception if the user lacks the required permission.
      */
     public List<PurchasePolicy> getPolicies(String userID) throws Exception {
-        if(!isManager(userID) || !isOwner(userID)){
+        if(!isManager(userID) && !isOwner(userID)){
             throw new Exception("User " + userID + " doesn't have permission to Get policy!");
         }
         return policyHandler.getPolicies();
@@ -669,7 +669,7 @@ public class Store {
      * @throws Exception if the user lacks the required permission.
      */
     public List<DiscountPolicy> getDiscountPolicies(String userID) throws Exception {
-        if(!isManager(userID) || !isOwner(userID)){
+        if(!isManager(userID) && !isOwner(userID)){
             throw new Exception("User " + userID + " doesn't have permission to Get discount policies!");
         }
         return policyHandler.getDiscountPolicies();

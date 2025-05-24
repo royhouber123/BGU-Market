@@ -168,7 +168,139 @@ ADD_LISTING_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/listings/add" \
 check_success_continue "$ADD_LISTING_RESPONSE"
 
 echo ""
-echo "5️⃣ TESTING PRODUCT SEARCH & DISCOVERY"
+echo "5️⃣ TESTING STORE POLICIES"
+echo "-------------------------"
+
+# Test adding discount policies
+echo "🏷️ Adding percentage discount policy..."
+ADD_PERCENTAGE_DISCOUNT_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=$USERNAME" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"PERCENTAGE\",
+    \"scope\":\"PRODUCT\",
+    \"scopeId\":\"$PRODUCT_ID\",
+    \"value\":0.15,
+    \"couponCode\":null,
+    \"condition\":null,
+    \"subDiscounts\":[],
+    \"combinationType\":\"SUM\"
+  }")
+check_success_continue "$ADD_PERCENTAGE_DISCOUNT_RESPONSE"
+
+echo "🎫 Adding coupon discount policy..."
+ADD_COUPON_DISCOUNT_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=$USERNAME" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"COUPON\",
+    \"scope\":null,
+    \"scopeId\":null,
+    \"value\":20.0,
+    \"couponCode\":\"SAVE20\",
+    \"condition\":null,
+    \"subDiscounts\":[],
+    \"combinationType\":null
+  }")
+check_success_continue "$ADD_COUPON_DISCOUNT_RESPONSE"
+
+echo "📋 Adding conditional discount policy..."
+ADD_CONDITIONAL_DISCOUNT_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=$USERNAME" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"CONDITIONAL\",
+    \"scope\":\"PRODUCT\",
+    \"scopeId\":\"$PRODUCT_ID\",
+    \"value\":0.10,
+    \"couponCode\":null,
+    \"condition\":{
+      \"type\":\"BASKET_TOTAL_AT_LEAST\",
+      \"params\":{\"threshold\":100.0},
+      \"subConditions\":null,
+      \"logic\":null
+    },
+    \"subDiscounts\":[],
+    \"combinationType\":null
+  }")
+check_success_continue "$ADD_CONDITIONAL_DISCOUNT_RESPONSE"
+
+# Test getting discount policies
+echo "📋 Getting all discount policies..."
+GET_DISCOUNTS_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=$USERNAME")
+check_success_continue "$GET_DISCOUNTS_RESPONSE"
+
+# Test adding purchase policies
+echo "📦 Adding minimum items purchase policy..."
+ADD_MIN_ITEMS_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"MINITEMS\",
+    \"value\":2
+  }")
+check_success_continue "$ADD_MIN_ITEMS_POLICY_RESPONSE"
+
+echo "📦 Adding maximum items purchase policy..."
+ADD_MAX_ITEMS_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"MAXITEMS\",
+    \"value\":10
+  }")
+check_success_continue "$ADD_MAX_ITEMS_POLICY_RESPONSE"
+
+echo "💰 Adding minimum price purchase policy..."
+ADD_MIN_PRICE_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"MINPRICE\",
+    \"value\":50
+  }")
+check_success_continue "$ADD_MIN_PRICE_POLICY_RESPONSE"
+
+# Test getting purchase policies
+echo "📋 Getting all purchase policies..."
+GET_PURCHASE_POLICIES_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME")
+check_success_continue "$GET_PURCHASE_POLICIES_RESPONSE"
+
+# Test error scenarios
+echo "❌ Testing policy addition with unauthorized user..."
+UNAUTHORIZED_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=unauthorized_user" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"PERCENTAGE\",
+    \"scope\":\"PRODUCT\",
+    \"scopeId\":\"$PRODUCT_ID\",
+    \"value\":0.15,
+    \"couponCode\":null,
+    \"condition\":null,
+    \"subDiscounts\":[],
+    \"combinationType\":\"SUM\"
+  }")
+if echo "$UNAUTHORIZED_POLICY_RESPONSE" | grep -q '"success":false'; then
+    echo "✅ Unauthorized access properly rejected"
+else
+    echo "⚠️ Unauthorized access response: $UNAUTHORIZED_POLICY_RESPONSE"
+fi
+
+echo "❌ Testing policy addition to non-existent store..."
+NONEXISTENT_STORE_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/999/policies/discounts?userId=$USERNAME" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\":\"PERCENTAGE\",
+    \"scope\":\"PRODUCT\",
+    \"scopeId\":\"$PRODUCT_ID\",
+    \"value\":0.15,
+    \"couponCode\":null,
+    \"condition\":null,
+    \"subDiscounts\":[],
+    \"combinationType\":\"SUM\"
+  }")
+if echo "$NONEXISTENT_STORE_POLICY_RESPONSE" | grep -q '"success":false'; then
+    echo "✅ Non-existent store properly handled"
+else
+    echo "⚠️ Non-existent store response: $NONEXISTENT_STORE_POLICY_RESPONSE"
+fi
+
+echo ""
+echo "6️⃣ TESTING PRODUCT SEARCH & DISCOVERY"
 echo "-------------------------------------"
 
 # Test search products by name
@@ -219,7 +351,7 @@ else
 fi
 
 echo ""
-echo "6️⃣ TESTING SHOPPING CART"
+echo "7️⃣ TESTING SHOPPING CART"
 echo "------------------------"
 
 # Add product to cart
@@ -259,7 +391,7 @@ CLEAR_CART_RESPONSE=$(curl -s -X DELETE "$BASE_URL/api/users/cart" \
 check_success "$CLEAR_CART_RESPONSE"
 
 echo ""
-echo "7️⃣ TESTING PURCHASE OPERATIONS"
+echo "8️⃣ TESTING PURCHASE OPERATIONS"
 echo "------------------------------"
 
 # First, add product back to cart for purchase testing
@@ -341,7 +473,7 @@ STORE_PURCHASE_HISTORY_RESPONSE=$(curl -s -X GET "$BASE_URL/api/purchases/store/
 check_success_continue "$STORE_PURCHASE_HISTORY_RESPONSE"
 
 echo ""
-echo "8️⃣ TESTING GENERAL QUERIES"
+echo "9️⃣ TESTING GENERAL QUERIES"
 echo "--------------------------"
 
 # Get all stores and products info
@@ -350,7 +482,7 @@ ALL_INFO_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/info")
 check_success_continue "$ALL_INFO_RESPONSE"
 
 echo ""
-echo "9️⃣ TESTING LOGOUT"
+echo "10️⃣ TESTING LOGOUT"
 echo "-----------------"
 
 # Test logout
@@ -377,6 +509,7 @@ echo "- User Registration: ✅"
 echo "- Authentication: ✅"
 echo "- User Management: ⚠️ (some operations may fail due to business logic)"
 echo "- Store Operations: ⚠️ (depends on business rules and permissions)"
+echo "- Store Policies: ✅"
 echo "- Product Search & Discovery: ✅"
 echo "- Shopping Cart: ✅"
 echo "- Purchase Operations: ✅"
@@ -393,5 +526,6 @@ echo "For detailed testing of individual endpoints, use the documentation files:
 echo "- auth_api_examples.md"
 echo "- user_api_examples.md"
 echo "- store_api_examples.md"
+echo "- store_policies_api_examples.md"
 echo "- product_api_examples.md"
 echo "- purchase_api_examples.md" 
