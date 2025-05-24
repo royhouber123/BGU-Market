@@ -5,7 +5,7 @@ import java.util.Map;
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
 import market.domain.store.Policies.DiscountPolicy;
-import market.dto.AddDiscountDTO;
+import market.dto.PolicyDTO;
 
 public class PercentageTargetedDiscount implements DiscountPolicy {
 
@@ -44,8 +44,8 @@ public class PercentageTargetedDiscount implements DiscountPolicy {
     }
 
     @Override
-    public AddDiscountDTO toDTO() {
-        return new AddDiscountDTO(
+    public PolicyDTO.AddDiscountRequest toDTO() {
+        return new PolicyDTO.AddDiscountRequest(
             "PERCENTAGE",              // type
             targetType.name(),         // scope (STORE, PRODUCT, CATEGORY)
             targetId,                  // scopeId

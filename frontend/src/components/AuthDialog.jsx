@@ -1,20 +1,22 @@
 import React, { useState } from "react";
-import userService from "../services/userService";
+import { useAuth } from "../contexts/AuthContext";
 
 // Material-UI imports
-import { 
-  Dialog, 
-  DialogActions, 
-  DialogContent, 
-  DialogContentText, 
-  DialogTitle, 
-  Button, 
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
   TextField,
   Typography,
   Box,
   Divider,
   IconButton,
   Grid,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 
 // Material-UI Icons
@@ -24,6 +26,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import GoogleIcon from "@mui/icons-material/Google";
 
 export default function AuthDialog({ open, onOpenChange }) {
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: "",
@@ -32,6 +35,9 @@ export default function AuthDialog({ open, onOpenChange }) {
     email: "",
     confirmPassword: ""
   });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -42,45 +48,78 @@ export default function AuthDialog({ open, onOpenChange }) {
 
   const handleGoogleLogin = async () => {
     try {
-      await userService.googleLogin();  // This will redirect to Google login
+      // TODO: Implement Google login when backend supports it
+      setError("Google login not implemented yet");
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Google login failed:", error);
+      setError("Google login failed. Please try again.");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
     try {
       if (isLogin) {
-        // Handle login with BCrypt verification on backend
-        await userService.login(formData.username, formData.password);
-        onOpenChange(false); // Close dialog after successful login
+        // Handle login
+        const success = await login(formData.username, formData.password);
+        if (success) {
+          setSuccess("Login successful!");
+          setTimeout(() => {
+            onOpenChange(false);
+          }, 1000);
+        } else {
+          setError("Invalid username or password");
+        }
       } else {
         // Handle registration
         if (formData.password !== formData.confirmPassword) {
-          // Show error
-          alert("Passwords don't match");
+          setError("Passwords don't match");
           return;
         }
-        
-        // Register new user - password will be encrypted with BCrypt on backend
-        await userService.register({
+
+        if (formData.password.length < 6) {
+          setError("Password must be at least 6 characters");
+          return;
+        }
+
+        // Import authService dynamically to avoid circular dependency issues
+        const { authService } = await import('../services/authService');
+
+        await authService.register({
           username: formData.username,
           password: formData.password,
-          fullName: formData.fullName,
           email: formData.email
         });
-        onOpenChange(false); // Close dialog after successful registration
+
+        setSuccess("Registration successful! Please login.");
+        // Switch to login form after successful registration
+        setTimeout(() => {
+          setIsLogin(true);
+          setFormData({
+            username: formData.username, // Keep username filled
+            password: "",
+            fullName: "",
+            email: "",
+            confirmPassword: ""
+          });
+        }, 1500);
       }
     } catch (error) {
       console.error("Authentication failed:", error);
-      alert(error.response?.data?.message || "Authentication failed. Please try again.");
+      setError(error.message || "Authentication failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleToggleForm = () => {
     setIsLogin(!isLogin);
+    setError("");
+    setSuccess("");
     // Reset form data when switching between login and register
     setFormData({
       username: "",
@@ -95,10 +134,10 @@ export default function AuthDialog({ open, onOpenChange }) {
     <Dialog open={open} onClose={() => onOpenChange(false)} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', pb: 0 }}>
         {!isLogin && (
-          <IconButton 
-            edge="start" 
-            size="small" 
-            sx={{ mr: 1 }} 
+          <IconButton
+            edge="start"
+            size="small"
+            sx={{ mr: 1 }}
             onClick={handleToggleForm}
           >
             <ArrowBackIcon fontSize="small" />
@@ -110,8 +149,19 @@ export default function AuthDialog({ open, onOpenChange }) {
         {isLogin ? "Enter your credentials to continue" : "Fill in the information below to create your account"}
       </DialogContentText>
       <DialogContent>
+        {/* Error/Success Messages */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {success}
+          </Alert>
+        )}
 
-        <form onSubmit={handleSubmit} style={{ marginTop: 2 }}>
+        <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
           {!isLogin && (
             <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} sm={6}>
@@ -190,27 +240,28 @@ export default function AuthDialog({ open, onOpenChange }) {
             />
           )}
 
-          <Button 
-            type="submit" 
-            variant="contained" 
-            fullWidth 
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
             sx={{ mt: 2 }}
-            startIcon={isLogin ? <LoginIcon /> : <PersonAddIcon />}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : (isLogin ? <LoginIcon /> : <PersonAddIcon />)}
+            disabled={loading}
           >
-            {isLogin ? "Sign In" : "Create Account"}
+            {loading ? (isLogin ? "Signing In..." : "Creating Account...") : (isLogin ? "Sign In" : "Create Account")}
           </Button>
         </form>
 
         <Box sx={{ position: 'relative', my: 3 }}>
           <Divider sx={{ my: 2 }} />
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              position: 'absolute', 
-              top: '50%', 
-              left: '50%', 
-              transform: 'translate(-50%, -50%)', 
-              bgcolor: 'background.paper', 
+          <Typography
+            variant="caption"
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              bgcolor: 'background.paper',
               px: 1,
               color: 'text.secondary',
               textTransform: 'uppercase'
@@ -225,6 +276,7 @@ export default function AuthDialog({ open, onOpenChange }) {
           onClick={handleGoogleLogin}
           variant="outlined"
           startIcon={<GoogleIcon />}
+          disabled={loading}
         >
           Sign in with Google
         </Button>
@@ -235,11 +287,12 @@ export default function AuthDialog({ open, onOpenChange }) {
           {isLogin ? (
             <>
               Don't have an account?{" "}
-              <Button 
-                color="primary" 
-                onClick={handleToggleForm} 
+              <Button
+                color="primary"
+                onClick={handleToggleForm}
                 size="small"
                 sx={{ textTransform: 'none', fontWeight: 'medium', p: 0, minWidth: 'auto', verticalAlign: 'baseline' }}
+                disabled={loading}
               >
                 Register
               </Button>
@@ -247,11 +300,12 @@ export default function AuthDialog({ open, onOpenChange }) {
           ) : (
             <>
               Already have an account?{" "}
-              <Button 
-                color="primary" 
+              <Button
+                color="primary"
                 onClick={handleToggleForm}
                 size="small"
                 sx={{ textTransform: 'none', fontWeight: 'medium', p: 0, minWidth: 'auto', verticalAlign: 'baseline' }}
+                disabled={loading}
               >
                 Sign in
               </Button>

@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       // After setting token, useEffect above will fetch user info
       return true;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ AuthContext: Login failed:', error);
       return false;
     }
   };

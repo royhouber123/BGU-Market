@@ -3,11 +3,9 @@ package market.controllers;
 import market.application.UserService;
 import market.domain.user.ShoppingCart;
 import market.domain.user.User;
-import market.dto.AddProductToCartRequest;
-import market.dto.RegisterUserRequest;
-import market.dto.ChangeUsernameRequest;
-import market.dto.ChangePasswordRequest;
-import market.dto.RemoveProductFromCartRequest;
+import market.dto.AuthDTO;
+import market.dto.UserDTO;
+import market.dto.CartDTO;
 import utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +28,7 @@ public class UserController {
      * POST /api/users/register/guest
      */
     @PostMapping("/register/guest")
-    public ResponseEntity<ApiResponse<Void>> registerGuest(@RequestBody RegisterUserRequest request) {
+    public ResponseEntity<ApiResponse<Void>> registerGuest(@RequestBody AuthDTO.RegisterRequest request) {
         ApiResponse<Void> response = userService.register(request.username());
         return ResponseEntity.ok(response);
     }
@@ -40,7 +38,7 @@ public class UserController {
      * POST /api/users/register
      */
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Void>> registerUser(@RequestBody RegisterUserRequest request) {
+    public ResponseEntity<ApiResponse<Void>> registerUser(@RequestBody AuthDTO.RegisterRequest request) {
         ApiResponse<Void> response = userService.register(request.username(), request.password());
         return ResponseEntity.ok(response);
     }
@@ -70,7 +68,7 @@ public class UserController {
      * PUT /api/users/username
      */
     @PutMapping("/username")
-    public ResponseEntity<ApiResponse<Boolean>> changeUsername(@RequestBody ChangeUsernameRequest request) {
+    public ResponseEntity<ApiResponse<Boolean>> changeUsername(@RequestBody UserDTO.ChangeUsernameRequest request) {
         ApiResponse<Boolean> response = userService.changeUserName(request.newUsername());
         return ResponseEntity.ok(response);
     }
@@ -80,7 +78,7 @@ public class UserController {
      * PUT /api/users/password
      */
     @PutMapping("/password")
-    public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody UserDTO.ChangePasswordRequest request) {
         ApiResponse<Boolean> response = userService.changePassword(request.newPassword());
         return ResponseEntity.ok(response);
     }
@@ -90,7 +88,7 @@ public class UserController {
      * POST /api/users/cart/add
      */
     @PostMapping("/cart/add")
-    public ResponseEntity<ApiResponse<Void>> addProductToCart(@RequestBody AddProductToCartRequest request) {
+    public ResponseEntity<ApiResponse<Void>> addProductToCart(@RequestBody CartDTO.AddProductToCartRequest request) {
         ApiResponse<Void> response = userService.addProductToCart(
             request.storeId(), 
             request.productName(), 
@@ -104,7 +102,7 @@ public class UserController {
      * POST /api/users/cart/remove
      */
     @PostMapping("/cart/remove")
-    public ResponseEntity<ApiResponse<Void>> removeProductFromCart(@RequestBody RemoveProductFromCartRequest request) {
+    public ResponseEntity<ApiResponse<Void>> removeProductFromCart(@RequestBody CartDTO.RemoveProductFromCartRequest request) {
         ApiResponse<Void> response = userService.removeProductFromCart(
             request.storeId(), 
             request.productName(), 

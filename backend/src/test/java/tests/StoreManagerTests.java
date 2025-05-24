@@ -12,8 +12,7 @@ import org.junit.jupiter.api.Test;
 import market.domain.store.Listing;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
-import market.dto.AddDiscountDTO;
-import market.dto.AddPurchasePolicyDTO;
+import market.dto.PolicyDTO;
 import support.AcceptanceTestBase;
 import utils.ApiResponse;
 
@@ -194,7 +193,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
 
-        AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MINITEMS", 2);
+        PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MINITEMS", 2);
 
         ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
         assertTrue(res.isSuccess());
@@ -209,7 +208,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
 
-        AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MINPRICE", 300);
+        PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MINPRICE", 300);
 
         ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
         assertFalse(res.isSuccess());
@@ -226,7 +225,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
         storeService.closeStore(storeId, FOUNDER);
 
-        AddPurchasePolicyDTO policy = new AddPurchasePolicyDTO("MAXITEMS", 15);
+        PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MAXITEMS", 15);
 
         ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
         assertFalse(res.isSuccess());
@@ -245,7 +244,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
 
-        AddDiscountDTO dto = new AddDiscountDTO(
+        PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
             "PERCENTAGE", "PRODUCT", "p1", 0.25, null, null, List.of(), "SUM"
         );
 
@@ -261,7 +260,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
 
-        AddDiscountDTO dto = new AddDiscountDTO(
+        PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
             "PERCENTAGE", "PRODUCT", "p1", 0.1, null, null, List.of(), "SUM"
         );
 
@@ -280,7 +279,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
 
-        AddDiscountDTO invalid = new AddDiscountDTO(
+        PolicyDTO.AddDiscountRequest invalid = new PolicyDTO.AddDiscountRequest(
             null, "PRODUCT", "p1", -0.4, null, null, List.of(), "SUM" // ❌ invalid
         );
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
 
@@ -7,9 +7,20 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if there's a success message from registration
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccess(location.state.message);
+      // Clear the state after showing the message
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const styles = {
     container: {
@@ -67,6 +78,14 @@ const Login = () => {
       borderRadius: '4px',
       textAlign: 'center'
     },
+    successMessage: {
+      color: '#0f5132',
+      marginBottom: '1rem',
+      padding: '0.5rem',
+      backgroundColor: '#d1edff',
+      borderRadius: '4px',
+      textAlign: 'center'
+    },
     registerLink: {
       marginTop: '1.5rem',
       textAlign: 'center',
@@ -81,12 +100,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
       // The AuthService will handle BCrypt password verification on the backend
       const success = await login(username, password);
-      if (!success) {
+      if (success) {
         navigate('/Home');
       } else {
         setError('Failed to log in. Please check your credentials.');
@@ -102,6 +122,7 @@ const Login = () => {
     <div style={styles.container}>
       <h2 style={styles.heading}>Login to BGU Market</h2>
       {error && <div style={styles.errorMessage}>{error}</div>}
+      {success && <div style={styles.successMessage}>{success}</div>}
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.formGroup}>
           <label htmlFor="username" style={styles.label}>Username</label>
@@ -125,9 +146,9 @@ const Login = () => {
             style={styles.input}
           />
         </div>
-        <button 
-          type="submit" 
-          style={loading ? {...styles.button, ...styles.buttonDisabled} : styles.button} 
+        <button
+          type="submit"
+          style={loading ? { ...styles.button, ...styles.buttonDisabled } : styles.button}
           disabled={loading}
         >
           {loading ? 'Logging in...' : 'Login'}

@@ -5,7 +5,7 @@ import java.util.Map;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
-import market.dto.DiscountConditionDTO;
+import market.dto.PolicyDTO;
 
 public class CategoryQuantityCondition implements DiscountCondition {
 
@@ -32,8 +32,8 @@ public class CategoryQuantityCondition implements DiscountCondition {
     }
 
     @Override
-    public DiscountConditionDTO toDTO() {
-        return new DiscountConditionDTO(
+    public PolicyDTO.DiscountCondition toDTO() {
+        return new PolicyDTO.DiscountCondition(
             "CATEGORY_QUANTITY_AT_LEAST",      // type
             Map.of(
                 "category", category,

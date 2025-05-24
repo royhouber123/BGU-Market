@@ -10,8 +10,7 @@ import market.domain.store.IListingRepository;
 import market.domain.store.IStoreProductsManager;
 import market.infrastructure.ListingRepository;
 import market.domain.store.StoreProductManager;
-import market.dto.AddDiscountDTO;
-import market.dto.DiscountConditionDTO;
+import market.dto.PolicyDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +42,7 @@ public class DiscountPolicyFactoryTests {
 
     @Test
     void testFromDTOPercentageDiscount() {
-        AddDiscountDTO dto = new AddDiscountDTO(
+        PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
             "PERCENTAGE",
             "PRODUCT",
             "milk-id",
@@ -62,7 +61,7 @@ public class DiscountPolicyFactoryTests {
 
     @Test
     void testFromDTOCouponDiscount() {
-        AddDiscountDTO dto = new AddDiscountDTO(
+        PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
             "COUPON",
             null,
             null,
@@ -82,14 +81,14 @@ public class DiscountPolicyFactoryTests {
 
     @Test
     void testFromDTOConditionalDiscount() {
-        DiscountConditionDTO condDto = new DiscountConditionDTO(
+        PolicyDTO.DiscountCondition condDto = new PolicyDTO.DiscountCondition(
             "PRODUCT_QUANTITY_AT_LEAST",
             Map.of("productId", milk.getListingId(), "minQuantity", 2),
             null,
             null
         );
 
-        AddDiscountDTO dto = new AddDiscountDTO(
+        PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
             "CONDITIONAL",
             "PRODUCT",
             milk.getProductId(),
@@ -109,7 +108,7 @@ public class DiscountPolicyFactoryTests {
         assertEquals(15.0 * 2 * 0.10, discount2);
     }
 
-        @Test
+    @Test
     void testCompositeDiscountPolicy() {
         // Setup two simple discounts
         DiscountPolicy dairyDiscount = new PercentageTargetedDiscount(DiscountTargetType.CATEGORY, "Dairy", 10); // 10%

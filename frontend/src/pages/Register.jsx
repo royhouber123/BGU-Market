@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import Header from '../components/Header';
+import ApiTest from '../components/ApiTest';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const Register = () => {
     email: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -76,6 +78,14 @@ const Register = () => {
       borderRadius: '4px',
       textAlign: 'center'
     },
+    successMessage: {
+      color: '#0f5132',
+      marginBottom: '1rem',
+      padding: '0.5rem',
+      backgroundColor: '#d1edff',
+      borderRadius: '4px',
+      textAlign: 'center'
+    },
     loginLink: {
       marginTop: '1.5rem',
       textAlign: 'center',
@@ -98,6 +108,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
@@ -113,14 +124,28 @@ const Register = () => {
 
     try {
       // The backend will handle password hashing with BCrypt
-      await authService.register({
-        userName: formData.username,
+      const response = await authService.register({
+        username: formData.username,
         password: formData.password,
         email: formData.email
       });
-      
-      // Registration successful, redirect to login
-      navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
+
+      // Registration successful, show success message
+      setSuccess(response.message || 'Registration successful!');
+
+      // Clear form
+      setFormData({
+        username: '',
+        password: '',
+        confirmPassword: '',
+        email: ''
+      });
+
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
+      }, 2000);
+
     } catch (error) {
       setError(error.message || 'Failed to register account');
     } finally {
@@ -129,75 +154,84 @@ const Register = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Create an Account</h2>
-      {error && <div style={styles.errorMessage}>{error}</div>}
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <div style={styles.formGroup}>
-          <label htmlFor="username" style={styles.label}>Username</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
+    <>
+      <Header />
 
-        <div style={styles.formGroup}>
-          <label htmlFor="email" style={styles.label}>Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
+      {/* Temporary API Test Component */}
+      <ApiTest />
 
-        <div style={styles.formGroup}>
-          <label htmlFor="password" style={styles.label}>Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-          <small style={styles.small}>Password must be at least 6 characters long</small>
-        </div>
+      <div style={styles.container}>
+        <h2 style={styles.heading}>Create an Account</h2>
+        {error && <div style={styles.errorMessage}>{error}</div>}
+        {success && <div style={styles.successMessage}>{success}</div>}
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <div style={styles.formGroup}>
+            <label htmlFor="username" style={styles.label}>Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
 
-        <div style={styles.formGroup}>
-          <label htmlFor="confirmPassword" style={styles.label}>Confirm Password</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
+          <div style={styles.formGroup}>
+            <label htmlFor="email" style={styles.label}>Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+            <small style={styles.small}>Email is for display purposes only</small>
+          </div>
 
-        <button
-          type="submit"
-          style={loading ? {...styles.button, ...styles.buttonDisabled} : styles.button}
-          disabled={loading}
-        >
-          {loading ? 'Registering...' : 'Register'}
-        </button>
-      </form>
-      <div style={styles.loginLink}>
-        Already have an account? <Link to="/login" style={styles.link}>Log in here</Link>
+          <div style={styles.formGroup}>
+            <label htmlFor="password" style={styles.label}>Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+            <small style={styles.small}>Password must be at least 6 characters long</small>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label htmlFor="confirmPassword" style={styles.label}>Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
+
+          <button
+            type="submit"
+            style={loading ? { ...styles.button, ...styles.buttonDisabled } : styles.button}
+            disabled={loading}
+          >
+            {loading ? 'Registering...' : 'Register'}
+          </button>
+        </form>
+        <div style={styles.loginLink}>
+          Already have an account? <Link to="/login" style={styles.link}>Log in here</Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

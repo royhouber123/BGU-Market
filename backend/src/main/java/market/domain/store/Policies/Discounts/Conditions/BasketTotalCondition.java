@@ -2,7 +2,7 @@ package market.domain.store.Policies.Discounts.Conditions;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
-import market.dto.DiscountConditionDTO;
+import market.dto.PolicyDTO;
 
 import java.util.Collections;
 import java.util.Map;
@@ -30,8 +30,8 @@ public class BasketTotalCondition implements DiscountCondition {
     }
     
     @Override
-    public DiscountConditionDTO toDTO() {
-        return new DiscountConditionDTO(
+    public PolicyDTO.DiscountCondition toDTO() {
+        return new PolicyDTO.DiscountCondition(
             "BASKET_TOTAL_AT_LEAST",      // type
             Map.of("minTotal", minTotal), // params
             Collections.emptyList(),      // no subconditions

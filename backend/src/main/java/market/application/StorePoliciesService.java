@@ -9,8 +9,7 @@ import market.domain.store.Policies.DiscountPolicy;
 import market.domain.store.Policies.PurchasePolicy;
 import market.domain.store.Policies.Discounts.DiscountPolicyFactory;
 import market.domain.store.Policies.Policies.PurchasePolicyFactory;
-import market.dto.AddDiscountDTO;
-import market.dto.AddPurchasePolicyDTO;
+import market.dto.PolicyDTO;
 import utils.ApiResponse;
 import utils.Logger;
 
@@ -31,7 +30,7 @@ public class StorePoliciesService {
      * @param discountDTO the discount DTO to add
      * @return true if successful, false otherwise
      */
-    public ApiResponse<Boolean> addDiscount(String storeId, String userId, AddDiscountDTO discountDTO) {
+    public ApiResponse<Boolean> addDiscount(String storeId, String userId, PolicyDTO.AddDiscountRequest discountDTO) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
@@ -50,7 +49,7 @@ public class StorePoliciesService {
      * @param discountDTO the discount DTO to remove
      * @return true if successful, false otherwise
      */
-    public ApiResponse<Boolean> removeDiscount(String storeId, String userId, AddDiscountDTO discountDTO) {
+    public ApiResponse<Boolean> removeDiscount(String storeId, String userId, PolicyDTO.AddDiscountRequest discountDTO) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
@@ -68,7 +67,7 @@ public class StorePoliciesService {
      * @param userId  the user requesting the discounts
      * @return list of discount DTOs or an empty list on failure
      */
-    public ApiResponse<List<AddDiscountDTO>> getDiscounts(String storeId, String userId) {
+    public ApiResponse<List<PolicyDTO.AddDiscountRequest>> getDiscounts(String storeId, String userId) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             return ApiResponse.ok(store.getDiscountPolicies(userId)
@@ -89,7 +88,7 @@ public class StorePoliciesService {
      * @param dto     The DTO representing the purchase policy.
      * @return {@code true} if added successfully, {@code false} otherwise.
      */
-    public ApiResponse<Boolean> addPurchasePolicy(String storeId, String userId, AddPurchasePolicyDTO dto) {
+    public ApiResponse<Boolean> addPurchasePolicy(String storeId, String userId, PolicyDTO.AddPurchasePolicyRequest dto) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
@@ -109,7 +108,7 @@ public class StorePoliciesService {
      * @param dto     The DTO representing the purchase policy to remove.
      * @return {@code true} if removed successfully, {@code false} otherwise.
      */
-    public ApiResponse<Boolean> removePurchasePolicy(String storeId, String userId, AddPurchasePolicyDTO dto) {
+    public ApiResponse<Boolean> removePurchasePolicy(String storeId, String userId, PolicyDTO.AddPurchasePolicyRequest dto) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
@@ -127,7 +126,7 @@ public class StorePoliciesService {
      * @param userId  ID of the user requesting the policies.
      * @return List of DTOs representing the purchase policies, or an empty list on failure.
      */
-    public ApiResponse<List<AddPurchasePolicyDTO>> getPurchasePolicies(String storeId, String userId) {
+    public ApiResponse<List<PolicyDTO.AddPurchasePolicyRequest>> getPurchasePolicies(String storeId, String userId) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             return ApiResponse.ok(store.getPolicies(userId).stream()
