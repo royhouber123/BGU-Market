@@ -18,6 +18,7 @@ import market.middleware.TokenUtils;
 import java.io.EOFException;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -146,22 +147,28 @@ public class GuestTests extends AcceptanceTestBase {
             2.0
         ).getData();
         //Step 3: Call the method to retrieve store and product info
-        ApiResponse<HashMap<StoreDTO, List<Listing>>> response = storeService.getInformationAboutStoresAndProducts();
+        ApiResponse<List<Map<String, Object>>> response = storeService.getInformationAboutStoresAndProducts();
         assertTrue(response.isSuccess(), "Failed to retrieve store and product information: " + response.getError());
         //Step 4: Extract and validate store data
-        HashMap<StoreDTO, List<Listing>> storeInfo = response.getData();
+        List<Map<String, Object>> storeInfo = response.getData();
         assertFalse(storeInfo.isEmpty(), "Expected at least one store in the result");
         //Step 5: Check that both stores are included
-        boolean store1Found = storeInfo.keySet().stream().anyMatch(dto -> dto.getName().equals("MyStore"));
-        boolean store2Found = storeInfo.keySet().stream().anyMatch(dto -> dto.getName().equals("AnotherStore"));
+        boolean store1Found = storeInfo.stream().anyMatch(storeData -> {
+            Map<String, Object> store = (Map<String, Object>) storeData.get("store");
+            return "MyStore".equals(store.get("storeName"));
+        });
+        boolean store2Found = storeInfo.stream().anyMatch(storeData -> {
+            Map<String, Object> store = (Map<String, Object>) storeData.get("store");
+            return "AnotherStore".equals(store.get("storeName"));
+        });
         assertTrue(store1Found, "Expected to find 'MyStore' in the returned data");
         assertTrue(store2Found, "Expected to find 'AnotherStore' in the returned data");
         //Step 6: Check that both products are listed
-        boolean product1Found = storeInfo.values().stream()
-            .flatMap(List::stream)
+        boolean product1Found = storeInfo.stream()
+            .flatMap(storeData -> ((List<Listing>) storeData.get("listings")).stream())
             .anyMatch(listing -> listing.getProductName().equals("Blue Notebook"));
-        boolean product2Found = storeInfo.values().stream()
-            .flatMap(List::stream)
+        boolean product2Found = storeInfo.stream()
+            .flatMap(storeData -> ((List<Listing>) storeData.get("listings")).stream())
             .anyMatch(listing -> listing.getProductName().equals("Red Pencil"));
         assertTrue(product1Found, "Expected to find the product 'Blue Notebook' in the returned listings");
         assertTrue(product2Found, "Expected to find the product 'Red Pencil' in the returned listings");
@@ -173,10 +180,10 @@ public class GuestTests extends AcceptanceTestBase {
         ApiResponse<String> closeStoreResponse = storeService.closeStore(storeId, MANAGER1);
         assertTrue(closeStoreResponse.isSuccess(), "Store closure failed");
         //Step 2: Guest requests store info
-        ApiResponse<HashMap<StoreDTO, List<Listing>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
+        ApiResponse<List<Map<String, Object>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
         assertTrue(infoResponse.isSuccess(), "Failed to get store information");
         //Step 3: Assert no active stores are returned
-        HashMap<StoreDTO, List<Listing>> data = infoResponse.getData();
+        List<Map<String, Object>> data = infoResponse.getData();
         assertNotNull(data, "Returned data should not be null");
         assertTrue(data.isEmpty(), "Expected no active stores, but some were returned");
     }
@@ -184,15 +191,18 @@ public class GuestTests extends AcceptanceTestBase {
     @Test
     void guest_gets_store_info_when_store_has_no_products() { 
         //Step 1: Guest requests information about stores and their products
-        ApiResponse<HashMap<StoreDTO, List<Listing>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
+        ApiResponse<List<Map<String, Object>>> infoResponse = storeService.getInformationAboutStoresAndProducts();
         assertTrue(infoResponse.isSuccess(), "Failed to retrieve store information");
         //Step 2: Check that at least one store is returned
-        HashMap<StoreDTO, List<Listing>> data = infoResponse.getData();
+        List<Map<String, Object>> data = infoResponse.getData();
         assertNotNull(data, "Response data should not be null");
         assertFalse(data.isEmpty(), "Expected at least one store");
         //Step 3: Find the store with the expected ID and check its listings
-        boolean storeFoundWithNoProducts = data.entrySet().stream()
-            .anyMatch(entry -> entry.getKey().getStoreID().equals(storeId) && entry.getValue().isEmpty());
+        boolean storeFoundWithNoProducts = data.stream()
+            .anyMatch(storeData -> {
+                Map<String, Object> store = (Map<String, Object>) storeData.get("store");
+                return store.get("storeID").equals(storeId) && ((List<Listing>) storeData.get("listings")).isEmpty();
+            });
         assertTrue(storeFoundWithNoProducts, "Expected the store to have no products listed");
     }
 

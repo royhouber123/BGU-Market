@@ -555,10 +555,24 @@ public class StoreService {
     }
 
 
-    public ApiResponse<HashMap<StoreDTO,List<Listing>>> getInformationAboutStoresAndProducts(){
-        HashMap <StoreDTO,List<Listing>> res = new HashMap<>();
+    public ApiResponse<List<Map<String, Object>>> getInformationAboutStoresAndProducts(){
+        List<Map<String, Object>> res = new ArrayList<>();
         for (Store s: storeRepository.getAllActiveStores()){
-            res.put(new StoreDTO(s), s.getAllListings());
+            Map<String, Object> storeInfo = new HashMap<>();
+            StoreDTO storeDTO = new StoreDTO(s);
+            
+            // Create a proper store object structure
+            Map<String, Object> store = new HashMap<>();
+            store.put("storeID", storeDTO.getStoreID());
+            store.put("storeName", storeDTO.getName());
+            store.put("isActive", storeDTO.isActive());
+            store.put("founderId", s.getFounderID());
+            store.put("description", "Store description"); // Add default description
+            store.put("rating", 0); // Add default rating
+            
+            storeInfo.put("store", store);
+            storeInfo.put("listings", s.getAllListings());
+            res.add(storeInfo);
         } 
         return ApiResponse.ok(res);
     }

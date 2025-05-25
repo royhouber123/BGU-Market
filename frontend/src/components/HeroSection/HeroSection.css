@@ -1,0 +1,76 @@
+/* HeroSection Component Styles */
+
+.hero-section-container {
+  position: relative;
+  height: 450px;
+  overflow: hidden;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+}
+
+.hero-section-background {
+  position: absolute;
+  inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+  background-position: center 30%;
+  background-size: cover;
+}
+
+.hero-section-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.hero-section-content {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.hero-section-text-container {
+  max-width: 600px;
+}
+
+.hero-section-title {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 16px;
+  font-size: 2.25rem;
+}
+
+.hero-section-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 32px;
+}
+
+.hero-section-shop-btn {
+  background-color: #2563eb;
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hero-section-shop-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.hero-section-sell-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.hero-section-sell-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive styles */
+@media (min-width: 768px) {
+  .hero-section-title {
+    font-size: 3rem;
+  }
+} 

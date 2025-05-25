@@ -1,0 +1,32 @@
+/* Navbar Component Styles */
+
+.navbar-appbar {
+  background-color: white;
+}
+
+.navbar-toolbar {
+  justify-content: space-between;
+}
+
+.navbar-logo {
+  text-decoration: none;
+  color: inherit;
+  font-weight: bold;
+  background-image: linear-gradient(to right, #2563eb, #9333ea);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.navbar-welcome {
+  margin-right: 16px;
+}
+
+.navbar-dashboard-btn {
+  text-transform: none;
+} 

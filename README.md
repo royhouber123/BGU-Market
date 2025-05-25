@@ -9,6 +9,7 @@ A full-stack e-commerce application built with Spring Boot backend and React fro
 - [Backend Setup](#backend-setup)
 - [Frontend Setup](#frontend-setup)
 - [Running the Application](#running-the-application)
+- [Demo Data Population](#demo-data-population)
 - [Configuration](#configuration)
 - [API Documentation](#api-documentation)
 - [Testing](#testing)
@@ -40,8 +41,10 @@ BGU-Market/
 │   ├── public/
 │   ├── package.json         # npm dependencies
 │   └── package-lock.json
-├── test_api.sh      # API testing script
-└── README.md        # This file
+├── populate_demo_data.sh    # Demo data population script
+├── DEMO_DATA_README.md      # Demo data documentation
+├── test_api.sh              # API testing script
+└── README.md                # This file
 ```
 
 ## 🚀 Backend Setup
@@ -146,6 +149,92 @@ The frontend will start on `http://localhost:3000` and automatically open in you
    - Frontend: `http://localhost:3000`
    - Backend API: `http://localhost:8080`
    - H2 Database Console: `http://localhost:8080/h2-console`
+
+## 📋 Demo Data Population
+
+To quickly get started with a fully populated marketplace for testing and development, use the provided demo data population script.
+
+### 🎯 What You Get
+
+The demo data script creates a complete marketplace environment with:
+- **5 demo users** with login credentials
+- **5 stores** across different categories (Electronics, Books, Clothing, Home, Sports)
+- **20 products** with realistic prices and descriptions
+- **3 guest users** for testing guest functionality
+
+### 📋 Prerequisites
+
+1. **Backend server must be running** on `http://localhost:8080`
+2. **Clean database state** (restart backend for fresh start)
+3. **curl command** available (pre-installed on most systems)
+
+### 🚀 How to Run
+
+1. **Start the backend server** (if not already running):
+   ```bash
+   cd backend
+   mvn spring-boot:run
+   ```
+   
+   Wait for the server to fully start (look for "Started BguMarketApplication" in logs).
+
+2. **Make the script executable and run it**:
+   ```bash
+   chmod +x populate_demo_data.sh
+   ./populate_demo_data.sh
+   ```
+
+### 📊 Created Demo Data
+
+**Demo Users** (username:password):
+- `alice:password123` - Owner of TechHub (Electronics)
+- `bob:password123` - Owner of BookWorld (Books)
+- `charlie:password123` - Owner of FashionForward (Clothing)
+- `diana:password123` - Owner of HomeEssentials (Home)
+- `eve:password123` - Owner of SportsZone (Sports)
+
+**Demo Stores & Products**:
+- **TechHub**: iPhone 15, MacBook Pro, AirPods Pro, iPad Air
+- **BookWorld**: The Great Gatsby, Programming Pearls, Dune, Clean Code
+- **FashionForward**: Designer Jeans, Silk Blouse, Leather Jacket, Summer Dress
+- **HomeEssentials**: Coffee Maker, Vacuum Cleaner, Bed Sheets Set, Kitchen Knife Set
+- **SportsZone**: Running Shoes, Yoga Mat, Basketball, Fitness Tracker
+
+### ✅ Verification
+
+The script automatically verifies the created data by:
+- Checking all stores and products were created successfully
+- Testing product search functionality
+- Testing product sorting by price
+
+### 🎮 Testing the Frontend
+
+After running the script, you can immediately test the frontend with:
+
+1. **Login** with any demo user (e.g., `alice:password123`)
+2. **Browse stores** and view products across different categories
+3. **Search for products** (try "iPhone", "Book", "Shoes")
+4. **Add products to cart** and test shopping functionality
+5. **Execute purchases** with the populated data
+6. **Manage stores** if logged in as a store owner
+
+### 🔧 Troubleshooting
+
+**Script fails with connection errors**:
+- Ensure backend server is running on `http://localhost:8080`
+- Check server logs for "Started BguMarketApplication"
+
+**Some operations fail**:
+- This is normal due to business logic constraints
+- Script continues to populate as much data as possible
+
+**Want to reset data**:
+- Restart the backend server to reset to clean state
+- Run the script again for fresh demo data
+
+### 📖 Additional Information
+
+For detailed information about the demo data structure and customization options, see [`DEMO_DATA_README.md`](DEMO_DATA_README.md).
 
 ## ⚙️ Configuration
 
@@ -489,6 +578,9 @@ mvn spring-boot:run
 cd frontend
 npm install
 npm start
+
+# Demo Data Population (optional - makes testing easier)
+chmod +x populate_demo_data.sh && ./populate_demo_data.sh    # Populate with demo users, stores, and products
 
 # Testing
 chmod +x test_api.sh && ./test_api.sh                    # Basic API tests
