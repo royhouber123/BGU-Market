@@ -1,80 +1,120 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authService } from '../services/authService';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import userService from '../services/userService';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState([]);
 
+  // Initialize auth state
   useEffect(() => {
-    if (token) {
-      // Validate token and get user information
-      authService.getCurrentUser(token)
-        .then(user => {
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const user = await userService.getProfile();
           setCurrentUser(user);
-        })
-        .catch(() => {
-          // If token is invalid, clear it
-          localStorage.removeItem('token');
-          setToken(null);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
+          setIsAuthenticated(true);
+          
+          // Load cart data
+          await refreshCart();
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        // Clear invalid token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Store token in localStorage when it changes
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
+    initializeAuth();
+  }, []);
+
+  // Function to refresh cart data
+  const refreshCart = async () => {
+    try {
+      if (userService.isAuthenticated()) {
+        console.log('[AuthContext] Refreshing cart...');
+        // Sync cart from backend and get the synced cart data
+        const syncedCart = await userService.syncCartFromBackend();
+        console.log('[AuthContext] Synced cart:', syncedCart);
+        setCart(syncedCart || []);
+      } else {
+        console.log('[AuthContext] User not authenticated, clearing cart');
+        setCart([]);
+      }
+    } catch (error) {
+      console.error('[AuthContext] Error refreshing cart:', error);
+      // Fallback to local storage cart
+      const localUser = userService.getCurrentUser();
+      const fallbackCart = localUser?.cart || [];
+      console.log('[AuthContext] Using fallback cart:', fallbackCart);
+      setCart(fallbackCart);
     }
-  }, [token]);
+  };
 
   const login = async (username, password) => {
     try {
-      const response = await authService.login(username, password);
-      setToken(response.token);
-      // After setting token, useEffect above will fetch user info
-      return true;
+      const user = await userService.login(username, password);
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      await refreshCart();
+      return user;
     } catch (error) {
-      console.error('❌ AuthContext: Login failed:', error);
-      return false;
+      throw error;
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const user = await userService.register(userData);
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      await refreshCart();
+      return user;
+    } catch (error) {
+      throw error;
     }
   };
 
   const logout = async () => {
     try {
-      if (token) {
-        await authService.logout(token);
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setToken(null);
+      await userService.logout();
       setCurrentUser(null);
+      setIsAuthenticated(false);
+      setCart([]);
+    } catch (error) {
+      throw error;
     }
   };
 
   const value = {
     currentUser,
-    token,
+    isAuthenticated,
+    loading,
+    cart,
+    refreshCart,
     login,
-    logout,
-    isAuthenticated: !!token
+    register,
+    logout
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

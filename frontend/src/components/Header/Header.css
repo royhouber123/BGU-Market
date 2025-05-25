@@ -1,0 +1,104 @@
+/* Header Component Styles */
+
+.header-appbar {
+  backdrop-filter: blur(6px);
+  background-color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid;
+  border-color: var(--mui-palette-divider);
+}
+
+.header-toolbar {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.header-logo-link {
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 16px;
+}
+
+.header-logo-text {
+  background: linear-gradient(90deg, #2563eb 0%, #9333ea 100%);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.header-search-desktop {
+  flex-grow: 1;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+.header-search-mobile {
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.header-desktop-actions {
+  align-items: center;
+  gap: 16px;
+}
+
+.header-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-user-greeting {
+  color: var(--mui-palette-text-secondary);
+}
+
+.header-auth-button {
+  border-radius: 24px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.header-mobile-menu {
+  margin-left: auto;
+}
+
+.header-drawer-content {
+  width: 260px;
+  padding-top: 16px;
+}
+
+/* Responsive display utilities */
+.header-hide-mobile {
+  display: none;
+}
+
+.header-hide-desktop {
+  display: flex;
+}
+
+.header-show-mobile {
+  display: block;
+}
+
+.header-show-desktop {
+  display: none;
+}
+
+/* Media queries for responsive behavior */
+@media (min-width: 900px) {
+  .header-hide-mobile {
+    display: flex;
+  }
+  
+  .header-hide-desktop {
+    display: none;
+  }
+  
+  .header-show-mobile {
+    display: none;
+  }
+  
+  .header-show-desktop {
+    display: flex;
+  }
+} 

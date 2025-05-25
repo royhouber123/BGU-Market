@@ -1,15 +1,14 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Home from './pages/Home';
-import Cart from './pages/Cart';
-import ProductDetail from './pages/ProductDetail';
-import SearchResults from './pages/SearchResults';
-import WatchList from './pages/WatchList';
-import Checkout from './pages/Checkout';
-import OrderConfirmation from './pages/OrderConfirmation';
+import { Routes, Route } from 'react-router-dom';
+import Login from './pages/Login/Login';
+import Register from './pages/Register/Register';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Cart from './pages/Cart/Cart';
+import ProductDetail from './pages/ProductDetail/ProductDetail';
+import SearchResults from './pages/SearchResults/SearchResults';
+import WatchList from './pages/WatchList/WatchList';
+import Checkout from './pages/Checkout/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation/OrderConfirmation';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Material UI Theme Provider
@@ -36,12 +35,13 @@ function App() {
             {/* Authentication routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
+
             {/* Public routes */}
-            <Route path="/" element={<Home />} /> {/* Home page */}
+            <Route path="/" element={<Dashboard />} /> {/* Dashboard serves as home page */}
+            <Route path="/dashboard" element={<Dashboard />} /> {/* Keep dashboard route for compatibility */}
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/search" element={<SearchResults />} />
-            
+
             {/* Protected routes that require authentication */}
             <Route path="/cart" element={<Cart />} />
             <Route path="/watchlist" element={<WatchList />} />

@@ -12,16 +12,40 @@ Thumbs.db
 /out/                    # IntelliJ default output (if recreated)
 
 # ────────── Frontend (Node/Vite) ──────────
+node_modules/
 /frontend/node_modules/
 /frontend/dist/
 /frontend/build/
 /**/.vite/
+.npm
+.yarn
+package-lock.json
+yarn.lock
 
 # ────────── IDE Metadata ──────────
 /.idea/
 /.vscode/
 /*.iml
+**/*.iml
 
 # ────────── Environment ──────────
 .env
 .env.*.local
+
+# ────────── Temporary files ──────────
+*.tmp
+*.temp
+*~
+
+# ────────── Office temporary files ──────────
+~$*
+
+# ────────── Build artifacts ──────────
+*.class
+*.jar
+*.war
+*.ear
+
+# ────────── Coverage reports ──────────
+coverage/
+*.lcov

@@ -10,7 +10,7 @@
 export const createPageUrl = (page) => {
   const pageRoutes = {
     Home: '/',
-    Dashboard: '/dashboard',
+    Dashboard: '/',
     Product: '/product',
     Cart: '/cart',
     Login: '/login',

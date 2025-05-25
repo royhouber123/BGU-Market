@@ -1,0 +1,74 @@
+/* AuthDialog Component Styles */
+
+.auth-dialog-title {
+  display: flex;
+  align-items: center;
+  padding-bottom: 0;
+}
+
+.auth-dialog-back-btn {
+  margin-right: 8px;
+}
+
+.auth-dialog-content-text {
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: 8px;
+}
+
+.auth-dialog-alert {
+  margin-bottom: 16px;
+}
+
+.auth-dialog-form {
+  margin-top: 16px;
+}
+
+.auth-dialog-register-grid {
+  margin-bottom: 16px;
+}
+
+.auth-dialog-submit-btn {
+  margin-top: 16px;
+}
+
+.auth-dialog-divider-container {
+  position: relative;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.auth-dialog-divider {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.auth-dialog-divider-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--mui-palette-background-paper);
+  padding-left: 8px;
+  padding-right: 8px;
+  color: var(--mui-palette-text-secondary);
+  text-transform: uppercase;
+}
+
+.auth-dialog-actions {
+  justify-content: center;
+  padding-bottom: 24px;
+  flex-direction: column;
+}
+
+.auth-dialog-toggle-text {
+  margin-bottom: 8px;
+}
+
+.auth-dialog-toggle-btn {
+  text-transform: none;
+  font-weight: 500;
+  padding: 0;
+  min-width: auto;
+  vertical-align: baseline;
+} 

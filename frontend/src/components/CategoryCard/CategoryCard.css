@@ -1,0 +1,27 @@
+/* CategoryCard Component Styles */
+
+.category-card {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.category-card-action-area {
+  position: relative;
+}
+
+.category-card-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.55);
+  color: white;
+}
+
+.category-card-title {
+  margin-left: 8px;
+  font-weight: 600;
+} 

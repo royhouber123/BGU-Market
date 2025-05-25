@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 /**
  * REST Controller for store-related operations.
@@ -311,8 +312,8 @@ public class StoreController {
      * GET /api/stores/info
      */
     @GetMapping("/info")
-    public ResponseEntity<ApiResponse<HashMap<StoreDTO, List<Listing>>>> getInformationAboutStoresAndProducts() {
-        ApiResponse<HashMap<StoreDTO, List<Listing>>> response = storeService.getInformationAboutStoresAndProducts();
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getInformationAboutStoresAndProducts() {
+        ApiResponse<List<Map<String, Object>>> response = storeService.getInformationAboutStoresAndProducts();
         return ResponseEntity.ok(response);
     }
 
