@@ -63,7 +63,7 @@ class ListingRepositoryTests {
         store1Bag.put(listing2.getListingId(), 2);
         shopping.put("store1", store1Bag);
 
-        assertTrue(repository.updateStockForPurchasedItems(shopping));
+        assertTrue(repository.updateOrRestoreStock(shopping, false));
         assertEquals(7, listing1.getQuantityAvailable());
         assertEquals(3, listing2.getQuantityAvailable());
     }
@@ -76,7 +76,7 @@ class ListingRepositoryTests {
         shopping.put("store1", store1Bag);
 
         Exception e = assertThrows(RuntimeException.class, () -> {
-            repository.updateStockForPurchasedItems(shopping);
+            repository.updateOrRestoreStock(shopping, false);
         });
         assertTrue(e.getMessage().contains("Not enough stock"));
     }
@@ -102,7 +102,7 @@ class ListingRepositoryTests {
                 map.put("storeX", bag);
 
                 try {
-                    if (repository.updateStockForPurchasedItems(map)) {
+                    if (repository.updateOrRestoreStock(map, false)) {
                         successCount.getAndIncrement();
                     }
                 } catch (RuntimeException e) {
@@ -137,7 +137,7 @@ class ListingRepositoryTests {
                 map.put("storeX", bag);
 
                 try {
-                    if (repository.updateStockForPurchasedItems(map)) {
+                    if (repository.updateOrRestoreStock(map, false)) {
                         successCount.getAndIncrement();
                     }
                 } catch (RuntimeException e) {
@@ -172,7 +172,7 @@ class ListingRepositoryTests {
                 map.put("storeZ", bag);
 
                 try {
-                    if (repository.updateStockForPurchasedItems(map)) {
+                    if (repository.updateOrRestoreStock(map, false)) {
                         successCount.getAndIncrement();
                     }
                 } catch (RuntimeException e) {
@@ -203,10 +203,10 @@ class ListingRepositoryTests {
         bag2.put(l.getListingId(), 3);
         purchase2.put("storeW", bag2);
 
-        boolean first = repository.updateStockForPurchasedItems(purchase1);
+        boolean first = repository.updateOrRestoreStock(purchase1, false);
         boolean second = false;
         try {
-            second = repository.updateStockForPurchasedItems(purchase2);
+            second = repository.updateOrRestoreStock(purchase2, false);
         } catch (RuntimeException e) {
             // expected: not enough stock
         }
@@ -240,7 +240,7 @@ class ListingRepositoryTests {
                 cart.put("storeM", bag);
 
                 try {
-                    if (repository.updateStockForPurchasedItems(cart)) {
+                    if (repository.updateOrRestoreStock(cart, false)) {
                         successCount.getAndIncrement();
                     }
                 } catch (RuntimeException e) {
@@ -278,7 +278,7 @@ class ListingRepositoryTests {
                     bag.put(l.getListingId(), 1);
                     cart.put("storeRace", bag);
 
-                    if (repository.updateStockForPurchasedItems(cart)) {
+                    if (repository.updateOrRestoreStock(cart, false)) {
                         successCount.incrementAndGet();
                     }
                 } catch (Exception ignored) {

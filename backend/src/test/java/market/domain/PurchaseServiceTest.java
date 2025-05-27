@@ -117,20 +117,19 @@ class PurchaseServiceTest {
     }
 
     @Test
-    void purchase_emptyProductList_shouldReturnZeroTotalPrice() {
+    void purchase_emptyProductList_shouldThrowException() {
         List<PurchasedProduct> products = List.of();
-        Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 0.0, paymentService, shipmentService);
-        assertEquals(0.0, purchase.getTotalPrice());
-        assertEquals(0, purchase.getProducts().size());
+        Exception e = assertThrows(IllegalArgumentException.class, () -> {
+            regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 0.0, paymentService, shipmentService);
+        });
+        assertTrue(e.getMessage().contains("Items list cannot be null or empty"));
     }
 
     @Test
-    void purchase_discountGreaterThanTotal_shouldAllowNegativeTotal() {
+    void purchase_discountGreaterThanTotal_shouldPayZero() {
         PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 20.0);
         List<PurchasedProduct> products = List.of(product);
-
         Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 30.0, paymentService, shipmentService);
-
-        assertEquals(-10.0, purchase.getTotalPrice());
+        assertEquals(0.0, purchase.getTotalPrice());
     }
 }
