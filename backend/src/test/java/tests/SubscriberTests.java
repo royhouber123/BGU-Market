@@ -404,6 +404,7 @@ class SubscriberTests extends AcceptanceTestBase {
         ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase(storeid1, cart, "123 Guest Street", "guest@example.com");
         assertFalse(purchaseResponse.isSuccess(), "Purchase should fail due to insufficient funds");
         assertTrue(purchaseResponse.getError().toLowerCase().contains("failed"), "Error message should indicate insufficient funds");
+        assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should remain 2 after failed purchase");
     }
 
     @Test

@@ -69,7 +69,7 @@ public class PurchaseService {
                 }
             }
     
-            boolean updated = listingRepository.updateStockForPurchasedItems(listForUpdateStock);
+            boolean updated = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
             if (!updated) {
                 logger.error("Failed to update stock for purchased items.");
                 return ApiResponse.fail("Failed to update stock for purchased items.");
@@ -77,14 +77,18 @@ public class PurchaseService {
     
             RegularPurchase regularPurchase = new RegularPurchase();
             logger.info("Purchase executed successfully for user: " + userId + ", total: " + totalDiscountPrice);
-    
-            Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
-            if (finalPurchase != null) {
+            try {
+                Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
-                user.clearCart();
+                 user.clearCart();
                 return ApiResponse.ok(finalPurchase);
-            } else {
-                return ApiResponse.fail("Final purchase object is null.");
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid purchase details for user: " + userId + ". Reason: " + e.getMessage());
+                return ApiResponse.fail("Invalid purchase details: " + e.getMessage());
+            } catch (RuntimeException e) {
+                logger.error("Payment or shipment failed for user: " + userId + ". Reason: " + e.getMessage());
+                listingRepository.updateOrRestoreStock(listForUpdateStock, true);
+                return ApiResponse.fail("Payment or shipment failed: " + e.getMessage());
             }
     
         } catch (Exception e) {

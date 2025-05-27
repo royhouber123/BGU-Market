@@ -75,19 +75,19 @@ public class ListingRepository implements IListingRepository {
                 .collect(Collectors.toList());
     }
 
-    @Override
     
-    public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock) {
-        if (listForUpdateStock == null || listForUpdateStock.isEmpty()) {
+    @Override
+    public boolean updateOrRestoreStock(Map<String, Map<String, Integer>> stockMap, boolean isRestore) {
+        if (stockMap == null || stockMap.isEmpty()) {
             return false;
         }
-
+    
         // Collect listings and sort by ID to avoid deadlocks
         List<Listing> toLock = new ArrayList<>();
-        for (String storeId : listForUpdateStock.keySet()) {
-            Map<String, Integer> listingUpdates = listForUpdateStock.get(storeId);
+        for (String storeId : stockMap.keySet()) {
+            Map<String, Integer> listingUpdates = stockMap.get(storeId);
             if (listingUpdates == null) throw new IllegalArgumentException("Missing listings for store " + storeId);
-
+    
             for (String listingId : listingUpdates.keySet()) {
                 Listing l = getListingById(listingId);
                 if (l == null || !l.getStoreId().equals(storeId))
@@ -95,30 +95,42 @@ public class ListingRepository implements IListingRepository {
                 toLock.add(l);
             }
         }
-
+    
         toLock.sort(Comparator.comparing(Listing::getListingId));
-
+    
         // Lock all listings in sorted order
         List<Object> locks = toLock.stream().map(l -> (Object) l).distinct().toList();
         synchronizedLocks(locks, () -> {
-            // Check stock availability
-            for (Listing listing : toLock) {
-                int requested = listForUpdateStock.get(listing.getStoreId()).get(listing.getListingId());
-                if (listing.getQuantityAvailable() < requested)
-                    throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+            if(!isRestore) {
+                // Check stock availability for purchase
+                for (Listing listing : toLock) {
+                    int requestedQuantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
+    
+                    if (listing.getQuantityAvailable() < requestedQuantity)
+                        throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+                }
             }
-
-            // Perform all purchases
+            // Check stock availability and perform the appropriate action (update or restore)
             for (Listing listing : toLock) {
-                int quantity = listForUpdateStock.get(listing.getStoreId()).get(listing.getListingId());
-                try {
-                    listing.purchase(quantity);
-                } catch (Exception e) {
-                    throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
+                int quantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
+                if (!isRestore) {
+                    // Perform purchase
+                    try {
+                        listing.purchase(quantity);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
+                    }
+                } else {
+                    // For restoring stock, just restore the stock
+                    try {
+                        listing.restore(quantity);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Unexpected error during restore of " + listing.getListingId(), e);
+                    }
                 }
             }
         });
-
+    
         return true;
     }
 

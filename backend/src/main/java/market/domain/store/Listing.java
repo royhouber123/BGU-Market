@@ -65,6 +65,21 @@ public class Listing {
         return true;
     }
 
+        /**
+     * Attempts to restore a quantity to this listing.
+     *
+     * @param quantityRequested Number of units to restore.
+     * @return Result of restore attempt.
+     * @throws Exception if the quantity requested is negative.
+     */
+    public boolean restore(int quantityRequested) throws Exception {
+        if (quantityRequested < 0) {
+            throw new Exception("Cannot restore a negative quantity for listing " + listingId);
+        }
+        quantityAvailable += quantityRequested;
+        return true;
+    }
+
     // ==================== Getters ====================
 
     public String getListingId() {

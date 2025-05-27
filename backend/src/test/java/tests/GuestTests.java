@@ -9,15 +9,12 @@ import org.junit.jupiter.api.Test;
 import market.application.AuthService.AuthToken;
 import market.domain.purchase.Purchase;
 import market.domain.store.Listing;
-import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
 import market.domain.user.ShoppingCart;
 import market.domain.user.User;
 import market.middleware.TokenUtils;
 
-import java.io.EOFException;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -433,7 +430,7 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
     @Test 
-    void guest_purchasing_cart_fails_due_to_payment() { //after payment failes- what to do with the stock- it already reduced???
+    void guest_purchasing_cart_fails_due_to_payment_restore_stock() { //after payment failes- the stock needs to be restored
         //Step 1: Add a product listing ("Notebook") with a stock of 5 to the existing store
         int quantity=5;
         String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0).getData();
@@ -454,6 +451,14 @@ public class GuestTests extends AcceptanceTestBase {
         //Step 6: Verify that the purchase failed and the error is payment-related
         assertFalse(purchaseResponse.isSuccess(), "Expected purchase to fail due to payment issue");
         assertTrue(purchaseResponse.getError().toLowerCase().contains("payment"), "Expected failure due to payment issue, but got: " + purchaseResponse.getError());
+        int remainingStock = storeService.getListingRepository().getData().getListingById(listingId).getQuantityAvailable();
+        //Step 7: Verify that the stock was restored to its original amount (5)
+        assertEquals(quantity, remainingStock, "Stock should be restored to original amount after payment failure");
+        //Step 8: Verify that the guest's shopping cart is still intact (not cleared)
+        ShoppingCart refreshedCart = userRep.getCart(GUEST);
+        assertNotNull(refreshedCart, "Shopping cart should still exist after failed purchase");
+        assertEquals(1, refreshedCart.getStoreBag(storeId).getProductQuantity(listingId),
+            "Shopping cart should still contain the notebook after payment failure");
         //Step 7: Clear the mock token to clean up
         TokenUtils.clearMockToken(); 
     }

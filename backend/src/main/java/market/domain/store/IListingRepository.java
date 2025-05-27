@@ -68,8 +68,7 @@ public interface IListingRepository {
     // Added methods for scoped queries:
     List<Listing> getListingsByProductIdAndStore(String productId, String storeId);
     List<Listing> getListingsByProductNameAndStore(String productName, String storeId);
-    boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock);
-
+    boolean updateOrRestoreStock(Map<String, Map<String, Integer>> listForUpdateStock, boolean isRestore);
     List<Listing> getListingsByCategory(String category);
     List<Listing> getListingsByCategoryAndStore(String category, String storeId);
     void disableListingsByStoreId(String storeId);
