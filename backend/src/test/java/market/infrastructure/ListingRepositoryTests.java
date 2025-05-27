@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -80,6 +81,9 @@ class ListingRepositoryTests {
         assertTrue(e.getMessage().contains("Not enough stock"));
     }
 
+
+
+    //councurrency tests!!!!!!!!!!!!!!!!!!!!!!
     @Test
     void testConcurrentPurchases() throws InterruptedException {
         int numThreads = 20;
@@ -114,6 +118,194 @@ class ListingRepositoryTests {
         assertEquals(0, l.getQuantityAvailable());
     }
 
+
+    @Test
+    void testConcurrentPurchases_5Threads_Only2Succeed() throws InterruptedException {
+        int numThreads = 5;
+        int quantityPerThread = 1;
+        CountDownLatch latch = new CountDownLatch(numThreads);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        Listing l = new Listing("storeX", "prodY", "LimitedItem", "category", "desc", 2, PurchaseType.REGULAR, 100);
+        repository.addListing(l);
+
+        for (int i = 0; i < numThreads; i++) {
+            new Thread(() -> {
+                Map<String, Map<String, Integer>> map = new HashMap<>();
+                Map<String, Integer> bag = new HashMap<>();
+                bag.put(l.getListingId(), quantityPerThread);
+                map.put("storeX", bag);
+
+                try {
+                    if (repository.updateStockForPurchasedItems(map)) {
+                        successCount.getAndIncrement();
+                    }
+                } catch (RuntimeException e) {
+                    // expected
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+        assertEquals(2, successCount.get(), "Only 2 threads should succeed");
+        assertEquals(0, l.getQuantityAvailable(), "All stock should be gone");
+    }
+
+
+    @Test
+    void testConcurrentPurchases_10Threads_Requesting3_Only5Succeed() throws InterruptedException {
+        int numThreads = 10;
+        int quantityPerThread = 3;
+        CountDownLatch latch = new CountDownLatch(numThreads);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        Listing l = new Listing("storeZ", "prodZ", "BundleItem", "category", "desc", 15, PurchaseType.REGULAR, 150);
+        repository.addListing(l);
+
+        for (int i = 0; i < numThreads; i++) {
+            new Thread(() -> {
+                Map<String, Map<String, Integer>> map = new HashMap<>();
+                Map<String, Integer> bag = new HashMap<>();
+                bag.put(l.getListingId(), quantityPerThread);
+                map.put("storeZ", bag);
+
+                try {
+                    if (repository.updateStockForPurchasedItems(map)) {
+                        successCount.getAndIncrement();
+                    }
+                } catch (RuntimeException e) {
+                    // expected if over capacity
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+        assertEquals(5, successCount.get(), "Only 5 threads should be able to purchase 3 units each");
+        assertEquals(0, l.getQuantityAvailable(), "All inventory should be consumed");
+    }
+
+    @Test
+    void testDoublePurchaseFromSameThread() {
+        Listing l = new Listing("storeW", "prodW", "RepeatProduct", "category", "desc", 5, PurchaseType.REGULAR, 70);
+        repository.addListing(l);
+
+        Map<String, Map<String, Integer>> purchase1 = new HashMap<>();
+        Map<String, Integer> bag1 = new HashMap<>();
+        bag1.put(l.getListingId(), 3);
+        purchase1.put("storeW", bag1);
+
+        Map<String, Map<String, Integer>> purchase2 = new HashMap<>();
+        Map<String, Integer> bag2 = new HashMap<>();
+        bag2.put(l.getListingId(), 3);
+        purchase2.put("storeW", bag2);
+
+        boolean first = repository.updateStockForPurchasedItems(purchase1);
+        boolean second = false;
+        try {
+            second = repository.updateStockForPurchasedItems(purchase2);
+        } catch (RuntimeException e) {
+            // expected: not enough stock
+        }
+
+        assertTrue(first);
+        assertFalse(second);
+        assertEquals(2, l.getQuantityAvailable());
+    }
+
+
+
+    @Test
+    void testConcurrentPurchases_MixedItems_SomeSharedSomeExclusive() throws InterruptedException {
+        int numThreads = 5;
+        CountDownLatch latch = new CountDownLatch(numThreads);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        // Shared item: only 2 in stock
+        Listing shared = new Listing("storeM", "prodS", "SharedItem", "cat", "desc", 2, PurchaseType.REGULAR, 99);
+        // Exclusive item: enough stock for all
+        Listing exclusive = new Listing("storeM", "prodE", "ExclusiveItem", "cat", "desc", 10, PurchaseType.REGULAR, 49);
+        repository.addListing(shared);
+        repository.addListing(exclusive);
+
+        for (int i = 0; i < numThreads; i++) {
+            new Thread(() -> {
+                Map<String, Map<String, Integer>> cart = new HashMap<>();
+                Map<String, Integer> bag = new HashMap<>();
+                bag.put(shared.getListingId(), 1);   // All compete for this
+                bag.put(exclusive.getListingId(), 1); // All can get this
+                cart.put("storeM", bag);
+
+                try {
+                    if (repository.updateStockForPurchasedItems(cart)) {
+                        successCount.getAndIncrement();
+                    }
+                } catch (RuntimeException e) {
+                    // expected when shared item runs out
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+        assertEquals(0, shared.getQuantityAvailable(), "Shared stock should go to 0");
+        assertEquals(10 - successCount.get(), exclusive.getQuantityAvailable(), "Exclusive stock should match success count");
+        assertEquals(2, successCount.get(), "Only 2 threads should succeed due to shared item");
+    }
+
+
+    @Test
+    void testConcurrentPurchases_RaceConditionStress() throws InterruptedException {
+        int numThreads = 50;
+        int stock = 25;
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(numThreads);
+        AtomicInteger successCount = new AtomicInteger();
+
+        Listing l = new Listing("storeRace", "prodRace", "FastItem", "cat", "desc", stock, PurchaseType.REGULAR, 10);
+        repository.addListing(l);
+
+        for (int i = 0; i < numThreads; i++) {
+            new Thread(() -> {
+                try {
+                    startLatch.await(); // all threads launch at once
+                    Map<String, Map<String, Integer>> cart = new HashMap<>();
+                    Map<String, Integer> bag = new HashMap<>();
+                    bag.put(l.getListingId(), 1);
+                    cart.put("storeRace", bag);
+
+                    if (repository.updateStockForPurchasedItems(cart)) {
+                        successCount.incrementAndGet();
+                    }
+                } catch (Exception ignored) {
+                } finally {
+                    endLatch.countDown();
+                }
+            }).start();
+        }
+
+        startLatch.countDown(); // boom, start them all
+        endLatch.await();
+
+        assertEquals(stock, successCount.get());
+        assertEquals(0, l.getQuantityAvailable());
+    }
+
+
+
+
+
+
+
+
+
+
+
+    //councurrency tests!!!!!!!!!!!!!!!!!!!!!!
 
     @Test
     void testDisableEnableListingsByStoreId() {

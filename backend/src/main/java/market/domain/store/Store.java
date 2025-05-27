@@ -42,6 +42,9 @@ public class Store {
 
     private PolicyHandler policyHandler;
 
+    private final Object ownershipLock = new Object();
+
+
 
     public Store(String storeID,String name, String founderID, IListingRepository repository) throws IllegalArgumentException {
         // ? - do we need store type
@@ -155,18 +158,20 @@ public class Store {
      * @throws Exception if the appointer is not an owner, or if the new owner is already registered as an owner.
      */
     public boolean addNewOwner(String appointerID, String newOwnerID) throws Exception {
-       if (!isOwner(appointerID))
-           throw new Exception("the user:"+appointerID+" is not an owner of the store: "+storeID);
+       synchronized (ownershipLock) {
+            if (!isOwner(appointerID))
+                throw new Exception("the user:"+appointerID+" is not an owner of the store: "+storeID);
 
-        if (isOwner(newOwnerID))
-            throw new Exception("the user:"+appointerID+" is already an owner of the store: "+storeID);
-        storeClosedExeption();//actions are available only when open
-        ownerToAssignedOwners.get(appointerID).add(newOwnerID);
-        ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
-        ownerToWhoAssignedHim.put(newOwnerID,appointerID);
-        ownerToAssignedManagers.put(newOwnerID,new ArrayList<>());
-        return true;
+            if (isOwner(newOwnerID))
+                throw new Exception("the user:"+appointerID+" is already an owner of the store: "+storeID);
+            storeClosedExeption();//actions are available only when open
+            ownerToAssignedOwners.get(appointerID).add(newOwnerID);
+            ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
+            ownerToWhoAssignedHim.put(newOwnerID,appointerID);
+            ownerToAssignedManagers.put(newOwnerID,new ArrayList<>());
+            return true;
     }
+}
 
 
     /**
@@ -179,15 +184,47 @@ public class Store {
      * @throws Exception if the appointer is not an owner, or if the new manager is already registered as a manager.
      */
     public boolean addNewManager(String appointerID, String newManagerID) throws Exception {
-        if (!isOwner(appointerID))
-            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+        synchronized (ownershipLock){
+            if (!isOwner(appointerID))
+                throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
 
-        if (isManager(newManagerID))
-            throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
-        storeClosedExeption();//actions are available only when open
-        Manager newManager = new Manager(newManagerID, appointerID);
-        return ownerToAssignedManagers.get(appointerID).add(newManager);
-    }
+            if (isManager(newManagerID))
+                throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
+            storeClosedExeption();//actions are available only when open
+            Manager newManager = new Manager(newManagerID, appointerID);
+            return ownerToAssignedManagers.get(appointerID).add(newManager);
+    }}
+
+
+    /**
+    * Removes a manager from the store.
+    * Only the owner who appointed the manager can remove them.
+    *
+    * @param appointerID ID of the owner requesting removal.
+    * @param managerID ID of the manager to remove.
+    * @return true if the manager was removed successfully.
+    * @throws Exception if the appointer is not the assigner or if the manager doesn't exist.
+    */
+    public boolean removeManager(String appointerID, String managerID) throws Exception {
+        synchronized (ownershipLock){
+            if (!isOwner(appointerID)) {
+                throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
+            }
+
+            List<Manager> managers = ownerToAssignedManagers.get(appointerID);
+            if (managers == null || managers.isEmpty()) {
+                throw new Exception("Appointer " + appointerID + " did not assign any managers");
+            }
+
+            boolean removed = managers.removeIf(m -> m.id.equals(managerID));
+            if (!removed) {
+                throw new Exception("Appointer " + appointerID + " did not assign manager " + managerID);
+            }
+
+            return true;
+    }}
+
+
 
 
     /**
@@ -202,17 +239,18 @@ public class Store {
      *                   or if the appointer is not the one who originally assigned the manager.
      */
     public boolean addPermissionToManager( String managerID, String appointerID, int permissionID) throws Exception {
-        if(!isOwner(appointerID))
-            throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
-        if(!isManager(managerID))
-            throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
-        storeClosedExeption();//actions are available only when open
-        Manager manager = getManager(managerID);
-        Permission p = Permission.fromCode(permissionID); //if invalid code, exception is thrown here
+        synchronized (ownershipLock) {
+            if(!isOwner(appointerID))
+                throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+            if(!isManager(managerID))
+                throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
+            storeClosedExeption();//actions are available only when open
+            Manager manager = getManager(managerID);
+            Permission p = Permission.fromCode(permissionID); //if invalid code, exception is thrown here
 
-        manager.addPermission(p,appointerID); //if appointer is not the real one, throws here
-        return true;
-    }
+            manager.addPermission(p,appointerID); //if appointer is not the real one, throws here
+            return true;
+    }}
 
     /**
      * Retrieves the set of permission codes granted to a specific manager in the store.
@@ -226,14 +264,15 @@ public class Store {
      * @throws Exception if the given manager ID does not correspond to a valid manager in this store.
      */
     public Set<Integer> getManagersPermmisions(String managerID, String whoIsAsking) throws Exception {
-        if(!isOwner(whoIsAsking) && !isManager(managerID))
-            throw new IllegalArgumentException("the user:"+whoIsAsking+" is not an owner or a manager of the store: "+storeID);
-        Manager manager = getManager(managerID);
-        if (manager == null)
-            throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
-        return manager.getPermissions().stream().map((perm)->(Integer)perm.getCode()).collect(Collectors.toSet());
+        synchronized (ownershipLock) {
+            if(!isOwner(whoIsAsking) && !isManager(managerID))
+                throw new IllegalArgumentException("the user:"+whoIsAsking+" is not an owner or a manager of the store: "+storeID);
+            Manager manager = getManager(managerID);
+            if (manager == null)
+                throw new Exception("the user:"+managerID+" is not a manager of the store: "+storeID);
+            return manager.getPermissions().stream().map((perm)->(Integer)perm.getCode()).collect(Collectors.toSet());
     }
-
+    }
 
     /**
      * Removes a specific permission from a manager.
@@ -247,20 +286,21 @@ public class Store {
      *                   the permission code is invalid, or if the appointer is not the one who appointed the manager.
      */
     public boolean removePermissionFromManager(String managerID, int permissionID, String appointerID) throws Exception {
-        if (!isOwner(appointerID))
-            throw new Exception("The user: " + appointerID + " is not an owner of the store: " + storeID);
+        synchronized (ownershipLock) {
+            if (!isOwner(appointerID))
+                throw new Exception("The user: " + appointerID + " is not an owner of the store: " + storeID);
 
-        if (!isManager(managerID))
-            throw new Exception("The user: " + managerID + " is not a manager of the store: " + storeID);
+            if (!isManager(managerID))
+                throw new Exception("The user: " + managerID + " is not a manager of the store: " + storeID);
 
-        Manager manager = getManager(managerID);
-        if (manager == null)
-            throw new Exception("Manager with ID " + managerID + " not found in store: " + storeID);
-        storeClosedExeption();//actions are available only when open
-        Permission permission = Permission.fromCode(permissionID); // throws if invalid
+            Manager manager = getManager(managerID);
+            if (manager == null)
+                throw new Exception("Manager with ID " + managerID + " not found in store: " + storeID);
+            storeClosedExeption();//actions are available only when open
+            Permission permission = Permission.fromCode(permissionID); // throws if invalid
 
-        return manager.removePermission(permission, appointerID); // throws if appointer isn't authorized
-    }
+            return manager.removePermission(permission, appointerID); // throws if appointer isn't authorized
+    }}
 
 
     /**
@@ -270,8 +310,10 @@ public class Store {
      * @return {@code true} if the user is an owner of the store; {@code false} otherwise.
      */
     public boolean isOwner(String id){
-        return ownerToAssignedOwners.containsKey(id);
+        synchronized (ownershipLock) {
+            return ownerToAssignedOwners.containsKey(id);
     }
+}
 
     /**
      * Checks whether a given user ID corresponds to a manager of the store.
@@ -370,60 +412,64 @@ public class Store {
      *                   - {@code id} is not the one who assigned {@code toRemove}.
      */
     public List<List<String>> removeOwner(String id, String toRemove) throws Exception {
-        List<List<String>> res = new ArrayList<>();
-        res.add(new ArrayList<>());
-        res.add(new ArrayList<>());
-        if(founderID.equals(toRemove)){
-            throw new Exception(toRemove +" is the founder of store:"+ storeID);
-        }
-        if (!isOwner(id)){
-            throw new Exception(id +" is not a owner of store:"+ storeID);
-        }
-        if (!isOwner(toRemove)){
-            throw new Exception(toRemove +" is not a owner of store:"+ storeID);
-        }
-        if (toRemove == getFounderID()){
-            throw new Exception(toRemove +" is the FOUNDER of store:"+ storeID+ " can't remove him");
-        }
-        if (ownerToWhoAssignedHim.get(toRemove)!= id){
-            throw new Exception(id +" didn't assign " + toRemove + " to be owner of store:"+ storeID);
-        }
-        storeClosedExeption();//actions are available only when open
-        Queue<String> queue = new ArrayDeque<>();
-        queue.add(toRemove);
-        while(!queue.isEmpty()){
-            String next = queue.remove();
-            //add to remove list
-            res.get(0).add(next);
-            List<String> assigments = getOwnerAssigments(next);
-
-            //enter the owners he assigned to the queue
-            for (String a:assigments){
-                queue.add(a);
+        synchronized (ownershipLock) {
+            List<List<String>> res = new ArrayList<>();
+            res.add(new ArrayList<>());
+            res.add(new ArrayList<>());
+            if(founderID.equals(toRemove)){
+                throw new Exception(toRemove +" is the founder of store:"+ storeID);
             }
-            //remove him
+            if (!isOwner(id)){
+                throw new Exception(id +" is not a owner of store:"+ storeID);
+            }
+            if (!isOwner(toRemove)){
+                throw new Exception(toRemove +" is not a owner of store:"+ storeID);
+            }
+            if (toRemove == getFounderID()){
+                throw new Exception(toRemove +" is the FOUNDER of store:"+ storeID+ " can't remove him");
+            }
+            if (ownerToWhoAssignedHim.get(toRemove)!= id){
+                throw new Exception(id +" didn't assign " + toRemove + " to be owner of store:"+ storeID);
+            }
+            storeClosedExeption();//actions are available only when open
+            Queue<String> queue = new ArrayDeque<>();
+            queue.add(toRemove);
+            while(!queue.isEmpty()){
+               
 
-            ownerToAssignedOwners.get(OwnerAssignedBy(next)).remove(Integer.valueOf(next));
-            ownerToWhoAssignedHim.remove(next);
+                String next = queue.remove();
+                //add to remove list
+                res.get(0).add(next);
+                List<String> assigments = getOwnerAssigments(next);
 
-
-            if (ownerToAssignedManagers.get(next)!= null){
-                //remove the managers he assign
-                for (Manager a: ownerToAssignedManagers.get(next)){
-                    res.get(1).add(a.getID());
+                //enter the owners he assigned to the queue
+                for (String a:assigments){
+                    queue.add(a);
                 }
-                ownerToAssignedManagers.remove(next);
-            }
+                //remove him
+
+                ownerToAssignedOwners.get(OwnerAssignedBy(next)).remove(next);
+                ownerToWhoAssignedHim.remove(next);
 
 
-        }
-        for (String o:res.get(0)){
-            if (isOwner(o)){
-                ownerToAssignedOwners.remove(o);
+                if (ownerToAssignedManagers.get(next)!= null){
+                    //remove the managers he assign
+                    for (Manager a: ownerToAssignedManagers.get(next)){
+                        res.get(1).add(a.getID());
+                    }
+                    ownerToAssignedManagers.remove(next);
+                }
+
+
             }
-        }
-        return res;
+            for (String o:res.get(0)){
+                if (isOwner(o)){
+                    ownerToAssignedOwners.remove(o);
+                }
+            }
+            return res;
     }
+}
 
     /**
     if the user called is an owner,
