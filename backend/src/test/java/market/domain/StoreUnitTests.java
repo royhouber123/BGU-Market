@@ -2,6 +2,9 @@ package market.domain;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -308,4 +311,361 @@ class StoreUnitTests {
 
         assertEquals(2, listings.size());
     }
+
+
+
+    //concurrency tests!!!!!!!!!!!11
+    @Test
+    void testConcurrentAddSameOwnerByMultipleAppointers() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+        store.addNewOwner(founderID, ownerB);
+
+        String toAssign = "X";
+        int threads = 10;
+        CountDownLatch latch = new CountDownLatch(threads);
+        AtomicInteger successCount = new AtomicInteger();
+
+        for (int i = 0; i < threads; i++) {
+            String appointer = (i % 2 == 0) ? ownerA : ownerB;
+            new Thread(() -> {
+                try {
+                    store.addNewOwner(appointer, toAssign);
+                    successCount.incrementAndGet();
+                } catch (Exception ignored) {
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+        assertEquals(1, successCount.get(), "Only one assignment should succeed");
+        assertTrue(store.isOwner(toAssign));
+        assertNotNull(store.OwnerAssignedBy(toAssign));
+    }
+
+
+    @Test
+    void testConcurrentRemoveSameOwner() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+
+        int threads = 5;
+        CountDownLatch latch = new CountDownLatch(threads);
+        AtomicInteger successCount = new AtomicInteger();
+
+        for (int i = 0; i < threads; i++) {
+            new Thread(() -> {
+                try {
+                    store.removeOwner(founderID, ownerA);
+                    successCount.incrementAndGet();
+                } catch (Exception ignored) {
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+
+        assertEquals(1, successCount.get(), "Only one thread should successfully remove the owner");
+        assertFalse(store.isOwner(ownerA), "ownerA should no longer be an owner");
+    }
+
+    //TODO: need to see why this test fail
+    @Test
+    void testTransitiveAssignWhileRemovingRoot() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+
+        String toAssign = "newOwner";
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(2);
+        AtomicBoolean assignSucceeded = new AtomicBoolean(false);
+        AtomicBoolean removed = new AtomicBoolean(false);
+
+        Thread assignThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                store.addNewOwner(ownerA, toAssign); // intermediate assignment
+                assignSucceeded.set(true);
+            } catch (Exception ignored) {
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        Thread removeThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                store.removeOwner(founderID, ownerA); // cuts off the branch
+                removed.set(true);
+            } catch (Exception ignored) {
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        assignThread.start();
+        removeThread.start();
+        startLatch.countDown();
+        doneLatch.await();
+
+        // The final ownership state should be consistent
+        assertFalse(store.isOwner(ownerA));
+        assertFalse(store.isOwner(toAssign), "If root was removed, the transitive assignment must also fail");
+    }
+
+
+    @Test
+    void testConcurrentAddSameManagerByMultipleOwners() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+        store.addNewOwner(founderID, ownerB);
+
+        String toAssign = "newManager";
+        int threads = 6;
+        CountDownLatch latch = new CountDownLatch(threads);
+        AtomicInteger successCount = new AtomicInteger();
+
+        for (int i = 0; i < threads; i++) {
+            String appointer = (i % 2 == 0) ? ownerA : ownerB;
+
+            new Thread(() -> {
+                try {
+                    store.addNewManager(appointer, toAssign);
+                    successCount.incrementAndGet();
+                } catch (Exception ignored) {
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+
+        assertEquals(1, successCount.get(), "Only one thread should succeed in assigning the same manager");
+        assertTrue(store.isManager(toAssign), "User should be assigned as manager");
+    }
+
+
+    @Test
+    void testRemoveManagerByCorrectAppointer_success() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+        store.addNewManager(ownerA, ownerB);
+
+        assertTrue(store.isManager(ownerB), "User should be a manager before removal");
+
+        boolean result = store.removeManager(ownerA, ownerB);
+
+        assertTrue(result, "Removal should succeed");
+        assertFalse(store.isManager(ownerB), "User should no longer be a manager");
+    }
+
+    @Test
+    void testRemoveManagerByWrongAppointer_shouldFail() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+        store.addNewOwner(founderID, ownerB);
+        store.addNewManager(ownerA, ownerC); // ownerA assigned ownerC as manager
+
+        Exception ex = assertThrows(Exception.class, () -> {
+            store.removeManager(ownerB, ownerC); // ownerB tries to remove
+        });
+
+        assertTrue(ex.getMessage().contains("did not assign"));
+    }
+
+
+
+    @Test
+    void testRemoveManager_userIsNotManager_shouldFail() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+
+        Exception ex = assertThrows(Exception.class, () -> {
+            store.removeManager(ownerA, ownerB); // ownerB was never assigned
+        });
+
+        assertTrue(ex.getMessage().contains("did not assign"));
+    }
+
+
+    @Test
+    void testRemoveManager_appointerIsNotOwner_shouldFail() throws Exception {
+        // ownerA is not an owner yet
+
+        Exception ex = assertThrows(Exception.class, () -> {
+            store.removeManager(ownerA, ownerB);
+        });
+
+        assertTrue(ex.getMessage().contains("is not an owner"));
+    }
+
+
+    @Test
+    void testConcurrentRemoveSameManager() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+        store.addNewManager(ownerA, ownerB);
+
+        int threads = 5;
+        CountDownLatch latch = new CountDownLatch(threads);
+        AtomicInteger successCount = new AtomicInteger();
+
+        for (int i = 0; i < threads; i++) {
+            new Thread(() -> {
+                try {
+                    store.removeManager(ownerA, ownerB);
+                    successCount.incrementAndGet();
+                } catch (Exception ignored) {
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+
+        assertEquals(1, successCount.get(), "Only one thread should successfully remove the manager");
+        assertFalse(store.isManager(ownerB), "Manager should be removed");
+    }
+
+
+    @Test
+    void testConcurrentAssignAndRemoveManager() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+        String managerID = "M";
+
+        // Assign first (optional depending on test intent)
+        store.addNewManager(ownerA, managerID);
+
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(2);
+        AtomicBoolean assignSucceeded = new AtomicBoolean(false);
+        AtomicBoolean removeSucceeded = new AtomicBoolean(false);
+
+        Thread assignThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                store.addNewManager(ownerA, managerID);
+                assignSucceeded.set(true);
+            } catch (Exception ignored) {
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        Thread removeThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                store.removeManager(ownerA, managerID);
+                removeSucceeded.set(true);
+            } catch (Exception ignored) {
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        assignThread.start();
+        removeThread.start();
+        startLatch.countDown();
+        doneLatch.await();
+
+        boolean currentlyManager = store.isManager(managerID);
+        assertFalse(assignSucceeded.get() && removeSucceeded.get(), "Should not both assign and remove concurrently");
+        assertEquals(assignSucceeded.get(), currentlyManager, "Manager state should match assign result");
+    }
+
+
+  @Test
+    void concurrentAddSamePermissionToManager_onlyOneEffective() throws Exception {
+        store.addNewOwner(founderID, ownerA);
+        store.addNewManager(ownerA, ownerB);
+
+        int threads = 10;
+        CountDownLatch latch = new CountDownLatch(threads);
+        for (int i = 0; i < threads; i++) {
+            new Thread(() -> {
+                try {
+                    store.addPermissionToManager(ownerB, ownerA, Store.Permission.EDIT_PRODUCTS.getCode());
+                } catch (Exception ignored) {}
+                finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+
+        Set<Integer> permissions = store.getManagersPermmisions(ownerB, ownerA);
+        assertEquals(2, permissions.size());
+        assertTrue(permissions.contains(Store.Permission.EDIT_PRODUCTS.getCode()));
+    }
+
+
+    @Test
+void concurrentRemoveSamePermission_onlyOneThreadSucceeds() throws Exception {
+    store.addNewOwner(founderID, ownerA);
+    store.addNewManager(ownerA, ownerB);
+    store.addPermissionToManager(ownerB, ownerA, Store.Permission.EDIT_PRODUCTS.getCode());
+
+    int threads = 10;
+    CountDownLatch latch = new CountDownLatch(threads);
+    AtomicInteger successCount = new AtomicInteger();
+
+    for (int i = 0; i < threads; i++) {
+        new Thread(() -> {
+            try {
+                boolean removed = store.removePermissionFromManager(ownerB, Store.Permission.EDIT_PRODUCTS.getCode(), ownerA);
+                if (removed) successCount.incrementAndGet();
+            } catch (Exception ignored) {}
+            finally {
+                latch.countDown();
+            }
+        }).start();
+    }
+
+    latch.await();
+
+    assertEquals(1, successCount.get(), "Only one thread should successfully remove the permission");
+    assertFalse(store.getManagersPermmisions(ownerB, ownerA).contains(Store.Permission.EDIT_PRODUCTS.getCode()));
+}
+
+
+@Test
+void concurrentAddAndRemovePermission_permissionStateConsistent() throws Exception {
+    store.addNewOwner(founderID, ownerA);
+    store.addNewManager(ownerA, ownerB);
+
+    CountDownLatch start = new CountDownLatch(1);
+    CountDownLatch finish = new CountDownLatch(2);
+
+    Thread addThread = new Thread(() -> {
+        try {
+            start.await();
+            store.addPermissionToManager(ownerB, ownerA, Store.Permission.EDIT_PRODUCTS.getCode());
+        } catch (Exception ignored) {}
+        finally {
+            finish.countDown();
+        }
+    });
+
+    Thread removeThread = new Thread(() -> {
+        try {
+            start.await();
+            store.removePermissionFromManager(ownerB, Store.Permission.EDIT_PRODUCTS.getCode(), ownerA);
+        } catch (Exception ignored) {}
+        finally {
+            finish.countDown();
+        }
+    });
+
+    addThread.start();
+    removeThread.start();
+    start.countDown();
+    finish.await();
+
+    // Final state must be either contains or not — but consistent
+    Set<Integer> permissions = store.getManagersPermmisions(ownerB, ownerA);
+    assertTrue(permissions.size() <= 2);
+}
+
+
+
+
 }

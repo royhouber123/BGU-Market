@@ -7,7 +7,6 @@ import java.util.Set;
 
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
-import market.domain.store.Listing;
 import market.domain.store.Store;
 import market.domain.store.StoreDTO;
 import market.domain.user.IUserRepository;
@@ -289,6 +288,41 @@ public class StoreService {
             return ApiResponse.fail("Error adding manager: " + newManagerName + " to store: " + storeID + ". Reason: " + e.getMessage());
         }
     }
+
+    
+    /**
+     * Removes a manager from the store by delegating to the business logic layer.
+     * Only the owner who originally appointed the manager can remove them.
+     *
+     * @param appointerID ID of the owner who appointed the manager.
+     * @param managerID   ID of the manager to be removed.
+     * @param storeID     ID of the store where the manager is being removed from.
+     * @return "success" if the manager was removed successfully, or an error message if the operation failed.
+     * @throws RuntimeException if the store does not exist, the appointer is not authorized,
+     *                          or the manager was not assigned by this appointer.
+     */
+    public ApiResponse<Void> removeManager(String appointerID, String managerID, String storeID) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                logger.debug("Attempted to remove manager from non-existent store: " + storeID);
+                return ApiResponse.fail("store doesn't exist");
+            }
+
+            if (s.removeManager(appointerID, managerID)) {
+                logger.info("Removed manager: " + managerID + " from store: " + storeID + ", by: " + appointerID);
+                return ApiResponse.ok(null);
+            } else {
+                logger.error("Failed to remove manager: " + managerID + " from store: " + storeID + ", by: " + appointerID);
+                return ApiResponse.fail("Failed to remove manager: " + managerID + " from store: " + storeID + ", by: " + appointerID);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error removing manager: " + managerID + " from store: " + storeID + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error removing manager: " + managerID + " from store: " + storeID + ". Reason: " + e.getMessage());
+        }
+    }
+
 
     /**
      * Grants a specific permission to a manager in the specified store.
