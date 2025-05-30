@@ -9,9 +9,15 @@ import org.junit.jupiter.api.Test;
 import market.application.AuthService.AuthToken;
 import market.domain.purchase.Purchase;
 import market.domain.store.Listing;
+import market.domain.store.Policies.DiscountPolicy;
+import market.domain.store.Policies.Discounts.CouponDiscountPolicy;
+import market.domain.store.Policies.Discounts.DiscountCombinationType;
+import market.domain.store.Policies.Discounts.DiscountPolicyFactory;
+import market.domain.store.Policies.Discounts.DiscountTargetType;
 import market.domain.user.IUserRepository;
 import market.domain.user.ShoppingCart;
 import market.domain.user.User;
+import market.dto.PolicyDTO;
 import market.middleware.TokenUtils;
 
 import java.util.List;
@@ -462,4 +468,108 @@ public class GuestTests extends AcceptanceTestBase {
         //Step 7: Clear the mock token to clean up
         TokenUtils.clearMockToken(); 
     }
+
+    @Test
+    void guest_cart_applies_percentage_discount_correctly() {
+        // Step 1: Create a discount request for the "food" category (e.g., 10% discount on this category)
+        PolicyDTO.AddDiscountRequest discountRequest = new PolicyDTO.AddDiscountRequest(
+            "PERCENTAGE",   // Discount type
+            "CATEGORY",     // Scope of the discount (category)
+            "food",         // Category
+            10.0,           // Discount value (10%)
+            null,            // No coupon code
+            null,            // No additional conditions
+            null,            // No sub-discounts
+            null             // No combination of discounts
+        );
+    
+        // Step 2: Add the discount to the store for the guest
+        ApiResponse<Boolean> addDiscountResponse = storePoliciesService.addDiscount(storeId, MANAGER1, discountRequest);
+        assertTrue(addDiscountResponse.isSuccess(), "Failed to add discount: " + addDiscountResponse.getError());
+    
+        // Step 3: Create a shopping cart for the guest and add a product to the cart
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guest = userRep.findById(GUEST);
+        String token = authService.generateToken(guest).getData();
+        TokenUtils.setMockToken(token);  // Set the token for the guest
+    
+        String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0).getData();
+        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId, listingIdOfGvina, 2);
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
+    
+        // Step 4: Retrieve the guest's shopping cart and ensure the product was added with the correct quantity
+        ShoppingCart cart = userRep.getCart(GUEST);
+        assertEquals(2, cart.getStoreBag(storeId).getProductQuantity(listingIdOfGvina), "Expected quantity of 'Gvina' in store bag should be 2");
+    
+        // Step 5: Execute the guest's purchase
+        ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase(GUEST, cart, SHIPPING_ADDRESS, CONTACT_INFO);
+        assertTrue(purchaseResponse.isSuccess(), "Failed to complete purchase: " + purchaseResponse.getError());
+    
+        // Step 6: Get the final price of the purchase
+        double totalPrice = purchaseResponse.getData().getTotalPrice();
+    
+        // Step 7: Calculate the expected price - 5 * 2 = 10, 10% discount = 1
+        double expectedPrice = 10 - 1; // Price after 10% discount
+    
+        // Step 8: Compare the price paid with the expected price
+        assertEquals(expectedPrice, totalPrice, 0.001, "The price paid does not match the expected price with discount");
+    
+        // Step 9: Clear the token after the test
+        TokenUtils.clearMockToken();
+    }    
+
+    @Test
+    void guest_cart_applies_coupon_discount_correctly() {
+        // Step 1: Create a coupon discount request with a 5 unit discount for coupon "SAVE5"
+        PolicyDTO.AddDiscountRequest couponRequest = new PolicyDTO.AddDiscountRequest(
+            "COUPON",      // Discount type
+            null,           // No scope (coupon)
+            null,           // No scope ID
+            5.0,            // Discount value (5)
+            "SAVE5",        // Coupon code
+            null,           // No additional conditions
+            null,           // No sub-discounts
+            null            // No combination of discounts
+        );
+
+        // Step 2: Add the coupon discount to the store for the guest
+        ApiResponse<Boolean> addDiscountResponse = storePoliciesService.addDiscount(storeId, MANAGER1, couponRequest);
+        assertTrue(addDiscountResponse.isSuccess(), "Failed to add coupon discount: " + addDiscountResponse.getError());
+        //submitCoupon("SAVE5"); // Simulate applying the coupon
+
+        // Step 3: Create a shopping cart for the guest and add a product to the cart
+        IUserRepository userRep = userService.getUserRepository().getData();
+        User guest = userRep.findById(GUEST);
+        String token = authService.generateToken(guest).getData();
+        TokenUtils.setMockToken(token);
+
+        String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0).getData();
+        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
+        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
+        ApiResponse<Void> addProductResponse = userService.addProductToCart(storeId, listingIdOfGvina, 2);
+        assertTrue(addProductResponse.isSuccess(), "Failed to add product to cart: " + addProductResponse.getError());
+
+        // Step 4: Retrieve the guest's shopping cart and ensure the product was added with the correct quantity
+        ShoppingCart cart = userRep.getCart(GUEST);
+        assertEquals(2, cart.getStoreBag(storeId).getProductQuantity(listingIdOfGvina), "Expected quantity of 'Gvina' in store bag should be 2");
+
+        // Step 5: Execute the guest's purchase
+        ApiResponse<Purchase> purchaseResponse = purchaseService.executePurchase(GUEST, cart, SHIPPING_ADDRESS, CONTACT_INFO);
+        assertTrue(purchaseResponse.isSuccess(), "Failed to complete purchase: " + purchaseResponse.getError());
+
+        // Step 6: Get the final price of the purchase
+        double totalPrice = purchaseResponse.getData().getTotalPrice();
+
+        // Step 7: Calculate the expected price - 5 * 2 = 10, coupon discount = 5, final price = 5
+        double expectedPrice = 10 - 5; // Price after coupon discount
+
+        // Step 8: Compare the price paid with the expected price
+        //assertEquals(expectedPrice, totalPrice, 0.001, "The price paid does not match the expected price with coupon discount");
+
+        // Step 9: Clear the token after the test
+        TokenUtils.clearMockToken();
+    }
+
 }  

@@ -51,7 +51,6 @@ public class PurchaseService {
                 }
     
                 totalDiscountPrice += store.calculateStoreBagWithDiscount(bag.getProducts());
-    
                 for (Map.Entry<String, Integer> product : bag.getProducts().entrySet()) {
                     String productId = product.getKey();
                     double unitPrice;
