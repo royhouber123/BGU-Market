@@ -151,11 +151,19 @@ const userService = {
   },
 
   // Add product to cart using backend API
-  addProductToCart: async (storeId, productName, quantity = 1) => {
+  addProductToCart: async (storeId, listingId, quantity = 1) => {
     try {
+      // Validate that we're getting a proper listing ID (UUID format)
+      if (!listingId || typeof listingId !== 'string') {
+        throw new Error('Invalid listing ID provided');
+      }
+
+      // Log the parameters for debugging
+      console.log('[addProductToCart] Adding to cart:', { storeId, listingId, quantity });
+
       const response = await api.post('/users/cart/add', {
         storeId: storeId,
-        productName: productName,
+        productName: listingId, // Backend API expects "productName" but it should actually be the listing ID
         quantity: quantity
       });
       
