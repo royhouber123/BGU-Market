@@ -79,7 +79,8 @@ public class PurchaseService {
             try {
                 Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
-                 user.clearCart();
+                user.clearCart();
+                purchaseRepository.save(finalPurchase);
                 return ApiResponse.ok(finalPurchase);
             } catch (IllegalArgumentException e) {
                 logger.error("Invalid purchase details for user: " + userId + ". Reason: " + e.getMessage());
@@ -149,7 +150,7 @@ public class PurchaseService {
             Store store = storeRepository.getStoreByID(storeId);
             store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice);
     
-            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository);
     
             logger.info("Auction opened: store " + storeId + ", product " + productId + ", by user " + userId);
             return ApiResponse.ok(null); // הצלחה בלי מידע נוסף
@@ -202,7 +203,8 @@ public class PurchaseService {
                 contactInfo,
                 approvers,
                 shipmentService,
-                paymentService
+                paymentService,
+                purchaseRepository
             );
     
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
