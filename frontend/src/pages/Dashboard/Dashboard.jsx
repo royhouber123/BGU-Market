@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header/Header';
 import AuthDialog from '../../components/AuthDialog/AuthDialog';
-import ProductCard from '../../components/ProductCard/ProductCard';
 import HeroSection from '../../components/HeroSection/HeroSection';
 import CategoryCard from '../../components/CategoryCard/CategoryCard';
 import FeaturedSection from '../../components/FeaturedSection/FeaturedSection';
 import MiniCart from '../../components/MiniCart/MiniCart';
-import { storeService } from '../../services/storeService';
 import { productService } from '../../services/productService';
 import './Dashboard.css';
 
@@ -17,23 +14,12 @@ import {
   Container,
   Typography,
   Grid,
-  Paper,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  Divider,
   CircularProgress,
   Alert,
-  Chip
+  Button
 } from '@mui/material';
 
 // Material-UI icons
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import StorefrontIcon from '@mui/icons-material/Storefront';
-import InventoryIcon from '@mui/icons-material/Inventory';
 import LaptopIcon from "@mui/icons-material/Laptop";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import HomeIcon from "@mui/icons-material/Home";
@@ -43,8 +29,6 @@ import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 import CategoryIcon from "@mui/icons-material/Category";
 
 const Dashboard = () => {
-  const { currentUser } = useAuth();
-  const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,20 +66,67 @@ const Dashboard = () => {
     return imageMap[categoryName] || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80";
   };
 
+  // Fetch discounted price for a single product
+  const fetchDiscountedPrice = async (product) => {
+    if (!product || !product.storeId || !product.id) {
+      return product;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/stores/${product.storeId}/products/${product.id}/discounted-price`);
+      const apiResponse = await response.json();
+
+      if (apiResponse.success && apiResponse.data !== undefined) {
+        const discountPrice = apiResponse.data;
+        // Only set discounted price if it's actually different from the original price
+        if (discountPrice < product.price) {
+          return {
+            ...product,
+            hasDiscount: true,
+            discountedPrice: discountPrice
+          };
+        }
+      }
+    } catch (error) {
+      console.warn(`Could not fetch discounted price for product ${product.id}:`, error);
+    }
+
+    return product;
+  };
+
+  // Fetch discounted prices for multiple products
+  const fetchDiscountedPrices = async (products) => {
+    if (!products || products.length === 0) {
+      return products;
+    }
+
+    try {
+      const updatedProducts = await Promise.all(
+        products.map(product => fetchDiscountedPrice(product))
+      );
+      return updatedProducts;
+    } catch (error) {
+      console.error('Error fetching discounted prices:', error);
+      return products;
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError('');
 
-        // Fetch stores and products from the API
-        const { stores: apiStores, products: apiProducts } = await storeService.getAllStoresAndProducts();
+        // Fetch products from the API
+        const apiProducts = await productService.getAllProducts();
 
         // Fetch categories from the API
         const apiCategories = await productService.getCategories();
 
-        setStores(apiStores);
-        setProducts(apiProducts);
+        // Fetch discounted prices for all products
+        const productsWithDiscounts = await fetchDiscountedPrices(apiProducts);
+
+        setProducts(productsWithDiscounts);
         setCategories(apiCategories);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -107,45 +138,6 @@ const Dashboard = () => {
 
     fetchData();
   }, []);
-
-  const handleCreateStore = async () => {
-    if (!currentUser) {
-      setShowAuthDialog(true);
-      return;
-    }
-
-    try {
-      // For now, we'll just show an alert. In a real app, you'd open a dialog to get store details
-      const storeName = prompt('Enter store name:');
-      if (storeName) {
-        await storeService.createStore(storeName, currentUser.userName);
-        // Refresh the data
-        const { stores: apiStores, products: apiProducts } = await storeService.getAllStoresAndProducts();
-        const apiCategories = await productService.getCategories();
-        setStores(apiStores);
-        setProducts(apiProducts);
-        setCategories(apiCategories);
-      }
-    } catch (err) {
-      console.error('Error creating store:', err);
-      setError(err.message || 'Failed to create store');
-    }
-  };
-
-  const handleAddProduct = async () => {
-    if (!currentUser) {
-      setShowAuthDialog(true);
-      return;
-    }
-
-    try {
-      // For now, we'll just show an alert. In a real app, you'd open a dialog to get product details
-      alert('Add product functionality would open a form dialog here');
-    } catch (err) {
-      console.error('Error adding product:', err);
-      setError(err.message || 'Failed to add product');
-    }
-  };
 
   if (loading) {
     return (
@@ -224,165 +216,6 @@ const Dashboard = () => {
           limit={4}
           products={products.slice(4, 8)}
         />
-
-        {/* Management Sections - Only show if user is authenticated */}
-        {currentUser && (
-          <>
-            {/* Dashboard Header */}
-            <Box sx={{ textAlign: 'center', mt: 8, mb: 4 }}>
-              <Typography variant="h4" component="h1" gutterBottom>
-                Welcome to your Dashboard, {currentUser.userName}
-              </Typography>
-              <Typography variant="subtitle1" color="text.secondary">
-                Manage your stores, products, and orders from one place
-              </Typography>
-            </Box>
-
-            <Grid container spacing={3}>
-              {/* Stores Section */}
-              <Grid item xs={12}>
-                <Paper sx={{ p: 3, borderRadius: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h5" component="h2" sx={{ display: 'flex', alignItems: 'center' }}>
-                      <StorefrontIcon sx={{ mr: 1 }} /> Your Stores
-                    </Typography>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateStore}>
-                      New Store
-                    </Button>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-
-                  {stores.length > 0 ? (
-                    <Grid container spacing={2}>
-                      {stores.map(store => (
-                        <Grid item xs={12} sm={6} md={4} key={store.id}>
-                          <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                            <CardContent sx={{ flexGrow: 1 }}>
-                              <Typography variant="h6" component="h3" gutterBottom>
-                                {store.name}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                {store.description}
-                              </Typography>
-                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                                <Chip
-                                  label={`${store.products} products`}
-                                  size="small"
-                                  color="primary"
-                                  variant="outlined"
-                                />
-                                <Chip
-                                  label={store.isActive ? 'Active' : 'Inactive'}
-                                  size="small"
-                                  color={store.isActive ? 'success' : 'default'}
-                                  variant="outlined"
-                                />
-                              </Box>
-                            </CardContent>
-                            <CardActions>
-                              <Button size="small" variant="contained" color="primary">View Store</Button>
-                              <Button size="small" startIcon={<EditIcon />}>Edit</Button>
-                            </CardActions>
-                          </Card>
-                        </Grid>
-                      ))}
-                      <Grid item xs={12} sm={6} md={4}>
-                        <Card
-                          variant="outlined"
-                          sx={{
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            p: 3,
-                            bgcolor: 'action.hover',
-                            cursor: 'pointer'
-                          }}
-                          onClick={handleCreateStore}
-                        >
-                          <AddIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                          <Button variant="contained" color="primary">Create New Store</Button>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  ) : (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography variant="body1" gutterBottom>No stores available yet.</Typography>
-                      <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleCreateStore}>
-                        Create Your First Store
-                      </Button>
-                    </Box>
-                  )}
-                </Paper>
-              </Grid>
-
-              {/* Products Section */}
-              <Grid item xs={12}>
-                <Paper sx={{ p: 3, borderRadius: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h5" component="h2" sx={{ display: 'flex', alignItems: 'center' }}>
-                      <InventoryIcon sx={{ mr: 1 }} /> Your Products
-                    </Typography>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddProduct}>
-                      New Product
-                    </Button>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-
-                  {products.length > 0 ? (
-                    <Grid container spacing={2}>
-                      {products.slice(0, 8).map(product => (
-                        <Grid item xs={12} sm={6} md={3} key={product.id}>
-                          <ProductCard product={product} />
-                        </Grid>
-                      ))}
-                      <Grid item xs={12} sm={6} md={3}>
-                        <Card
-                          variant="outlined"
-                          sx={{
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            p: 3,
-                            bgcolor: 'action.hover',
-                            cursor: 'pointer'
-                          }}
-                          onClick={handleAddProduct}
-                        >
-                          <AddIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                          <Button variant="contained" color="primary">Add New Product</Button>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  ) : (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography variant="body1" gutterBottom>No products available yet.</Typography>
-                      <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleAddProduct}>
-                        Add Your First Product
-                      </Button>
-                    </Box>
-                  )}
-                </Paper>
-              </Grid>
-
-              {/* Recent Activity Section */}
-              <Grid item xs={12}>
-                <Paper sx={{ p: 3, borderRadius: 2 }}>
-                  <Typography variant="h5" component="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                    <ShoppingCartIcon sx={{ mr: 1 }} /> Recent Activity
-                  </Typography>
-                  <Divider sx={{ mb: 3 }} />
-                  <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                    No recent activity to display.
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
-          </>
-        )}
 
         {/* Ending Soon Section for all users */}
         <FeaturedSection

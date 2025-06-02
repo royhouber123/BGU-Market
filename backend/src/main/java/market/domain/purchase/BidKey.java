@@ -16,7 +16,7 @@ public class BidKey {
         if (this == o) return true;
         if (!(o instanceof BidKey)) return false;
         BidKey other = (BidKey) o;
-        return storeId.equals(other.storeId) && productId.equals(other.productId);
+        return Objects.equals(storeId, other.storeId) && Objects.equals(productId, other.productId);
     }
 
     @Override

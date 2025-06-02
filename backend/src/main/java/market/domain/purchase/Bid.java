@@ -79,4 +79,16 @@ public class Bid {
     public double getPrice() {
         return price;
     }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public String getContactInfo() {
+        return contactInfo;
+    }
+
+    public Set<String> getApprovedBy() {
+        return approvedBy;
+    }
 }

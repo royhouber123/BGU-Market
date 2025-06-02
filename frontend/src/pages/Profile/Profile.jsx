@@ -33,7 +33,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import StoreIcon from "@mui/icons-material/Store";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import AddIcon from "@mui/icons-material/Add";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import Header from "../../components/Header/Header";
 import AuthDialog from "../../components/AuthDialog/AuthDialog";
@@ -45,7 +44,9 @@ export default function Profile() {
 	const [activeTab, setActiveTab] = useState(0);
 	const [loading, setLoading] = useState(true);
 	const [userProfile, setUserProfile] = useState(null);
-	const [userStores, setUserStores] = useState([]);
+	const [foundedStores, setFoundedStores] = useState([]);
+	const [ownedStores, setOwnedStores] = useState([]);
+	const [managedStores, setManagedStores] = useState([]);
 	const [purchaseHistory, setPurchaseHistory] = useState([]);
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedProfile, setEditedProfile] = useState({});
@@ -68,27 +69,42 @@ export default function Profile() {
 			const { stores } = await storeService.getAllStoresAndProducts();
 			console.log('Retrieved stores:', stores);
 
-			// Check which stores the user owns or manages
-			const managedStores = [];
+			// Categorize stores by role
+			const founded = [];
+			const owned = [];
+			const managed = [];
+
 			for (const store of stores) {
 				try {
-					console.log(`Checking ownership/management for store ${store.id} (${store.name})`);
+					console.log(`Checking roles for store ${store.id} (${store.name})`);
+
+					// Check if user is founder
+					const isFounder = await storeService.isFounder(store.id, currentUser.userName);
+					console.log(`Is founder of ${store.name}:`, isFounder);
+					if (isFounder) {
+						founded.push({
+							...store,
+							role: 'Founder'
+						});
+						continue; // If founder, skip checking other roles
+					}
+
 					// Check if user is owner
 					const isOwner = await storeService.isOwner(store.id, currentUser.userName);
 					console.log(`Is owner of ${store.name}:`, isOwner);
 					if (isOwner) {
-						managedStores.push({
+						owned.push({
 							...store,
 							role: 'Owner'
 						});
-						continue;
+						continue; // If owner, skip checking manager role
 					}
 
 					// Check if user is manager
 					const isManager = await storeService.isManager(store.id, currentUser.userName);
 					console.log(`Is manager of ${store.name}:`, isManager);
 					if (isManager) {
-						managedStores.push({
+						managed.push({
 							...store,
 							role: 'Manager'
 						});
@@ -98,20 +114,30 @@ export default function Profile() {
 				}
 			}
 
-			console.log('Final managed stores:', managedStores);
-			setUserStores(managedStores);
+			console.log('Founded stores:', founded);
+			console.log('Owned stores:', owned);
+			console.log('Managed stores:', managed);
+
+			setFoundedStores(founded);
+			setOwnedStores(owned);
+			setManagedStores(managed);
+
+			// Note: Removed backward compatibility userStores state as it's no longer needed
 		} catch (error) {
 			console.error("Error loading managed stores:", error);
-			setUserStores([]);
+			setFoundedStores([]);
+			setOwnedStores([]);
+			setManagedStores([]);
 		}
 	}, [currentUser]);
 
 	const loadPurchaseHistory = useCallback(async () => {
 		try {
 			console.log('Loading purchase history for user:', currentUser.userName);
-			// The backend endpoint extracts username from token, so we just need to call with any userId
-			// The actual userId parameter is ignored by the backend
-			const history = await purchaseService.getPurchaseHistory(currentUser.id || currentUser.userName || 1);
+			// The backend endpoint extracts username from token, so we just need to call with any numeric userId
+			// The actual userId parameter is ignored by the backend, but it must be numeric for the API
+			const userIdParam = currentUser.id || currentUser.userId || 1; // Use actual ID when available, fallback to 1
+			const history = await purchaseService.getPurchaseHistory(userIdParam);
 			console.log('Retrieved purchase history:', history);
 
 			// Transform the backend Purchase objects to frontend format
@@ -125,8 +151,13 @@ export default function Profile() {
 							// Try to get actual product details from the listing
 							const productDetails = await productService.getListing(product.productId);
 							console.log(`Product details for ${product.productId}:`, productDetails);
+
+							// Handle the productService.getListing response format correctly
+							// The productService transforms backend 'productName' to frontend 'title'
+							const productTitle = productDetails?.title || productDetails?.productName || `Product ${product.productId}`;
+
 							return {
-								title: productDetails?.productName || productDetails?.title || `Product ${product.productId}`,
+								title: productTitle,
 								quantity: product.quantity,
 								price: product.unitPrice,
 								image: productDetails?.images?.[0] || "https://via.placeholder.com/40",
@@ -161,7 +192,8 @@ export default function Profile() {
 			console.log('Transformed purchase history:', transformedHistory);
 			setPurchaseHistory(transformedHistory);
 		} catch (error) {
-			console.log("No purchase history found or service unavailable:", error);
+			console.error("Error loading purchase history:", error);
+			// Set empty array but don't hide the error completely
 			setPurchaseHistory([]);
 		}
 	}, [currentUser]);
@@ -268,7 +300,7 @@ export default function Profile() {
 					/>
 					<Tab
 						icon={<StoreIcon />}
-						label={`My Stores (${userStores.length})`}
+						label={`My Stores (${foundedStores.length + ownedStores.length + managedStores.length})`}
 						iconPosition="start"
 					/>
 					<Tab
@@ -407,75 +439,194 @@ export default function Profile() {
 									</Grid>
 								))}
 							</Grid>
-						) : userStores.length > 0 ? (
-							<Grid container spacing={3}>
-								{userStores.map((store) => (
-									<Grid item xs={12} md={6} lg={4} key={store.id}>
-										<Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-											<CardContent sx={{ flex: 1 }}>
-												<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-													<StoreIcon sx={{ mr: 1, color: "primary.main" }} />
-													<Typography variant="h6" component="h3" fontWeight="bold">
-														{store.name}
-													</Typography>
-												</Box>
-												<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-													{store.description}
-												</Typography>
-												<Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-													<Chip
-														size="small"
-														label={store.isActive ? "Active" : "Inactive"}
-														color={store.isActive ? "success" : "default"}
-													/>
-													<Chip
-														size="small"
-														label={store.role || "Member"}
-														color={store.role === "Owner" ? "primary" : "default"}
-														variant="outlined"
-													/>
-													<Chip
-														size="small"
-														label={`${store.totalProducts || 0} Products`}
-														variant="outlined"
-													/>
-												</Box>
-											</CardContent>
-											<CardActions sx={{ justifyContent: "flex-end" }}>
-												<Button
-													size="small"
-													startIcon={<VisibilityIcon />}
-													onClick={() => navigate(`/store/${store.name}`)}
-												>
-													View Store
-												</Button>
-												<Button
-													size="small"
-													startIcon={<InventoryIcon />}
-													onClick={() => navigate(createPageUrl("Dashboard"))}
-												>
-													Manage
-												</Button>
-											</CardActions>
-										</Card>
-									</Grid>
-								))}
-							</Grid>
 						) : (
-							<Box sx={{ textAlign: "center", py: 8 }}>
-								<StoreIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
-								<Typography variant="h6" mb={1}>No stores yet</Typography>
-								<Typography variant="body2" color="text.secondary" mb={3}>
-									Create your first store to start selling products
-								</Typography>
-								<Button
-									variant="contained"
-									startIcon={<AddIcon />}
-									onClick={handleCreateStore}
-								>
-									Create Your First Store
-								</Button>
-							</Box>
+							<>
+								{/* Founded Stores Section */}
+								{foundedStores.length > 0 && (
+									<Box sx={{ mb: 4 }}>
+										<Typography variant="h6" sx={{ mb: 2, display: "flex", alignItems: "center" }}>
+											<StoreIcon sx={{ mr: 1, color: "primary.main" }} />
+											Stores I Founded ({foundedStores.length})
+										</Typography>
+										<Grid container spacing={3}>
+											{foundedStores.map((store) => (
+												<Grid item xs={12} md={6} lg={4} key={store.id}>
+													<Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+														<CardContent sx={{ flex: 1 }}>
+															<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+																<StoreIcon sx={{ mr: 1, color: "primary.main" }} />
+																<Typography variant="h6" component="h3" fontWeight="bold">
+																	{store.name}
+																</Typography>
+															</Box>
+															<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+																{store.description}
+															</Typography>
+															<Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+																<Chip
+																	size="small"
+																	label={store.isActive ? "Active" : "Inactive"}
+																	color={store.isActive ? "success" : "default"}
+																/>
+																<Chip
+																	size="small"
+																	label="Founder"
+																	color="primary"
+																	variant="filled"
+																/>
+																<Chip
+																	size="small"
+																	label={`${store.totalProducts || 0} Products`}
+																	variant="outlined"
+																/>
+															</Box>
+														</CardContent>
+														<CardActions sx={{ justifyContent: "flex-end" }}>
+															<Button
+																size="small"
+																startIcon={<InventoryIcon />}
+																onClick={() => navigate(`/store/${store.id}/manage`)}
+															>
+																Manage
+															</Button>
+														</CardActions>
+													</Card>
+												</Grid>
+											))}
+										</Grid>
+									</Box>
+								)}
+
+								{/* Owned Stores Section */}
+								{ownedStores.length > 0 && (
+									<Box sx={{ mb: 4 }}>
+										<Typography variant="h6" sx={{ mb: 2, display: "flex", alignItems: "center" }}>
+											<StoreIcon sx={{ mr: 1, color: "secondary.main" }} />
+											Stores I Own ({ownedStores.length})
+										</Typography>
+										<Grid container spacing={3}>
+											{ownedStores.map((store) => (
+												<Grid item xs={12} md={6} lg={4} key={store.id}>
+													<Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+														<CardContent sx={{ flex: 1 }}>
+															<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+																<StoreIcon sx={{ mr: 1, color: "secondary.main" }} />
+																<Typography variant="h6" component="h3" fontWeight="bold">
+																	{store.name}
+																</Typography>
+															</Box>
+															<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+																{store.description}
+															</Typography>
+															<Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+																<Chip
+																	size="small"
+																	label={store.isActive ? "Active" : "Inactive"}
+																	color={store.isActive ? "success" : "default"}
+																/>
+																<Chip
+																	size="small"
+																	label="Owner"
+																	color="secondary"
+																	variant="filled"
+																/>
+																<Chip
+																	size="small"
+																	label={`${store.totalProducts || 0} Products`}
+																	variant="outlined"
+																/>
+															</Box>
+														</CardContent>
+														<CardActions sx={{ justifyContent: "flex-end" }}>
+															<Button
+																size="small"
+																startIcon={<InventoryIcon />}
+																onClick={() => navigate(`/store/${store.id}/manage`)}
+															>
+																Manage
+															</Button>
+														</CardActions>
+													</Card>
+												</Grid>
+											))}
+										</Grid>
+									</Box>
+								)}
+
+								{/* Managed Stores Section */}
+								{managedStores.length > 0 && (
+									<Box sx={{ mb: 4 }}>
+										<Typography variant="h6" sx={{ mb: 2, display: "flex", alignItems: "center" }}>
+											<StoreIcon sx={{ mr: 1, color: "warning.main" }} />
+											Stores I Manage ({managedStores.length})
+										</Typography>
+										<Grid container spacing={3}>
+											{managedStores.map((store) => (
+												<Grid item xs={12} md={6} lg={4} key={store.id}>
+													<Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+														<CardContent sx={{ flex: 1 }}>
+															<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+																<StoreIcon sx={{ mr: 1, color: "warning.main" }} />
+																<Typography variant="h6" component="h3" fontWeight="bold">
+																	{store.name}
+																</Typography>
+															</Box>
+															<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+																{store.description}
+															</Typography>
+															<Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+																<Chip
+																	size="small"
+																	label={store.isActive ? "Active" : "Inactive"}
+																	color={store.isActive ? "success" : "default"}
+																/>
+																<Chip
+																	size="small"
+																	label="Manager"
+																	color="warning"
+																	variant="filled"
+																/>
+																<Chip
+																	size="small"
+																	label={`${store.totalProducts || 0} Products`}
+																	variant="outlined"
+																/>
+															</Box>
+														</CardContent>
+														<CardActions sx={{ justifyContent: "flex-end" }}>
+															<Button
+																size="small"
+																startIcon={<InventoryIcon />}
+																onClick={() => navigate(`/store/${store.id}/manage`)}
+															>
+																Manage
+															</Button>
+														</CardActions>
+													</Card>
+												</Grid>
+											))}
+										</Grid>
+									</Box>
+								)}
+
+								{/* No Stores Message */}
+								{foundedStores.length === 0 && ownedStores.length === 0 && managedStores.length === 0 && (
+									<Box sx={{ textAlign: "center", py: 8 }}>
+										<StoreIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+										<Typography variant="h6" mb={1}>No stores yet</Typography>
+										<Typography variant="body2" color="text.secondary" mb={3}>
+											Create your first store to start selling products
+										</Typography>
+										<Button
+											variant="contained"
+											startIcon={<AddIcon />}
+											onClick={handleCreateStore}
+										>
+											Create Your First Store
+										</Button>
+									</Box>
+								)}
+							</>
 						)}
 					</Box>
 				)}

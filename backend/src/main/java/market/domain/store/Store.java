@@ -305,15 +305,21 @@ public class Store {
 
     /**
      * Checks whether a given user ID corresponds to an owner of the store.
+     * This includes both the founder and any additional owners.
      *
      * @param id ID of the user to check.
      * @return {@code true} if the user is an owner of the store; {@code false} otherwise.
      */
     public boolean isOwner(String id){
         synchronized (ownershipLock) {
+            // Founder is always an owner
+            if (founderID.equals(id)) {
+                return true;
+            }
+            // Check if user is in the assigned owners map
             return ownerToAssignedOwners.containsKey(id);
+        }
     }
-}
 
     /**
      * Checks whether a given user ID corresponds to a manager of the store.
@@ -340,7 +346,7 @@ public class Store {
      */
     private Manager getManager(String id){
         for (Manager m : getAllManagers()){
-            if(m.getID()==id){
+            if(m.getID().equals(id)){
                 return m;
             }
         }
@@ -425,10 +431,10 @@ public class Store {
             if (!isOwner(toRemove)){
                 throw new Exception(toRemove +" is not a owner of store:"+ storeID);
             }
-            if (toRemove == getFounderID()){
+            if (toRemove.equals(getFounderID())){
                 throw new Exception(toRemove +" is the FOUNDER of store:"+ storeID+ " can't remove him");
             }
-            if (ownerToWhoAssignedHim.get(toRemove)!= id){
+            if (!ownerToWhoAssignedHim.get(toRemove).equals(id)){
                 throw new Exception(id +" didn't assign " + toRemove + " to be owner of store:"+ storeID);
             }
             storeClosedExeption();//actions are available only when open
@@ -523,6 +529,48 @@ public class Store {
                 productDescription,
                 quantity,
                 PurchaseType.REGULAR,
+                unitPrice
+        );
+
+        return storeProductsManager.addListing(newListing);
+    }
+
+    /**
+     * Adds a new listing to the store with specified purchase type.
+     * The user must have permission to edit products.
+     *
+     * @param userID User ID trying to add.
+     * @param productId Product ID.
+     * @param productName Product name.
+     * @param productCategory Product category.
+     * @param productDescription Product description.
+     * @param quantity Quantity to sell.
+     * @param unitPrice Price per unit.
+     * @param purchaseType Purchase type (REGULAR, BID, AUCTION, RAFFLE).
+     * @return Listing ID if listing was added successfully.
+     * @throws Exception if user lacks permission or invalid purchase type.
+     */
+    public String addNewListing(String userID, String productId, String productName, String productCategory, String productDescription, int quantity, double unitPrice, String purchaseType) throws Exception {
+        if (!checkProductsPermission(userID))
+            throw new Exception("User " + userID + " doesn't have permission to ADD listing!");
+        storeClosedExeption();//actions are available only when open
+        
+        // Parse purchase type, default to REGULAR if invalid
+        PurchaseType type;
+        try {
+            type = PurchaseType.valueOf(purchaseType.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            type = PurchaseType.REGULAR;
+        }
+        
+        Listing newListing = new Listing(
+                this.storeID,
+                productId,
+                productName,
+                productCategory,
+                productDescription,
+                quantity,
+                type,
                 unitPrice
         );
 
@@ -798,20 +846,34 @@ public class Store {
 
 
     /**
- * Checks if a user has permission to approve bids in the store.
- * <p>
- * A user is allowed to approve bids if:
- * <ul>
- *     <li>They are an owner of the store, or</li>
- *     <li>They are a manager and have the {@link Permission#BID_APPROVAL} permission.</li>
- * </ul>
- *
- * @param approverID ID of the user attempting to approve a bid.
- * @return {@code true} if the user is allowed to approve bids, {@code false} otherwise.
- */
-
+     * Checks if a user has permission to approve bids in the store.
+     * <p>
+     * A user is allowed to approve bids if:
+     * <ul>
+     *     <li>They are the founder of the store, or</li>
+     *     <li>They are an owner of the store, or</li>
+     *     <li>They are a manager and have the {@link Permission#BID_APPROVAL} permission.</li>
+     * </ul>
+     *
+     * @param approverID ID of the user attempting to approve a bid.
+     * @return {@code true} if the user is allowed to approve bids, {@code false} otherwise.
+     */
     public boolean checkBidPermission(String approverID){
-        return isOwner(approverID) || (isManager(approverID) && getManager(approverID).hasPermission(Permission.BID_APPROVAL));
+        // Founder always has bid approval permission
+        if (founderID.equals(approverID)) {
+            return true;
+        }
+        // Owners always have bid approval permission
+        if (isOwner(approverID)) {
+            return true;
+        }
+        // Managers need explicit BID_APPROVAL permission
+        if (isManager(approverID)) {
+            Manager manager = getManager(approverID);
+            return manager != null && manager.hasPermission(Permission.BID_APPROVAL);
+        }
+        // No permission by default
+        return false;
     }
 
 
@@ -888,15 +950,15 @@ public class Store {
         }
 
         public boolean addPermission(Permission permission, String byWho) throws Exception {
-            if(byWho != apointedBy){
+            if(!byWho.equals(apointedBy)){
                 throw new Exception("user " + byWho + " cant add permission to manager " + this.id + " because he is not his appointer");
             }
             return permissions.add(permission);
         }
 
         public boolean removePermission(Permission permission, String byWho) throws Exception {
-            if(byWho != apointedBy){
-                throw new Exception("user " + byWho + " cant add permission to manager " + this.id + " because he is not his appointer");
+            if(!byWho.equals(apointedBy)){
+                throw new Exception("user " + byWho + " cant remove permission from manager " + this.id + " because he is not his appointer");
             }
             return permissions.remove(permission);
         }

@@ -19,7 +19,7 @@ public class AuctionKey {
         if (this == o) return true;
         if (!(o instanceof AuctionKey)) return false;
         AuctionKey other = (AuctionKey) o;
-        return storeId.equals(other.storeId) && productId.equals(other.productId);
+        return Objects.equals(storeId, other.storeId) && Objects.equals(productId, other.productId);
     }
 
     @Override

@@ -202,7 +202,7 @@ class StoreUnitTests {
         store.addNewOwner(founderID, ownerA);
 
         // Act
-        String added = store.addNewListing(ownerA, "p1", "Laptop", "Electronic", "Gaming laptop", 5, 2000);
+        String added = store.addNewListing(ownerA, "p1", "Laptop", "Electronic", "Gaming laptop", 5, 2000.0, "REGULAR");
 
         // Assert
         assertFalse(added.contains("doesn't have permission"));
@@ -215,7 +215,7 @@ class StoreUnitTests {
         store.addNewManager(ownerA, ownerB);
         store.addPermissionToManager(ownerB, ownerA, Store.Permission.EDIT_PRODUCTS.getCode());
 
-        String added = store.addNewListing(ownerB, "p2", "Phone","Electronic" , "iPhone", 10, 1000);
+        String added = store.addNewListing(ownerB, "p2", "Phone","Electronic" , "iPhone", 10, 1000.0, "REGULAR");
 
         assert(!added.contains("doesn't have permission"));
         assertEquals(1, store.getListingsByProductName("Phone").size());
@@ -227,7 +227,7 @@ class StoreUnitTests {
         store.addNewManager(ownerA, ownerB);
 
         Exception ex = assertThrows(Exception.class, () -> {
-            store.addNewListing(ownerB, "p3", "Tablet", "Electronic", "Samsung Tab", 7, 600);
+            store.addNewListing(ownerB, "p3", "Tablet", "Electronic", "Samsung Tab", 7, 600.0, "REGULAR");
         });
 
         assertTrue(ex.getMessage().contains("doesn't have permission"));
@@ -236,7 +236,7 @@ class StoreUnitTests {
     @Test
     void testRemoveListingByOwnerSuccess() throws Exception {
         store.addNewOwner(founderID, ownerA);
-        store.addNewListing(ownerA, "p4", "TV", "Electronic", "Smart TV", 3, 1500);
+        store.addNewListing(ownerA, "p4", "TV", "Electronic", "Smart TV", 3, 1500.0, "REGULAR");
 
         String listingId = store.getListingsByProductName("TV").get(0).getListingId();
         boolean removed = store.removeListing(ownerA, listingId);
@@ -251,7 +251,7 @@ class StoreUnitTests {
         store.addNewManager(ownerA, ownerB);
         store.addPermissionToManager(ownerB, ownerA, Store.Permission.EDIT_PRODUCTS.getCode());
 
-        store.addNewListing(ownerA, "p5", "Speaker", "Electronic", "Bluetooth speaker", 8, 300);
+        store.addNewListing(ownerA, "p5", "Speaker", "Electronic", "Bluetooth speaker", 8, 300.0, "REGULAR");
         String listingId = store.getListingsByProductName("Speaker").get(0).getListingId();
 
         boolean removed = store.removeListing(ownerB, listingId);
@@ -265,7 +265,7 @@ class StoreUnitTests {
         store.addNewOwner(founderID, ownerA);
         store.addNewManager(ownerA, ownerB);
 
-        store.addNewListing(ownerA, "p6", "Headphones", "Electronic", "Noise cancelling", 4, 250);
+        store.addNewListing(ownerA, "p6", "Headphones", "Electronic", "Noise cancelling", 4, 250.0, "REGULAR");
         String listingId = store.getListingsByProductName("Headphones").get(0).getListingId();
 
         Exception ex = assertThrows(Exception.class, () -> {
@@ -278,7 +278,7 @@ class StoreUnitTests {
     @Test
     void testPurchaseListingReducesQuantity() throws Exception {
         store.addNewOwner(founderID, ownerA);
-        store.addNewListing(ownerA, "p7", "Monitor", "Electronic", "4K Monitor", 6, 800);
+        store.addNewListing(ownerA, "p7", "Monitor", "Electronic", "4K Monitor", 6, 800.0, "REGULAR");
 
         String listingId = store.getListingsByProductName("Monitor").get(0).getListingId();
         boolean purchased = store.purchaseFromListing(listingId, 2);
@@ -290,7 +290,7 @@ class StoreUnitTests {
     @Test
     void testPurchaseListingNotEnoughStockFails() throws Exception {
         store.addNewOwner(founderID, ownerA);
-        store.addNewListing(ownerA, "p8", "Keyboard", "Electronic", "Mechanical keyboard", 2, 150);
+        store.addNewListing(ownerA, "p8", "Keyboard", "Electronic", "Mechanical keyboard", 2, 150.0, "REGULAR");
 
         String listingId = store.getListingsByProductName("Keyboard").get(0).getListingId();
 
@@ -304,8 +304,8 @@ class StoreUnitTests {
     @Test
     void testGetListingsByProductId() throws Exception {
         store.addNewOwner(founderID, ownerA);
-        store.addNewListing(ownerA, "commonProductID", "Mouse", "Electronic", "Wireless Mouse", 2, 100);
-        store.addNewListing(ownerA, "commonProductID", "Mouse", "Electronic", "Gaming Mouse", 1, 120);
+        store.addNewListing(ownerA, "commonProductID", "Mouse", "Electronic", "Wireless Mouse", 2, 100.0, "REGULAR");
+        store.addNewListing(ownerA, "commonProductID", "Mouse", "Electronic", "Gaming Mouse", 1, 120.0, "REGULAR");
 
         List<Listing> listings = store.getListingsByProductId("commonProductID");
 

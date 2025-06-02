@@ -123,44 +123,90 @@ for store_data in "${STORES[@]}"; do
 done
 
 echo ""
+echo "2.5️⃣ SETTING UP ADDITIONAL STORE ROLES FOR ALICE"
+echo "-----------------------------------------------"
+
+# Find Alice's token
+alice_token=""
+for token_data in "${JWT_TOKENS[@]}"; do
+    IFS=':' read -r token_user token <<< "$token_data"
+    if [ "$token_user" = "alice" ]; then
+        alice_token="$token"
+        break
+    fi
+done
+
+if [ -n "$alice_token" ]; then
+    # Find BookWorld store (bob's store) to make Alice an additional owner
+    for store_info in "${STORE_IDS[@]}"; do
+        IFS=':' read -r store_name store_id founder founder_token <<< "$store_info"
+        if [ "$store_name" = "BookWorld" ]; then
+            echo "👑 Making Alice an additional owner of BookWorld"
+            ADD_OWNER_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/owners/add" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $founder_token" \
+              -d "{\"appointerID\":\"$founder\",\"newOwnerID\":\"alice\",\"storeID\":\"$store_id\"}")
+            check_success_continue "$ADD_OWNER_RESPONSE"
+            break
+        fi
+    done
+    
+    # Find FashionForward store (charlie's store) to make Alice a manager
+    for store_info in "${STORE_IDS[@]}"; do
+        IFS=':' read -r store_name store_id founder founder_token <<< "$store_info"
+        if [ "$store_name" = "FashionForward" ]; then
+            echo "👔 Making Alice a manager of FashionForward"
+            ADD_MANAGER_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/managers/add" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $founder_token" \
+              -d "{\"appointerID\":\"$founder\",\"newManagerName\":\"alice\",\"storeID\":\"$store_id\"}")
+            check_success_continue "$ADD_MANAGER_RESPONSE"
+            break
+        fi
+    done
+else
+    echo "⚠️ No token found for Alice - cannot set up additional roles"
+fi
+
+echo ""
 echo "3️⃣ CREATING DEMO PRODUCTS"
 echo "-------------------------"
 
-# Product data: productName:category:description:price:quantity:storeIndex
+# Product data: productName:category:description:price:quantity:storeIndex:purchaseType
 declare -a PRODUCTS=(
     # TechHub products (index 0)
-    "iPhone 15:Electronics:Latest Apple smartphone with advanced features:999.99:50:0"
-    "MacBook Pro:Electronics:Powerful laptop for professionals:2499.99:25:0"
-    "AirPods Pro:Electronics:Wireless earbuds with noise cancellation:249.99:100:0"
-    "iPad Air:Electronics:Versatile tablet for work and entertainment:599.99:75:0"
+    "iPhone 15:Electronics:Latest Apple smartphone with advanced features:999.99:50:0:REGULAR"
+    "MacBook Pro:Electronics:Powerful laptop for professionals:2499.99:25:0:REGULAR"
+    "AirPods Pro:Electronics:Wireless earbuds with noise cancellation:249.99:100:0:REGULAR"
+    "Vintage iPad:Electronics:Rare vintage tablet perfect for auction:599.99:1:0:AUCTION"
     
     # BookWorld products (index 1)
-    "The Great Gatsby:Books:Classic American literature novel:12.99:200:1"
-    "Programming Pearls:Books:Essential book for software developers:29.99:50:1"
-    "Dune:Books:Epic science fiction masterpiece:15.99:150:1"
-    "Clean Code:Books:A handbook of agile software craftsmanship:39.99:75:1"
+    "The Great Gatsby:Books:Classic American literature novel:12.99:200:1:REGULAR"
+    "Programming Pearls:Books:Essential book for software developers:29.99:50:1:REGULAR"
+    "Custom Artwork Book:Books:One-of-a-kind artwork book open for bids:150.00:1:1:BID"
+    "Mystery Book Bundle:Books:Surprise book collection for raffle:25.99:10:1:RAFFLE"
     
     # FashionForward products (index 2)
-    "Designer Jeans:Clothing:Premium denim jeans with perfect fit:89.99:100:2"
-    "Silk Blouse:Clothing:Elegant silk blouse for formal occasions:129.99:60:2"
-    "Leather Jacket:Clothing:Genuine leather jacket with modern style:299.99:30:2"
-    "Summer Dress:Clothing:Light and comfortable dress for summer:79.99:80:2"
+    "Designer Jeans:Clothing:Premium denim jeans with perfect fit:89.99:100:2:REGULAR"
+    "Silk Blouse:Clothing:Elegant silk blouse for formal occasions:129.99:60:2:REGULAR"
+    "Vintage Leather Jacket:Clothing:Rare vintage leather jacket for auction:299.99:1:2:AUCTION"
+    "Summer Dress:Clothing:Light and comfortable dress for summer:79.99:80:2:REGULAR"
     
     # HomeEssentials products (index 3)
-    "Coffee Maker:Home:Automatic coffee maker with timer:149.99:40:3"
-    "Vacuum Cleaner:Home:Powerful cordless vacuum cleaner:299.99:25:3"
-    "Bed Sheets Set:Home:Luxury cotton bed sheets set:89.99:60:3"
-    "Kitchen Knife Set:Home:Professional chef knife set:199.99:35:3"
+    "Coffee Maker:Home:Automatic coffee maker with timer:149.99:40:3:REGULAR"
+    "Vacuum Cleaner:Home:Powerful cordless vacuum cleaner:299.99:25:3:REGULAR"
+    "Custom Furniture:Home:Handcrafted custom furniture piece open for bids:499.99:1:3:BID"
+    "Mystery Home Box:Home:Surprise home essentials bundle for raffle:75.00:5:3:RAFFLE"
     
     # SportsZone products (index 4)
-    "Running Shoes:Sports:Professional running shoes for athletes:159.99:120:4"
-    "Yoga Mat:Sports:Non-slip yoga mat for home workouts:39.99:200:4"
-    "Basketball:Sports:Official size basketball for outdoor play:29.99:150:4"
-    "Fitness Tracker:Sports:Smart fitness tracker with heart rate monitor:199.99:80:4"
+    "Running Shoes:Sports:Professional running shoes for athletes:159.99:120:4:REGULAR"
+    "Yoga Mat:Sports:Non-slip yoga mat for home workouts:39.99:200:4:REGULAR"
+    "Rare Basketball:Sports:Signed basketball perfect for auction:199.99:1:4:AUCTION"
+    "Sports Mystery Box:Sports:Random sports gear collection for raffle:99.99:8:4:RAFFLE"
 )
 
 for product_data in "${PRODUCTS[@]}"; do
-    IFS=':' read -r product_name category description price quantity store_index <<< "$product_data"
+    IFS=':' read -r product_name category description price quantity store_index purchase_type <<< "$product_data"
     
     # Get store information by index
     if [ "$store_index" -lt "${#STORE_IDS[@]}" ]; then
@@ -182,7 +228,8 @@ for product_data in "${PRODUCTS[@]}"; do
             \"productCategory\":\"$category\",
             \"productDescription\":\"$description\",
             \"quantity\":$quantity,
-            \"price\":$price
+            \"price\":$price,
+            \"purchaseType\":\"$purchase_type\"
           }")
         
         check_success_continue "$ADD_LISTING_RESPONSE"
@@ -251,6 +298,11 @@ for store_data in "${STORES[@]}"; do
     IFS=':' read -r store_name founder <<< "$store_data"
     echo "  • $store_name (owned by $founder)"
 done
+echo ""
+echo "👑 Alice's Store Roles:"
+echo "  • TechHub (Founder)"
+echo "  • BookWorld (Additional Owner)"
+echo "  • FashionForward (Manager)"
 echo ""
 echo "📦 Product Categories:"
 echo "  • Electronics (TechHub)"

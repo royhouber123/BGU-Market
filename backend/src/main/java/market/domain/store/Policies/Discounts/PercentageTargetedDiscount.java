@@ -56,4 +56,24 @@ public class PercentageTargetedDiscount implements DiscountPolicy {
             null                       // combinationType (not composite)
         );
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        PercentageTargetedDiscount that = (PercentageTargetedDiscount) obj;
+        return Double.compare(that.percentage, percentage) == 0 &&
+               targetType == that.targetType &&
+               (targetId != null ? targetId.equals(that.targetId) : that.targetId == null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = targetType != null ? targetType.hashCode() : 0;
+        result = 31 * result + (targetId != null ? targetId.hashCode() : 0);
+        long temp = Double.doubleToLongBits(percentage);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
 }
