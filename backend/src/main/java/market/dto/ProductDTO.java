@@ -10,7 +10,8 @@ public class ProductDTO {
         String productCategory,
         String productDescription,
         int quantity,
-        double price
+        double price,
+        String purchaseType
     ) {}
     
     public record EditListingRequest(

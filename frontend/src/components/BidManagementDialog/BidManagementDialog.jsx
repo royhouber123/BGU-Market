@@ -1,0 +1,397 @@
+import React, { useState, useEffect } from "react";
+import {
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions,
+	Button,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
+	Paper,
+	Chip,
+	Typography,
+	Box,
+	TextField,
+	IconButton,
+	Tooltip,
+	Alert,
+	CircularProgress,
+	Stack
+} from "@mui/material";
+import {
+	CheckCircle as ApproveIcon,
+	Cancel as RejectIcon,
+	MonetizationOn as CounterIcon,
+	Close as CloseIcon,
+	Gavel as BidIcon,
+	Security as SecurityIcon
+} from "@mui/icons-material";
+import purchaseService from "../../services/purchaseService";
+import { storeService } from "../../services/storeService";
+import { useAuth } from "../../contexts/AuthContext";
+
+export default function BidManagementDialog({ open, onClose, product, store, onUpdate }) {
+	const { currentUser } = useAuth();
+	const [bids, setBids] = useState([]);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+	const [permissionError, setPermissionError] = useState(false);
+	const [counterBidAmounts, setCounterBidAmounts] = useState({});
+	const [processingBid, setProcessingBid] = useState("");
+
+	useEffect(() => {
+		if (open && product && store) {
+			loadBids();
+		}
+	}, [open, product, store]);
+
+	const loadBids = async () => {
+		setLoading(true);
+		setError("");
+		setPermissionError(false);
+		try {
+			const bidsData = await purchaseService.getProductBids(store.id, product.id);
+			setBids(bidsData);
+		} catch (error) {
+			console.error("Error loading bids:", error);
+			if (error.message?.includes("permission") || error.message?.includes("403") || error.message?.includes("Forbidden")) {
+				setPermissionError(true);
+				setError("You don't have permission to view bids for this store. You need the 'BID_APPROVAL' permission to manage bids.");
+			} else {
+				setError("Failed to load bids: " + error.message);
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handleApproveBid = async (bidderUsername) => {
+		setProcessingBid(bidderUsername);
+		try {
+			await purchaseService.approveBid(store.id, product.id, bidderUsername);
+			onUpdate({
+				title: "Bid Approved",
+				description: `Successfully approved bid from ${bidderUsername}`,
+				variant: "success"
+			});
+			loadBids(); // Refresh bids
+		} catch (error) {
+			console.error("Error approving bid:", error);
+			onUpdate({
+				title: "Error",
+				description: "Failed to approve bid: " + error.message,
+				variant: "destructive"
+			});
+		} finally {
+			setProcessingBid("");
+		}
+	};
+
+	const handleRejectBid = async (bidderUsername) => {
+		setProcessingBid(bidderUsername);
+		try {
+			await purchaseService.rejectBid(store.id, product.id, bidderUsername);
+			onUpdate({
+				title: "Bid Rejected",
+				description: `Successfully rejected bid from ${bidderUsername}`,
+				variant: "success"
+			});
+			loadBids(); // Refresh bids
+		} catch (error) {
+			console.error("Error rejecting bid:", error);
+			onUpdate({
+				title: "Error",
+				description: "Failed to reject bid: " + error.message,
+				variant: "destructive"
+			});
+		} finally {
+			setProcessingBid("");
+		}
+	};
+
+	const handleCounterBid = async (bidderUsername) => {
+		const counterAmount = counterBidAmounts[bidderUsername];
+		if (!counterAmount || parseFloat(counterAmount) <= 0) {
+			onUpdate({
+				title: "Error",
+				description: "Please enter a valid counter bid amount",
+				variant: "destructive"
+			});
+			return;
+		}
+
+		setProcessingBid(bidderUsername);
+		try {
+			await purchaseService.proposeCounterBid(store.id, product.id, bidderUsername, parseFloat(counterAmount));
+			onUpdate({
+				title: "Counter Bid Proposed",
+				description: `Successfully proposed counter bid of $${counterAmount} to ${bidderUsername}`,
+				variant: "success"
+			});
+			setCounterBidAmounts(prev => ({ ...prev, [bidderUsername]: "" })); // Clear the input
+			loadBids(); // Refresh bids
+		} catch (error) {
+			console.error("Error proposing counter bid:", error);
+			onUpdate({
+				title: "Error",
+				description: "Failed to propose counter bid: " + error.message,
+				variant: "destructive"
+			});
+		} finally {
+			setProcessingBid("");
+		}
+	};
+
+	const handleCounterAmountChange = (bidderUsername, value) => {
+		setCounterBidAmounts(prev => ({ ...prev, [bidderUsername]: value }));
+	};
+
+	const getStatusChip = (bid) => {
+		if (bid.isRejected) {
+			return <Chip label="Rejected" color="error" size="small" />;
+		}
+		if (bid.counterOffered) {
+			return <Chip label={`Counter: $${bid.counterOfferAmount?.toFixed(2)}`} color="warning" size="small" />;
+		}
+		if (bid.isApproved) {
+			return <Chip label="Approved" color="success" size="small" />;
+		}
+		return <Chip label="Pending" color="default" size="small" />;
+	};
+
+	const canTakeAction = (bid) => {
+		return !bid.isApproved && !bid.isRejected;
+	};
+
+	return (
+		<Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+			<DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+				<Box sx={{ display: "flex", alignItems: "center" }}>
+					<BidIcon sx={{ mr: 1 }} />
+					Bid Management - {product?.title}
+				</Box>
+				<IconButton onClick={onClose}>
+					<CloseIcon />
+				</IconButton>
+			</DialogTitle>
+
+			<DialogContent>
+				{error && !permissionError && (
+					<Alert severity="error" sx={{ mb: 2 }}>
+						{error}
+					</Alert>
+				)}
+
+				{permissionError && (
+					<Box sx={{ textAlign: "center", py: 4 }}>
+						<SecurityIcon sx={{ fontSize: 64, color: "warning.main", mb: 2 }} />
+						<Typography variant="h6" color="text.primary" gutterBottom>
+							Permission Required
+						</Typography>
+						<Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 500, mx: "auto" }}>
+							To manage bids for this store, you need the <strong>BID_APPROVAL</strong> permission.
+							This permission allows you to view, approve, reject, and counter-offer on customer bids.
+						</Typography>
+
+						<Alert severity="info" sx={{ mb: 3, textAlign: "left" }}>
+							<Typography variant="body2">
+								<strong>Current User Role:</strong> {store?.role || 'Unknown'}
+							</Typography>
+							<Typography variant="body2" sx={{ mt: 1 }}>
+								<strong>Required:</strong> Store Owner OR Manager with BID_APPROVAL permission
+							</Typography>
+						</Alert>
+
+						{store?.role === 'Owner' || store?.role === 'Founder' ? (
+							<Box>
+								<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+									As a store {store.role.toLowerCase()}, you should have bid approval access. If you're seeing this error,
+									there might be a temporary issue. Try refreshing the page or contact support.
+								</Typography>
+								<Button
+									variant="outlined"
+									onClick={loadBids}
+									disabled={loading}
+									startIcon={loading && <CircularProgress size={16} />}
+								>
+									{loading ? "Checking..." : "Retry Loading Bids"}
+								</Button>
+							</Box>
+						) : (
+							<Box>
+								<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+									Please ask a store owner to grant you the BID_APPROVAL permission.
+								</Typography>
+								<Alert severity="info" sx={{ textAlign: "left", mb: 2 }}>
+									<Typography variant="body2">
+										<strong>How to get BID_APPROVAL permission:</strong>
+									</Typography>
+									<Typography variant="body2" component="div" sx={{ mt: 1 }}>
+										1. Contact a store owner or founder<br />
+										2. Ask them to go to Store Management<br />
+										3. They can grant you the "BID_APPROVAL" permission<br />
+										4. Once granted, return here to manage bids
+									</Typography>
+								</Alert>
+								<Button
+									variant="outlined"
+									onClick={loadBids}
+									sx={{ mr: 1 }}
+									disabled={loading}
+									startIcon={loading && <CircularProgress size={16} />}
+								>
+									{loading ? "Checking..." : "Check Permissions Again"}
+								</Button>
+							</Box>
+						)}
+					</Box>
+				)}
+
+				{!permissionError && (
+					<>
+						{loading ? (
+							<Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+								<CircularProgress />
+							</Box>
+						) : bids.length === 0 ? (
+							<Box sx={{ textAlign: "center", py: 4 }}>
+								<BidIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+								<Typography variant="h6" color="text.secondary">
+									No bids submitted yet
+								</Typography>
+								<Typography variant="body2" color="text.disabled">
+									When customers submit bids for this product, they will appear here.
+								</Typography>
+							</Box>
+						) : (
+							<TableContainer component={Paper} variant="outlined">
+								<Table>
+									<TableHead>
+										<TableRow>
+											<TableCell>Bidder</TableCell>
+											<TableCell align="right">Bid Amount</TableCell>
+											<TableCell>Status</TableCell>
+											<TableCell>Contact Info</TableCell>
+											<TableCell>Shipping Address</TableCell>
+											<TableCell align="center">Actions</TableCell>
+										</TableRow>
+									</TableHead>
+									<TableBody>
+										{bids.map((bid, index) => (
+											<TableRow key={index} hover>
+												<TableCell>
+													<Typography variant="body2" fontWeight="bold">
+														{bid.userId}
+													</Typography>
+												</TableCell>
+												<TableCell align="right">
+													<Typography variant="body2" fontWeight="bold" color="primary">
+														${bid.bidAmount?.toFixed(2)}
+													</Typography>
+												</TableCell>
+												<TableCell>
+													{getStatusChip(bid)}
+												</TableCell>
+												<TableCell>
+													<Typography variant="body2" sx={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>
+														{bid.contactInfo}
+													</Typography>
+												</TableCell>
+												<TableCell>
+													<Typography variant="body2" sx={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>
+														{bid.shippingAddress}
+													</Typography>
+												</TableCell>
+												<TableCell align="center">
+													{canTakeAction(bid) ? (
+														<Stack direction="row" spacing={1} justifyContent="center">
+															{/* Approve Button */}
+															<Tooltip title="Approve Bid">
+																<IconButton
+																	color="success"
+																	size="small"
+																	onClick={() => handleApproveBid(bid.userId)}
+																	disabled={processingBid === bid.userId}
+																>
+																	{processingBid === bid.userId ? (
+																		<CircularProgress size={16} />
+																	) : (
+																		<ApproveIcon />
+																	)}
+																</IconButton>
+															</Tooltip>
+
+															{/* Reject Button */}
+															<Tooltip title="Reject Bid">
+																<IconButton
+																	color="error"
+																	size="small"
+																	onClick={() => handleRejectBid(bid.userId)}
+																	disabled={processingBid === bid.userId}
+																>
+																	{processingBid === bid.userId ? (
+																		<CircularProgress size={16} />
+																	) : (
+																		<RejectIcon />
+																	)}
+																</IconButton>
+															</Tooltip>
+
+															{/* Counter Bid Section */}
+															<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+																<TextField
+																	size="small"
+																	type="number"
+																	placeholder="Counter amount"
+																	value={counterBidAmounts[bid.userId] || ""}
+																	onChange={(e) => handleCounterAmountChange(bid.userId, e.target.value)}
+																	sx={{ width: 120 }}
+																	inputProps={{ min: 0, step: 0.01 }}
+																/>
+																<Tooltip title="Propose Counter Bid">
+																	<IconButton
+																		color="warning"
+																		size="small"
+																		onClick={() => handleCounterBid(bid.userId)}
+																		disabled={processingBid === bid.userId || !counterBidAmounts[bid.userId]}
+																	>
+																		{processingBid === bid.userId ? (
+																			<CircularProgress size={16} />
+																		) : (
+																			<CounterIcon />
+																		)}
+																	</IconButton>
+																</Tooltip>
+															</Box>
+														</Stack>
+													) : (
+														<Typography variant="body2" color="text.disabled">
+															No actions available
+														</Typography>
+													)}
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</TableContainer>
+						)}
+					</>
+				)}
+			</DialogContent>
+
+			<DialogActions>
+				<Button onClick={onClose} variant="outlined">
+					Close
+				</Button>
+				<Button onClick={loadBids} disabled={loading} startIcon={loading && <CircularProgress size={16} />}>
+					Refresh Bids
+				</Button>
+			</DialogActions>
+		</Dialog>
+	);
+} 

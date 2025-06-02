@@ -19,13 +19,13 @@ public class PurchaseDTO {
     public record AuctionOfferRequest(
         int userId,
         int storeId,
-        int productId,
+        String productId,
         double offerAmount
     ) {}
     
     public record OpenAuctionRequest(
         int storeId,
-        int productId,
+        String productId,
         double startingPrice,
         LocalDateTime endTime
     ) {}
@@ -41,22 +41,22 @@ public class PurchaseDTO {
     public record BidSubmissionRequest(
         int userId,
         int storeId,
-        int productId,
+        String productId,
         double bidAmount,
         int quantity
     ) {}
     
     public record BidApprovalRequest(
         int storeId,
-        int productId,
-        int userId,
+        String productId,
+        String bidderUsername,
         boolean approved
     ) {}
     
     public record CounterBidRequest(
         int storeId,
-        int productId,
-        int userId,
+        String productId,
+        String bidderUsername,
         double counterAmount
     ) {}
     
@@ -79,7 +79,7 @@ public class PurchaseDTO {
     ) {}
     
     public record PurchasedProductItem(
-        int productId,
+        String productId,
         String productName,
         int quantity,
         double pricePerUnit,

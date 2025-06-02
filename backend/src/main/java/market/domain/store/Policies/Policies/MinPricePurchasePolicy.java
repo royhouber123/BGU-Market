@@ -37,4 +37,18 @@ public class MinPricePurchasePolicy implements PurchasePolicy {
     public PolicyDTO.AddPurchasePolicyRequest toDTO() {
         return new PolicyDTO.AddPurchasePolicyRequest("MINPRICE", minPrice);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        MinPricePurchasePolicy that = (MinPricePurchasePolicy) obj;
+        return minPrice == that.minPrice;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(minPrice);
+    }
 }

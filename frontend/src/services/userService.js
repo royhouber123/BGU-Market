@@ -101,6 +101,11 @@ const userService = {
     return !!localStorage.getItem('token');
   },
 
+  // Get authentication token
+  getToken: () => {
+    return localStorage.getItem('token');
+  },
+
   // Get user profile
   getProfile: async () => {
     try {

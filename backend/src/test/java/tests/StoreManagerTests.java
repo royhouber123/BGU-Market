@@ -27,6 +27,11 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @BeforeEach
     void init() throws Exception {
+        // Register test users first
+        userService.register(FOUNDER, "password");
+        userService.register(OWNER_A, "password");
+        userService.register(MANAGER, "password");
+        
         // fresh repo & services already built in AcceptanceTestBase.setup()
         this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData().storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();
@@ -43,7 +48,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
         ApiResponse<String> res = storeService.addNewListing(
                 MANAGER, storeId,
-                "1", "Monitor", "Electronics", "HD Monitor", 10, 699.0);
+                "1", "Monitor", "Electronics", "HD Monitor", 10, 699.0, "REGULAR");
 
         assertTrue(res.isSuccess());
         assertNotNull(res.getData());
@@ -57,7 +62,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     ApiResponse<String> res = storeService.addNewListing(
             MANAGER, storeId,
-            "2", "Webcam", "Electronics", "HD Webcam", 3, 199.0);
+            "2", "Webcam", "Electronics", "HD Webcam", 3, 199.0, "REGULAR");
 
     assertFalse(res.isSuccess());
     assertTrue(res.getError().toLowerCase().contains("permission"));
@@ -73,7 +78,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     ApiResponse<String> res = storeService.addNewListing(
             MANAGER, storeId,
-            "3", "Speaker", "Audio", "Bluetooth Speaker", 5, -99.0);
+            "3", "Speaker", "Audio", "Bluetooth Speaker", 5, -99.0, "REGULAR");
 
     assertFalse(res.isSuccess());
     assertTrue(res.getError().toLowerCase().contains("possitive"));
@@ -88,7 +93,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         // Add a product to remove
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
-                "rm-1", "Headphones", "Audio", "Noise cancelling", 7, 299.0
+                "rm-1", "Headphones", "Audio", "Noise cancelling", 7, 299.0, "REGULAR"
         ).getData();
 
         ApiResponse res = storeService.removeListing(MANAGER, storeId, listingId);
@@ -109,7 +114,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         // Add a product that manager will attempt to remove
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
-                "rm-2", "Microphone", "Audio", "Studio mic", 4, 179.0
+                "rm-2", "Microphone", "Audio", "Studio mic", 4, 179.0, "REGULAR"
         ).getData();
 
         ApiResponse res = storeService.removeListing(MANAGER, storeId, listingId);
@@ -143,7 +148,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         // Add a product
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
-                "edit‑1", "Camera", "Photography", "DSLR Camera", 2, 1500.0
+                "edit‑1", "Camera", "Photography", "DSLR Camera", 2, 1500.0, "REGULAR"
         ).getData();
 
         // Manager edits price
@@ -164,7 +169,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         // Add a product
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
-                "edit‑2", "Tripod", "Photography", "Adjustable", 3, 249.0
+                "edit‑2", "Tripod", "Photography", "Adjustable", 3, 249.0, "REGULAR"
         ).getData();
 
         // Manager tries to edit price without permission
@@ -239,7 +244,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
     public void manager_editStoreDiscountPolicy_positive() {
         String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
 
-        storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300);
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300.0, "REGULAR");
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
@@ -256,7 +261,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
     @Test
     public void manager_editStoreDiscountPolicy_negative_NoPermission() {
         String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
-        storeService.addNewListing(FOUNDER, storeId, "p1", "Camera", "Electronics", "DSLR", 3, 2500);
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Camera", "Electronics", "DSLR", 3, 2500.0, "REGULAR");
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
 
@@ -274,7 +279,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
     @Test
     public void manager_editStoreDiscountPolicy_alternate_InValidObjectToCreatePolicyTo() {
         String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
-        storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200);
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200.0, "REGULAR");
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);

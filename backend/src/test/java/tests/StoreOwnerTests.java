@@ -36,6 +36,19 @@ public class StoreOwnerTests extends AcceptanceTestBase {
 
     @BeforeEach
     void init() throws Exception {
+        // Register test users first
+        userService.register(FOUNDER, "password");
+        userService.register(OWNER_A, "password");
+        userService.register(MANAGER, "password");
+        
+        // Register additional users used in concurrent tests
+        userService.register("X", "password");
+        userService.register("y", "password");
+        userService.register("ownerB", "password");
+        userService.register("newManager", "password");
+        userService.register("managerY", "password");
+        userService.register("newOwner", "password");
+        
         // fresh repo & services already built in AcceptanceTestBase.setup()
         this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData().storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();
@@ -71,7 +84,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();
         ApiResponse<String> res = storeService.addNewListing(
                 FOUNDER, dto.getStoreID(),
-                "1", "Tablet", "Electronic", "Android tablet", 5, 899);
+                "1", "Tablet", "Electronic", "Android tablet", 5, 899.0, "REGULAR");
         assertNotNull(res.getData());
         assertTrue(res.isSuccess());
     }
@@ -81,7 +94,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();
         ApiResponse<String> res = storeService.addNewListing(
                 FOUNDER, dto.getStoreID(),
-                "1", "Tablet", "Electronic", "Android tablet", 5, -78);
+                "1", "Tablet", "Electronic", "Android tablet", 5, -78.0, "REGULAR");
         assertEquals(null, res.getData());
         assertFalse(res.isSuccess());
     }
@@ -96,7 +109,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                              "Electronic",
                             "Wireless",
                                                4,
-                                              129.9).getData();
+                                              129.9, "REGULAR").getData();
                                        
         
         ApiResponse res = storeService.removeListing(FOUNDER, storeId, listingId);
@@ -122,7 +135,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                              "Electronic",
                             "Wireless",
                                                4,
-                                              129.9).getData();
+                                              129.9, "REGULAR").getData();
                                        
         storeService.closeStore(storeId, FOUNDER);
         ApiResponse res = storeService.removeListing(FOUNDER, storeId, listingId);
@@ -242,7 +255,7 @@ public void owner_editProductFromStore_positive() {
             "Electronic",
             "Wireless",
             4,
-            129.9
+            129.9, "REGULAR"
     ).getData();
 
     ApiResponse<Boolean> res = storeService.editListingPrice(FOUNDER, storeId, listingId, 99.9);
@@ -263,7 +276,7 @@ public void owner_editProductFromStore_negative_InValidPrice() {
             "Electronic",
             "Mechanical",
             5,
-            229.0
+            229.0, "REGULAR"
     ).getData();
 
     ApiResponse<Boolean> res = storeService.editListingPrice(FOUNDER, storeId, listingId, -10.0);
@@ -297,7 +310,7 @@ public void owner_editProductFromStore_alternate_ProductNotFound() {
         "SUM"                     // combinationType
     );
 
-    storeService.addNewListing(FOUNDER, storeId, "p1", "TV", "Electronics", "Smart TV", 10, 2000);
+    storeService.addNewListing(FOUNDER, storeId, "p1", "TV", "Electronics", "Smart TV", 10, 2000.0, "REGULAR");
     ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, FOUNDER, dto);
 
     assertTrue(res.isSuccess());
@@ -334,7 +347,7 @@ public void owner_editProductFromStore_alternate_ProductNotFound() {
 public void owner_addStoreDiscountPolicy_alternate_inactiveStore() {
     String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
 
-    storeService.addNewListing(FOUNDER, storeId, "p1", "Fridge", "Appliances", "Energy Saver", 5, 1200);
+    storeService.addNewListing(FOUNDER, storeId, "p1", "Fridge", "Appliances", "Energy Saver", 5, 1200.0, "REGULAR");
 
     // Close the store before adding discount
     storeService.closeStore(storeId, FOUNDER);
@@ -359,7 +372,7 @@ public void owner_addStoreDiscountPolicy_alternate_inactiveStore() {
 @Test
 public void owner_editStoreDiscountPolicy_positive() {
     String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
-    storeService.addNewListing(FOUNDER, storeId, "p1", "Tablet", "Electronics", "Android Tablet", 5, 1000);
+    storeService.addNewListing(FOUNDER, storeId, "p1", "Tablet", "Electronics", "Android Tablet", 5, 1000.0, "REGULAR");
 
     // Original discount
     PolicyDTO.AddDiscountRequest oldDiscount = new PolicyDTO.AddDiscountRequest(
@@ -453,8 +466,7 @@ public void owner_editStorePurchasePolicy_alternate_InActiveStore() {
     assertTrue(res.getError().toLowerCase().contains("closed")); // Adjust based on actual message
 }
 
-@Test
-public void acceptance_concurrentAddSameOwnerByMultipleAppointers() throws Exception {
+@Test public void acceptance_concurrentAddSameOwnerByMultipleAppointers() throws Exception {
     String OWNER_B = "y";
     storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
     storeService.addAdditionalStoreOwner(FOUNDER, OWNER_B, storeId);
