@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,8 +29,8 @@ public class StoreManagerTests extends AcceptanceTestBase {
     @BeforeEach
     void init() throws Exception {
         // fresh repo & services already built in AcceptanceTestBase.setup()
-        this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData().storeId();
-        StoreDTO dto = storeService.getStore(STORE_NAME).getData();
+        this.storeId = storeService.createStore(STORE_NAME, FOUNDER).storeId();
+        StoreDTO dto = storeService.getStore(STORE_NAME);
         assertNotNull(dto, "store should exist after creation");
     }
     
@@ -40,27 +41,31 @@ public class StoreManagerTests extends AcceptanceTestBase {
         
         // Founder gives the EDIT_PRODUCTS permission to the manager
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
-
-        ApiResponse<String> res = storeService.addNewListing(
+        try {
+            String res = storeService.addNewListing(
                 MANAGER, storeId,
                 "1", "Monitor", "Electronics", "HD Monitor", 10, 699.0);
-
-        assertTrue(res.isSuccess());
-        assertNotNull(res.getData());
+            assertNotNull(res);
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
     }
 
     
     @Test 
     public void manager_addNewProductToStore_negative_noPermission() {
-        // Founder appoints manager, but gives no permissions
-    storeService.addNewManager(FOUNDER, MANAGER, storeId);
+        try {
+            // Founder appoints manager, but gives no permissions
+            storeService.addNewManager(FOUNDER, MANAGER, storeId);
 
-    ApiResponse<String> res = storeService.addNewListing(
-            MANAGER, storeId,
-            "2", "Webcam", "Electronics", "HD Webcam", 3, 199.0);
-
-    assertFalse(res.isSuccess());
-    assertTrue(res.getError().toLowerCase().contains("permission"));
+            String res = storeService.addNewListing(
+                    MANAGER, storeId,
+                    "2", "Webcam", "Electronics", "HD Webcam", 3, 199.0);
+            fail("Expected an exception due to no permissions, but got: " + res);
+        } catch (Exception e) {
+            // Expected exception due to no permissions
+            assertTrue(e.getMessage().toLowerCase().contains("permission"));
+        }
     }
 
 
@@ -68,15 +73,17 @@ public class StoreManagerTests extends AcceptanceTestBase {
     @Test 
     public void manager_addNewProductToStore_negative_InvalidPrice() {
         // Founder appoints manager and grants permission
-    storeService.addNewManager(FOUNDER, MANAGER, storeId);
-    storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
-
-    ApiResponse<String> res = storeService.addNewListing(
-            MANAGER, storeId,
-            "3", "Speaker", "Audio", "Bluetooth Speaker", 5, -99.0);
-
-    assertFalse(res.isSuccess());
-    assertTrue(res.getError().toLowerCase().contains("possitive"));
+        storeService.addNewManager(FOUNDER, MANAGER, storeId);
+        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
+        try {
+            String res = storeService.addNewListing(
+                    MANAGER, storeId,
+                    "3", "Speaker", "Audio", "Bluetooth Speaker", 5, -99.0);
+            fail("Expected an exception due to invalid price, but got: " + res);
+        } catch (Exception e) {
+            // Expected exception due to invalid price
+            assertTrue(e.getMessage().toLowerCase().contains("the price of a products needs to be possitive"));
+        }
     }
 
     @Test
@@ -89,17 +96,21 @@ public class StoreManagerTests extends AcceptanceTestBase {
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
                 "rm-1", "Headphones", "Audio", "Noise cancelling", 7, 299.0
-        ).getData();
+        );
+        try{
+            storeService.removeListing(MANAGER, storeId, listingId);
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
+        try{
+            productService.getListing(listingId);
+            fail("Expected an exception since the listing should be removed, but got a listing");
+        } catch (Exception e) {
+            // Expected exception since the listing should be removed
+            assertTrue(e.getMessage().toLowerCase().contains("not found"));
+        }
 
-        ApiResponse res = storeService.removeListing(MANAGER, storeId, listingId);
-        assertTrue(res.isSuccess());
-
-        ApiResponse<Listing> lookup = productService.getListing(listingId);
-        assertFalse(lookup.isSuccess());
     }
-
-
-
 
    @Test
     public void manager_removeProductFromStore_negative_noPermission() {
@@ -110,25 +121,29 @@ public class StoreManagerTests extends AcceptanceTestBase {
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
                 "rm-2", "Microphone", "Audio", "Studio mic", 4, 179.0
-        ).getData();
-
-        ApiResponse res = storeService.removeListing(MANAGER, storeId, listingId);
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("permission"));
+        );
+        try {
+            storeService.removeListing(MANAGER, storeId, listingId);
+            fail("Expected an exception due to no permission, but got success response");
+        } catch (Exception e) {
+            // Expected exception due to no permission
+            assertTrue(e.getMessage().toLowerCase().contains("permission"));
+        }
     }
-
-
 
     @Test
     public void manager_removeProductFromStore_alternate_ProductNotFound() {
         // Appoint manager and grant permission
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
-
+        try {
         // Attempt to remove a product that doesn't exist
-        ApiResponse res = storeService.removeListing(MANAGER, storeId, "non-existent-id-xyz");
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("error removing listing"));
+            storeService.removeListing(MANAGER, storeId, "non-existent-id-xyz");
+            fail("Expected an exception since the listing does not exist, but got success response");
+        } catch (Exception e) {
+            // Expected exception since the listing does not exist
+            assertTrue(e.getMessage().toLowerCase().contains("error removing listing"));
+        }
     }
 
 
@@ -136,24 +151,27 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @Test
     public void manager_editProductFromStore_positive() {
-        // Appoint manager and grant EDIT_PRODUCTS permission
-        storeService.addNewManager(FOUNDER, MANAGER, storeId);
-        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
+        try {
+            // Appoint manager and grant EDIT_PRODUCTS permission
+            storeService.addNewManager(FOUNDER, MANAGER, storeId);
+            storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_PRODUCTS.getCode(), storeId);
 
-        // Add a product
-        String listingId = storeService.addNewListing(
-                FOUNDER, storeId,
-                "edit‑1", "Camera", "Photography", "DSLR Camera", 2, 1500.0
-        ).getData();
+            // Add a product
+            String listingId = storeService.addNewListing(
+                    FOUNDER, storeId,
+                    "edit‑1", "Camera", "Photography", "DSLR Camera", 2, 1500.0
+            );
 
-        // Manager edits price
-        ApiResponse<Boolean> res = storeService.editListingPrice(MANAGER, storeId, listingId, 1350.0);
-        assertTrue(res.isSuccess());
+            // Manager edits price
+            boolean res = storeService.editListingPrice(MANAGER, storeId, listingId, 1350.0);
+            assertTrue(res);
 
-        // Verify update
-        ApiResponse<Listing> updated = productService.getListing(listingId);
-        assertTrue(updated.isSuccess());
-        assertEquals(1350.0, updated.getData().getPrice());
+            // Verify update
+            Listing updated = productService.getListing(listingId);
+            assertEquals(1350.0, updated.getPrice());
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
     }
 
     @Test
@@ -165,12 +183,15 @@ public class StoreManagerTests extends AcceptanceTestBase {
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
                 "edit‑2", "Tripod", "Photography", "Adjustable", 3, 249.0
-        ).getData();
-
-        // Manager tries to edit price without permission
-        ApiResponse<Boolean> res = storeService.editListingPrice(MANAGER, storeId, listingId, 200.0);
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("permission"));
+        );
+        try {
+            // Manager tries to edit price without permission
+            boolean res = storeService.editListingPrice(MANAGER, storeId, listingId, 200.0);
+            fail("Expected an exception due to no permission, but got success response: " + res);
+        } catch (Exception e) {
+            // Expected exception due to no permission
+            assertTrue(e.getMessage().toLowerCase().contains("permission"));
+        }
     }
 
     @Test
@@ -181,81 +202,85 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
         // Try to edit non-existent listing
         String fakeListingId = "nonexistent-999";
-        ApiResponse<Boolean> res = storeService.editListingPrice(MANAGER, storeId, fakeListingId, 100.0);
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("not found"));
+        try {
+            boolean res = storeService.editListingPrice(MANAGER, storeId, fakeListingId, 100.0);
+            fail("Expected an exception since the listing does not exist, but got success response: " + res);
+        } catch (Exception e) {
+            // Expected exception since the listing does not exist
+            assertTrue(e.getMessage().toLowerCase().contains("not found"));
+        }
     }
 
     @Test
     public void manager_editStorePurchasePolicy_positive() {
-        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
-
-        storeService.addNewManager(FOUNDER, MANAGER, storeId);
-        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
-
-        PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MINITEMS", 2);
-
-        ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
-        assertTrue(res.isSuccess());
-        assertTrue(res.getData());
+        try {
+            String storeId = storeService.createStore("PolicyStore", FOUNDER).storeId();
+            storeService.addNewManager(FOUNDER, MANAGER, storeId);
+            storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
+            PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MINITEMS", 2);
+            boolean res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
+            assertTrue(res);
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
     }
-
-
 
     @Test
     public void manager_editStorePurchasePolicy_negative_NoPermission() {
-        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
-
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).storeId();
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
-
         PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MINPRICE", 300);
-
-        ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("permission"));
+        try {
+            boolean res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
+            fail("Expected an exception due to no permission, but got success response: " + res);
+        } catch (Exception e) {
+            // Expected exception due to no permission
+            assertTrue(e.getMessage().toLowerCase().contains("permission"));
+        }
     }
 
 
     @Test
     public void manager_editStorePurchasePolicy_alternate_InActiveStore() {
-        String storeId = storeService.createStore("PolicyStore", FOUNDER).getData().storeId();
-
+        String storeId = storeService.createStore("PolicyStore", FOUNDER).storeId();
         storeService.addNewManager(FOUNDER, MANAGER, storeId);
         storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
-
         storeService.closeStore(storeId, FOUNDER);
-
         PolicyDTO.AddPurchasePolicyRequest policy = new PolicyDTO.AddPurchasePolicyRequest("MAXITEMS", 15);
-
-        ApiResponse<Boolean> res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("closed"));
+        try {
+            boolean res = storePoliciesService.addPurchasePolicy(storeId, MANAGER, policy);
+            fail("Expected an exception since the store is closed, but got success response: " + res);
+        } catch (Exception e) {
+            // Expected exception since the store is closed
+            assertTrue(e.getMessage().toLowerCase().contains("closed"));
+        }
     }
-
-
-
 
     @Test
     public void manager_editStoreDiscountPolicy_positive() {
-        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
+        try {
+            String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
 
-        storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300);
+            storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300);
 
-        storeService.addNewManager(FOUNDER, MANAGER, storeId);
-        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
+            storeService.addNewManager(FOUNDER, MANAGER, storeId);
+            storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
 
-        PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
-            "PERCENTAGE", "PRODUCT", "p1", 0.25, null, null, List.of(), "SUM"
-        );
+            PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
+                "PERCENTAGE", "PRODUCT", "p1", 0.25, null, null, List.of(), "SUM"
+            );
 
-        ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, MANAGER, dto);
-        assertTrue(res.isSuccess());
-        assertTrue(res.getData());
+            boolean res = storePoliciesService.addDiscount(storeId, MANAGER, dto);
+            assertTrue(res, "Expected discount to be added successfully");
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
+
     }
 
     @Test
     public void manager_editStoreDiscountPolicy_negative_NoPermission() {
-        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
+        String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
         storeService.addNewListing(FOUNDER, storeId, "p1", "Camera", "Electronics", "DSLR", 3, 2500);
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
@@ -263,32 +288,35 @@ public class StoreManagerTests extends AcceptanceTestBase {
         PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
             "PERCENTAGE", "PRODUCT", "p1", 0.1, null, null, List.of(), "SUM"
         );
-
-        ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, MANAGER, dto);
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("permission"));
+        try {
+            boolean res = storePoliciesService.addDiscount(storeId, MANAGER, dto);
+            fail("Expected an exception due to no permission, but got success response: " + res);
+        } catch (Exception e) {
+            // Expected exception due to no permission
+            assertTrue(e.getMessage().toLowerCase().contains("permission"));
+        }
     }
-
-
 
     @Test
     public void manager_editStoreDiscountPolicy_alternate_InValidObjectToCreatePolicyTo() {
-        String storeId = storeService.createStore("DiscountStore", FOUNDER).getData().storeId();
-        storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200);
+        try {
+            String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
+            storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200);
 
-        storeService.addNewManager(FOUNDER, MANAGER, storeId);
-        storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
+            storeService.addNewManager(FOUNDER, MANAGER, storeId);
+            storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
 
-        PolicyDTO.AddDiscountRequest invalid = new PolicyDTO.AddDiscountRequest(
-            null, "PRODUCT", "p1", -0.4, null, null, List.of(), "SUM" // ❌ invalid
-        );
+            PolicyDTO.AddDiscountRequest invalid = new PolicyDTO.AddDiscountRequest(
+                null, "PRODUCT", "p1", -0.4, null, null, List.of(), "SUM" // ❌ invalid
+            );
 
-        ApiResponse<Boolean> res = storePoliciesService.addDiscount(storeId, MANAGER, invalid);
-        assertFalse(res.isSuccess());
-        assertTrue(res.getError().toLowerCase().contains("null")); // Adjust as needed
+            boolean res = storePoliciesService.addDiscount(storeId, MANAGER, invalid);
+            fail("Expected an exception due to invalid discount policy, but got success response: " + res);
+        } catch (Exception e) {
+            // Expected exception due to invalid discount policy
+            assertTrue(e.getMessage().toLowerCase().contains("null"));
+        }
     }
-
-    
 
     @Test public void manager_requestStoreRoles_positive() {}
     @Test public void manager_requestStoreRoles_negative() {}
@@ -301,9 +329,5 @@ public class StoreManagerTests extends AcceptanceTestBase {
     @Test public void manager_viewStorePurchaseHistory_positive() {}
     @Test public void manager_viewStorePurchaseHistory_negative() {}
     @Test public void manager_viewStorePurchaseHistory_alternate() {}
-
-
-
-
 
 }

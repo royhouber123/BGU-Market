@@ -2,12 +2,15 @@ package tests;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,29 +29,39 @@ public class FounderTests extends AcceptanceTestBase {
 
     @BeforeEach
     void setUpTestData() throws Exception {
-        storeId = storeService.createStore(storeName, founderID).getData().storeId();
+        storeId = storeService.createStore(storeName, founderID).storeId();
     }
 
     @Test
     void founder_appoints_owner_successfully() {
         // Appoint ownerA as owner
-        assertTrue(storeService.addAdditionalStoreOwner(founderID, ownerA,storeId).isSuccess());
-        assertTrue(storeService.isOwner(storeId, ownerA).getData());
+        try {
+            storeService.addAdditionalStoreOwner(founderID, ownerA, storeId);
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
+        assertTrue(storeService.isOwner(storeId, ownerA));
     }
 
     @Test
     void founder_appoints_manager_successfully() {
         // Appoint ownerB as manager
-        assertTrue(storeService.addNewManager(founderID,  ownerB,storeId).isSuccess());
-        assertTrue(storeService.isManager(storeId, ownerB).getData());
+        try {
+            storeService.addNewManager(founderID,  ownerB,storeId);
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
+        assertTrue(storeService.isManager(storeId, ownerB));
     }
 
     @Test
     void founder_cannot_be_removed_from_store() {
-        ApiResponse<List<List<String>>> result = storeService.removeOwner(founderID, founderID, storeId);
-        assertFalse(result.isSuccess());
-        System.out.println(result.getError());
-        assertTrue(result.getError().contains("founder"));
+        try {
+            storeService.removeOwner(founderID, founderID, storeId);
+            fail("Expected an exception to be thrown when removing the founder.");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("founder"), "Error message should mention 'founder'.");
+        }
     }
 
 
@@ -58,49 +71,68 @@ public class FounderTests extends AcceptanceTestBase {
         storeService.addAdditionalStoreOwner(founderID, ownerA,storeId);
         storeService.addAdditionalStoreOwner(ownerA,ownerB, storeId);
         storeService.addAdditionalStoreOwner(ownerB, ownerC,storeId);
-
-        ApiResponse<List<List<String>>> removedOwners = storeService.removeOwner(founderID, ownerA, storeId);
-        // Map<String, List<String>> appointments = storeService.getAppointmentHierarchy(storeId);
-        assertTrue(removedOwners.isSuccess());
-        assertNotNull(removedOwners, "Error got Null");
-        assertTrue(removedOwners.getData().get(0).contains(ownerB), "ownerA should have appointed ownerB");
-        assertTrue(removedOwners.getData().get(0).contains(ownerC), "ownerA should have appointed ownerB which appointed ownerC");
+        try {
+            List<List<String>> removedOwners = storeService.removeOwner(founderID, ownerA, storeId);
+            // Map<String, List<String>> appointments = storeService.getAppointmentHierarchy(storeId);
+            assertNotNull(removedOwners, "Error got Null");
+            assertTrue(removedOwners.get(0).contains(ownerB), "ownerA should have appointed ownerB");
+            assertTrue(removedOwners.get(0).contains(ownerC), "ownerA should have appointed ownerB which appointed ownerC");
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
 
     }
 
     @Test
     void founder_attempts_to_transfer_ownership_blocked() {
-        ApiResponse<Void> result = storeService.addAdditionalStoreOwner(founderID, founderID, storeId);
-        assertFalse(result.isSuccess());
-        assertTrue(result.getError().contains("founder") || result.getError().contains("already an owner"));
+        try {
+            storeService.addAdditionalStoreOwner(founderID, founderID, storeId);
+            fail("Expected an exception to be thrown when trying to transfer ownership to the founder.");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("founder") || e.getMessage().contains("already an owner"),
+                    "Error message should mention 'founder' or 'already an owner'.");
+        }
     }
 
     @Test
     void founder_closes_store_success() {
-        assertTrue(storeService.getStore(storeName).getData().isActive());
-        ApiResponse<String> result = storeService.closeStore(storeId, founderID);
-        assertTrue(result.isSuccess());
-        assertFalse(storeService.getStore(storeName).getData().isActive());
-        assertEquals(result.getData(), storeId);
+        assertTrue(storeService.getStore(storeName).isActive());
+        try{
+            String result = storeService.closeStore(storeId, founderID);
+            assertFalse(storeService.getStore(storeName).isActive());
+            assertEquals(result, storeId);
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
     }
 
     @Test
     void founder_closes_store_fail_user_is_not_founder() {
-        assertTrue(storeService.getStore(storeName).getData().isActive());
-        ApiResponse<String> result = storeService.closeStore(storeId, ownerA);
-        assertFalse(result.isSuccess());
-        assertTrue(result.getError().contains("founder"));
-        assertTrue(storeService.getStore(storeName).getData().isActive());
+        assertTrue(storeService.getStore(storeName).isActive());
+        try {
+            storeService.closeStore(storeId, ownerA);
+            fail("Expected an exception to be thrown when a non-founder tries to close the store.");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("founder"), "Error message should mention 'founder'.");
+            assertTrue(storeService.getStore(storeName).isActive());
+
+        }
     }
 
     @Test
     void founder_closes_store_fail_store_is_already_inactive() {
-        ApiResponse<String> result1 = storeService.closeStore(storeId, founderID);
-        assertTrue(result1.isSuccess());
-        assertEquals(result1.getData(), storeId);
-        ApiResponse<String> result2 = storeService.closeStore(storeId, founderID);
-        assertFalse(result2.isSuccess());
-        assertTrue(result2.getError().contains("already closed"));
+        try {
+            String result1 = storeService.closeStore(storeId, founderID);
+            assertEquals(result1, storeId);
+        } catch (Exception e) {
+            fail("Expected no exception, but got: " + e.getMessage(), e);
+        }
+        try {
+            storeService.closeStore(storeId, founderID);
+            fail("Expected an exception to be thrown when trying to close an already closed store.");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("already closed"), "Error message should mention 'already closed'.");
+        }
     }
 
 }

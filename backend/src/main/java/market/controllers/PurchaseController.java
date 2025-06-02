@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import utils.ApiResponse;
+import utils.ApiResponseBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -38,12 +39,9 @@ public class PurchaseController {
             throw new IllegalStateException("No authentication token provided");
         }
         
-        ApiResponse<Claims> claimsResponse = authService.parseToken(token);
-        if (!claimsResponse.isSuccess()) {
-            throw new IllegalStateException("Invalid token: " + claimsResponse.getError());
-        }
+        Claims claimsResponse = authService.parseToken(token);
         
-        String username = claimsResponse.getData().getSubject();
+        String username = claimsResponse.getSubject();
         if (username == null || username.isBlank()) {
             throw new IllegalStateException("Invalid token: no username found");
         }
@@ -57,21 +55,17 @@ public class PurchaseController {
      */
     @PostMapping("/execute")
     public ResponseEntity<ApiResponse<String>> executePurchase(@RequestBody ExecutePurchaseRequest request) {
-        try {
-            String token = TokenUtils.getToken();
-            if (token == null) {
-                return ResponseEntity.ok(ApiResponse.fail("No authentication token provided"));
-            }
-            
-            ApiResponse<String> result = purchaseService.executePurchaseByUsername(
+        String token = TokenUtils.getToken();
+        if (token == null) {
+            return ResponseEntity.ok(ApiResponse.fail("No authentication token provided"));
+        }
+        return ApiResponseBuilder.build(() ->
+            purchaseService.executePurchaseByUsername(
                 token,
                 request.paymentDetails(),
                 request.shippingAddress()
-            );
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Purchase failed: " + e.getMessage()));
-        }
+            )
+        );
     }
 
     /**
@@ -80,23 +74,18 @@ public class PurchaseController {
      */
     @PostMapping("/auction/offer")
     public ResponseEntity<ApiResponse<Void>> submitAuctionOffer(@RequestBody AuctionOfferRequest request) {
-        try {
+        return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
-            
-            ApiResponse<Void> result = purchaseService.submitOffer(
+            purchaseService.submitOffer(
                 String.valueOf(request.storeId()),
                 String.valueOf(request.productId()),
-                username, // Use username instead of integer userId
+                username,
                 request.offerAmount(),
-                "Default shipping address", // You may want to add this to the DTO
-                "Default contact info" // You may want to add this to the DTO
+                "Default shipping address",
+                "Default contact info"
             );
-            return ResponseEntity.ok(result);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Auction offer failed: " + e.getMessage()));
-        }
+            return null;
+        });
     }
 
     /**
@@ -108,20 +97,14 @@ public class PurchaseController {
             @PathVariable int userId,
             @PathVariable int storeId,
             @PathVariable int productId) {
-        try {
+        return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
-            
-            ApiResponse<Map<String, Object>> result = purchaseService.getAuctionStatus(
-                username, // Use username instead of integer userId
-                String.valueOf(storeId), 
+            return purchaseService.getAuctionStatus(
+                username,
+                String.valueOf(storeId),
                 String.valueOf(productId)
             );
-            return ResponseEntity.ok(result);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Failed to get auction status: " + e.getMessage()));
-        }
+        });
     }
 
     /**
@@ -130,23 +113,18 @@ public class PurchaseController {
      */
     @PostMapping("/bid/submit")
     public ResponseEntity<ApiResponse<Void>> submitBid(@RequestBody BidSubmissionRequest request) {
-        try {
+        return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
-            
-            ApiResponse<Void> result = purchaseService.submitBid(
+            purchaseService.submitBid(
                 String.valueOf(request.storeId()),
                 String.valueOf(request.productId()),
-                username, // Use username instead of integer userId
+                username,
                 request.bidAmount(),
-                "Default shipping address", // You may want to add this to the DTO
-                "Default contact info" // You may want to add this to the DTO
+                "Default shipping address",
+                "Default contact info"
             );
-            return ResponseEntity.ok(result);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Bid submission failed: " + e.getMessage()));
-        }
+            return null;
+        });
     }
 
     /**
@@ -158,20 +136,14 @@ public class PurchaseController {
             @PathVariable int storeId,
             @PathVariable int productId,
             @PathVariable int userId) {
-        try {
+        return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
-            
-            ApiResponse<String> result = purchaseService.getBidStatus(
-                String.valueOf(storeId), 
-                String.valueOf(productId), 
-                username // Use username instead of integer userId
+            return purchaseService.getBidStatus(
+                String.valueOf(storeId),
+                String.valueOf(productId),
+                username
             );
-            return ResponseEntity.ok(result);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Failed to get bid status: " + e.getMessage()));
-        }
+        });
     }
 
     /**
@@ -180,20 +152,15 @@ public class PurchaseController {
      */
     @PostMapping("/bid/counter/accept")
     public ResponseEntity<ApiResponse<Void>> acceptCounterOffer(@RequestBody CounterBidRequest request) {
-        try {
+        return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
-            
-            ApiResponse<Void> result = purchaseService.acceptCounterOffer(
+            purchaseService.acceptCounterOffer(
                 String.valueOf(request.storeId()),
                 String.valueOf(request.productId()),
-                username // Use username instead of integer userId
+                username
             );
-            return ResponseEntity.ok(result);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Accept counter offer failed: " + e.getMessage()));
-        }
+            return null;
+        });
     }
 
     /**
@@ -202,20 +169,15 @@ public class PurchaseController {
      */
     @PostMapping("/bid/counter/decline")
     public ResponseEntity<ApiResponse<Void>> declineCounterOffer(@RequestBody CounterBidRequest request) {
-        try {
+        return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
-            
-            ApiResponse<Void> result = purchaseService.declineCounterOffer(
+            purchaseService.declineCounterOffer(
                 String.valueOf(request.storeId()),
                 String.valueOf(request.productId()),
-                username // Use username instead of integer userId
+                username
             );
-            return ResponseEntity.ok(result);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Decline counter offer failed: " + e.getMessage()));
-        }
+            return null;
+        });
     }
 
     /**
@@ -224,16 +186,10 @@ public class PurchaseController {
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<List<Purchase>>> getUserPurchaseHistory(@PathVariable int userId) {
-        try {
+        return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
-            
-            ApiResponse<List<Purchase>> result = purchaseService.getPurchasesByUser(username);
-            return ResponseEntity.ok(result);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Failed to get purchase history: " + e.getMessage()));
-        }
+            return purchaseService.getPurchasesByUser(username);
+        });
     }
 
     /**
@@ -242,11 +198,8 @@ public class PurchaseController {
      */
     @GetMapping("/store/{storeId}")
     public ResponseEntity<ApiResponse<List<Purchase>>> getStorePurchaseHistory(@PathVariable int storeId) {
-        try {
-            ApiResponse<List<Purchase>> result = purchaseService.getPurchasesByStore(String.valueOf(storeId));
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.fail("Failed to get store purchase history: " + e.getMessage()));
-        }
+        return ApiResponseBuilder.build(() ->
+            purchaseService.getPurchasesByStore(String.valueOf(storeId))
+        );
     }
 } 

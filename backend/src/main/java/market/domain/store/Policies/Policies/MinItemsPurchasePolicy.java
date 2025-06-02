@@ -5,6 +5,7 @@ import market.domain.store.Policies.PurchasePolicy;
 import market.dto.PolicyDTO;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class MinItemsPurchasePolicy implements PurchasePolicy {
 
@@ -26,5 +27,18 @@ public class MinItemsPurchasePolicy implements PurchasePolicy {
     @Override
     public PolicyDTO.AddPurchasePolicyRequest toDTO() {
         return new PolicyDTO.AddPurchasePolicyRequest("MINITEMS", minItems);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MinItemsPurchasePolicy that = (MinItemsPurchasePolicy) o;
+        return minItems == that.minItems;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(minItems);
     }
 }

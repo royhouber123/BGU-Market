@@ -6,6 +6,7 @@ import market.domain.store.Listing;
 import market.domain.store.IListingRepository;
 import market.dto.ProductDTO;
 import utils.ApiResponse;
+import utils.ApiResponseBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,9 +33,10 @@ public class StoreController {
      * POST /api/stores/create
      */
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<market.dto.StoreDTO.CreateStoreResponse>> createStore(@RequestBody market.dto.StoreDTO.CreateStoreRequest request) {
-        ApiResponse<market.dto.StoreDTO.CreateStoreResponse> response = storeService.createStore(request.storeName(), request.founderId());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<market.dto.StoreDTO.CreateStoreResponse>> createStore(@RequestBody market.dto.StoreDTO.CreateStoreRequest request) {       
+        return ApiResponseBuilder.build(() ->
+            storeService.createStore(request.storeName(), request.founderId())
+        );
     }
 
     /**
@@ -43,8 +45,9 @@ public class StoreController {
      */
     @PostMapping("/{storeID}/close")
     public ResponseEntity<ApiResponse<String>> closeStore(@PathVariable String storeID, @RequestParam String userName) {
-        ApiResponse<String> response = storeService.closeStore(storeID, userName);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            storeService.closeStore(storeID, userName)
+        );
     }
 
     /**
@@ -53,8 +56,9 @@ public class StoreController {
      */
     @PostMapping("/{storeID}/open")
     public ResponseEntity<ApiResponse<String>> openStore(@PathVariable String storeID, @RequestParam String userName) {
-        ApiResponse<String> response = storeService.openStore(storeID, userName);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.openStore(storeID, userName)    
+        );
     }
 
     /**
@@ -63,8 +67,9 @@ public class StoreController {
      */
     @GetMapping("/{storeName}")
     public ResponseEntity<ApiResponse<StoreDTO>> getStore(@PathVariable String storeName) {
-        ApiResponse<StoreDTO> response = storeService.getStore(storeName);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.getStore(storeName)
+        );
     }
 
     /**
@@ -73,12 +78,9 @@ public class StoreController {
      */
     @PostMapping("/owners/add")
     public ResponseEntity<ApiResponse<Void>> addAdditionalStoreOwner(@RequestBody market.dto.StoreDTO.AddOwnerRequest request) {
-        ApiResponse<Void> response = storeService.addAdditionalStoreOwner(
-            request.appointerID(), 
-            request.newOwnerID(), 
-            request.storeID()
+        return ApiResponseBuilder.build(() ->
+            storeService.addAdditionalStoreOwner(request.appointerID(), request.newOwnerID(), request.storeID())
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -87,12 +89,9 @@ public class StoreController {
      */
     @PostMapping("/owners/request")
     public ResponseEntity<ApiResponse<Void>> ownerAppointmentRequest(@RequestBody market.dto.StoreDTO.AddOwnerRequest request) {
-        ApiResponse<Void> response = storeService.OwnerAppointmentRequest(
-            request.appointerID(), 
-            request.newOwnerID(), 
-            request.storeID()
+        return ApiResponseBuilder.build(() ->
+            storeService.OwnerAppointmentRequest(request.appointerID(), request.newOwnerID(), request.storeID())
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -104,8 +103,9 @@ public class StoreController {
             @PathVariable String storeID,
             @PathVariable String toRemove,
             @RequestParam String requesterId) {
-        ApiResponse<List<List<String>>> response = storeService.removeOwner(requesterId, toRemove, storeID);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.removeOwner(requesterId, toRemove, storeID)
+        );
     }
 
     /**
@@ -114,12 +114,9 @@ public class StoreController {
      */
     @PostMapping("/managers/add")
     public ResponseEntity<ApiResponse<Void>> addNewManager(@RequestBody market.dto.StoreDTO.AddManagerRequest request) {
-        ApiResponse<Void> response = storeService.addNewManager(
-            request.appointerID(), 
-            request.newManagerName(), 
-            request.storeID()
+        return ApiResponseBuilder.build(() ->
+            storeService.addNewManager(request.appointerID(), request.newManagerName(), request.storeID())
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -128,13 +125,9 @@ public class StoreController {
      */
     @PostMapping("/managers/permissions/add")
     public ResponseEntity<ApiResponse<Void>> addPermissionToManager(@RequestBody market.dto.StoreDTO.AddPermissionRequest request) {
-        ApiResponse<Void> response = storeService.addPermissionToManager(
-            request.managerID(), 
-            request.appointerID(), 
-            request.permissionID(), 
-            request.storeID()
+        return ApiResponseBuilder.build(() ->
+            storeService.addPermissionToManager(request.managerID(), request.appointerID(), request.permissionID(), request.storeID())
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -146,8 +139,9 @@ public class StoreController {
             @PathVariable String storeID,
             @PathVariable String managerID,
             @RequestParam String whoIsAsking) {
-        ApiResponse<Set<Integer>> response = storeService.getManagersPermissions(managerID, whoIsAsking, storeID);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.getManagersPermissions(managerID, whoIsAsking, storeID)
+        );
     }
 
     /**
@@ -160,8 +154,9 @@ public class StoreController {
             @PathVariable String managerID,
             @PathVariable int permissionID,
             @RequestParam String appointerID) {
-        ApiResponse<Void> response = storeService.removePermissionFromManager(managerID, permissionID, appointerID, storeID);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.removePermissionFromManager(managerID, permissionID, appointerID, storeID)
+        );
     }
 
     /**
@@ -170,17 +165,18 @@ public class StoreController {
      */
     @PostMapping("/listings/add")
     public ResponseEntity<ApiResponse<String>> addNewListing(@RequestBody ProductDTO.AddListingRequest request) {
-        ApiResponse<String> response = storeService.addNewListing(
-            request.userName(),
-            request.storeID(),
-            request.productId(),
-            request.productName(),
-            request.productCategory(),
-            request.productDescription(),
-            request.quantity(),
-            request.price()
+        return ApiResponseBuilder.build(() ->
+            storeService.addNewListing(
+                request.userName(),
+                request.storeID(),
+                request.productId(),
+                request.productName(),
+                request.productCategory(),
+                request.productDescription(),
+                request.quantity(),
+                request.price()
+            )
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -192,8 +188,9 @@ public class StoreController {
             @PathVariable String storeID,
             @PathVariable String listingId,
             @RequestParam String userName) {
-        ApiResponse<Void> response = storeService.removeListing(userName, storeID, listingId);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.removeListing(userName, storeID, listingId)
+        );
     }
 
     /**
@@ -202,13 +199,14 @@ public class StoreController {
      */
     @PutMapping("/listings/price")
     public ResponseEntity<ApiResponse<Boolean>> editListingPrice(@RequestBody ProductDTO.EditListingPriceRequest request) {
-        ApiResponse<Boolean> response = storeService.editListingPrice(
-            request.userName(),
-            request.storeID(),
-            request.listingId(),
-            request.newPrice()
+        return ApiResponseBuilder.build(() ->
+            storeService.editListingPrice(
+                request.userName(),
+                request.storeID(),
+                request.listingId(),
+                request.newPrice()
+            )
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -217,13 +215,14 @@ public class StoreController {
      */
     @PutMapping("/listings/name")
     public ResponseEntity<ApiResponse<Boolean>> editListingProductName(@RequestBody ProductDTO.EditListingRequest request) {
-        ApiResponse<Boolean> response = storeService.editListingProductName(
-            request.userName(),
-            request.storeID(),
-            request.listingId(),
-            request.newValue()
+        return ApiResponseBuilder.build(() ->
+            storeService.editListingProductName(
+                request.userName(),
+                request.storeID(),
+                request.listingId(),
+                request.newValue()
+            )
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -232,13 +231,14 @@ public class StoreController {
      */
     @PutMapping("/listings/description")
     public ResponseEntity<ApiResponse<Boolean>> editListingDescription(@RequestBody ProductDTO.EditListingRequest request) {
-        ApiResponse<Boolean> response = storeService.editListingDescription(
-            request.userName(),
-            request.storeID(),
-            request.listingId(),
-            request.newValue()
+        return ApiResponseBuilder.build(() ->
+            storeService.editListingDescription(
+                request.userName(),
+                request.storeID(),
+                request.listingId(),
+                request.newValue()
+            )
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -247,13 +247,14 @@ public class StoreController {
      */
     @PutMapping("/listings/quantity")
     public ResponseEntity<ApiResponse<Boolean>> editListingQuantity(@RequestBody ProductDTO.EditListingQuantityRequest request) {
-        ApiResponse<Boolean> response = storeService.editListingQuantity(
-            request.userName(),
-            request.storeID(),
-            request.listingId(),
-            request.newQuantity()
+        return ApiResponseBuilder.build(() ->
+            storeService.editListingQuantity(
+                request.userName(),
+                request.storeID(),
+                request.listingId(),
+                request.newQuantity()
+            )   
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -262,13 +263,14 @@ public class StoreController {
      */
     @PutMapping("/listings/category")
     public ResponseEntity<ApiResponse<Boolean>> editListingCategory(@RequestBody ProductDTO.EditListingRequest request) {
-        ApiResponse<Boolean> response = storeService.editListingCategory(
-            request.userName(),
-            request.storeID(),
-            request.listingId(),
-            request.newValue()
+        return ApiResponseBuilder.build(() ->
+            storeService.editListingCategory(
+                request.userName(),
+                request.storeID(),
+                request.listingId(),
+                request.newValue()
+            ) 
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -279,8 +281,9 @@ public class StoreController {
     public ResponseEntity<ApiResponse<Double>> getProductPrice(
             @PathVariable String storeID,
             @PathVariable String productID) {
-        ApiResponse<Double> response = storeService.getProductPrice(storeID, productID);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.getProductPrice(storeID, productID)
+        );
     }
 
     /**
@@ -291,8 +294,9 @@ public class StoreController {
     public ResponseEntity<ApiResponse<Boolean>> isOwner(
             @PathVariable String storeID,
             @PathVariable String userID) {
-        ApiResponse<Boolean> response = storeService.isOwner(storeID, userID);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.isOwner(storeID, userID)
+        );
     }
 
     /**
@@ -303,8 +307,9 @@ public class StoreController {
     public ResponseEntity<ApiResponse<Boolean>> isManager(
             @PathVariable String storeID,
             @PathVariable String userID) {
-        ApiResponse<Boolean> response = storeService.isManager(storeID, userID);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.isManager(storeID, userID)
+        );
     }
 
     /**
@@ -313,8 +318,9 @@ public class StoreController {
      */
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getInformationAboutStoresAndProducts() {
-        ApiResponse<List<Map<String, Object>>> response = storeService.getInformationAboutStoresAndProducts();
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.getInformationAboutStoresAndProducts()
+        );
     }
 
     /**
@@ -323,7 +329,8 @@ public class StoreController {
      */
     @GetMapping("/listings/repository")
     public ResponseEntity<ApiResponse<IListingRepository>> getListingRepository() {
-        ApiResponse<IListingRepository> response = storeService.getListingRepository();
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.getListingRepository()
+        );
     }
 } 

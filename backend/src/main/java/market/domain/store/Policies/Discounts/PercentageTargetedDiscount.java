@@ -1,6 +1,7 @@
 package market.domain.store.Policies.Discounts;
 
 import java.util.Map;
+import java.util.Objects;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
@@ -55,5 +56,20 @@ public class PercentageTargetedDiscount implements DiscountPolicy {
             null,                      // subDiscounts (not composite)
             null                       // combinationType (not composite)
         );
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // Same object reference
+        if (obj == null || getClass() != obj.getClass()) return false; // Different class or null object
+        PercentageTargetedDiscount that = (PercentageTargetedDiscount) obj;
+        return Double.compare(that.percentage, percentage) == 0 && // Compare percentage values
+               targetType == that.targetType && // Compare targetType (Enum, so it uses ==)
+               targetId.equals(that.targetId); // Compare targetId (String, so it uses equals)
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(targetType, targetId, percentage); // Use Objects.hash() for simplicity
     }
 }

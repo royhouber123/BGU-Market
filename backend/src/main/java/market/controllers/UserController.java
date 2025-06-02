@@ -7,6 +7,8 @@ import market.dto.AuthDTO;
 import market.dto.UserDTO;
 import market.dto.CartDTO;
 import utils.ApiResponse;
+import utils.ApiResponseBuilder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +31,9 @@ public class UserController {
      */
     @PostMapping("/register/guest")
     public ResponseEntity<ApiResponse<Void>> registerGuest(@RequestBody AuthDTO.RegisterRequest request) {
-        ApiResponse<Void> response = userService.register(request.username());
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.register(request.username())
+        );
     }
 
     /**
@@ -39,8 +42,9 @@ public class UserController {
      */
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> registerUser(@RequestBody AuthDTO.RegisterRequest request) {
-        ApiResponse<Void> response = userService.register(request.username(), request.password());
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.register(request.username(), request.password())
+        );
     }
 
     /**
@@ -49,8 +53,9 @@ public class UserController {
      */
     @DeleteMapping("/{username}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable String username) {
-        ApiResponse<Void> response = userService.deleteUser(username);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.deleteUser(username)
+        );
     }
 
     /**
@@ -59,8 +64,9 @@ public class UserController {
      */
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<User>> getCurrentUser() {
-        ApiResponse<User> response = userService.getUser();
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.getUser()
+        );
     }
 
     /**
@@ -70,8 +76,9 @@ public class UserController {
      */
     @PutMapping("/username")
     public ResponseEntity<ApiResponse<String>> changeUsername(@RequestBody UserDTO.ChangeUsernameRequest request) {
-        ApiResponse<String> response = userService.changeUserName(request.newUsername());
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.changeUserName(request.newUsername())
+        );
     }
 
     /**
@@ -80,8 +87,9 @@ public class UserController {
      */
     @PutMapping("/password")
     public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody UserDTO.ChangePasswordRequest request) {
-        ApiResponse<Boolean> response = userService.changePassword(request.newPassword());
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.changePassword(request.newPassword())
+        );
     }
 
     /**
@@ -90,12 +98,13 @@ public class UserController {
      */
     @PostMapping("/cart/add")
     public ResponseEntity<ApiResponse<Void>> addProductToCart(@RequestBody CartDTO.AddProductToCartRequest request) {
-        ApiResponse<Void> response = userService.addProductToCart(
-            request.storeId(), 
-            request.productName(), 
-            request.quantity()
+        return ApiResponseBuilder.build(() -> 
+            userService.addProductToCart(
+                request.storeId(), 
+                request.productName(), 
+                request.quantity()
+            )
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -104,12 +113,13 @@ public class UserController {
      */
     @PostMapping("/cart/remove")
     public ResponseEntity<ApiResponse<Void>> removeProductFromCart(@RequestBody CartDTO.RemoveProductFromCartRequest request) {
-        ApiResponse<Void> response = userService.removeProductFromCart(
-            request.storeId(), 
-            request.productName(), 
-            request.quantity()
+        return ApiResponseBuilder.build(() -> 
+            userService.removeProductFromCart(
+                request.storeId(), 
+                request.productName(), 
+                request.quantity()
+            )
         );
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -118,8 +128,9 @@ public class UserController {
      */
     @DeleteMapping("/cart")
     public ResponseEntity<ApiResponse<Void>> clearCart() {
-        ApiResponse<Void> response = userService.clearCart();
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.clearCart()
+        );
     }
 
     /**
@@ -128,7 +139,8 @@ public class UserController {
      */
     @GetMapping("/cart")
     public ResponseEntity<ApiResponse<ShoppingCart>> getCart() {
-        ApiResponse<ShoppingCart> response = userService.getCart();
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            userService.getCart()
+        );
     }
 } 

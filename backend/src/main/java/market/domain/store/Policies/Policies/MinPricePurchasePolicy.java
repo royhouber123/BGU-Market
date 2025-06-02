@@ -6,6 +6,7 @@ import market.domain.store.Policies.PurchasePolicy;
 import market.dto.PolicyDTO;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class MinPricePurchasePolicy implements PurchasePolicy {
 
@@ -36,5 +37,18 @@ public class MinPricePurchasePolicy implements PurchasePolicy {
     @Override
     public PolicyDTO.AddPurchasePolicyRequest toDTO() {
         return new PolicyDTO.AddPurchasePolicyRequest("MINPRICE", minPrice);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MinPricePurchasePolicy that = (MinPricePurchasePolicy) o;
+        return minPrice == that.minPrice;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(minPrice);
     }
 }
