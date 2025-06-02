@@ -27,6 +27,11 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @BeforeEach
     void init() throws Exception {
+        // Register test users first
+        userService.register(FOUNDER, "password");
+        userService.register(OWNER_A, "password");
+        userService.register(MANAGER, "password");
+        
         // fresh repo & services already built in AcceptanceTestBase.setup()
         this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData().storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();

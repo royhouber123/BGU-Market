@@ -537,7 +537,7 @@ void submit_bid_for_product_fail() throws Exception {
     
     // Assert
     assertFalse(response.isSuccess(), "Bid submission should fail with negative amount");
-    assertTrue(response.getError().toLowerCase().contains("failed"), 
+    assertTrue(response.getError().toLowerCase().contains("positive"), 
         "Error message should indicate bid failure");
     
     // Clean up

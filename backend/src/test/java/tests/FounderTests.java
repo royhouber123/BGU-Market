@@ -26,20 +26,34 @@ public class FounderTests extends AcceptanceTestBase {
 
     @BeforeEach
     void setUpTestData() throws Exception {
+        // Register test users first
+        userService.register(founderID, "password");
+        userService.register(ownerA, "password");
+        userService.register(ownerB, "password");
+        userService.register(ownerC, "password");
+        
         storeId = storeService.createStore(storeName, founderID).getData().storeId();
     }
 
     @Test
     void founder_appoints_owner_successfully() {
         // Appoint ownerA as owner
-        assertTrue(storeService.addAdditionalStoreOwner(founderID, ownerA,storeId).isSuccess());
+        ApiResponse<Void> result = storeService.addAdditionalStoreOwner(founderID, ownerA,storeId);
+        if (!result.isSuccess()) {
+            System.out.println("addAdditionalStoreOwner failed: " + result.getError());
+        }
+        assertTrue(result.isSuccess());
         assertTrue(storeService.isOwner(storeId, ownerA).getData());
     }
 
     @Test
     void founder_appoints_manager_successfully() {
         // Appoint ownerB as manager
-        assertTrue(storeService.addNewManager(founderID,  ownerB,storeId).isSuccess());
+        ApiResponse<Void> result = storeService.addNewManager(founderID,  ownerB,storeId);
+        if (!result.isSuccess()) {
+            System.out.println("addNewManager failed: " + result.getError());
+        }
+        assertTrue(result.isSuccess());
         assertTrue(storeService.isManager(storeId, ownerB).getData());
     }
 

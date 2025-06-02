@@ -36,6 +36,19 @@ public class StoreOwnerTests extends AcceptanceTestBase {
 
     @BeforeEach
     void init() throws Exception {
+        // Register test users first
+        userService.register(FOUNDER, "password");
+        userService.register(OWNER_A, "password");
+        userService.register(MANAGER, "password");
+        
+        // Register additional users used in concurrent tests
+        userService.register("X", "password");
+        userService.register("y", "password");
+        userService.register("ownerB", "password");
+        userService.register("newManager", "password");
+        userService.register("managerY", "password");
+        userService.register("newOwner", "password");
+        
         // fresh repo & services already built in AcceptanceTestBase.setup()
         this.storeId = storeService.createStore(STORE_NAME, FOUNDER).getData().storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME).getData();
