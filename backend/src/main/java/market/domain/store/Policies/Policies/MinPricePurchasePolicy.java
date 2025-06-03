@@ -40,15 +40,16 @@ public class MinPricePurchasePolicy implements PurchasePolicy {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MinPricePurchasePolicy that = (MinPricePurchasePolicy) o;
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        MinPricePurchasePolicy that = (MinPricePurchasePolicy) obj;
         return minPrice == that.minPrice;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(minPrice);
+        return Integer.hashCode(minPrice);
     }
 }

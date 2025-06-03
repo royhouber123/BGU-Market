@@ -113,11 +113,28 @@ public class PurchaseController {
      */
     @PostMapping("/bid/submit")
     public ResponseEntity<ApiResponse<Void>> submitBid(@RequestBody BidSubmissionRequest request) {
+        // Validate request
+        if (request == null) {
+            return ResponseEntity.ok(ApiResponse.fail("Request body cannot be null"));
+        }
+
+        // Additional validation for request fields
+        if (request.productId() == null) {
+            return ResponseEntity.ok(ApiResponse.fail("Product ID cannot be null"));
+        }
+
+        if (request.storeId() <= 0) {
+            return ResponseEntity.ok(ApiResponse.fail("Invalid store ID"));
+        }
+
+        if (request.bidAmount() <= 0) {
+            return ResponseEntity.ok(ApiResponse.fail("Bid amount must be positive"));
+        }
         return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
             purchaseService.submitBid(
                 String.valueOf(request.storeId()),
-                String.valueOf(request.productId()),
+                request.productId(), // Use productId directly as String
                 username,
                 request.bidAmount(),
                 "Default shipping address",
@@ -128,19 +145,19 @@ public class PurchaseController {
     }
 
     /**
-     * Get bid status
+     * Get bid status for a user
      * GET /api/purchases/bid/status/{storeId}/{productId}/{userId}
      */
     @GetMapping("/bid/status/{storeId}/{productId}/{userId}")
     public ResponseEntity<ApiResponse<String>> getBidStatus(
             @PathVariable int storeId,
-            @PathVariable int productId,
+            @PathVariable String productId,
             @PathVariable int userId) {
         return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
             return purchaseService.getBidStatus(
                 String.valueOf(storeId),
-                String.valueOf(productId),
+                productId,  // Use productId directly as String
                 username
             );
         });
@@ -156,8 +173,8 @@ public class PurchaseController {
             String username = extractUsernameFromToken();
             purchaseService.acceptCounterOffer(
                 String.valueOf(request.storeId()),
-                String.valueOf(request.productId()),
-                username
+                request.productId(), // Use productId directly as String
+                username // Use username instead of integer userId
             );
             return null;
         });
@@ -173,8 +190,8 @@ public class PurchaseController {
             String username = extractUsernameFromToken();
             purchaseService.declineCounterOffer(
                 String.valueOf(request.storeId()),
-                String.valueOf(request.productId()),
-                username
+                request.productId(), // Use productId directly as String
+                username // Use username instead of integer userId
             );
             return null;
         });
@@ -201,5 +218,123 @@ public class PurchaseController {
         return ApiResponseBuilder.build(() ->
             purchaseService.getPurchasesByStore(String.valueOf(storeId))
         );
+    }
+
+    /**
+     * Get all bids for a specific product
+     * GET /api/purchases/bids/{storeId}/{productId}
+     */
+    @GetMapping("/bids/{storeId}/{productId}")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getProductBids(
+            @PathVariable int storeId,
+            @PathVariable String productId) {
+        try {
+            String username = extractUsernameFromToken();
+            
+            ApiResponse<List<Map<String, Object>>> result = purchaseService.getProductBids(
+                String.valueOf(storeId), 
+                productId, // Use productId directly as String
+                username
+            );
+            return ResponseEntity.ok(result);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.fail("Failed to get product bids: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get current user's bids for a specific product
+     * GET /api/purchases/my-bids/{storeId}/{productId}
+     */
+    @GetMapping("/my-bids/{storeId}/{productId}")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyProductBids(
+            @PathVariable int storeId,
+            @PathVariable String productId) {
+        try {
+            String username = extractUsernameFromToken();
+            
+            ApiResponse<List<Map<String, Object>>> result = purchaseService.getMyProductBids(
+                String.valueOf(storeId), 
+                productId, // Use productId directly as String
+                username
+            );
+            return ResponseEntity.ok(result);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.fail("Failed to get user's product bids: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Approve a bid
+     * POST /api/purchases/bid/approve
+     */
+    @PostMapping("/bid/approve")
+    public ResponseEntity<ApiResponse<Void>> approveBid(@RequestBody BidApprovalRequest request) {
+        try {
+            String username = extractUsernameFromToken();
+            
+            ApiResponse<Void> result = purchaseService.approveBid(
+                String.valueOf(request.storeId()),
+                request.productId(), // Use productId directly as String
+                request.bidderUsername(),
+                username // approver username
+            );
+            return ResponseEntity.ok(result);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.fail("Failed to approve bid: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Reject a bid
+     * POST /api/purchases/bid/reject
+     */
+    @PostMapping("/bid/reject")
+    public ResponseEntity<ApiResponse<Void>> rejectBid(@RequestBody BidApprovalRequest request) {
+        try {
+            String username = extractUsernameFromToken();
+            
+            ApiResponse<Void> result = purchaseService.rejectBid(
+                String.valueOf(request.storeId()),
+                request.productId(), // Use productId directly as String
+                request.bidderUsername(),
+                username // approver username
+            );
+            return ResponseEntity.ok(result);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.fail("Failed to reject bid: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Propose a counter bid
+     * POST /api/purchases/bid/counter
+     */
+    @PostMapping("/bid/counter")
+    public ResponseEntity<ApiResponse<Void>> proposeCounterBid(@RequestBody CounterBidRequest request) {
+        try {
+            String username = extractUsernameFromToken();
+            
+            ApiResponse<Void> result = purchaseService.proposeCounterBid(
+                String.valueOf(request.storeId()),
+                request.productId(), // Use productId directly as String
+                request.bidderUsername(),
+                username, // approver username
+                request.counterAmount()
+            );
+            return ResponseEntity.ok(result);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.ok(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.fail("Failed to propose counter bid: " + e.getMessage()));
+        }
     }
 } 

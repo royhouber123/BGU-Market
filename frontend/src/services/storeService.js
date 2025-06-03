@@ -82,6 +82,7 @@ export const storeService = {
               storeId: store.storeID,
               storeName: store.storeName,
               productId: listing.productId,
+              purchaseType: listing.purchaseType,
               seller: {
                 id: store.storeID,
                 name: store.storeName,
@@ -155,26 +156,36 @@ export const storeService = {
     }
   },
 
-  // Add a listing to a store
-  addListing: async (listingData) => {
+  // Add new listing/product
+  addListing: async (userName, storeID, productId, productName, productCategory, productDescription, quantity, price, purchaseType = 'REGULAR') => {
     try {
-      const response = await api.post('/stores/listings/add', listingData);
+      const response = await api.post('/stores/listings/add', {
+        userName,
+        storeID,
+        productId,
+        productName,
+        productCategory,
+        productDescription,
+        quantity,
+        price,
+        purchaseType
+      });
       const apiResponse = response.data;
       
       if (apiResponse.success) {
         return {
           success: true,
-          listingId: apiResponse.data.listingId || 'unknown',
-          message: 'Listing added successfully'
+          productId: apiResponse.data,
+          message: 'Product added successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to add listing');
+        throw new Error(apiResponse.error || 'Failed to add product');
       }
     } catch (error) {
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
       }
-      throw new Error(error.message || 'Failed to add listing');
+      throw new Error(error.message || 'Failed to add product');
     }
   },
 
@@ -276,6 +287,22 @@ export const storeService = {
     }
   },
 
+  // Check if user is founder of store
+  isFounder: async (storeID, userID) => {
+    try {
+      const response = await api.get(`/stores/${storeID}/founders/${userID}/check`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return apiResponse.data;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+  },
+
   // Close store
   closeStore: async (storeID, userName) => {
     try {
@@ -311,6 +338,349 @@ export const storeService = {
         throw new Error(error.response.data.error);
       }
       throw new Error(error.message || 'Failed to open store');
+    }
+  },
+
+  // Edit listing price
+  editListingPrice: async (userName, storeID, listingId, newPrice) => {
+    try {
+      const response = await api.put('/stores/listings/price', {
+        userName,
+        storeID,
+        listingId,
+        newPrice
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return {
+          success: true,
+          message: 'Price updated successfully'
+        };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to update price');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to update price');
+    }
+  },
+
+  // Edit listing product name
+  editListingName: async (userName, storeID, listingId, newValue) => {
+    try {
+      const response = await api.put('/stores/listings/name', {
+        userName,
+        storeID,
+        listingId,
+        newValue
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return {
+          success: true,
+          message: 'Product name updated successfully'
+        };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to update product name');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to update product name');
+    }
+  },
+
+  // Edit listing description
+  editListingDescription: async (userName, storeID, listingId, newValue) => {
+    try {
+      const response = await api.put('/stores/listings/description', {
+        userName,
+        storeID,
+        listingId,
+        newValue
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return {
+          success: true,
+          message: 'Description updated successfully'
+        };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to update description');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to update description');
+    }
+  },
+
+  // Edit listing quantity
+  editListingQuantity: async (userName, storeID, listingId, newQuantity) => {
+    try {
+      const response = await api.put('/stores/listings/quantity', {
+        userName,
+        storeID,
+        listingId,
+        newQuantity
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return {
+          success: true,
+          message: 'Quantity updated successfully'
+        };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to update quantity');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to update quantity');
+    }
+  },
+
+  // Edit listing category
+  editListingCategory: async (userName, storeID, listingId, newValue) => {
+    try {
+      const response = await api.put('/stores/listings/category', {
+        userName,
+        storeID,
+        listingId,
+        newValue
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return {
+          success: true,
+          message: 'Category updated successfully'
+        };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to update category');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to update category');
+    }
+  },
+
+  // Add permission to manager
+  addPermissionToManager: async (managerID, appointerID, permissionID, storeID) => {
+    try {
+      const response = await api.post('/stores/managers/permissions/add', {
+        managerID,
+        appointerID,
+        permissionID,
+        storeID
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return {
+          success: true,
+          message: 'Permission added successfully'
+        };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to add permission');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to add permission');
+    }
+  },
+
+  // Get manager permissions
+  getManagersPermissions: async (managerID, whoIsAsking, storeID) => {
+    try {
+      const response = await api.get(`/stores/${storeID}/managers/${managerID}/permissions?whoIsAsking=${whoIsAsking}`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return apiResponse.data;
+      } else {
+        throw new Error(apiResponse.error || 'Failed to get permissions');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to get permissions');
+    }
+  },
+
+  // Get current user's permissions and role in store
+  getCurrentUserPermissions: async (storeID, userID) => {
+    try {
+      const response = await api.get(`/stores/${storeID}/user/${userID}/permissions`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return apiResponse.data;
+      } else {
+        throw new Error(apiResponse.error || 'Failed to get user permissions');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to get user permissions');
+    }
+  },
+
+  // Get all store users (owners and managers)
+  getStoreUsers: async (storeID, requesterId) => {
+    try {
+      const response = await api.get(`/stores/${storeID}/users?requesterId=${requesterId}`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return apiResponse.data;
+      } else {
+        throw new Error(apiResponse.error || 'Failed to get store users');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to get store users');
+    }
+  },
+
+  // Add additional store owner
+  addAdditionalStoreOwner: async (appointerID, newOwnerID, storeID) => {
+    try {
+      const response = await api.post('/stores/owners/add', {
+        appointerID,
+        newOwnerID,
+        storeID
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { success: true, message: 'Owner added successfully' };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to add owner');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to add owner');
+    }
+  },
+
+  // Add new manager
+  addNewManager: async (appointerID, newManagerName, storeID) => {
+    try {
+      const response = await api.post('/stores/managers/add', {
+        appointerID,
+        newManagerName,
+        storeID
+      });
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { success: true, message: 'Manager added successfully' };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to add manager');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to add manager');
+    }
+  },
+
+  // Remove owner
+  removeOwner: async (requesterId, toRemove, storeID) => {
+    try {
+      const response = await api.delete(`/stores/${storeID}/owners/${toRemove}?requesterId=${requesterId}`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { 
+          success: true, 
+          message: 'Owner removed successfully',
+          removedUsers: apiResponse.data 
+        };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to remove owner');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to remove owner');
+    }
+  },
+
+  // Remove manager
+  removeManager: async (appointerID, managerID, storeID) => {
+    try {
+      const response = await api.delete(`/stores/${storeID}/managers/${managerID}?appointerID=${appointerID}`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { success: true, message: 'Manager removed successfully' };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to remove manager');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to remove manager');
+    }
+  },
+
+  // Remove permission from manager
+  removePermissionFromManager: async (managerID, permissionID, appointerID, storeID) => {
+    try {
+      const response = await api.delete(`/stores/${storeID}/managers/${managerID}/permissions/${permissionID}?appointerID=${appointerID}`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { success: true, message: 'Permission removed successfully' };
+      } else {
+        throw new Error(apiResponse.error || 'Failed to remove permission');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to remove permission');
+    }
+  },
+
+  // Validate if user exists in the system
+  validateUserExists: async (userId) => {
+    try {
+      const response = await api.get(`/users/validate/${encodeURIComponent(userId)}`);
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        return { exists: apiResponse.data.exists };
+      } else {
+        return { exists: false };
+      }
+    } catch (error) {
+      console.error('Error validating user existence:', error);
+      return { exists: false };
     }
   }
 }; 

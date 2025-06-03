@@ -17,6 +17,7 @@ public class AuctionPurchase {
 
     //to update and check stock
     private static IStoreRepository storeRepository;
+    private static IPurchaseRepository purchaseRepository;
 
 
     /// Map to store offers for each auction
@@ -38,7 +39,8 @@ public class AuctionPurchase {
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService) {
+    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep) {
+        purchaseRepository = purchaseRep;
         long delay = endTimeMillis - System.currentTimeMillis();
         if (delay <= 0) return;
         storeRepository = rep;
@@ -130,8 +132,6 @@ public class AuctionPurchase {
         Offer winner = offerList.stream()
                 .max(Comparator.comparingDouble(o -> o.price))
                 .orElseThrow();
-        //boolean updatedStock = storeRepository.updateStockForOneItem(storeId, productId, 1);
-        ////לוודא עם דיין כי אין את הפונקציה
         Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
         Map<String, Integer> productMap = new HashMap<>();
         productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
@@ -163,7 +163,9 @@ public class AuctionPurchase {
         );
         paymentService.processPayment("User: " + userId + ", Amount: " + price);
         shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
-        return new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        purchaseRepository.save(newP);
+        return newP;
     }
 
     public static Map<AuctionKey, List<Offer>> getOffers() {
@@ -176,5 +178,13 @@ public class AuctionPurchase {
     
     public static Map<AuctionKey, Double> getStartingPrices() {
         return startingPrices;
+    }
+
+    public static void setStoreRepository(IStoreRepository storeRepository) {
+        AuctionPurchase.storeRepository = storeRepository;
+    }
+
+    public static void setPurchaseRepository(IPurchaseRepository purchaseRepository) {
+        AuctionPurchase.purchaseRepository = purchaseRepository;
     }
 }

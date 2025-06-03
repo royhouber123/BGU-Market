@@ -34,6 +34,19 @@ public class StoreOwnerTests extends AcceptanceTestBase {
 
     @BeforeEach
     void init() throws Exception {
+        // Register test users first
+        userService.register(FOUNDER, "password");
+        userService.register(OWNER_A, "password");
+        userService.register(MANAGER, "password");
+        
+        // Register additional users used in concurrent tests
+        userService.register("X", "password");
+        userService.register("y", "password");
+        userService.register("ownerB", "password");
+        userService.register("newManager", "password");
+        userService.register("managerY", "password");
+        userService.register("newOwner", "password");
+        
         // fresh repo & services already built in AcceptanceTestBase.setup()
         this.storeId = storeService.createStore(STORE_NAME, FOUNDER).storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME);
@@ -61,7 +74,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
             StoreDTO dto = storeService.getStore(STORE_NAME);
             String res = storeService.addNewListing(
                     FOUNDER, dto.getStoreID(),
-                    "1", "Tablet", "Electronic", "Android tablet", 5, 899);
+                    "1", "Tablet", "Electronic", "Android tablet", 5, 899, "REGULAR");
             assertNotNull(res);
         } catch (Exception e) {
             fail("Expected no exception, but got: " + e.getMessage(), e);
@@ -75,7 +88,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
             StoreDTO dto = storeService.getStore(STORE_NAME);
             String res = storeService.addNewListing(
                     FOUNDER, dto.getStoreID(),
-                    "1", "Tablet", "Electronic", "Android tablet", 5, -78);
+                    "1", "Tablet", "Electronic", "Android tablet", 5, -78, "REGULAR");
             fail("Expected an exception for invalid price, but got: " + res);
         } catch (Exception e) {
             assertTrue(e.getMessage().toLowerCase().contains("the price of a products needs to be possitive"));
@@ -94,7 +107,8 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                                     "Electronic",
                                     "Wireless",
                                                     4,
-                                                    129.9);
+                                                    129.9,
+                                                    "REGULAR");
         try {                         
             storeService.removeListing(FOUNDER, storeId, listingId);
         } catch (Exception e) {
@@ -229,9 +243,13 @@ public class StoreOwnerTests extends AcceptanceTestBase {
         assertTrue(check);
     }
 
-    //still doesnt support that
+
     @Test
-    public void owner_appointStoreManager_alternate_apoointmentDicline() {}
+    public void acceptance_concurrentAddSameOwnerByMultipleAppointers() throws Exception {
+        String OWNER_B = "y";
+        storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
+        storeService.addAdditionalStoreOwner(FOUNDER, OWNER_B, storeId);
+    }
 
 
     @Test

@@ -12,6 +12,7 @@ import utils.ApiResponseBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 /**
  * REST Controller for user-related operations.
@@ -67,6 +68,16 @@ public class UserController {
         return ApiResponseBuilder.build(() -> 
             userService.getUser()
         );
+    }
+
+    /**
+     * Validate if a user exists in the system
+     * GET /api/users/validate/{userId}
+     */
+    @GetMapping("/validate/{userId}")
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> validateUser(@PathVariable String userId) {
+        ApiResponse<Map<String, Boolean>> response = userService.validateUserExists(userId);
+        return ResponseEntity.ok(response);
     }
 
     /**

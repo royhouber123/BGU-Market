@@ -18,12 +18,14 @@ import utils.Logger;
 
 public class StoreService {
     private IStoreRepository storeRepository;
+    private IUserRepository userRepository;
     private IListingRepository listingRepository;
     private String storeIDs ="1";
     private Logger logger = Logger.getInstance();
 
     public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository) {
         this.storeRepository = storeRepository;
+        this.userRepository = userRepository;
         storeIDs = storeRepository.getNextStoreID();
         this.listingRepository = listingRepository;
     }
@@ -170,6 +172,14 @@ public class StoreService {
                 throw new IllegalArgumentException("store doesn't exist");
             }
 
+            // Validate that the user being added exists in the system
+            try {
+                userRepository.findById(newOwnerID);
+            } catch (Exception e) {
+                logger.debug("Attempted to add non-existent user as owner: " + newOwnerID + " to store: " + storeID);
+                return ApiResponse.fail("User '" + newOwnerID + "' does not exist in the system");
+            }
+
             s.addNewOwner(appointerID, newOwnerID);
             logger.info("Added new owner: " + newOwnerID + " to store: " + storeID + ", by: " + appointerID);
 
@@ -275,6 +285,15 @@ public class StoreService {
                 logger.debug("Attempted to add manager to non-existent store: " + storeID);
                 throw new IllegalArgumentException("store doesn't exist");
             }
+
+            // Validate that the user being added exists in the system
+            try {
+                userRepository.findById(newManagerName);
+            } catch (Exception e) {
+                logger.debug("Attempted to add non-existent user as manager: " + newManagerName + " to store: " + storeID);
+                return ApiResponse.fail("User '" + newManagerName + "' does not exist in the system");
+            }
+
             if (s.addNewManager(appointerID,newManagerName)){
                 logger.info("Added new manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
                 //((Subscriber)userRepository.findById(newManagerName)).setStoreRole(storeID,"Manager");
@@ -430,20 +449,20 @@ public class StoreService {
      * @param productDescription Description of the product.
      * @param quantity Quantity to add.
      * @param price Price per unit.
+     * @param purchaseType Purchase type (REGULAR, BID, AUCTION, RAFFLE).
      * @return "succeed" or error message.
      */
-    public String addNewListing(String userName, String storeID, String productId, String productName, String productCategory, String productDescription, int quantity, double price) {
+    public String addNewListing(String userName, String storeID, String productId, String productName, String productCategory, String productDescription, int quantity, double price, String purchaseType) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 throw new IllegalArgumentException("Store doesn't exist");
-            logger.info("Added new listing: " + productName + " to store: " + storeID + ", by: " + userName);
-            return s.addNewListing(userName, productId, productName, productCategory, productDescription, quantity, price);
+            logger.info("Added new listing: " + productName + " to store: " + storeID + ", by: " + userName + " with purchase type: " + purchaseType);
+            return s.addNewListing(userName, productId, productName, productCategory, productDescription, quantity, price, purchaseType);
         } catch (Exception e) {
             logger.error("Error adding listing: " + productName + " to store: " + storeID + ". Reason: " + e.getMessage());
             throw new RuntimeException("Error adding listing: " + productName + " to store: " + storeID + ". Reason: " + e.getMessage());
         }
-        
     }
 
 
@@ -578,7 +597,23 @@ public class StoreService {
         return s.calculateStoreBagWithDiscount(prod);
     }
 
-
+    public ApiResponse<Double> getProductDiscountedPrice(String storeID, String listingID) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                return ApiResponse.fail("Store doesn't exist");
+            }
+            
+            // Use the existing method that calculates discounted price
+            double discountedPrice = s.ProductPriceWithDiscount(listingID);
+            
+            logger.info("Retrieved discounted price for listing: " + listingID + " in store: " + storeID + " - Final price: " + discountedPrice);
+            return ApiResponse.ok(discountedPrice);
+        } catch (Exception e) {
+            logger.error("Error getting discounted price for listing: " + listingID + " in store: " + storeID + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error getting discounted price: " + e.getMessage());
+        }
+    }
 
     public boolean isOwner(String storeID, String userID){
         Store s = storeRepository.getStoreByID(storeID);
@@ -590,6 +625,152 @@ public class StoreService {
         return s.isManager(userID);
     }
 
+    public ApiResponse<Boolean> isFounder(String storeID, String userID){
+        Store s = storeRepository.getStoreByID(storeID);
+        if (s == null) {
+            return ApiResponse.fail("Store doesn't exist");
+        }
+        return ApiResponse.ok(s.getFounderID().equals(userID));
+    }
+
+    /**
+     * Get current user's permissions and role in a specific store.
+     *
+     * @param storeID The store ID to check permissions for
+     * @param userID The user ID to check
+     * @return Map containing role, permissions, and other relevant info
+     */
+    public ApiResponse<Map<String, Object>> getCurrentUserPermissions(String storeID, String userID) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                return ApiResponse.fail("Store doesn't exist");
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            
+            // Check roles in order of hierarchy
+            if (s.getFounderID().equals(userID)) {
+                result.put("role", "FOUNDER");
+                result.put("canEditProducts", true);
+                result.put("canEditPolicies", true);
+                result.put("canApproveBids", true);
+                result.put("canManageUsers", true);
+                result.put("permissions", List.of(0, 1, 2, 3)); // All permissions
+            } else if (s.isOwner(userID)) {
+                result.put("role", "OWNER");
+                result.put("canEditProducts", true);
+                result.put("canEditPolicies", true);
+                result.put("canApproveBids", true);
+                result.put("canManageUsers", true);
+                result.put("permissions", List.of(0, 1, 2, 3)); // All permissions
+            } else if (s.isManager(userID)) {
+                result.put("role", "MANAGER");
+                Set<Integer> managerPermissions = s.getManagersPermmisions(userID, userID);
+                result.put("permissions", new ArrayList<>(managerPermissions));
+                
+                // Set specific capabilities based on permissions
+                result.put("canEditProducts", managerPermissions.contains(1));
+                result.put("canEditPolicies", managerPermissions.contains(2));
+                result.put("canApproveBids", managerPermissions.contains(3));
+                result.put("canManageUsers", false); // Managers can't manage other users
+            } else {
+                result.put("role", "NONE");
+                result.put("canEditProducts", false);
+                result.put("canEditPolicies", false);
+                result.put("canApproveBids", false);
+                result.put("canManageUsers", false);
+                result.put("permissions", List.of());
+            }
+            
+            logger.info("Retrieved permissions for user: " + userID + " in store: " + storeID + " - Role: " + result.get("role"));
+            return ApiResponse.ok(result);
+            
+        } catch (Exception e) {
+            logger.error("Error getting user permissions for user: " + userID + " in store: " + storeID + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error getting user permissions: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get all store users (owners and managers) with their roles and permissions.
+     *
+     * @param storeID The store ID to get users for
+     * @param requesterId The ID of the user making the request (must be owner)
+     * @return Map containing store users data
+     */
+    public ApiResponse<Map<String, Object>> getStoreUsers(String storeID, String requesterId) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                return ApiResponse.fail("Store doesn't exist");
+            }
+            
+            // Check if requester has permission (must be owner)
+            if (!s.isOwner(requesterId)) {
+                return ApiResponse.fail("You don't have permission to view store users");
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            List<Map<String, Object>> users = new ArrayList<>();
+            
+            // Add founder
+            Map<String, Object> founder = new HashMap<>();
+            founder.put("id", s.getFounderID());
+            founder.put("role", "FOUNDER");
+            founder.put("permissions", List.of(0, 1, 2, 3));
+            founder.put("appointerID", null);
+            founder.put("canRemove", false); // Founder cannot be removed
+            users.add(founder);
+            
+            // Add owners (excluding founder to avoid duplicates)
+            for (String ownerID : s.getAllOwners()) {
+                // Skip founder since we already added them above
+                if (ownerID.equals(s.getFounderID())) {
+                    continue;
+                }
+                
+                Map<String, Object> owner = new HashMap<>();
+                owner.put("id", ownerID);
+                owner.put("role", "OWNER");
+                owner.put("permissions", List.of(0, 1, 2, 3));
+                owner.put("appointerID", s.OwnerAssignedBy(ownerID));
+                // Owner can be removed by their appointer or by the requester if they appointed them
+                boolean canRemove = requesterId.equals(s.OwnerAssignedBy(ownerID)) || 
+                                  (s.getOwnerAssigments(requesterId) != null && s.getOwnerAssigments(requesterId).contains(ownerID));
+                owner.put("canRemove", canRemove);
+                users.add(owner);
+            }
+            
+            // Add managers
+            for (String managerID : s.getAllManagersStrs()) {
+                Map<String, Object> manager = new HashMap<>();
+                manager.put("id", managerID);
+                manager.put("role", "MANAGER");
+                
+                try {
+                    Set<Integer> permissions = s.getManagersPermmisions(managerID, requesterId);
+                    manager.put("permissions", new ArrayList<>(permissions));
+                } catch (Exception e) {
+                    manager.put("permissions", List.of());
+                }
+                
+                manager.put("appointerID", requesterId); // Simplified for now
+                manager.put("canRemove", true); // Any owner can remove managers for now
+                users.add(manager);
+            }
+            
+            result.put("users", users);
+            result.put("totalUsers", users.size());
+            
+            logger.info("Retrieved store users for store: " + storeID + " by requester: " + requesterId);
+            return ApiResponse.ok(result);
+            
+        } catch (Exception e) {
+            logger.error("Error getting store users for store: " + storeID + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error getting store users: " + e.getMessage());
+        }
+    }
 
     public List<Map<String, Object>> getInformationAboutStoresAndProducts(){
         List<Map<String, Object>> res = new ArrayList<>();

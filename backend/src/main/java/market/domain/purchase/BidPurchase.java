@@ -11,6 +11,7 @@ public class BidPurchase {
     private static IStoreRepository storeRepository;
     private static IShipmentService shipmentService;
     private static IPaymentService paymentService;
+    private static IPurchaseRepository purchaseRepository;
     
     
     private static final Map<BidKey, List<Bid>> bids = new HashMap<>();
@@ -30,11 +31,12 @@ public class BidPurchase {
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
     public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
-                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment) {
+                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep) {
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
         storeRepository=rep;
         shipmentService=shipment;
         paymentService=payment;
+        purchaseRepository=purchaseRep;
         BidKey key = buildKey(storeId, productId);
         Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
@@ -285,7 +287,9 @@ public class BidPurchase {
         );
         paymentService.processPayment("User: " + userId + ", Amount: " + price);
         shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
-        return new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        purchaseRepository.save(newP);
+        return newP;
     } 
 
     public static Map<BidKey, List<Bid>> getBids() {
@@ -305,5 +309,9 @@ public class BidPurchase {
 
     public static void setShippingService(IShipmentService shipmentService2) {
         shipmentService=shipmentService2;
+    }
+
+    public static void setPurchaseRepository(IPurchaseRepository purchaseRepository2) {
+        purchaseRepository=purchaseRepository2;
     }
 }

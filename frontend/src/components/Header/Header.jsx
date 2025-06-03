@@ -26,7 +26,7 @@ import {
 
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import FavoriteIcon from "@mui/icons-material/Favorite";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -63,9 +63,9 @@ export default function Header() {
 			badge: cart.reduce((sum, i) => sum + i.quantity, 0),
 		},
 		{
-			label: "Watchlist",
-			icon: <FavoriteIcon />,
-			action: () => navigate(createPageUrl("Watchlist")),
+			label: "Profile",
+			icon: <AccountCircleIcon />,
+			action: () => navigate(createPageUrl("Profile")),
 		},
 		{
 			label: "Notifications",

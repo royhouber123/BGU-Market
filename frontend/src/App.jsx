@@ -6,7 +6,8 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Cart from './pages/Cart/Cart';
 import ProductDetail from './pages/ProductDetail/ProductDetail';
 import SearchResults from './pages/SearchResults/SearchResults';
-import WatchList from './pages/WatchList/WatchList';
+import Profile from './pages/Profile/Profile';
+import StoreManagement from './pages/StoreManagement/StoreManagement';
 import Checkout from './pages/Checkout/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation/OrderConfirmation';
 import { AuthProvider } from './contexts/AuthContext';
@@ -44,7 +45,8 @@ function App() {
 
             {/* Protected routes that require authentication */}
             <Route path="/cart" element={<Cart />} />
-            <Route path="/watchlist" element={<WatchList />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/store/:storeId/manage" element={<StoreManagement />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
           </Routes>

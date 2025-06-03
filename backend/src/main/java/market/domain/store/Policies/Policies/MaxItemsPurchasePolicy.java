@@ -30,14 +30,15 @@ public class MaxItemsPurchasePolicy implements PurchasePolicy {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true; // Same object reference
-        if (obj == null || getClass() != obj.getClass()) return false; // Null or different class
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
         MaxItemsPurchasePolicy that = (MaxItemsPurchasePolicy) obj;
-        return maxItems == that.maxItems; // Compare maxItems field
+        return maxItems == that.maxItems;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(maxItems); // Use maxItems field for hash code calculation
+        return Integer.hashCode(maxItems);
     }
 }

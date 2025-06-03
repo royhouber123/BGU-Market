@@ -20,6 +20,7 @@ public class BidPurchaseTest {
     private IShipmentService shipmentService;
     private IPaymentService paymentService;
     private IStoreRepository storeRepository;
+    private IPurchaseRepository purchaseRepository;
 
     private String storeId;
     private String productId;
@@ -38,6 +39,9 @@ public class BidPurchaseTest {
         storeRepository = mock(IStoreRepository.class);
         when(storeRepository.updateStockForPurchasedItems(anyMap())).thenReturn(true);
         BidPurchase.setStoreRepository(storeRepository);
+
+        purchaseRepository = mock(IPurchaseRepository.class);
+        BidPurchase.setPurchaseRepository(purchaseRepository);
 
         paymentService = mock(IPaymentService.class);
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
@@ -66,14 +70,14 @@ public class BidPurchaseTest {
     @Test
     void submitBid_validBid_shouldAddToMap() {
         assertDoesNotThrow(() -> BidPurchase.submitBid(
-                storeRepository, storeId, productId, userId, 100.0, "addr", "contact", approvers, shipmentService, paymentService));
+                storeRepository, storeId, productId, userId, 100.0, "addr", "contact", approvers, shipmentService, paymentService, purchaseRepository));
         assertTrue(BidPurchase.getBids().containsKey(bidKey));
     }
 
     @Test
     void submitBid_negativeAmount_shouldThrow() {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> BidPurchase.submitBid(
-                storeRepository, storeId, productId, userId, -50.0, "addr", "contact", approvers, shipmentService, paymentService));
+                storeRepository, storeId, productId, userId, -50.0, "addr", "contact", approvers, shipmentService, paymentService, purchaseRepository));
         assertEquals("Bid must be a positive value.", ex.getMessage());
     }
 

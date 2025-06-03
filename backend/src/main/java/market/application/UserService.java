@@ -6,6 +6,8 @@ import market.middleware.TokenUtils;
 import io.jsonwebtoken.Claims;
 import utils.ApiResponse;
 import utils.Logger;
+import java.util.Map;
+import java.util.HashMap;
 
 public class UserService {
 
@@ -50,6 +52,23 @@ public class UserService {
         User user = repo.findById(userName);
         logger.info("[UserService] User fetched: " + userName);
         return user;
+    }
+
+    /** Validate if a user exists in the system. */
+    public ApiResponse<Map<String, Boolean>> validateUserExists(String userName) {
+        logger.info("[UserService] Validating user existence: " + userName);
+        try {
+            User user = repo.findById(userName);
+            Map<String, Boolean> result = new HashMap<>();
+            result.put("exists", true);
+            logger.info("[UserService] User exists: " + userName);
+            return ApiResponse.ok(result);
+        } catch (Exception e) {
+            logger.debug("[UserService] User does not exist: " + userName + ". Exception: " + e.getMessage());
+            Map<String, Boolean> result = new HashMap<>();
+            result.put("exists", false);
+            return ApiResponse.ok(result);
+        }
     }
 
     /** Change the user's log-in name (throws if conflict). Returns new JWT token. */

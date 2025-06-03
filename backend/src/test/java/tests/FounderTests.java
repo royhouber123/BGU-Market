@@ -29,6 +29,12 @@ public class FounderTests extends AcceptanceTestBase {
 
     @BeforeEach
     void setUpTestData() throws Exception {
+        // Register test users first
+        userService.register(founderID, "password");
+        userService.register(ownerA, "password");
+        userService.register(ownerB, "password");
+        userService.register(ownerC, "password");
+        
         storeId = storeService.createStore(storeName, founderID).storeId();
     }
 

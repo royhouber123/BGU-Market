@@ -151,7 +151,8 @@ public class GuestTests extends AcceptanceTestBase {
                 "Stationery",
                 "A ruled blue notebook",
                 10,
-                15.0
+                15.0,
+                "REGULAR"
             );
             storeService.addNewListing(
                 "manager2",
@@ -161,7 +162,8 @@ public class GuestTests extends AcceptanceTestBase {
                 "Stationery",
                 "A bright red pencil",
                 20,
-                2.0
+                2.0,
+                "REGULAR"
             );
         } catch (Exception e) {
             fail("Failed to set up stores and products: " + e.getMessage());
@@ -243,11 +245,11 @@ public class GuestTests extends AcceptanceTestBase {
             String storeId2 = storeService.createStore("StoreB", MANAGER2).storeId();
             String storeId3 = storeService.createStore("StoreC", MANAGER3).storeId();
             //Step 2: Add notebook to first store
-            storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook Classic", "Stationery","Ruled notebook", 10, 15.0);
+            storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook Classic", "Stationery","Ruled notebook", 10, 15.0, "REGULAR");
             //Step 3: Add notebook to second store
-            storeService.addNewListing(MANAGER2, storeId2, "p2", "Notebook Deluxe", "Stationery","Premium notebook with hard cover", 5, 25.0);
+            storeService.addNewListing(MANAGER2, storeId2, "p2", "Notebook Deluxe", "Stationery","Premium notebook with hard cover", 5, 25.0, "REGULAR");
             //Step 4: Add pencil to third store
-            storeService.addNewListing(MANAGER3, storeId3, "p3", "Yellow Pencil", "Stationery","HB classic pencil", 30, 2.5);
+            storeService.addNewListing(MANAGER3, storeId3, "p3", "Yellow Pencil", "Stationery","HB classic pencil", 30, 2.5, "REGULAR");
             //Step 5: Search for "note" keyword (expect 2 results)
             String keyword1 = "note";
             List<Listing> noteResults = productService.searchByProductName(keyword1);
@@ -279,8 +281,8 @@ public class GuestTests extends AcceptanceTestBase {
             String storeId1 = storeService.createStore("StoreA", MANAGER1).storeId();
             String storeId2 = storeService.createStore("StoreB", MANAGER2).storeId();
             //Step 2: Add products to the stores
-            storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook", "Stationery", "Simple ruled notebook", 10, 12.5);
-            storeService.addNewListing(MANAGER2, storeId2, "p2", "Pencil Case", "Stationery", "Blue fabric pencil case", 8, 9.99);
+            storeService.addNewListing(MANAGER1, storeId1, "p1", "Notebook", "Stationery", "Simple ruled notebook", 10, 12.5, "REGULAR");
+            storeService.addNewListing(MANAGER2, storeId2, "p2", "Pencil Case", "Stationery", "Blue fabric pencil case", 8, 9.99, "REGULAR");
             //Step 3: Search for a keyword that does not exist
             String keyword = "unicorn-rainbow-sandwich";
             List<Listing> results = productService.searchByProductName(keyword);
@@ -296,10 +298,10 @@ public class GuestTests extends AcceptanceTestBase {
     void guest_searches_in_specific_store_exists() {
         try {
             //Step 1: Add two notebook-related products to the setup-created store
-            storeService.addNewListing(MANAGER1, storeId, "n1", "Notebook Classic", "Stationery", "Basic notebook", 10, 12.5);
-            storeService.addNewListing(MANAGER1, storeId, "n2", "Notebook Pro", "Stationery", "Premium notebook", 8, 18.0);
+            storeService.addNewListing(MANAGER1, storeId, "n1", "Notebook Classic", "Stationery", "Basic notebook", 10, 12.5, "REGULAR");
+            storeService.addNewListing(MANAGER1, storeId, "n2", "Notebook Pro", "Stationery", "Premium notebook", 8, 18.0, "REGULAR");
             //Step 2: Add an unrelated product
-            storeService.addNewListing(MANAGER1, storeId, "n3", "Marker Red", "Stationery", "Permanent red marker", 5, 4.0);
+            storeService.addNewListing(MANAGER1, storeId, "n3", "Marker Red", "Stationery", "Permanent red marker", 5, 4.0, "REGULAR");
             //Step 3: Search for the keyword "note" in the store
             String keyword = "note";
             List<Listing> results = productService.searchInStoreByName(storeId, keyword);
@@ -337,8 +339,8 @@ public class GuestTests extends AcceptanceTestBase {
     void guest_searches_in_specific_store_no_matching_products() {
         try {
             //Step 1: Add unrelated products to the store created in setup
-            storeService.addNewListing(MANAGER1, storeId, "p1", "Stapler", "Office Supplies", "Standard metal stapler", 5, 12.0);
-            storeService.addNewListing(MANAGER1, storeId, "p2", "Paper Clips", "Office Supplies", "Pack of 100 clips", 10, 3.0);
+            storeService.addNewListing(MANAGER1, storeId, "p1", "Stapler", "Office Supplies", "Standard metal stapler", 5, 12.0, "REGULAR");
+            storeService.addNewListing(MANAGER1, storeId, "p2", "Paper Clips", "Office Supplies", "Pack of 100 clips", 10, 3.0, "REGULAR");
             //Step 2: Search for a product name that doesn't exist in the store
             String keyword = "notebook";
             List<Listing> searchResp = productService.searchInStoreByName(storeId, keyword);
@@ -360,7 +362,7 @@ public class GuestTests extends AcceptanceTestBase {
             String token = authService.generateToken(guest);
             TokenUtils.setMockToken(token);
             //Step 3: Add a new product listing (Gvina) to the store as the manager1
-            String listingIdOfGvina=storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0);
+            String listingIdOfGvina=storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0, "REGULAR");
             //Step 4: Guest adds 2 units of the product to their cart
             userService.addProductToCart(storeId, listingIdOfGvina, 2);
             //Step 5: Retrieve the guest's shopping cart and verify product quantitys
@@ -417,7 +419,7 @@ public class GuestTests extends AcceptanceTestBase {
         try {
             //Step 1: Add a new listing (Notebook) to the existing store
             int quantity=5;
-            String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0);
+            String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0, "REGULAR");
             //Step 2: Stub the payment and shipment services to simulate success
             when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
             when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
@@ -453,7 +455,7 @@ public class GuestTests extends AcceptanceTestBase {
         try {
             //Step 1: Add a product to the existing store with limited stock (5 units)
             int quantity=5;
-            String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0);
+            String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0, "REGULAR");
             //Step 2: Stub the payment and shipment services to simulate success (even though stock will fail)
             when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
             when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
@@ -480,7 +482,7 @@ public class GuestTests extends AcceptanceTestBase {
     void guest_purchasing_cart_fails_due_to_payment_restore_stock() { //after payment failes- the stock needs to be restored
         //Step 1: Add a product listing ("Notebook") with a stock of 5 to the existing store
         int quantity=5;
-        String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0);
+        String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0, "REGULAR");
         //Step 2: Stub services: simulate payment failure but allow shipment (to isolate payment failure)
         when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.fail("Simulated payment failure"));
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
@@ -535,7 +537,7 @@ public class GuestTests extends AcceptanceTestBase {
             User guest = userRep.findById(GUEST);
             String token = authService.generateToken(guest);
             TokenUtils.setMockToken(token);  // Set the token for the guest
-            String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0);
+            String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0, "REGULAR");
             when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
             when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
             userService.addProductToCart(storeId, listingIdOfGvina, 2);

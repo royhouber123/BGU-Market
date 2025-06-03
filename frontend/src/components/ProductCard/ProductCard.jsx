@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPageUrl } from "../../utils";
 import { useNavigate } from "react-router-dom";
 import userService from "../../services/userService";
@@ -16,11 +15,7 @@ export default function ProductCard({ product }) {
 	const [openToast, setOpenToast] = useState(false);
 	const [toastMessage, setToastMessage] = useState({ severity: "success", title: "", description: "" });
 
-	useEffect(() => {
-		checkWatchlist();
-	}, []);
-
-	const checkWatchlist = async () => {
+	const checkWatchlist = useCallback(async () => {
 		try {
 			if (userService.isAuthenticated()) {
 				const user = await userService.getProfile();
@@ -30,7 +25,11 @@ export default function ProductCard({ product }) {
 		} catch (error) {
 			// User not logged in or no watchlist
 		}
-	};
+	}, [product.id]);
+
+	useEffect(() => {
+		checkWatchlist();
+	}, [checkWatchlist]);
 
 	const timeLeft = product.bid_end_date
 		? new Date(product.bid_end_date) - new Date()
@@ -155,9 +154,23 @@ export default function ProductCard({ product }) {
 					</Typography>
 
 					<Box className="product-card-price-container">
-						<Typography variant="h6" component="span" fontWeight="bold">
-							${product.price.toFixed(2)}
-						</Typography>
+						{product.hasDiscount ? (
+							<Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+								<Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+									${product.price?.toFixed(2)}
+								</Typography>
+								<Typography variant="h6" component="span" fontWeight="bold" color="primary">
+									${product.discountedPrice?.toFixed(2)}
+								</Typography>
+								<Typography variant="caption" color="success.main">
+									Save ${(product.price - product.discountedPrice)?.toFixed(2)}
+								</Typography>
+							</Box>
+						) : (
+							<Typography variant="h6" component="span" fontWeight="bold">
+								${product.price?.toFixed(2)}
+							</Typography>
+						)}
 
 						{product.shipping_cost === 0 ? (
 							<Typography variant="body2" color="success.main">

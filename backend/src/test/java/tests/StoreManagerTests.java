@@ -28,6 +28,11 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
     @BeforeEach
     void init() throws Exception {
+        // Register test users first
+        userService.register(FOUNDER, "password");
+        userService.register(OWNER_A, "password");
+        userService.register(MANAGER, "password");
+        
         // fresh repo & services already built in AcceptanceTestBase.setup()
         this.storeId = storeService.createStore(STORE_NAME, FOUNDER).storeId();
         StoreDTO dto = storeService.getStore(STORE_NAME);
@@ -44,7 +49,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         try {
             String res = storeService.addNewListing(
                 MANAGER, storeId,
-                "1", "Monitor", "Electronics", "HD Monitor", 10, 699.0);
+                "1", "Monitor", "Electronics", "HD Monitor", 10, 699.0, "REGULAR");
             assertNotNull(res);
         } catch (Exception e) {
             fail("Expected no exception, but got: " + e.getMessage(), e);
@@ -60,7 +65,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
 
             String res = storeService.addNewListing(
                     MANAGER, storeId,
-                    "2", "Webcam", "Electronics", "HD Webcam", 3, 199.0);
+                    "2", "Webcam", "Electronics", "HD Webcam", 3, 199.0, "REGULAR");
             fail("Expected an exception due to no permissions, but got: " + res);
         } catch (Exception e) {
             // Expected exception due to no permissions
@@ -78,7 +83,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         try {
             String res = storeService.addNewListing(
                     MANAGER, storeId,
-                    "3", "Speaker", "Audio", "Bluetooth Speaker", 5, -99.0);
+                    "3", "Speaker", "Audio", "Bluetooth Speaker", 5, -99.0, "REGULAR");
             fail("Expected an exception due to invalid price, but got: " + res);
         } catch (Exception e) {
             // Expected exception due to invalid price
@@ -95,7 +100,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         // Add a product to remove
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
-                "rm-1", "Headphones", "Audio", "Noise cancelling", 7, 299.0
+                "rm-1", "Headphones", "Audio", "Noise cancelling", 7, 299.0, "REGULAR"
         );
         try{
             storeService.removeListing(MANAGER, storeId, listingId);
@@ -120,7 +125,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         // Add a product that manager will attempt to remove
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
-                "rm-2", "Microphone", "Audio", "Studio mic", 4, 179.0
+                "rm-2", "Microphone", "Audio", "Studio mic", 4, 179.0, "REGULAR"
         );
         try {
             storeService.removeListing(MANAGER, storeId, listingId);
@@ -159,7 +164,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
             // Add a product
             String listingId = storeService.addNewListing(
                     FOUNDER, storeId,
-                    "edit‑1", "Camera", "Photography", "DSLR Camera", 2, 1500.0
+                    "edit‑1", "Camera", "Photography", "DSLR Camera", 2, 1500.0, "REGULAR"
             );
 
             // Manager edits price
@@ -182,7 +187,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
         // Add a product
         String listingId = storeService.addNewListing(
                 FOUNDER, storeId,
-                "edit‑2", "Tripod", "Photography", "Adjustable", 3, 249.0
+                "edit‑2", "Tripod", "Photography", "Adjustable", 3, 249.0, "REGULAR"
         );
         try {
             // Manager tries to edit price without permission
@@ -260,9 +265,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
     public void manager_editStoreDiscountPolicy_positive() {
         try {
             String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
-
-            storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300);
-
+            storeService.addNewListing(FOUNDER, storeId, "p1", "Speaker", "Audio", "Bluetooth", 5, 300, "REGULAR");
             storeService.addNewManager(FOUNDER, MANAGER, storeId);
             storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);
 
@@ -281,7 +284,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
     @Test
     public void manager_editStoreDiscountPolicy_negative_NoPermission() {
         String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
-        storeService.addNewListing(FOUNDER, storeId, "p1", "Camera", "Electronics", "DSLR", 3, 2500);
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Camera", "Electronics", "DSLR", 3, 2500, "REGULAR");
 
         storeService.addNewManager(FOUNDER, MANAGER, storeId); // No permission granted
 
@@ -301,7 +304,7 @@ public class StoreManagerTests extends AcceptanceTestBase {
     public void manager_editStoreDiscountPolicy_alternate_InValidObjectToCreatePolicyTo() {
         try {
             String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
-            storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200);
+            storeService.addNewListing(FOUNDER, storeId, "p1", "Monitor", "Electronics", "4K Monitor", 7, 1200, "REGULAR");
 
             storeService.addNewManager(FOUNDER, MANAGER, storeId);
             storeService.addPermissionToManager(MANAGER, FOUNDER, Store.Permission.EDIT_POLICIES.getCode(), storeId);

@@ -78,7 +78,8 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "apple", 
                 10,
-                1000);
+                1000.0,
+                "REGULAR");
             StoreDTO response = this.storeService.getStore("store1");
             // Verify the response
             assertNotNull(response, "Store information should not be null");
@@ -90,6 +91,7 @@ class SubscriberTests extends AcceptanceTestBase {
         } catch (Exception e) {
             fail("Exception should not be thrown: " + e.getMessage());
         }
+
     }
 
     @Test
@@ -124,7 +126,8 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "apple", 
                 10,
-                1000);
+                1000.0,
+                "REGULAR");
             String listing_id2 =this.storeService.addNewListing(
                 "user2", 
                 storeid2, 
@@ -133,7 +136,8 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "apple", 
                 10,
-                1000);
+                1000,
+                "REGULAR");
             List<Listing> ipad = this.productService.searchByProductName("ipad");
             assertNotNull(ipad, "Product search should not return null");
             List<Listing> iphone = this.productService.searchByProductName("iphone");
@@ -178,7 +182,8 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "apple", 
                 10,
-                1000);
+                1000.0,
+                "REGULAR");
             List<Listing> ipad = this.productService.searchInStoreByName(storeid1, "ipad");
             assertNotNull(ipad, "Product search should not return null");
             assertEquals(1, ipad.size(), "There should be one product in the store");
@@ -217,7 +222,8 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "apple", 
                 10,
-                1000);
+                1000.0,
+                "REGULAR");
             // Generate token and inject
             String token = authService.generateToken(user1);
             TokenUtils.setMockToken(token);  // <<--- Key step!
@@ -248,7 +254,8 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "apple", 
                 10,
-                1000);
+                1000.0,
+                "REGULAR");
             // Generate token and inject
             String token = authService.generateToken(user1);
             TokenUtils.setMockToken(token);  // <<--- Key step!
@@ -279,7 +286,8 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "apple", 
                 10,
-                1000);
+                1000.0,
+                "REGULAR");
             when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
             when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId")); 
             // Generate token and inject
@@ -337,8 +345,7 @@ class SubscriberTests extends AcceptanceTestBase {
             "electronics", 
             "apple", 
             10,
-            1000);
-
+            1000.0, "REGULAR");
         ShoppingCart cart = this.userService.getUserRepository().getCart("user1");
         cart.addProduct(storeid1, listing_id1, 2);
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
@@ -413,7 +420,7 @@ class SubscriberTests extends AcceptanceTestBase {
                 "electronics", 
                 "flagship smartphone", 
                 1,  // Limited quantity for bid
-                1500);
+                1500.0, "REGULAR");
 
             // Generate token and inject
             String token = authService.generateToken(user1);
@@ -461,7 +468,7 @@ class SubscriberTests extends AcceptanceTestBase {
             "electronics", 
             "flagship smartphone", 
             1,
-            1500);
+            1500.0, "REGULAR");
 
         // Generate token and inject
         String token = authService.generateToken(user1);
@@ -509,7 +516,7 @@ class SubscriberTests extends AcceptanceTestBase {
                 "collectibles", 
                 "rare collectible item", 
                 1,
-                2000);
+                2000.0, "REGULAR");
             
             // Setup end time for auction (1 minute from now)
             long endTime = System.currentTimeMillis() + 60000;
@@ -573,6 +580,7 @@ class SubscriberTests extends AcceptanceTestBase {
             fail("Exception should not be thrown: " + e.getMessage());
         }
     }
+
 
  
 

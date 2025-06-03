@@ -78,7 +78,8 @@ public class PurchaseService {
             try {
                 Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
-                 user.clearCart();
+                user.clearCart();
+                purchaseRepository.save(finalPurchase);
                 return finalPurchase;
             } catch (IllegalArgumentException e) {
                 logger.error("Invalid purchase details for user: " + userId + ". Reason: " + e.getMessage());
@@ -123,9 +124,9 @@ public class PurchaseService {
     public void openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
-            store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice);
+            store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
     
-            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService);
+            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository);
     
             logger.info("Auction opened: store " + storeId + ", product " + productId + ", by user " + userId);
     
@@ -161,6 +162,20 @@ public class PurchaseService {
     
     // Bid Purchase:
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+            // Validate input parameters
+            if (storeId == null || storeId.trim().isEmpty()) {
+                throw new IllegalArgumentException("Store ID cannot be null or empty");
+            }
+            if (productId == null || productId.trim().isEmpty()) {
+                throw new IllegalArgumentException("Product ID cannot be null or empty");
+            }
+            if (userId == null || userId.trim().isEmpty()) {
+                throw new IllegalArgumentException("User ID cannot be null or empty");
+            }
+            if (offerPrice <= 0) {
+                throw new IllegalArgumentException("Bid amount must be a positive value");
+            }
+
             // Check if store exists first
             Store store = storeRepository.getStoreByID(storeId);
             if (store == null) {
@@ -184,7 +199,8 @@ public class PurchaseService {
                 contactInfo,
                 approvers,
                 shipmentService,
-                paymentService
+                paymentService,
+                purchaseRepository
             );
     
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
@@ -223,11 +239,90 @@ public class PurchaseService {
     }
 
     public String getBidStatus(String storeId, String productId, String userId) {
-            String status = BidPurchase.getBidStatus(storeId, productId, userId);
-            return status;
+        try {
+            BidKey key = new BidKey(storeId, productId);
+            List<Bid> bids = BidPurchase.getBids().get(key);
+            
+            if (bids == null || bids.isEmpty()) {
+                return "No Bid Found";
+            }
+            
+            for (Bid bid : bids) {
+                if (bid.getUserId().equals(userId)) {
+                    return getBidStatusString(bid);
+                }
+            }
+            
+            return "No Bid Found";
+        } catch (RuntimeException e) {
+            logger.error("Failed to get bid status: " + e.getMessage());
+            throw new RuntimeException("Failed to get bid status: " + e.getMessage());
+        }
     }
 
-    public List<Purchase> getPurchasesByUser(String userId) {
+    public List<Map<String, Object>> getProductBids(String storeId, String productId, String requestingUser) {
+        try {
+            // Verify that the requesting user has permission to view bids for this store
+            Store store = storeRepository.getStoreByID(storeId);
+            if (store == null) {
+                throw new IllegalArgumentException("Store not found: " + storeId);
+            }
+            
+            // Add debugging information
+            logger.info("Bid permission check - User: " + requestingUser + ", Store: " + storeId);
+            logger.info("User is owner: " + store.isOwner(requestingUser));
+            logger.info("User is manager: " + store.isManager(requestingUser));
+            
+            // Check if user has permission to view bids (owners, managers with bid approval permission)
+            if (!store.checkBidPermission(requestingUser)) {
+                logger.error("User " + requestingUser + " does not have permission to view bids for store " + storeId);
+                throw new IllegalArgumentException("You don't have permission to view bids for this store. Only store owners and managers with bid approval permission can view bids.");    
+            }
+            
+            // Get bids for the product
+            BidKey key = new BidKey(storeId, productId);
+            List<Bid> bids = BidPurchase.getBids().get(key);
+            
+            if (bids == null || bids.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            // Convert bids to map format for JSON response
+            List<Map<String, Object>> bidData = new ArrayList<>();
+            for (Bid bid : bids) {
+                Map<String, Object> bidInfo = new HashMap<>();
+                bidInfo.put("userId", bid.getUserId());
+                bidInfo.put("bidAmount", bid.getPrice());
+                bidInfo.put("shippingAddress", bid.getShippingAddress());
+                bidInfo.put("contactInfo", bid.getContactInfo());
+                bidInfo.put("status", getBidStatusString(bid));
+                bidInfo.put("isApproved", bid.isApproved());
+                bidInfo.put("isRejected", bid.isRejected());
+                bidInfo.put("counterOffered", bid.isCounterOffered());
+                if (bid.isCounterOffered()) {
+                    bidInfo.put("counterOfferAmount", bid.getCounterOfferAmount());
+                }
+                bidInfo.put("requiredApprovers", bid.getRequiredApprovers());
+                bidInfo.put("approvedBy", bid.getApprovedBy());
+                bidData.add(bidInfo);
+            }
+            
+            return bidData;
+        } catch (RuntimeException e) {
+            logger.error("Failed to get product bids: " + e.getMessage());
+            throw new RuntimeException("Failed to get product bids: " + e.getMessage());
+        }
+    }
+    
+    private String getBidStatusString(Bid bid) {
+        if (bid.isRejected()) return "Rejected";
+        if (bid.isCounterOffered()) return "Counter Offered";
+        if (bid.isApproved()) return "Approved";
+        return "Pending Approval";
+    }
+
+
+     public List<Purchase> getPurchasesByUser(String userId) {
         List<Purchase> purchases = purchaseRepository.getPurchasesByUser(userId);
         return purchases;
     }
@@ -286,5 +381,43 @@ public class PurchaseService {
             
             Purchase result = executePurchase(username, cart, shippingAddress, paymentDetails);
             return "Purchase completed successfully. Total: $" + result.getTotalPrice() + " at " + result.getTimestamp();
+    }
+
+    // Add new method to get current user's bids for a product
+    public ApiResponse<List<Map<String, Object>>> getMyProductBids(String storeId, String productId, String requestingUser) {
+        try {
+            // Get bids for the product
+            BidKey key = new BidKey(storeId, productId);
+            List<Bid> bids = BidPurchase.getBids().get(key);
+            
+            if (bids == null || bids.isEmpty()) {
+                return ApiResponse.ok(new ArrayList<>());
+            }
+            
+            // Filter bids to only include the requesting user's bids
+            List<Map<String, Object>> bidData = new ArrayList<>();
+            for (Bid bid : bids) {
+                if (bid.getUserId().equals(requestingUser)) {
+                    Map<String, Object> bidInfo = new HashMap<>();
+                    bidInfo.put("userId", bid.getUserId());
+                    bidInfo.put("bidAmount", bid.getPrice());
+                    bidInfo.put("shippingAddress", bid.getShippingAddress());
+                    bidInfo.put("contactInfo", bid.getContactInfo());
+                    bidInfo.put("status", getBidStatusString(bid));
+                    bidInfo.put("isApproved", bid.isApproved());
+                    bidInfo.put("isRejected", bid.isRejected());
+                    bidInfo.put("counterOffered", bid.isCounterOffered());
+                    if (bid.isCounterOffered()) {
+                        bidInfo.put("counterOfferAmount", bid.getCounterOfferAmount());
+                    }
+                    bidData.add(bidInfo);
+                }
+            }
+            
+            return ApiResponse.ok(bidData);
+        } catch (RuntimeException e) {
+            logger.error("Failed to get user's product bids: " + e.getMessage());
+            return ApiResponse.fail("Failed to get user's product bids: " + e.getMessage());
+        }
     }
 }

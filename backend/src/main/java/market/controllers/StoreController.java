@@ -174,7 +174,8 @@ public class StoreController {
                 request.productCategory(),
                 request.productDescription(),
                 request.quantity(),
-                request.price()
+                request.price(),
+                request.purchaseType() != null ? request.purchaseType() : "REGULAR"  // Default to REGULAR if not provided
             )
         );
     }
@@ -287,6 +288,18 @@ public class StoreController {
     }
 
     /**
+     * Get product price with discounts applied
+     * GET /api/stores/{storeID}/products/{listingID}/discounted-price
+     */
+    @GetMapping("/{storeID}/products/{listingID}/discounted-price")
+    public ResponseEntity<ApiResponse<Double>> getProductDiscountedPrice(
+            @PathVariable String storeID,
+            @PathVariable String listingID) {
+        ApiResponse<Double> response = storeService.getProductDiscountedPrice(storeID, listingID);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Check if user is owner
      * GET /api/stores/{storeID}/owners/{userID}/check
      */
@@ -313,6 +326,30 @@ public class StoreController {
     }
 
     /**
+     * Check if user is founder of store
+     * GET /api/stores/{storeID}/founders/{userID}/check
+     */
+    @GetMapping("/{storeID}/founders/{userID}/check")
+    public ResponseEntity<ApiResponse<Boolean>> isFounder(
+            @PathVariable String storeID,
+            @PathVariable String userID) {
+        ApiResponse<Boolean> response = storeService.isFounder(storeID, userID);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get current user's permissions and role in store
+     * GET /api/stores/{storeID}/user/{userID}/permissions
+     */
+    @GetMapping("/{storeID}/user/{userID}/permissions")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getCurrentUserPermissions(
+            @PathVariable String storeID,
+            @PathVariable String userID) {
+        ApiResponse<Map<String, Object>> response = storeService.getCurrentUserPermissions(storeID, userID);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Get all stores and their products
      * GET /api/stores/info
      */
@@ -332,5 +369,30 @@ public class StoreController {
         return ApiResponseBuilder.build(() ->
             storeService.getListingRepository()
         );
+    }
+
+    /**
+     * Remove manager
+     * DELETE /api/stores/{storeID}/managers/{managerID}
+     */
+    @DeleteMapping("/{storeID}/managers/{managerID}")
+    public ResponseEntity<ApiResponse<Void>> removeManager(
+            @PathVariable String storeID,
+            @PathVariable String managerID,
+            @RequestParam String appointerID) {
+        ApiResponse<Void> response = storeService.removeManager(appointerID, managerID, storeID);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all store users (owners and managers)
+     * GET /api/stores/{storeID}/users
+     */
+    @GetMapping("/{storeID}/users")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getStoreUsers(
+            @PathVariable String storeID,
+            @RequestParam String requesterId) {
+        ApiResponse<Map<String, Object>> response = storeService.getStoreUsers(storeID, requesterId);
+        return ResponseEntity.ok(response);
     }
 } 

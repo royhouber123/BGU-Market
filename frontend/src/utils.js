@@ -16,7 +16,7 @@ export const createPageUrl = (page) => {
     Login: '/login',
     Register: '/register',
     SearchResults: '/search',
-    Watchlist: '/watchlist',
+    Profile: '/profile',
     Checkout: '/checkout',
     OrderConfirmation: '/order-confirmation',
   };

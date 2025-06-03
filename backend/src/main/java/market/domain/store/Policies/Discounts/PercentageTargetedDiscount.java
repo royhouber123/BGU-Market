@@ -60,16 +60,21 @@ public class PercentageTargetedDiscount implements DiscountPolicy {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true; // Same object reference
-        if (obj == null || getClass() != obj.getClass()) return false; // Different class or null object
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
         PercentageTargetedDiscount that = (PercentageTargetedDiscount) obj;
-        return Double.compare(that.percentage, percentage) == 0 && // Compare percentage values
-               targetType == that.targetType && // Compare targetType (Enum, so it uses ==)
-               targetId.equals(that.targetId); // Compare targetId (String, so it uses equals)
+        return Double.compare(that.percentage, percentage) == 0 &&
+               targetType == that.targetType &&
+               (targetId != null ? targetId.equals(that.targetId) : that.targetId == null);
     }
-    
+
     @Override
     public int hashCode() {
-        return Objects.hash(targetType, targetId, percentage); // Use Objects.hash() for simplicity
+        int result = targetType != null ? targetType.hashCode() : 0;
+        result = 31 * result + (targetId != null ? targetId.hashCode() : 0);
+        long temp = Double.doubleToLongBits(percentage);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
     }
 }
