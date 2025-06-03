@@ -3,6 +3,11 @@ package market.domain.store.Policies.Discounts;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import market.domain.store.IStoreProductsManager;
+import market.domain.store.Policies.DiscountPolicy;
+import market.dto.PolicyDTO;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
@@ -55,12 +60,21 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
         return result;
     }
 
+<<<<<<<< HEAD:src/main/java/market/domain/store/Policies/Discounts/CompositeDiscountPolicy.java
     public AddDiscountDTO toDTO() {
         List<AddDiscountDTO> subs = policies.stream()
             .map(DiscountPolicy::toDTO)
             .toList();
 
         return new AddDiscountDTO(
+========
+    public PolicyDTO.AddDiscountRequest toDTO() {
+        List<PolicyDTO.AddDiscountRequest> subs = policies.stream()
+            .map(DiscountPolicy::toDTO)
+            .toList();
+
+        return new PolicyDTO.AddDiscountRequest(
+>>>>>>>> 320f278ee54468ddfe901cd5efab26387f38a0c3:backend/src/main/java/market/domain/store/Policies/Discounts/CompositeDiscountPolicy.java
             "COMPOSITE",
             null,
             null,
@@ -71,4 +85,25 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
             combinationType.name()
         );
     }
+<<<<<<<< HEAD:src/main/java/market/domain/store/Policies/Discounts/CompositeDiscountPolicy.java
+========
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        CompositeDiscountPolicy other = (CompositeDiscountPolicy) obj;
+        return combinationType == other.combinationType &&
+               policies.equals(other.policies);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(combinationType, policies);
+    }
+>>>>>>>> 320f278ee54468ddfe901cd5efab26387f38a0c3:backend/src/main/java/market/domain/store/Policies/Discounts/CompositeDiscountPolicy.java
 }

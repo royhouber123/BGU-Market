@@ -1,0 +1,59 @@
+/* FeaturedSection Component Styles */
+
+.featured-section {
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.featured-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.featured-section-title {
+  font-weight: bold;
+}
+
+.featured-section-subtitle {
+  margin-top: 4px;
+  color: var(--mui-palette-text-secondary);
+}
+
+.featured-section-view-all {
+  display: flex;
+  align-items: center;
+  color: var(--mui-palette-primary-main);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.featured-section-view-all:hover {
+  text-decoration: underline;
+}
+
+.featured-section-view-all-icon {
+  margin-left: 4px;
+  font-size: 1.25rem;
+}
+
+.featured-section-skeleton-card {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.featured-section-skeleton-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.featured-section-skeleton-actions {
+  display: flex;
+  justify-content: space-between;
+} 
