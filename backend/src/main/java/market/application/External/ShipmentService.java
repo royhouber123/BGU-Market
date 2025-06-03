@@ -1,6 +1,5 @@
 package market.application.External;
 
-import java.beans.AppletInitializer;
 
 import utils.ApiResponse;
 

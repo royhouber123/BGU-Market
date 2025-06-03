@@ -8,6 +8,10 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import market.domain.user.IUserRepository;
+import market.domain.user.User;
+import market.infrastructure.SuspensionRepository;
+
 public class SuspensionRepositoryTest {
 
     private IUserRepository userRepository;
@@ -55,10 +59,10 @@ public class SuspensionRepositoryTest {
     @Test
     public void testGetSuspendedUsers() {
         suspensionRepository.suspendUser(EXISTING_USER, 10000L);
-        List<User> suspendedUsers = suspensionRepository.getSuspendedUsers();
+        List<String> suspendedUsers = suspensionRepository.getSuspendedUsers();
 
         assertEquals(1, suspendedUsers.size(), "There should be one suspended user");
-        assertEquals(EXISTING_USER, suspendedUsers.get(0).getUserName());
+        assertEquals(EXISTING_USER, suspendedUsers.get(0));
     }
 
     @Test

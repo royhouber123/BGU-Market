@@ -1,10 +1,15 @@
-package market.domain.user;
+package market.infrastructure;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import market.domain.user.ISuspensionRepository;
+import market.domain.user.IUserRepository;
+import market.domain.user.Suspension;
+import market.domain.user.User;
 
 public class SuspensionRepository implements ISuspensionRepository {
 
@@ -17,9 +22,9 @@ public class SuspensionRepository implements ISuspensionRepository {
     }
 
     @Override
-    public boolean suspendUser(String userName, long durationMillis) {
+    public boolean suspendUser(String userName, long durationHours) {
         if (userRepository.findById(userName) == null) return false;
-        suspendedUsers.put(userName, new Suspension(userName, durationMillis));
+        suspendedUsers.put(userName, new Suspension(userName, durationHours));
         return true;
     }
 
@@ -29,12 +34,9 @@ public class SuspensionRepository implements ISuspensionRepository {
     }
 
     @Override
-    public List<User> getSuspendedUsers() {
+    public List<String> getSuspendedUsers() {
         cleanExpiredSuspensions();
-        return suspendedUsers.keySet().stream()
-                .map(userRepository::findById)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return new ArrayList<>(suspendedUsers.keySet());
     }
 
     @Override
@@ -52,7 +54,6 @@ public class SuspensionRepository implements ISuspensionRepository {
     }
 
     private void cleanExpiredSuspensions() {
-        Instant now = Instant.now();
         suspendedUsers.entrySet().removeIf(entry -> !entry.getValue().isSuspended());
     }
 }

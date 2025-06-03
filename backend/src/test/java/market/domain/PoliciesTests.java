@@ -5,21 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
-import market.domain.store.Policies.DiscountPolicy;
 import market.domain.store.Policies.PolicyHandler;
-import market.domain.store.Policies.Discounts.CompositeDiscountPolicy;
-import market.domain.store.Policies.Discounts.CouponDiscountPolicy;
-import market.domain.store.Policies.Discounts.DefaultDiscountPolicy;
-import market.domain.store.Policies.Discounts.DiscountCombinationType;
 import market.domain.store.Policies.Policies.DefaultPurchasePolicy;
 import market.domain.store.Policies.Policies.MaxItemsPurchasePolicy;
 import market.domain.store.Policies.Policies.MinItemsPurchasePolicy;

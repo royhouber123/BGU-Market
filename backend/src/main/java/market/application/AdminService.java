@@ -1,6 +1,5 @@
 package market.application;
 
-import java.time.Duration;
 import java.util.List;
 
 import market.domain.Role.IRoleRepository;
@@ -54,7 +53,7 @@ public class AdminService {
     public void closeStoreByAdmin(String adminId, String storeId) throws Exception {
         logger.info("Admin " + adminId + " is attempting to close store " + storeId);
 
-        Admin admin = validateAdmin(adminId);
+        validateAdmin(adminId);
 
         Store store = storeRepository.getStoreByID(storeId);
         if (store == null) {
@@ -90,14 +89,14 @@ public class AdminService {
     public void suspendUser(String adminId, String targetUserId, long durationHours) throws Exception {
         logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId);
 
-        Admin admin = validateAdmin(adminId);
+        validateAdmin(adminId);
 
         if (userRepository.findById(targetUserId) == null) {
             logger.error("User " + targetUserId + " does not exist.");
             throw new Exception("User not found.");
         }
 
-        boolean success = suspensionRepository.suspendUser(targetUserId, Duration.ofHours(durationHours));
+        boolean success = suspensionRepository.suspendUser(targetUserId, durationHours);
         if (!success) {
             logger.error("Suspension failed for user " + targetUserId);
             throw new Exception("Suspension failed.");
@@ -117,7 +116,7 @@ public class AdminService {
     public void unsuspendUser(String adminId, String targetUserId) throws Exception {
         logger.info("Admin " + adminId + " is attempting to unsuspend user " + targetUserId);
 
-        Admin admin = validateAdmin(adminId);
+        validateAdmin(adminId);
 
         boolean success = suspensionRepository.unsuspendUser(targetUserId);
         if (!success) {
@@ -136,10 +135,9 @@ public class AdminService {
      * @throws Exception if the admin is invalid
      */
     public List<String> getSuspendedUserIds(String adminId) throws Exception {
-        Admin admin = validateAdmin(adminId);
-
-        List<User> suspended = suspensionRepository.getSuspendedUsers();
-        return suspended.stream().map(User::getUserName).toList();
+        validateAdmin(adminId);
+        List<String> suspended = suspensionRepository.getSuspendedUsers();
+        return suspended;
     }
 
     /**

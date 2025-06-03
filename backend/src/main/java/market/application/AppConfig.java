@@ -8,6 +8,7 @@ import market.domain.Role.IRoleRepository;
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
+import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
 import market.infrastructure.ListingRepository;
 import market.infrastructure.PurchaseRepository;
@@ -52,15 +53,16 @@ public class AppConfig {
     }
 
     @Bean
-    public UserService userService(IUserRepository userRepository, AuthService authService) {
-        return new UserService(userRepository, authService);
+    public UserService userService(IUserRepository userRepository, AuthService authService, ISuspensionRepository suspensionRepository) {
+        return new UserService(userRepository, authService, suspensionRepository);
     }
 
     @Bean
     public StoreService storeService(IStoreRepository storeRepository, 
                                    IUserRepository userRepository, 
-                                   IListingRepository listingRepository) {
-        return new StoreService(storeRepository, userRepository, listingRepository);
+                                   IListingRepository listingRepository,
+                                   ISuspensionRepository suspensionRepository) {
+        return new StoreService(storeRepository, userRepository, listingRepository, suspensionRepository);
     }
 
     @Bean
@@ -74,20 +76,22 @@ public class AppConfig {
                                          IListingRepository listingRepository,
                                          IUserRepository userRepository,
                                          IPaymentService paymentService,
-                                         IShipmentService shipmentService) {
+                                         IShipmentService shipmentService,
+                                         ISuspensionRepository suspensionRepository) {
         return new PurchaseService(storeRepository, purchaseRepository, listingRepository, 
-                                 userRepository, paymentService, shipmentService);
+                                 userRepository, paymentService, shipmentService, suspensionRepository);
     }
 
     @Bean
-    public StorePoliciesService storePoliciesService(IStoreRepository storeRepository) {
-        return new StorePoliciesService(storeRepository);
+    public StorePoliciesService storePoliciesService(IStoreRepository storeRepository, ISuspensionRepository suspensionRepository) {
+        return new StorePoliciesService(storeRepository, suspensionRepository);
     }
 
     @Bean
     public AdminService adminService(IUserRepository userRepository,
                                    IStoreRepository storeRepository,
-                                   IRoleRepository roleRepository) {
-        return new AdminService(userRepository, storeRepository, roleRepository);
+                                   IRoleRepository roleRepository, 
+                                   ISuspensionRepository suspensionRepository) {
+        return new AdminService(userRepository, storeRepository, roleRepository, suspensionRepository);
     }
 } 

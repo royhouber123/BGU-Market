@@ -16,9 +16,11 @@ import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.user.IUserRepository;
+import market.domain.user.ISuspensionRepository;
 import market.infrastructure.ListingRepository;
 import market.infrastructure.PurchaseRepository;
 import market.infrastructure.StoreRepository;
+import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepository;
 
 /**
@@ -39,7 +41,6 @@ public abstract class AcceptanceTestBase {
     protected StorePoliciesService storePoliciesService;
     protected StoreRepository storeRepository;
     protected IListingRepository listingRepository;
-    protected ISuspentionRepository suspentionRepository;
     
     
     @BeforeEach
@@ -47,22 +48,22 @@ public abstract class AcceptanceTestBase {
       
         IUserRepository userRepository = new UserRepository();
         listingRepository = new ListingRepository();
-        ISuspentionRepository suspentionRepository = new SuspentionRepository();
+        ISuspensionRepository susRepo = new SuspensionRepository(userRepository);
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
         storeRepository = new StoreRepository();
          
         authService = new AuthService(userRepository);
-        userService = new UserService(userRepository, authService, suspentionRepository);
+        userService = new UserService(userRepository, authService, susRepo);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
-        storeService = new StoreService(storerepo,userRepository,listingRepository,suspentionRepository); // Use the real implementation
-        storePoliciesService = new StorePoliciesService(storerepo,suspentionRepository);
-        productService = new ProductService(listingRepository,suspentionRepository);
+        storeService = new StoreService(storerepo,userRepository,listingRepository,susRepo); // Use the real implementation
+        storePoliciesService = new StorePoliciesService(storerepo,susRepo);
+        productService = new ProductService(listingRepository);
         paymentService = mock(IPaymentService.class); // Mock external service
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();
 
-        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService);
+        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo);
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
         
