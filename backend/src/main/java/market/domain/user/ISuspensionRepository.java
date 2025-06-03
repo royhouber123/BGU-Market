@@ -1,3 +1,7 @@
+package market.domain.user;
+import java.time.Duration;
+import java.util.List;
+
 public interface ISuspensionRepository {
     public boolean suspendUser(String userName, Duration duration); // Duration.ZERO or null for permanent    
     public boolean unsuspendUser(String userName);

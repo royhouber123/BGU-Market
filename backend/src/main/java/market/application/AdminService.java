@@ -1,14 +1,15 @@
 package market.application;
 
+import java.time.Duration;
 import java.util.List;
 
+import market.domain.Role.IRoleRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 import market.domain.user.Admin;
-import market.domain.user.IUserRepository;
 import market.domain.user.ISuspensionRepository;
+import market.domain.user.IUserRepository;
 import market.domain.user.User;
-import market.domain.Role.IRoleRepository;
 import utils.Logger;
 
 /**
@@ -62,7 +63,7 @@ public class AdminService {
         }
 
         if (!store.isActive()) {
-            logger.warn("Store " + storeId + " is already inactive.");
+            logger.debug("Store " + storeId + " is already inactive.");
             throw new Exception("Store is already inactive.");
         }
 
@@ -83,10 +84,10 @@ public class AdminService {
      *
      * @param adminId ID of the acting admin
      * @param targetUserId ID of the user to suspend
-     * @param durationMillis Duration of suspension in milliseconds (0 = permanent)
+     * @param durationHours Duration of suspension in hours (0 = permanent)
      * @throws Exception if the admin or user is invalid, or suspension fails
      */
-    public void suspendUser(String adminId, String targetUserId, long durationMillis) throws Exception {
+    public void suspendUser(String adminId, String targetUserId, long durationHours) throws Exception {
         logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId);
 
         Admin admin = validateAdmin(adminId);
@@ -96,14 +97,14 @@ public class AdminService {
             throw new Exception("User not found.");
         }
 
-        boolean success = suspensionRepository.suspendUser(targetUserId, durationMillis);
+        boolean success = suspensionRepository.suspendUser(targetUserId, Duration.ofHours(durationHours));
         if (!success) {
             logger.error("Suspension failed for user " + targetUserId);
             throw new Exception("Suspension failed.");
         }
 
         logger.info("User " + targetUserId + " suspended for " +
-                    (durationMillis == 0 ? "an indefinite period." : durationMillis + " ms."));
+                    (durationHours == 0 ? "an indefinite period." : durationHours + " hours."));
     }
 
     /**
@@ -120,7 +121,7 @@ public class AdminService {
 
         boolean success = suspensionRepository.unsuspendUser(targetUserId);
         if (!success) {
-            logger.warn("User " + targetUserId + " was not suspended.");
+            logger.debug("User " + targetUserId + " was not suspended.");
             throw new Exception("User was not suspended or does not exist.");
         }
 

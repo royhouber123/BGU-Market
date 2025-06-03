@@ -1,3 +1,4 @@
+package market.domain.user;
 import java.time.Instant;
 
 public class Suspension {
