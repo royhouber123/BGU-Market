@@ -53,7 +53,7 @@ import './StoreManagement.css';
 export default function StoreManagement() {
 	const { storeId } = useParams();
 	const navigate = useNavigate();
-	const { currentUser } = useAuth();
+	const { currentUser, isAuthenticated, loading: authLoading } = useAuth();
 	const storePermissions = useStorePermissions(storeId);
 	const [store, setStore] = useState(null);
 	const [products, setProducts] = useState([]);
@@ -660,7 +660,7 @@ export default function StoreManagement() {
 						<Typography variant="body2" color="text.secondary">You need to be logged in to access store management</Typography>
 					</Box>
 				</Container>
-				{authOpen && <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />}
+				{authOpen && !isAuthenticated && <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />}
 			</Box>
 		);
 	}
@@ -1056,7 +1056,7 @@ export default function StoreManagement() {
 				</Box>
 			</Container>
 
-			{authOpen && <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />}
+			{authOpen && !isAuthenticated && <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />}
 
 			<Snackbar
 				open={snackbar.open}

@@ -39,7 +39,7 @@ import AuthDialog from "../../components/AuthDialog/AuthDialog";
 import './Profile.css';
 
 export default function Profile() {
-	const { currentUser } = useAuth();
+	const { currentUser, isAuthenticated, loading: authLoading } = useAuth();
 	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState(0);
 	const [loading, setLoading] = useState(true);
@@ -281,7 +281,8 @@ export default function Profile() {
 						<Typography variant="body2" color="text.secondary">You need to be logged in to access your profile page</Typography>
 					</Box>
 				</Container>
-				{authOpen && <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />}
+				{/* Only show auth dialog when explicitly triggered, not on refresh */}
+				{authOpen && !isAuthenticated && <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />}
 			</Box>
 		);
 	}
@@ -727,7 +728,8 @@ export default function Profile() {
 				)}
 			</Container>
 
-			{authOpen && <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />}
+			{/* Only show auth dialog when explicitly triggered, not on refresh */}
+			{authOpen && !isAuthenticated && <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />}
 
 			<Snackbar
 				open={snackbar.open}

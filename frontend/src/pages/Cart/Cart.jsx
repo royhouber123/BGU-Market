@@ -16,17 +16,37 @@ export default function Cart() {
   const [loading, setLoading] = useState(true);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
-  const { cart, refreshCart } = useAuth();
+  const { cart, refreshCart, isAuthenticated, loading: authLoading } = useAuth();
+  // Local state to track cart updates immediately
+  const [localCart, setLocalCart] = useState([]);
 
   useEffect(() => {
     loadCart();
-  }, []);
+  }, [isAuthenticated]);
+  
+  // Keep localCart in sync with the context cart
+  useEffect(() => {
+    if (cart) {
+      setLocalCart(cart);
+    }
+  }, [cart]);
 
   const loadCart = async () => {
     try {
-      if (userService.isAuthenticated()) {
-        // Refresh cart from AuthContext
-        await refreshCart();
+      if (isAuthenticated) {
+        // Get cart data from local storage to ensure consistency
+        const userData = userService.getCurrentUser() || {};
+        const userCart = userData.cart || [];
+        setLocalCart(userCart);
+        
+        // Only refresh from backend if we don't have cart data
+        if (userCart.length === 0) {
+          // Sync cart from backend (this will update localStorage)
+          await userService.syncCartFromBackend();
+          
+          // Get updated cart from AuthContext
+          await refreshCart();
+        }
       }
     } catch (error) {
       console.error("Error loading cart:", error);
@@ -38,31 +58,75 @@ export default function Cart() {
     try {
       // Use userService to update the cart data
       await userService.updateUserData({ cart: newCart });
-      // Refresh cart from AuthContext
-      await refreshCart();
+      
+      // Update local state immediately for responsive UI
+      setLocalCart(newCart);
+      
+      // Get the current user data
+      const currentUser = userService.getCurrentUser() || {};
+      
+      // Update the cart in the user data
+      currentUser.cart = newCart;
+      
+      // Save the updated user data to localStorage
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      
+      // No need to call refreshCart() which would overwrite our changes
+      // by calling syncCartFromBackend()
+      
+      return true;
     } catch (error) {
       console.error("Error updating cart:", error);
+      // Revert local state on error
+      setLocalCart(cart);
+      return false;
     }
   };
 
   const updateQuantity = (productId, change) => {
-    const newCart = cart.map(item => {
-      if (item.productId === productId) {
-        const newQuantity = Math.max(1, item.quantity + change);
-        return { ...item, quantity: newQuantity };
+    try {
+      // Find the current item in localCart for immediate UI response
+      const currentItem = localCart.find(item => item.productId === productId);
+      if (!currentItem) {
+        console.error('Product not found in cart:', productId);
+        return;
       }
-      return item;
-    });
-    updateCart(newCart);
+      
+      // Calculate new quantity (ensure it's at least 1)
+      const newQuantity = Math.max(1, currentItem.quantity + change);
+      
+      // Don't update if quantity is the same
+      if (newQuantity === currentItem.quantity) return;
+      
+      // Create updated cart with new quantity
+      const newCart = localCart.map(item => {
+        if (item.productId === productId) {
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      });
+      
+      // Update the cart
+      updateCart(newCart);
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+    }
   };
 
   const removeItem = (productId) => {
-    const newCart = cart.filter(item => item.productId !== productId);
-    updateCart(newCart);
+    try {
+      // Create new cart by filtering out the item to be removed from localCart
+      const newCart = localCart.filter(item => item.productId !== productId);
+      
+      // Update cart with the filtered cart (item removed)
+      updateCart(newCart);
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+    }
   };
 
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return localCart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const handleCheckout = () => {
@@ -96,12 +160,12 @@ export default function Cart() {
           Your Cart
         </Typography>
 
-        {cart.length > 0 ? (
+        {localCart.length > 0 ? (
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
               <Paper sx={{ p: 3, borderRadius: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  {cart.map((item) => (
+                  {localCart.map((item) => (
                     <Box
                       key={item.productId}
                       sx={{
