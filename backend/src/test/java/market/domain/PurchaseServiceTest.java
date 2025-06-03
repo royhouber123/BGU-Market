@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class PurchaseServiceTest {
 
+    
     private IPaymentService paymentService;
     private IShipmentService shipmentService;
     private IStoreRepository storeRepository;

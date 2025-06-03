@@ -9,6 +9,7 @@ import market.domain.store.Policies.DiscountPolicy;
 import market.domain.store.Policies.PurchasePolicy;
 import market.domain.store.Policies.Discounts.DiscountPolicyFactory;
 import market.domain.store.Policies.Policies.PurchasePolicyFactory;
+import market.domain.user.ISuspensionRepository;
 import market.dto.PolicyDTO;
 import utils.ApiResponse;
 import utils.Logger;
@@ -16,10 +17,12 @@ import utils.Logger;
 public class StorePoliciesService {
 
     private final IStoreRepository storeRepository;
+    private final ISuspensionRepository suspensionRepository;
     private Logger logger = Logger.getInstance();
 
-    public StorePoliciesService(IStoreRepository storeRepo) {
+    public StorePoliciesService(IStoreRepository storeRepo, ISuspensionRepository suspensionRepository) {
         this.storeRepository = storeRepo;
+        this.suspensionRepository = suspensionRepository;
     }
 
     /**
@@ -32,6 +35,7 @@ public class StorePoliciesService {
      */
     public boolean addDiscount(String storeId, String userId, PolicyDTO.AddDiscountRequest discountDTO) {
         try {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
             return store.addDiscount(userId, policy);
@@ -51,6 +55,7 @@ public class StorePoliciesService {
      */
     public boolean removeDiscount(String storeId, String userId, PolicyDTO.AddDiscountRequest discountDTO) {
         try {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
             return store.removeDiscount(userId, policy);
@@ -90,6 +95,7 @@ public class StorePoliciesService {
      */
     public boolean addPurchasePolicy(String storeId, String userId, PolicyDTO.AddPurchasePolicyRequest dto) {
         try {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
             return store.addPolicy(userId, policy);
@@ -110,6 +116,7 @@ public class StorePoliciesService {
      */
     public boolean removePurchasePolicy(String storeId, String userId, PolicyDTO.AddPurchasePolicyRequest dto) {
         try {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
             return store.removePolicy(userId, policy);

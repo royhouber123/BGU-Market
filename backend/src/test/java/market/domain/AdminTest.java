@@ -5,9 +5,11 @@ import market.domain.Role.IRoleRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 import market.domain.user.Admin;
+import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
 import market.infrastructure.RoleRepository;
 import market.infrastructure.StoreRepository;
+import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,12 +22,14 @@ public class AdminTest {
     private IStoreRepository storeRepository;
     private IUserRepository userRepository;
     private IRoleRepository roleRepository;
+    private ISuspensionRepository suspensionRepository;
 
     @BeforeEach
     public void setup() throws Exception {
         userRepository = new UserRepository();
         storeRepository = new StoreRepository();
         roleRepository = new RoleRepository();
+        suspensionRepository = new SuspensionRepository(userRepository);
 
         Admin admin = new Admin("adminUser");
         ((UserRepository) userRepository).saveAdmin(admin, "adminPw");
@@ -33,7 +37,7 @@ public class AdminTest {
         Store store = new Store("1", "StoreOne", "adminUser", null);
         storeRepository.addStore(store);
 
-        adminService = new AdminService(userRepository, storeRepository, roleRepository);
+        adminService = new AdminService(userRepository, storeRepository, roleRepository, suspensionRepository);
     }
 
     @Test

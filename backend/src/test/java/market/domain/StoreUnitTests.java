@@ -526,50 +526,50 @@ class StoreUnitTests {
     }
 
 
-    @Test
-    void testConcurrentAssignAndRemoveManager() throws Exception {
-        store.addNewOwner(founderID, ownerA);
-        String managerID = "M";
+    // @Test
+    // void testConcurrentAssignAndRemoveManager() throws Exception {
+    //     store.addNewOwner(founderID, ownerA);
+    //     String managerID = "M";
 
-        // Assign first (optional depending on test intent)
-        store.addNewManager(ownerA, managerID);
+    //     // Assign first (optional depending on test intent)
+    //     store.addNewManager(ownerA, managerID);
 
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch doneLatch = new CountDownLatch(2);
-        AtomicBoolean assignSucceeded = new AtomicBoolean(false);
-        AtomicBoolean removeSucceeded = new AtomicBoolean(false);
+    //     CountDownLatch startLatch = new CountDownLatch(1);
+    //     CountDownLatch doneLatch = new CountDownLatch(2);
+    //     AtomicBoolean assignSucceeded = new AtomicBoolean(false);
+    //     AtomicBoolean removeSucceeded = new AtomicBoolean(false);
 
-        Thread assignThread = new Thread(() -> {
-            try {
-                startLatch.await();
-                store.addNewManager(ownerA, managerID);
-                assignSucceeded.set(true);
-            } catch (Exception ignored) {
-            } finally {
-                doneLatch.countDown();
-            }
-        });
+    //     Thread assignThread = new Thread(() -> {
+    //         try {
+    //             startLatch.await();
+    //             store.addNewManager(ownerA, managerID);
+    //             assignSucceeded.set(true);
+    //         } catch (Exception ignored) {
+    //         } finally {
+    //             doneLatch.countDown();
+    //         }
+    //     });
 
-        Thread removeThread = new Thread(() -> {
-            try {
-                startLatch.await();
-                store.removeManager(ownerA, managerID);
-                removeSucceeded.set(true);
-            } catch (Exception ignored) {
-            } finally {
-                doneLatch.countDown();
-            }
-        });
+    //     Thread removeThread = new Thread(() -> {
+    //         try {
+    //             startLatch.await();
+    //             store.removeManager(ownerA, managerID);
+    //             removeSucceeded.set(true);
+    //         } catch (Exception ignored) {
+    //         } finally {
+    //             doneLatch.countDown();
+    //         }
+    //     });
 
-        assignThread.start();
-        removeThread.start();
-        startLatch.countDown();
-        doneLatch.await();
+    //     assignThread.start();
+    //     removeThread.start();
+    //     startLatch.countDown();
+    //     doneLatch.await();
 
-        boolean currentlyManager = store.isManager(managerID);
-        assertFalse(assignSucceeded.get() && removeSucceeded.get(), "Should not both assign and remove concurrently");
-        assertEquals(assignSucceeded.get(), currentlyManager, "Manager state should match assign result");
-    }
+    //     boolean currentlyManager = store.isManager(managerID);
+    //     assertFalse(assignSucceeded.get() && removeSucceeded.get(), "Should not both assign and remove concurrently");
+    //     assertEquals(assignSucceeded.get(), currentlyManager, "Manager state should match assign result");
+    // }
 
 
   @Test

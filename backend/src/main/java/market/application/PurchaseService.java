@@ -5,13 +5,12 @@ import market.application.External.IShipmentService;
 import market.domain.purchase.*;
 import market.domain.user.*;
 import market.domain.store.*;
-import market.domain.store.Policies.*;
-import market.middleware.TokenUtils;
 import io.jsonwebtoken.Claims;
-import utils.ApiResponse;
 import utils.Logger;
 
 import java.util.*;
+
+import javax.management.RuntimeErrorException;
 
 public class PurchaseService {
 
@@ -22,18 +21,21 @@ public class PurchaseService {
     private final IPaymentService paymentService;
     private final IShipmentService shipmentService;
     private final Logger logger = Logger.getInstance();
+    private ISuspensionRepository suspensionRepository; 
 
-    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService) {
+    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService, ISuspensionRepository suspentionRepository) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
         this.listingRepository=listingRepository;
         this.userRepository = userRepository;
         this.paymentService = paymentService;
         this.shipmentService = shipmentService;
+        this.suspensionRepository = suspentionRepository;
     }
 
     // Regular Purchase
-    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
+    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo)  {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
             double totalDiscountPrice = 0.0;
             List<PurchasedProduct> purchasedItems = new ArrayList<>();
@@ -92,8 +94,9 @@ public class PurchaseService {
     }
     
     // Overloaded method for simplified API access - automatically gets user's cart
-    public String executePurchase(int userId, String paymentDetails, String shippingAddress) {
+    public String executePurchase(int userId, String paymentDetails, String shippingAddress) throws Exception{
             String userIdStr = String.valueOf(userId);
+            suspensionRepository.checkNotSuspended(userIdStr);// check if user is suspended
             User user = userRepository.findById(userIdStr);
             if (user == null) {
                 logger.debug("User not found: " + userId);
@@ -111,6 +114,7 @@ public class PurchaseService {
 
     // Auction Purchase
     public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             User user = userRepository.findById(userId);
             if (!(user instanceof Subscriber)) {
                 logger.debug("User is not a subscriber: " + userId);
@@ -119,10 +123,12 @@ public class PurchaseService {
     
             AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
             logger.info("Auction offer submitted: user " + userId + ", product " + productId + ", store " + storeId + ", price " + offerPrice);
+
     }
 
     public void openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
         try {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
     
@@ -162,6 +168,8 @@ public class PurchaseService {
     
     // Bid Purchase:
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
+
             // Validate input parameters
             if (storeId == null || storeId.trim().isEmpty()) {
                 throw new IllegalArgumentException("Store ID cannot be null or empty");
@@ -204,6 +212,7 @@ public class PurchaseService {
             );
     
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
+
     }
 
     public void approveBid(String storeId, String productId, String userId, String approverId) {
@@ -213,7 +222,7 @@ public class PurchaseService {
         logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public void rejectBid(String storeId, String productId, String userId, String approverId) {
+    public void rejectBid(String storeId, String productId, String userId, String approverId){
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.rejectBid(storeId, productId, userId, approverId);
 
@@ -240,6 +249,7 @@ public class PurchaseService {
 
     public String getBidStatus(String storeId, String productId, String userId) {
         try {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             BidKey key = new BidKey(storeId, productId);
             List<Bid> bids = BidPurchase.getBids().get(key);
             
@@ -252,7 +262,7 @@ public class PurchaseService {
                     return getBidStatusString(bid);
                 }
             }
-            
+        
             return "No Bid Found";
         } catch (RuntimeException e) {
             logger.error("Failed to get bid status: " + e.getMessage());
@@ -262,6 +272,7 @@ public class PurchaseService {
 
     public List<Map<String, Object>> getProductBids(String storeId, String productId, String requestingUser) {
         try {
+            
             // Verify that the requesting user has permission to view bids for this store
             Store store = storeRepository.getStoreByID(storeId);
             if (store == null) {
@@ -333,7 +344,8 @@ public class PurchaseService {
     }
     
 
-    private void validateApproverForBid(String storeId, String productId, String userId, String approverId) {
+    private void validateApproverForBid(String storeId, String productId, String userId, String approverId) throws RuntimeErrorException {
+        suspensionRepository.checkNotSuspended(userId);// check if user is suspended
         List<Bid> bids=BidPurchase.getBids().get(new BidKey(storeId, productId));
         if (bids == null || bids.isEmpty()) {
             throw new RuntimeException("No bids found for product " + productId + " in store " + storeId);
@@ -373,6 +385,8 @@ public class PurchaseService {
             if (user == null) {
                 throw new IllegalArgumentException("User not found: " + username);
             }
+            
+            suspensionRepository.checkNotSuspended(username);// check if user is suspended
             
             ShoppingCart cart = user.getShoppingCart();
             if (cart == null || cart.getAllStoreBags().isEmpty()) {

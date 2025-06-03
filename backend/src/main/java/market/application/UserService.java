@@ -1,5 +1,6 @@
 package market.application;
 import market.domain.user.IUserRepository;
+import market.domain.user.ISuspensionRepository;
 import market.domain.user.User;
 import market.domain.user.ShoppingCart;
 import market.middleware.TokenUtils;
@@ -14,10 +15,12 @@ public class UserService {
     private static final Logger logger = Logger.getInstance();
     private final IUserRepository repo;
     private final AuthService authService;
+    private ISuspensionRepository suspentionRepository; 
 
-    public UserService(IUserRepository repo, AuthService authService) {
+    public UserService(IUserRepository repo, AuthService authService,ISuspensionRepository suspentionRepository) {
         this.repo = repo;
         this.authService = authService;
+        this.suspentionRepository=suspentionRepository; 
     }
 
     /** Register a brand-new guest. */
@@ -75,6 +78,7 @@ public class UserService {
     public String changeUserName(String newName) {
         String oldName = extractUserNameFromToken();
         logger.info("[UserService] Changing username from '" + oldName + "' to '" + newName + "'.");
+        suspentionRepository.checkNotSuspended(oldName);// check if user is suspended
         boolean result = repo.changeUserName(oldName, newName);
         if (result) {
             // Generate new token with updated username
@@ -91,6 +95,7 @@ public class UserService {
     public boolean changePassword(String newPassword) {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Changing password for user: " + userName);
+        suspentionRepository.checkNotSuspended(userName);// check if user is suspended
         boolean result = repo.changePassword(userName, newPassword);
         if(result) {
             logger.info("[UserService] Password changed for user: " + userName);
@@ -107,6 +112,7 @@ public class UserService {
                                  int quantity) {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Adding product to cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
+        suspentionRepository.checkNotSuspended(userName);// check if user is suspended
         User user = repo.findById(userName);
         user.addProductToCart(storeId, productName, quantity);
         logger.info("[UserService] Product added to cart for user: " + userName);
