@@ -101,23 +101,79 @@ const adminService = {
   },
 
   /**
-   * Ban a user by admin request
+   * Suspend a user for a specified duration
+   * @param {string} userId - ID of the user to suspend
+   * @param {number} durationHours - Duration of suspension in hours (0 = permanent)
    */
-  banUser: async (userId) => {
+  suspendUser: async (userId, durationHours = 0) => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user?.id) {
         throw new Error('User not authenticated');
       }
       
-      const response = await api.post('/admin/users/ban', {
+      const response = await api.post('/admin/users/suspend', {
+        adminId: user.id,
+        userId: userId,
+        durationHours: durationHours
+      });
+      
+      return response.data.success;
+    } catch (error) {
+      console.error('Suspend user error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Unsuspend a previously suspended user
+   * @param {string} userId - ID of the user to unsuspend
+   */
+  unsuspendUser: async (userId) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await api.post('/admin/users/unsuspend', {
         adminId: user.id,
         userId: userId
       });
       
       return response.data.success;
     } catch (error) {
-      console.error('Ban user error:', error);
+      console.error('Unsuspend user error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get list of all suspended users
+   * @returns {Promise<string[]>} - Array of suspended user IDs
+   */
+  getSuspendedUsers: async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await api.get(`/admin/users/suspended?adminId=${user.id}`);
+      
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Failed to get suspended users');
+      }
+    } catch (error) {
+      console.error('Get suspended users error:', error);
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
       }

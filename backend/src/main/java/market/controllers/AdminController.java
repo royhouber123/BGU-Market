@@ -96,10 +96,10 @@ public class AdminController {
     @PostMapping("/users/unsuspend")
     public ResponseEntity<ApiResponse<Void>> unsuspendUser(@RequestBody Map<String, String> request) {
         return ApiResponseBuilder.build(() -> {
-            adminService.unsuspendUser(
-                request.get("adminId"),
-                request.get("userId")
-            );
+            String adminId = request.get("adminId");
+            String userId = request.get("userId");
+            
+            adminService.unsuspendUser(adminId, userId);
             return null;
         });
     }

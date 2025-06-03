@@ -7,7 +7,6 @@ public class User {
 
     private String userName;                  
     private ShoppingCart shoppingCart;
-    private boolean banned = false; // Default value is false
 
     /**
      * Creates a new user with the given username and an empty shopping cart.
@@ -74,23 +73,5 @@ public class User {
      */
     public void clearCart() {
         this.shoppingCart = new ShoppingCart();
-    }
-    
-    /**
-     * Checks if the user is banned from the system.
-     *
-     * @return true if the user is banned, false otherwise
-     */
-    public boolean isBanned() {
-        return banned;
-    }
-    
-    /**
-     * Sets the banned status of this user.
-     *
-     * @param banned The new banned status
-     */
-    public void setBanned(boolean banned) {
-        this.banned = banned;
     }
 }

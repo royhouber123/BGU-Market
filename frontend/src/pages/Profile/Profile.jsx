@@ -63,6 +63,7 @@ export default function Profile() {
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [allStores, setAllStores] = useState([]);
 	const [allUsers, setAllUsers] = useState([]);
+	const [suspendedUsers, setSuspendedUsers] = useState([]);
 	const [adminLoading, setAdminLoading] = useState(false);
 	const [adminTabValue, setAdminTabValue] = useState(0);
 
@@ -277,6 +278,18 @@ export default function Profile() {
 		  setAdminLoading(false);
 		}
 	  }, [isAdmin, toast]);
+	  
+	  const loadSuspendedUsers = useCallback(async () => {
+		if (!isAdmin) return;
+		try {
+		  const suspendedUserIds = await adminService.getSuspendedUsers();
+		  setSuspendedUsers(suspendedUserIds);
+		  console.log('Loaded suspended users:', suspendedUserIds);
+		} catch (error) {
+		  console.error("Error loading suspended users:", error);
+		  toast({ title: "Error", description: "Failed to load suspended users", variant: "destructive" });
+		}
+	  }, [isAdmin, toast]);
 
 	useEffect(() => {
 		if (!currentUser) {
@@ -285,10 +298,17 @@ export default function Profile() {
 		}
 		loadProfileData();
 	}, [currentUser, loadProfileData]);
+	
+	// Load admin data when admin tab is selected
+	useEffect(() => {
+		if (isAdmin && activeTab === 3) {
+			loadAllStores();
+			loadAllUsers();
+			loadSuspendedUsers();
+		}
+	}, [isAdmin, activeTab, loadAllStores, loadAllUsers, loadSuspendedUsers]);
 
 	const handleCloseStore = async (storeId, storeName) => {
-		if (!confirm(`Are you sure you want to close "${storeName}"?`)) return;
-		
 		try {
 		  await adminService.closeStore(storeId);
 		  toast({ title: "Success", description: `Store "${storeName}" has been closed` });
@@ -299,18 +319,58 @@ export default function Profile() {
 		}
 	  };
 	  
-	  const handleBanUser = async (username) => {
-		if (!confirm(`Are you sure you want to ban user "${username}"?`)) return;
+	const handleSuspendUser = async (userId, isPermanent = false) => {
+		let hours;
+		
+		if (isPermanent) {
+		// Permanent suspension (0 hours)
+		hours = 0;
+		} else {
+		// Temporary suspension - ask for duration
+		const suspensionHours = window.prompt("Enter suspension duration in hours:", "24");
+		
+		if (suspensionHours === null) return; // User cancelled
+		
+		hours = parseInt(suspensionHours, 10);
+		if (isNaN(hours) || hours < 0) {
+			setSnackbar({
+			open: true,
+			message: "Please enter a valid non-negative number for suspension hours",
+			severity: "error"
+			});
+			return;
+		}
+		
+		}
+		
+		const durationText = hours === 0 ? "permanently" : `for ${hours} hours`;
 		
 		try {
-		  await adminService.banUser(username);
-		  toast({ title: "Success", description: `User "${username}" has been banned` });
+		  await adminService.suspendUser(userId, hours);
+		  toast({ title: "Success", description: `User "${userId}" has been suspended ${durationText}` });
 		  loadAllUsers(); // Refresh the user list
+		  loadSuspendedUsers(); // Refresh the suspended users list
 		} catch (error) {
-		  console.error("Error banning user:", error);
-		  toast({ title: "Error", description: `Failed to ban user: ${error.message || "Unknown error"}`, variant: "destructive" });
+		  console.error("Error suspending user:", error);
+		  toast({ 
+			title: "Error", 
+			description: `Failed to suspend user: ${error.message || "Unknown error"}`, 
+			variant: "destructive" 
+		  });
 		}
-	  };
+	};
+	  
+	const handleUnsuspendUser = async (username) => {		
+		try {
+		  await adminService.unsuspendUser(username);
+		  toast({ title: "Success", description: `User "${username}" has been unsuspended` });
+		  loadAllUsers(); // Refresh the user list
+		  loadSuspendedUsers(); // Refresh the suspended users list
+		} catch (error) {
+		  console.error("Error unsuspending user:", error);
+		  toast({ title: "Error", description: `Failed to unsuspend user: ${error.message || "Unknown error"}`, variant: "destructive" });
+		}
+	};
 
 	const handleSaveProfile = async () => {
 		try {
@@ -822,6 +882,7 @@ export default function Profile() {
 					<Tabs value={adminTabValue} onChange={(_, v) => setAdminTabValue(v)} sx={{ mb: 3 }}>
 					<Tab label="Manage All Stores" />
 					<Tab label="Manage All Users" />
+					<Tab label={`Suspended Users (${suspendedUsers.length})`} />
 					</Tabs>
 
 					{/* Manage All Stores */}
@@ -923,8 +984,8 @@ export default function Profile() {
 									<TableCell>
 									<Chip
 										size="small"
-										label={user.banned ? "Banned" : "Active"}
-										color={user.banned ? "error" : "success"}
+										label={suspendedUsers.includes(user.userName) ? "Suspended" : "Active"}
+										color={suspendedUsers.includes(user.userName) ? "error" : "success"}
 									/>
 									</TableCell>
 									<TableCell>
@@ -933,14 +994,37 @@ export default function Profile() {
 										: "No roles"}
 									</TableCell>
 									<TableCell>
-									<Button
-										size="small"
-										color="error"
-										disabled={user.banned || user.isAdmin || user.userName === currentUser.userName}
-										onClick={() => handleBanUser(user.userName)}
-									>
-										Ban User
-									</Button>
+									{suspendedUsers.includes(user.userName) ? (
+										<Button
+											size="small"
+											color="success"
+											disabled={user.isAdmin || user.userName === currentUser.userName}
+											onClick={() => handleUnsuspendUser(user.userName)}
+											sx={{ mr: 1 }}
+										>
+											Unsuspend
+										</Button>
+									) : (
+										<>
+										<Button
+											size="small"
+											color="warning"
+											disabled={user.isAdmin || user.userName === currentUser.userName}
+											onClick={() => handleSuspendUser(user.userName, false)}
+											sx={{ mr: 1 }}
+										>
+											Suspend Temp
+										</Button>
+										<Button
+											size="small"
+											color="error"
+											disabled={user.isAdmin || user.userName === currentUser.userName}
+											onClick={() => handleSuspendUser(user.userName, true)}
+										>
+											Suspend Perm
+										</Button>
+										</>
+									)}
 									</TableCell>
 								</TableRow>
 								))}
@@ -953,6 +1037,71 @@ export default function Profile() {
 							<Typography variant="h6" mb={1}>No users found</Typography>
 							<Typography variant="body2" color="text.secondary">
 							There are no users in the system yet
+							</Typography>
+						</Box>
+						)}
+					</Box>
+					)}
+
+					{/* Suspended Users */}
+					{adminTabValue === 2 && (
+					<Box>
+						<Typography variant="h6" mb={3}>Suspended Users</Typography>
+						{adminLoading ? (
+						<Box>
+							{[1, 2, 3].map((i) => (
+							<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
+							))}
+						</Box>
+						) : suspendedUsers.length > 0 ? (
+						<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+							<Table>
+							<TableHead>
+								<TableRow>
+								<TableCell>Username</TableCell>
+								<TableCell>Admin</TableCell>
+								<TableCell>Roles</TableCell>
+								<TableCell>Actions</TableCell>
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{allUsers.filter(user => suspendedUsers.includes(user.userName)).map((user) => (
+								<TableRow key={user.userName}>
+									<TableCell>{user.userName}</TableCell>
+									<TableCell>
+									<Chip
+										size="small"
+										label={user.isAdmin ? "Admin" : "User"}
+										color={user.isAdmin ? "primary" : "default"}
+										variant={user.isAdmin ? "filled" : "outlined"}
+									/>
+									</TableCell>
+									<TableCell>
+									{user.roles && user.roles.length > 0
+										? user.roles.map(role => role.storeName ? `${role.roleName} (${role.storeName})` : role.roleName).join(", ")
+										: "No roles"}
+									</TableCell>
+									<TableCell>
+									<Button
+										size="small"
+										color="success"
+										disabled={user.isAdmin || user.userName === currentUser.userName}
+										onClick={() => handleUnsuspendUser(user.userName)}
+									>
+										Unsuspend User
+									</Button>
+									</TableCell>
+								</TableRow>
+								))}
+							</TableBody>
+							</Table>
+						</TableContainer>
+						) : (
+						<Box sx={{ textAlign: "center", py: 8 }}>
+							<PersonIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+							<Typography variant="h6" mb={1}>No suspended users</Typography>
+							<Typography variant="body2" color="text.secondary">
+							There are no suspended users in the system at this time
 							</Typography>
 						</Box>
 						)}
