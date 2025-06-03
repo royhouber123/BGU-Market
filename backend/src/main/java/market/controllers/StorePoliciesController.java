@@ -3,6 +3,7 @@ package market.controllers;
 import market.application.StorePoliciesService;
 import market.dto.PolicyDTO;
 import utils.ApiResponse;
+import utils.ApiResponseBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +31,9 @@ public class StorePoliciesController {
             @PathVariable String storeId,
             @RequestParam String userId,
             @RequestBody PolicyDTO.AddDiscountRequest request) {
-        ApiResponse<Boolean> response = storePoliciesService.addDiscount(storeId, userId, request);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            storePoliciesService.addDiscount(storeId, userId, request)
+        );
     }
 
     /**
@@ -43,8 +45,9 @@ public class StorePoliciesController {
             @PathVariable String storeId,
             @RequestParam String userId,
             @RequestBody PolicyDTO.AddDiscountRequest request) {
-        ApiResponse<Boolean> response = storePoliciesService.removeDiscount(storeId, userId, request);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            storePoliciesService.removeDiscount(storeId, userId, request)
+        );
     }
 
     /**
@@ -55,8 +58,9 @@ public class StorePoliciesController {
     public ResponseEntity<ApiResponse<List<PolicyDTO.AddDiscountRequest>>> getDiscounts(
             @PathVariable String storeId,
             @RequestParam String userId) {
-        ApiResponse<List<PolicyDTO.AddDiscountRequest>> response = storePoliciesService.getDiscounts(storeId, userId);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            storePoliciesService.getDiscounts(storeId, userId)
+        );
     }
 
     /**
@@ -68,8 +72,9 @@ public class StorePoliciesController {
             @PathVariable String storeId,
             @RequestParam String userId,
             @RequestBody PolicyDTO.AddPurchasePolicyRequest request) {
-        ApiResponse<Boolean> response = storePoliciesService.addPurchasePolicy(storeId, userId, request);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            storePoliciesService.addPurchasePolicy(storeId, userId, request)
+        );
     }
 
     /**
@@ -81,8 +86,9 @@ public class StorePoliciesController {
             @PathVariable String storeId,
             @RequestParam String userId,
             @RequestBody PolicyDTO.AddPurchasePolicyRequest request) {
-        ApiResponse<Boolean> response = storePoliciesService.removePurchasePolicy(storeId, userId, request);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            storePoliciesService.removePurchasePolicy(storeId, userId, request)
+        );
     }
 
     /**
@@ -93,7 +99,8 @@ public class StorePoliciesController {
     public ResponseEntity<ApiResponse<List<PolicyDTO.AddPurchasePolicyRequest>>> getPurchasePolicies(
             @PathVariable String storeId,
             @RequestParam String userId) {
-        ApiResponse<List<PolicyDTO.AddPurchasePolicyRequest>> response = storePoliciesService.getPurchasePolicies(storeId, userId);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() -> 
+            storePoliciesService.getPurchasePolicies(storeId, userId)
+        );
     }
 } 

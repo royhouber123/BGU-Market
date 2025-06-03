@@ -6,6 +6,7 @@ import market.domain.store.Policies.PurchasePolicy;
 import market.dto.PolicyDTO;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class MinPricePurchasePolicy implements PurchasePolicy {
 

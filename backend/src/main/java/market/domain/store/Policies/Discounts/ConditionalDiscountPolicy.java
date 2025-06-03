@@ -1,6 +1,7 @@
 package market.domain.store.Policies.Discounts;
 
 import java.util.Map;
+import java.util.Objects;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
@@ -38,5 +39,18 @@ public class ConditionalDiscountPolicy implements DiscountPolicy {
             null,                  // subDiscounts — not applicable for conditional
             null                   // combinationType — not applicable for conditional
         );
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // Same object reference
+        if (obj == null || getClass() != obj.getClass()) return false; // Different class or null object
+        ConditionalDiscountPolicy that = (ConditionalDiscountPolicy) obj;
+        return condition.equals(that.condition) && discount.equals(that.discount); // Compare fields
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(condition, discount); // Hash based on fields
     }
 }

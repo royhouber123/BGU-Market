@@ -55,36 +55,42 @@ public class AdminConfigTest {
     void testAdminUserLogin() throws Exception {
         // Arrange: Run startup to create admin user
         startupConfig.run();
-
-        // Act: Try to login with admin credentials
-        ApiResponse<AuthService.AuthToken> loginResponse = authService.login("admin", "admin");
-
-        // Assert: Login should be successful
-        assertTrue(loginResponse.isSuccess(), "Admin login should be successful");
-        assertNotNull(loginResponse.getData(), "Login should return a token");
-        assertNotNull(loginResponse.getData().token(), "Token should not be null");
+        try {
+            // Act: Try to login with admin credentials
+            AuthService.AuthToken loginResponse = authService.login("admin", "admin");
+            assertNotNull(loginResponse, "Login should return a token");
+            assertNotNull(loginResponse.token(), "Token should not be null");
+        } catch (Exception e) {
+            fail("Admin login should not throw an exception: " + e.getMessage());
+        }
     }
 
     @Test
     void testAdminUserPasswordUpdate() throws Exception {
         // Arrange: Run startup to create admin user
         startupConfig.run();
-
-        // Verify initial login works
-        ApiResponse<AuthService.AuthToken> initialLogin = authService.login("admin", "admin");
-        assertTrue(initialLogin.isSuccess(), "Initial admin login should work");
-
+        try {
+            // Verify initial login works
+            authService.login("admin", "admin");
+        } catch (Exception e) {
+            fail("Initial admin login should work" + e.getMessage());
+        }
         // Act: Update admin config with new password and run startup again
         ReflectionTestUtils.setField(adminConfig, "adminPassword", "newPassword");
         startupConfig.run();
-
-        // Assert: Should be able to login with new password
-        ApiResponse<AuthService.AuthToken> newLogin = authService.login("admin", "newPassword");
-        assertTrue(newLogin.isSuccess(), "Login with new password should work");
-
-        // Old password should not work
-        ApiResponse<AuthService.AuthToken> oldLogin = authService.login("admin", "admin");
-        assertFalse(oldLogin.isSuccess(), "Login with old password should fail");
+        try {
+            // Assert: Should be able to login with new password
+            authService.login("admin", "newPassword");
+        } catch (Exception e) {
+            fail("Login with new password should work: " + e.getMessage());
+        } try {
+            // Old password should not work
+            authService.login("admin", "admin");
+            fail("Login with old password should not work");
+        } catch (Exception e) {
+            // Assert: Old password should fail
+            assertTrue(e.getMessage().contains("Invalid username or password"), "Login with old password should fail");
+        }
     }
 
     @Test

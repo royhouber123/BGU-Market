@@ -3,6 +3,7 @@ package market.domain.store.Policies.Discounts;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
@@ -70,5 +71,23 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
             subs,
             combinationType.name()
         );
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        CompositeDiscountPolicy other = (CompositeDiscountPolicy) obj;
+        return combinationType == other.combinationType &&
+               policies.equals(other.policies);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(combinationType, policies);
     }
 }

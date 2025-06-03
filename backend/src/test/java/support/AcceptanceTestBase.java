@@ -72,7 +72,7 @@ public abstract class AcceptanceTestBase {
     protected AuthService.AuthToken registarAndLogin(String userName) throws Exception {
         userService.register(userName, "pw");
 
-        return authService.login(userName, "pw").getData(); 
+        return authService.login(userName, "pw"); 
     }  
 
     // restore after deletion
