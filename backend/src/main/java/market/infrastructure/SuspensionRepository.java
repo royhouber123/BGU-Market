@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.management.RuntimeErrorException;
+
 import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
 import market.domain.user.Suspension;
@@ -47,9 +49,9 @@ public class SuspensionRepository implements ISuspensionRepository {
     }
 
     @Override
-    public void checkNotSuspended(String userName) throws Exception {
+    public void checkNotSuspended(String userName) throws RuntimeErrorException {
         if (isSuspended(userName)) {
-            throw new Exception("The user "+userName+ " is suspended!");
+            throw new RuntimeException("The user "+userName+ " is suspended!");
         }
     }
 
