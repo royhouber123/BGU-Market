@@ -6,7 +6,6 @@ import market.domain.purchase.*;
 import market.domain.user.*;
 import market.domain.store.*;
 import io.jsonwebtoken.Claims;
-import utils.ApiResponse;
 import utils.Logger;
 
 import java.util.*;
@@ -33,7 +32,7 @@ public class PurchaseService {
     }
 
     // Regular Purchase
-    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
+    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) throws Exception {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
             double totalDiscountPrice = 0.0;
@@ -93,7 +92,7 @@ public class PurchaseService {
     }
     
     // Overloaded method for simplified API access - automatically gets user's cart
-    public String executePurchase(int userId, String paymentDetails, String shippingAddress) {
+    public String executePurchase(int userId, String paymentDetails, String shippingAddress) throws Exception{
             String userIdStr = String.valueOf(userId);
             suspensionRepository.checkNotSuspended(userIdStr);// check if user is suspended
             User user = userRepository.findById(userIdStr);
@@ -112,7 +111,7 @@ public class PurchaseService {
     }
 
     // Auction Purchase
-    public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+    public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) throws Exception {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             User user = userRepository.findById(userId);
             if (!(user instanceof Subscriber)) {
@@ -166,7 +165,7 @@ public class PurchaseService {
     }
     
     // Bid Purchase:
-    public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+    public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) throws Exception {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
 
             // Validate input parameters
@@ -214,21 +213,21 @@ public class PurchaseService {
 
     }
 
-    public void approveBid(String storeId, String productId, String userId, String approverId) {
+    public void approveBid(String storeId, String productId, String userId, String approverId) throws Exception {
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.approveBid(storeId, productId, userId, approverId);
 
         logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public void rejectBid(String storeId, String productId, String userId, String approverId) {
+    public void rejectBid(String storeId, String productId, String userId, String approverId) throws Exception {
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.rejectBid(storeId, productId, userId, approverId);
 
         logger.info("Bid rejected: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public void proposeCounterBid(String storeId, String productId, String userId, String approverId, double newAmount) {
+    public void proposeCounterBid(String storeId, String productId, String userId, String approverId, double newAmount) throws Exception {
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
 
@@ -246,7 +245,7 @@ public class PurchaseService {
         logger.info("Counter offer declined: user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public String getBidStatus(String storeId, String productId, String userId) {
+    public String getBidStatus(String storeId, String productId, String userId) throws Exception {
         try {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             BidKey key = new BidKey(storeId, productId);
@@ -365,7 +364,7 @@ public class PurchaseService {
     }
 
     // New method to handle purchase using JWT token
-    public String executePurchaseByUsername(String token, String paymentDetails, String shippingAddress) {
+    public String executePurchaseByUsername(String token, String paymentDetails, String shippingAddress) throws Exception {
             // Extract username from token (simplified approach without AuthService dependency)
             Claims claims = io.jsonwebtoken.Jwts.parserBuilder()
                 .setSigningKey(io.jsonwebtoken.security.Keys.hmacShaKeyFor(

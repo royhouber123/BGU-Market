@@ -75,7 +75,7 @@ public class UserService {
     }
 
     /** Change the user's log-in name (throws if conflict). Returns new JWT token. */
-    public String changeUserName(String newName) {
+    public String changeUserName(String newName) throws Exception {
         String oldName = extractUserNameFromToken();
         logger.info("[UserService] Changing username from '" + oldName + "' to '" + newName + "'.");
         suspentionRepository.checkNotSuspended(oldName);// check if user is suspended
@@ -92,7 +92,7 @@ public class UserService {
     }
 
     /** Update the stored password (mock plaintext for now). */
-    public boolean changePassword(String newPassword) {
+    public boolean changePassword(String newPassword) throws Exception {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Changing password for user: " + userName);
         suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -109,7 +109,7 @@ public class UserService {
 
     public Void addProductToCart(String storeId,
                                  String productName,
-                                 int quantity) {
+                                 int quantity) throws Exception {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Adding product to cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
         suspentionRepository.checkNotSuspended(userName);// check if user is suspended
