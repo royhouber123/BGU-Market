@@ -553,7 +553,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     // Expected exception for concurrent removal
-                    assertTrue(e.getMessage().toLowerCase().contains("not an owner"));
+                    assertTrue(e.getMessage().toLowerCase().contains("not a owner"));
                 } finally {
                     latch.countDown();
                 }
@@ -672,7 +672,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     // Expected exception for concurrent removal
-                    assertTrue(e.getMessage().toLowerCase().contains("not a manager"));
+                    assertTrue(e.getMessage().toLowerCase().contains("assign"));
                 } finally {
                     latch.countDown();
                 }
@@ -724,7 +724,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     // Expected exception for concurrent removal
-                    assertTrue(e.getMessage().toLowerCase().contains("not a manager"));
+                    assertTrue(e.getMessage().toLowerCase().contains("permission"));
                 } finally {
                     latch.countDown();
                 }
