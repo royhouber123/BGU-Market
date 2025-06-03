@@ -183,13 +183,17 @@ const userService = {
   },
 
   // Remove item from cart
-  removeFromCart: async (productId) => {
+  removeFromCart: async (storeId, productId, quantity = 1) => {
     try {
-      const response = await api.delete(`/users/me/cart/${productId}`);
-      // Update local storage
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      currentUser.cart = response.data.cart;
-      localStorage.setItem('user', JSON.stringify(currentUser));
+      const response = await api.post('/users/cart/remove', {
+        storeId: storeId,
+        productName: productId,
+        quantity: quantity
+      });
+      
+      // After removing from backend cart, sync with frontend
+      await userService.syncCartFromBackend();
+      
       return response.data;
     } catch (error) {
       console.error('Remove from cart error:', error);

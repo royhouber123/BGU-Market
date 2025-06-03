@@ -5,6 +5,7 @@ import userService from "../../services/userService";
 import { storeService } from "../../services/storeService";
 import { productService } from "../../services/productService";
 import purchaseService from "../../services/purchaseService";
+import adminService from "../../services/adminService";
 import { useAuth } from "../../contexts/AuthContext";
 import {
 	Box,
@@ -26,6 +27,13 @@ import {
 	Divider,
 	Avatar
 } from "@mui/material";
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import TableContainer from '@mui/material/TableContainer';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableBody from '@mui/material/TableBody';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -52,6 +60,11 @@ export default function Profile() {
 	const [editedProfile, setEditedProfile] = useState({});
 	const [authOpen, setAuthOpen] = useState(false);
 	const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+	const [isAdmin, setIsAdmin] = useState(false);
+	const [allStores, setAllStores] = useState([]);
+	const [allUsers, setAllUsers] = useState([]);
+	const [adminLoading, setAdminLoading] = useState(false);
+	const [adminTabValue, setAdminTabValue] = useState(0);
 
 	// Stable toast function that doesn't cause re-renders
 	const toast = useCallback(({ title, description, variant }) => {
@@ -61,6 +74,21 @@ export default function Profile() {
 			severity: variant === "destructive" ? "error" : "success"
 		});
 	}, []);
+
+	const checkAdminStatus = useCallback(async () => {
+		try {
+		  const isAdminResult = await adminService.isAdmin();
+		  setIsAdmin(isAdminResult);
+		} catch (error) {
+		  console.error("Error checking admin status:", error);
+		  setIsAdmin(false);
+		}
+	  }, []);
+
+	// Add to existing loadProfileData function
+	if (currentUser) {
+		checkAdminStatus();
+	}
 
 	const loadUserManagedStores = useCallback(async () => {
 		try {
@@ -222,6 +250,34 @@ export default function Profile() {
 		}
 	}, [currentUser, toast, loadUserManagedStores, loadPurchaseHistory]);
 
+	const loadAllStores = useCallback(async () => {
+		if (!isAdmin) return;
+		setAdminLoading(true);
+		try {
+		  const stores = await adminService.getAllStores();
+		  setAllStores(stores);
+		} catch (error) {
+		  console.error("Error loading all stores:", error);
+		  toast({ title: "Error", description: "Failed to load stores", variant: "destructive" });
+		} finally {
+		  setAdminLoading(false);
+		}
+	  }, [isAdmin, toast]);
+	  
+	  const loadAllUsers = useCallback(async () => {
+		if (!isAdmin) return;
+		setAdminLoading(true);
+		try {
+		  const users = await adminService.getAllUsers();
+		  setAllUsers(users);
+		} catch (error) {
+		  console.error("Error loading all users:", error);
+		  toast({ title: "Error", description: "Failed to load users", variant: "destructive" });
+		} finally {
+		  setAdminLoading(false);
+		}
+	  }, [isAdmin, toast]);
+
 	useEffect(() => {
 		if (!currentUser) {
 			setAuthOpen(true);
@@ -229,6 +285,32 @@ export default function Profile() {
 		}
 		loadProfileData();
 	}, [currentUser, loadProfileData]);
+
+	const handleCloseStore = async (storeId, storeName) => {
+		if (!confirm(`Are you sure you want to close "${storeName}"?`)) return;
+		
+		try {
+		  await adminService.closeStore(storeId);
+		  toast({ title: "Success", description: `Store "${storeName}" has been closed` });
+		  loadAllStores(); // Refresh the store list
+		} catch (error) {
+		  console.error("Error closing store:", error);
+		  toast({ title: "Error", description: `Failed to close store: ${error.message || "Unknown error"}`, variant: "destructive" });
+		}
+	  };
+	  
+	  const handleBanUser = async (username) => {
+		if (!confirm(`Are you sure you want to ban user "${username}"?`)) return;
+		
+		try {
+		  await adminService.banUser(username);
+		  toast({ title: "Success", description: `User "${username}" has been banned` });
+		  loadAllUsers(); // Refresh the user list
+		} catch (error) {
+		  console.error("Error banning user:", error);
+		  toast({ title: "Error", description: `Failed to ban user: ${error.message || "Unknown error"}`, variant: "destructive" });
+		}
+	  };
 
 	const handleSaveProfile = async () => {
 		try {
@@ -309,6 +391,13 @@ export default function Profile() {
 						label={`Purchase History (${purchaseHistory.length})`}
 						iconPosition="start"
 					/>
+					{isAdmin && (
+					<Tab
+						icon={<AdminPanelSettingsIcon />}
+						label="Admin Management"
+						iconPosition="start"
+					/>
+					)}
 				</Tabs>
 
 				{/* Personal Details Tab */}
@@ -725,6 +814,151 @@ export default function Profile() {
 							</Box>
 						)}
 					</Box>
+				)}
+
+				{/* Admin Management Tab */}
+				{activeTab === 3 && isAdmin && (
+				<Box>
+					<Tabs value={adminTabValue} onChange={(_, v) => setAdminTabValue(v)} sx={{ mb: 3 }}>
+					<Tab label="Manage All Stores" />
+					<Tab label="Manage All Users" />
+					</Tabs>
+
+					{/* Manage All Stores */}
+					{adminTabValue === 0 && (
+					<Box>
+						<Typography variant="h6" mb={3}>All Stores</Typography>
+						{adminLoading ? (
+						<Box>
+							{[1, 2, 3].map((i) => (
+							<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
+							))}
+						</Box>
+						) : allStores.length > 0 ? (
+						<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+							<Table>
+							<TableHead>
+								<TableRow>
+								<TableCell>Store Name</TableCell>
+								<TableCell>Status</TableCell>
+								<TableCell>Founder</TableCell>
+								<TableCell>Owners</TableCell>
+								<TableCell>Actions</TableCell>
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{allStores.map((store) => (
+								<TableRow key={store.id}>
+									<TableCell>{store.name}</TableCell>
+									<TableCell>
+									<Chip
+										size="small"
+										label={store.isActive ? "Active" : "Inactive"}
+										color={store.isActive ? "success" : "default"}
+									/>
+									</TableCell>
+									<TableCell>{store.founder}</TableCell>
+									<TableCell>{store.owners?.join(", ") || "None"}</TableCell>
+									<TableCell>
+									<Button
+										size="small"
+										color="error"
+										disabled={!store.isActive}
+										onClick={() => handleCloseStore(store.id, store.name)}
+									>
+										Close Store
+									</Button>
+									</TableCell>
+								</TableRow>
+								))}
+							</TableBody>
+							</Table>
+						</TableContainer>
+						) : (
+						<Box sx={{ textAlign: "center", py: 8 }}>
+							<StoreIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+							<Typography variant="h6" mb={1}>No stores found</Typography>
+							<Typography variant="body2" color="text.secondary">
+							There are no stores in the system yet
+							</Typography>
+						</Box>
+						)}
+					</Box>
+					)}
+
+					{/* Manage All Users */}
+					{adminTabValue === 1 && (
+					<Box>
+						<Typography variant="h6" mb={3}>All Users</Typography>
+						{adminLoading ? (
+						<Box>
+							{[1, 2, 3].map((i) => (
+							<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
+							))}
+						</Box>
+						) : allUsers.length > 0 ? (
+						<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+							<Table>
+							<TableHead>
+								<TableRow>
+								<TableCell>Username</TableCell>
+								<TableCell>Admin</TableCell>
+								<TableCell>Status</TableCell>
+								<TableCell>Roles</TableCell>
+								<TableCell>Actions</TableCell>
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{allUsers.map((user) => (
+								<TableRow key={user.userName}>
+									<TableCell>{user.userName}</TableCell>
+									<TableCell>
+									<Chip
+										size="small"
+										label={user.isAdmin ? "Admin" : "User"}
+										color={user.isAdmin ? "primary" : "default"}
+										variant={user.isAdmin ? "filled" : "outlined"}
+									/>
+									</TableCell>
+									<TableCell>
+									<Chip
+										size="small"
+										label={user.banned ? "Banned" : "Active"}
+										color={user.banned ? "error" : "success"}
+									/>
+									</TableCell>
+									<TableCell>
+									{user.roles && user.roles.length > 0
+										? user.roles.map(role => role.storeName ? `${role.roleName} (${role.storeName})` : role.roleName).join(", ")
+										: "No roles"}
+									</TableCell>
+									<TableCell>
+									<Button
+										size="small"
+										color="error"
+										disabled={user.banned || user.isAdmin || user.userName === currentUser.userName}
+										onClick={() => handleBanUser(user.userName)}
+									>
+										Ban User
+									</Button>
+									</TableCell>
+								</TableRow>
+								))}
+							</TableBody>
+							</Table>
+						</TableContainer>
+						) : (
+						<Box sx={{ textAlign: "center", py: 8 }}>
+							<PersonIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+							<Typography variant="h6" mb={1}>No users found</Typography>
+							<Typography variant="body2" color="text.secondary">
+							There are no users in the system yet
+							</Typography>
+						</Box>
+						)}
+					</Box>
+					)}
+				</Box>
 				)}
 			</Container>
 

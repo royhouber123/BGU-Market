@@ -1,5 +1,7 @@
 package market.domain.user;
 
+import java.util.List;
+
 public interface IUserRepository {
 
     User findById(String userName);
@@ -13,4 +15,8 @@ public interface IUserRepository {
     ShoppingCart getCart(String userName);
     
     void saveAdmin(Admin admin, String password);
+    
+    void save(User user);
+    
+    List<User> getAllUsers();
 }

@@ -1,6 +1,8 @@
 package market.application;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import market.domain.Role.IRoleRepository;
 import market.domain.store.IStoreRepository;
@@ -154,5 +156,75 @@ public class AdminService {
             throw new Exception("Permission denied: User is not an admin.");
         }
         return admin;
+    }
+
+    /**
+     * Retrieves all users in the system for admin management purposes.
+     *
+     * @param adminId ID of the acting system administrator
+     * @return Map containing user data with user IDs as keys
+     * @throws Exception if the user is not an admin
+     */
+    public Map<String, Object> getAllUsers() throws Exception {
+        logger.info("Admin is requesting all users");
+        
+        // Get all users from repository
+        List<User> allUsers = userRepository.getAllUsers();
+        
+        // Convert to a map of user data for the response
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> usersMap = new HashMap<>();
+        
+        for (User user : allUsers) {
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("username", user.getUserName());
+            userData.put("banned", user.isBanned());
+            userData.put("isAdmin", user instanceof Admin);
+            
+            // Get user's store roles if any
+            Map<String, List<market.domain.Role.Role>> roles = storeRepository.getUsersRoles(user.getUserName());
+            userData.put("roles", roles);
+            
+            usersMap.put(user.getUserName(), userData);
+        }
+        
+        result.put("users", usersMap);
+        result.put("count", allUsers.size());
+        
+        logger.info("Returning " + allUsers.size() + " users");
+        return result;
+    }
+
+    /**
+     * Retrieves all stores in the system for admin management purposes.
+     *
+     * @return Map containing store data with store IDs as keys
+     * @throws Exception if the user is not an admin
+     */
+    public Map<String, Object> getAllStores() throws Exception {
+        logger.info("Admin is requesting all stores");
+        
+        // Get all active stores
+        List<Store> activeStores = storeRepository.getAllActiveStores();
+        
+        // Convert to a map of store data for the response
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> storesMap = new HashMap<>();
+        
+        for (Store store : activeStores) {
+            Map<String, Object> storeData = new HashMap<>();
+            storeData.put("name", store.getName());
+            storeData.put("active", store.isActive());
+            storeData.put("owners", store.getAllOwnersStrs());
+            storeData.put("managers", store.getAllManagersStrs());
+            
+            storesMap.put(store.getStoreId(), storeData);
+        }
+        
+        result.put("stores", storesMap);
+        result.put("count", activeStores.size());
+        
+        logger.info("Returning " + activeStores.size() + " active stores");
+        return result;
     }
 }

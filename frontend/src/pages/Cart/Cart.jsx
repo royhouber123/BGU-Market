@@ -83,7 +83,7 @@ export default function Cart() {
     }
   };
 
-  const updateQuantity = (productId, change) => {
+  const updateQuantity = async (productId, change) => {
     try {
       // Find the current item in localCart for immediate UI response
       const currentItem = localCart.find(item => item.productId === productId);
@@ -98,28 +98,64 @@ export default function Cart() {
       // Don't update if quantity is the same
       if (newQuantity === currentItem.quantity) return;
       
-      // Create updated cart with new quantity
+      // Update UI immediately for responsiveness
       const newCart = localCart.map(item => {
         if (item.productId === productId) {
           return { ...item, quantity: newQuantity };
         }
         return item;
       });
+      setLocalCart(newCart);
       
-      // Update the cart
-      updateCart(newCart);
+      // Call the appropriate backend API based on whether we're adding or removing
+      if (change > 0) {
+        // Adding items
+        await userService.addProductToCart(
+          currentItem.storeId,
+          productId,
+          change // Only add the difference
+        );
+      } else {
+        // Removing items
+        await userService.removeFromCart(
+          currentItem.storeId,
+          productId,
+          Math.abs(change) // Only remove the difference
+        );
+      }
+      
+      // Refresh cart from backend to ensure consistency
+      await refreshCart();
     } catch (error) {
       console.error('Error updating quantity:', error);
+      
+      // Revert to original cart on error
+      await refreshCart();
     }
   };
 
-  const removeItem = (productId) => {
+  const removeItem = async (productId) => {
     try {
-      // Create new cart by filtering out the item to be removed from localCart
-      const newCart = localCart.filter(item => item.productId !== productId);
+      // Find the item in localCart to get its storeId and quantity
+      const item = localCart.find(item => item.productId === productId);
+      if (!item) {
+        console.error('Product not found in cart:', productId);
+        return;
+      }
       
-      // Update cart with the filtered cart (item removed)
-      updateCart(newCart);
+      // Call the backend API to remove the item
+      await userService.removeFromCart(
+        item.storeId,
+        productId,
+        item.quantity
+      );
+      
+      // After removing from backend, refresh the cart from context
+      await refreshCart();
+      
+      // Also update local cart for immediate UI response
+      const newCart = localCart.filter(item => item.productId !== productId);
+      setLocalCart(newCart);
     } catch (error) {
       console.error('Error removing item from cart:', error);
     }
