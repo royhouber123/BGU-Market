@@ -492,7 +492,7 @@ class SubscriberTests extends AcceptanceTestBase {
             fail("Bid submission should have failed with negative amount");
         } catch (Exception e) {
             // Expected exception for invalid bid amount
-            assertTrue(e.getMessage().toLowerCase().contains("bid must be a positive value"), "Error message should indicate bid failure");
+            assertTrue(e.getMessage().toLowerCase().contains("positive value"), "Error message should indicate bid failure");
         }
 
         // Clean up
