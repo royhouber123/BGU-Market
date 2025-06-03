@@ -13,6 +13,7 @@ import market.domain.user.IUserRepository;
 import market.infrastructure.ListingRepository;
 import market.infrastructure.PurchaseRepository;
 import market.infrastructure.RoleRepository;
+import market.infrastructure.SuspensionRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,6 +22,11 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class AppConfig {
+
+    @Bean
+    public ISuspensionRepository suspensionRepository(IUserRepository userRepository) {
+        return new SuspensionRepository(userRepository);
+    }
 
     @Bean
     public IListingRepository listingRepository() {
