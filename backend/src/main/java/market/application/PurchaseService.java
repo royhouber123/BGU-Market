@@ -33,8 +33,7 @@ public class PurchaseService {
     }
 
     // Regular Purchase
-    public ApiResponse<Purchase> executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
-        try {
+    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo) {
             Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
             double totalDiscountPrice = 0.0;
             List<PurchasedProduct> purchasedItems = new ArrayList<>();
@@ -47,7 +46,7 @@ public class PurchaseService {
     
                 if (!store.isPurchaseAllowed(bag.getProducts())) {
                     logger.debug("Invalid purchase bag for store: " + storeId);
-                    return ApiResponse.fail("Invalid purchase bag for store: " + storeId);
+                    throw new IllegalArgumentException("Invalid purchase bag for store: " + storeId);
                 }
     
                 totalDiscountPrice += store.calculateStoreBagWithDiscount(bag.getProducts());
@@ -59,7 +58,7 @@ public class PurchaseService {
                         unitPrice = listingRepository.ProductPrice(productId);
                     } catch (Exception e) {
                         logger.debug("Product not found: " + productId);
-                        return ApiResponse.fail("Product not found: " + productId);
+                        throw new RuntimeException("Product not found: " + productId);
                     }
     
                     Integer quantity = product.getValue();
@@ -71,7 +70,7 @@ public class PurchaseService {
             boolean updated = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
             if (!updated) {
                 logger.error("Failed to update stock for purchased items.");
-                return ApiResponse.fail("Failed to update stock for purchased items.");
+                throw new RuntimeException("Failed to update stock for purchased items.");
             }
     
             RegularPurchase regularPurchase = new RegularPurchase();
@@ -79,73 +78,50 @@ public class PurchaseService {
             try {
                 Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
-                user.clearCart();
+                 user.clearCart();
                 purchaseRepository.save(finalPurchase);
-                return ApiResponse.ok(finalPurchase);
+                return finalPurchase;
             } catch (IllegalArgumentException e) {
                 logger.error("Invalid purchase details for user: " + userId + ". Reason: " + e.getMessage());
-                return ApiResponse.fail("Invalid purchase details: " + e.getMessage());
+                throw e;
             } catch (RuntimeException e) {
                 logger.error("Payment or shipment failed for user: " + userId + ". Reason: " + e.getMessage());
                 listingRepository.updateOrRestoreStock(listForUpdateStock, true);
-                return ApiResponse.fail("Payment or shipment failed: " + e.getMessage());
+                throw e;
             }
-    
-        } catch (Exception e) {
-            logger.error("Failed to execute regular purchase for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to execute regular purchase: " + e.getMessage());
-        }
     }
     
     // Overloaded method for simplified API access - automatically gets user's cart
-    public ApiResponse<String> executePurchase(int userId, String paymentDetails, String shippingAddress) {
-        try {
+    public String executePurchase(int userId, String paymentDetails, String shippingAddress) {
             String userIdStr = String.valueOf(userId);
             User user = userRepository.findById(userIdStr);
             if (user == null) {
-                return ApiResponse.fail("User not found: " + userId);
+                logger.debug("User not found: " + userId);
+                throw new IllegalArgumentException("User not found: " + userId);
             }
             
             ShoppingCart cart = user.getShoppingCart();
             if (cart == null || cart.getAllStoreBags().isEmpty()) {
-                return ApiResponse.fail("Shopping cart is empty");
+                throw new IllegalArgumentException("Shopping cart is empty");
             }
             
-            ApiResponse<Purchase> result = executePurchase(userIdStr, cart, shippingAddress, paymentDetails);
-            if (result.isSuccess()) {
-                Purchase purchase = result.getData();
-                return ApiResponse.ok("Purchase completed successfully. Total: $" + purchase.getTotalPrice() + 
-                                    " at " + purchase.getTimestamp());
-            } else {
-                return ApiResponse.fail(result.getError());
-            }
-        } catch (Exception e) {
-            logger.error("Failed to execute simplified purchase for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to execute purchase: " + e.getMessage());
-        }
+            Purchase result = executePurchase(userIdStr, cart, shippingAddress, paymentDetails);
+            return "Purchase completed successfully. Total: $" + result.getTotalPrice() + " at " + result.getTimestamp();
     }
 
     // Auction Purchase
-    public ApiResponse<Void> submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
-        try {
+    public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
             User user = userRepository.findById(userId);
             if (!(user instanceof Subscriber)) {
                 logger.debug("User is not a subscriber: " + userId);
-                return ApiResponse.fail("User is not a subscriber: " + userId);
+                throw new IllegalArgumentException("User is not a subscriber: " + userId);
             }
     
             AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
             logger.info("Auction offer submitted: user " + userId + ", product " + productId + ", store " + storeId + ", price " + offerPrice);
-    
-            return ApiResponse.ok(null); // הצלחה בלי תוכן
-    
-        } catch (RuntimeException e) {
-            logger.error("Failed to submit auction offer for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to submit auction offer: " + e.getMessage());
-        }
     }
 
-    public ApiResponse<Void> openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
+    public void openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
             store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
@@ -153,58 +129,64 @@ public class PurchaseService {
             AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository);
     
             logger.info("Auction opened: store " + storeId + ", product " + productId + ", by user " + userId);
-            return ApiResponse.ok(null); // הצלחה בלי מידע נוסף
     
         } catch (Exception e) {
             logger.error("Failed to open auction for store: " + storeId + ", product: " + productId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to open auction: " + e.getMessage());
+            throw new RuntimeException("Failed to open auction: " + e.getMessage());
         }
     }
 
-    public ApiResponse<Map<String, Object>> getAuctionStatus(String userId, String storeId, String productId) {
+    public Map<String, Object> getAuctionStatus(String userId, String storeId, String productId) {
         try {
             User user = userRepository.findById(userId);
             if (!(user instanceof Subscriber)) {
                 logger.debug("User is not a subscriber: " + userId);
-                return ApiResponse.fail("User is not a subscriber: " + userId);
+                throw new IllegalArgumentException("User is not a subscriber: " + userId);
             }
     
             logger.info("Getting auction status: user " + userId + ", store " + storeId + ", product " + productId);
             Map<String, Object> status = AuctionPurchase.getAuctionStatus(storeId, productId);
-            return ApiResponse.ok(status);
-    
+            if (status == null || status.isEmpty()) {
+                logger.debug("No auction status found for user: " + userId + ", store: " + storeId + ", product: " + productId);
+                return Collections.emptyMap();
+            }
+            else {
+                logger.info("Auction status retrieved successfully for user: " + userId + ", store: " + storeId + ", product: " + productId);
+                return status;
+            }
         } catch (RuntimeException e) {
             logger.error("Failed to get auction status for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to get auction status: " + e.getMessage());
+            throw new RuntimeException("Failed to get auction status: " + e.getMessage());
         }
     }
     
     // Bid Purchase:
-    public ApiResponse<Void> submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
-        try {
+    public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
             // Validate input parameters
             if (storeId == null || storeId.trim().isEmpty()) {
-                return ApiResponse.fail("Store ID cannot be null or empty");
+                throw new IllegalArgumentException("Store ID cannot be null or empty");
             }
             if (productId == null || productId.trim().isEmpty()) {
-                return ApiResponse.fail("Product ID cannot be null or empty");
+                throw new IllegalArgumentException("Product ID cannot be null or empty");
             }
             if (userId == null || userId.trim().isEmpty()) {
-                return ApiResponse.fail("User ID cannot be null or empty");
+                throw new IllegalArgumentException("User ID cannot be null or empty");
             }
             if (offerPrice <= 0) {
-                return ApiResponse.fail("Bid amount must be a positive value");
+                throw new IllegalArgumentException("Bid amount must be a positive value");
             }
-            
+
             // Check if store exists first
             Store store = storeRepository.getStoreByID(storeId);
             if (store == null) {
-                return ApiResponse.fail("Store not found with ID: " + storeId + ". Please ensure the store exists before submitting a bid.");
+                logger.debug("Store not found: " + storeId);
+                throw new IllegalArgumentException("Store not found: " + storeId);
             }
             
             Set<String> approvers = store.getApproversForBid();
             if (approvers == null || approvers.isEmpty()) {
-                return ApiResponse.fail("No approvers found for store " + storeId + ". Cannot process bid without approvers.");
+                logger.debug("No approvers found for store: " + storeId);
+                throw new IllegalArgumentException("No approvers found for store: " + storeId);
             }
     
             BidPurchase.submitBid(
@@ -222,109 +204,68 @@ public class PurchaseService {
             );
     
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
-            return ApiResponse.ok(null);
-    
-        } catch (RuntimeException e) {
-            logger.error("Failed to submit bid for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to submit bid: " + e.getMessage());
-        }
     }
 
-    public ApiResponse<Void> approveBid(String storeId, String productId, String userId, String approverId) {
-        try {
-            validateApproverForBid(storeId, productId, userId, approverId);
-            BidPurchase.approveBid(storeId, productId, userId, approverId);
-    
-            logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
-            return ApiResponse.ok(null);
-    
-        } catch (RuntimeException e) {
-            logger.debug("Failed to approve bid for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to approve bid: " + e.getMessage());
-        }
+    public void approveBid(String storeId, String productId, String userId, String approverId) {
+        validateApproverForBid(storeId, productId, userId, approverId);
+        BidPurchase.approveBid(storeId, productId, userId, approverId);
+
+        logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public ApiResponse<Void> rejectBid(String storeId, String productId, String userId, String approverId) {
-        try {
-            validateApproverForBid(storeId, productId, userId, approverId);
-            BidPurchase.rejectBid(storeId, productId, userId, approverId);
-    
-            logger.info("Bid rejected: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
-            return ApiResponse.ok(null);
-    
-        } catch (RuntimeException e) {
-            logger.debug("Failed to reject bid for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to reject bid: " + e.getMessage());
-        }
+    public void rejectBid(String storeId, String productId, String userId, String approverId) {
+        validateApproverForBid(storeId, productId, userId, approverId);
+        BidPurchase.rejectBid(storeId, productId, userId, approverId);
+
+        logger.info("Bid rejected: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public ApiResponse<Void> proposeCounterBid(String storeId, String productId, String userId, String approverId, double newAmount) {
-        try {
-            validateApproverForBid(storeId, productId, userId, approverId);
-            BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
-    
-            logger.info("Counter bid proposed: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId + ", new amount " + newAmount);
-            return ApiResponse.ok(null);
-    
-        } catch (RuntimeException e) {
-            logger.debug("Failed to propose counter bid for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to propose counter bid: " + e.getMessage());
-        }
+    public void proposeCounterBid(String storeId, String productId, String userId, String approverId, double newAmount) {
+        validateApproverForBid(storeId, productId, userId, approverId);
+        BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
+
+        logger.info("Counter bid proposed: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId + ", new amount " + newAmount);
     }
     
 
-    public ApiResponse<Void> acceptCounterOffer(String storeId, String productId, String userId) {
-        try {
-            BidPurchase.acceptCounterOffer(storeId, productId, userId);
-            logger.info("Counter offer accepted: user " + userId + ", store " + storeId + ", product " + productId);
-            return ApiResponse.ok(null);
-    
-        } catch (RuntimeException e) {
-            logger.debug("Failed to accept counter offer for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to accept counter offer: " + e.getMessage());
-        }
+    public void acceptCounterOffer(String storeId, String productId, String userId) {
+        BidPurchase.acceptCounterOffer(storeId, productId, userId);
+        logger.info("Counter offer accepted: user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public ApiResponse<Void> declineCounterOffer(String storeId, String productId, String userId) {
-        try {
-            BidPurchase.declineCounterOffer(storeId, productId, userId);
-            logger.info("Counter offer declined: user " + userId + ", store " + storeId + ", product " + productId);
-            return ApiResponse.ok(null);
-    
-        } catch (RuntimeException e) {
-            logger.debug("Failed to decline counter offer for user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to decline counter offer: " + e.getMessage());
-        }
+    public void declineCounterOffer(String storeId, String productId, String userId) {
+        BidPurchase.declineCounterOffer(storeId, productId, userId);
+        logger.info("Counter offer declined: user " + userId + ", store " + storeId + ", product " + productId);
     }
 
-    public ApiResponse<String> getBidStatus(String storeId, String productId, String userId) {
+    public String getBidStatus(String storeId, String productId, String userId) {
         try {
             BidKey key = new BidKey(storeId, productId);
             List<Bid> bids = BidPurchase.getBids().get(key);
             
             if (bids == null || bids.isEmpty()) {
-                return ApiResponse.ok("No Bid Found");
+                return "No Bid Found";
             }
             
             for (Bid bid : bids) {
                 if (bid.getUserId().equals(userId)) {
-                    return ApiResponse.ok(getBidStatusString(bid));
+                    return getBidStatusString(bid);
                 }
             }
             
-            return ApiResponse.ok("No Bid Found");
+            return "No Bid Found";
         } catch (RuntimeException e) {
             logger.error("Failed to get bid status: " + e.getMessage());
-            return ApiResponse.fail("Failed to get bid status: " + e.getMessage());
+            throw new RuntimeException("Failed to get bid status: " + e.getMessage());
         }
     }
 
-    public ApiResponse<List<Map<String, Object>>> getProductBids(String storeId, String productId, String requestingUser) {
+    public List<Map<String, Object>> getProductBids(String storeId, String productId, String requestingUser) {
         try {
             // Verify that the requesting user has permission to view bids for this store
             Store store = storeRepository.getStoreByID(storeId);
             if (store == null) {
-                return ApiResponse.fail("Store not found with ID: " + storeId);
+                throw new IllegalArgumentException("Store not found: " + storeId);
             }
             
             // Add debugging information
@@ -335,7 +276,7 @@ public class PurchaseService {
             // Check if user has permission to view bids (owners, managers with bid approval permission)
             if (!store.checkBidPermission(requestingUser)) {
                 logger.error("User " + requestingUser + " does not have permission to view bids for store " + storeId);
-                return ApiResponse.fail("You don't have permission to view bids for this store. Only store owners and managers with bid approval permission can view bids.");
+                throw new IllegalArgumentException("You don't have permission to view bids for this store. Only store owners and managers with bid approval permission can view bids.");    
             }
             
             // Get bids for the product
@@ -343,7 +284,7 @@ public class PurchaseService {
             List<Bid> bids = BidPurchase.getBids().get(key);
             
             if (bids == null || bids.isEmpty()) {
-                return ApiResponse.ok(new ArrayList<>());
+                return new ArrayList<>();
             }
             
             // Convert bids to map format for JSON response
@@ -366,10 +307,10 @@ public class PurchaseService {
                 bidData.add(bidInfo);
             }
             
-            return ApiResponse.ok(bidData);
+            return bidData;
         } catch (RuntimeException e) {
             logger.error("Failed to get product bids: " + e.getMessage());
-            return ApiResponse.fail("Failed to get product bids: " + e.getMessage());
+            throw new RuntimeException("Failed to get product bids: " + e.getMessage());
         }
     }
     
@@ -380,24 +321,15 @@ public class PurchaseService {
         return "Pending Approval";
     }
 
-    public ApiResponse<List<Purchase>> getPurchasesByUser(String userId) {
-        try {
-            List<Purchase> purchases = purchaseRepository.getPurchasesByUser(userId);
-            return ApiResponse.ok(purchases);
-        } catch (RuntimeException e) {
-            logger.error("Failed to get purchases by user: " + userId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to get purchases by user: " + e.getMessage());
-        }
+
+    public List<Purchase> getPurchasesByUser(String userId) {
+        List<Purchase> purchases = purchaseRepository.getPurchasesByUser(userId);
+        return purchases;
     }
 
-    public ApiResponse<List<Purchase>> getPurchasesByStore(String storeId) {
-        try {
-            List<Purchase> purchases = purchaseRepository.getPurchasesByStore(storeId);
-            return ApiResponse.ok(purchases);
-        } catch (RuntimeException e) {
-            logger.error("Failed to get purchases by store: " + storeId + ". Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to get purchases by store: " + e.getMessage());
-        }
+    public List<Purchase> getPurchasesByStore(String storeId) {
+        List<Purchase> purchases = purchaseRepository.getPurchasesByStore(storeId);
+        return purchases;
     }
     
 
@@ -422,8 +354,7 @@ public class PurchaseService {
     }
 
     // New method to handle purchase using JWT token
-    public ApiResponse<String> executePurchaseByUsername(String token, String paymentDetails, String shippingAddress) {
-        try {
+    public String executePurchaseByUsername(String token, String paymentDetails, String shippingAddress) {
             // Extract username from token (simplified approach without AuthService dependency)
             Claims claims = io.jsonwebtoken.Jwts.parserBuilder()
                 .setSigningKey(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
@@ -434,45 +365,35 @@ public class PurchaseService {
             String username = claims.getSubject();
             
             if (username == null) {
-                return ApiResponse.fail("Invalid token: no username found");
+                throw new IllegalArgumentException("Invalid token: no username found");
             }
             
             // Get user and execute purchase
             User user = userRepository.findById(username);
             if (user == null) {
-                return ApiResponse.fail("User not found: " + username);
+                throw new IllegalArgumentException("User not found: " + username);
             }
             
             ShoppingCart cart = user.getShoppingCart();
             if (cart == null || cart.getAllStoreBags().isEmpty()) {
-                return ApiResponse.fail("Shopping cart is empty");
+                throw new IllegalArgumentException("Shopping cart is empty for user: " + username);
             }
             
-            ApiResponse<Purchase> result = executePurchase(username, cart, shippingAddress, paymentDetails);
-            if (result.isSuccess()) {
-                Purchase purchase = result.getData();
-                return ApiResponse.ok("Purchase completed successfully. Total: $" + purchase.getTotalPrice() + 
-                                    " at " + purchase.getTimestamp());
-            } else {
-                return ApiResponse.fail(result.getError());
-            }
-        } catch (Exception e) {
-            logger.error("Failed to execute purchase for token. Reason: " + e.getMessage());
-            return ApiResponse.fail("Failed to execute purchase: " + e.getMessage());
-        }
+            Purchase result = executePurchase(username, cart, shippingAddress, paymentDetails);
+            return "Purchase completed successfully. Total: $" + result.getTotalPrice() + " at " + result.getTimestamp();
     }
 
     // Add new method to get current user's bids for a product
-    public ApiResponse<List<Map<String, Object>>> getMyProductBids(String storeId, String productId, String requestingUser) {
+    public List<Map<String, Object>> getMyProductBids(String storeId, String productId, String requestingUser) {
         try {
             // Get bids for the product
             BidKey key = new BidKey(storeId, productId);
             List<Bid> bids = BidPurchase.getBids().get(key);
-            
+
             if (bids == null || bids.isEmpty()) {
-                return ApiResponse.ok(new ArrayList<>());
+                return new ArrayList<>();
             }
-            
+
             // Filter bids to only include the requesting user's bids
             List<Map<String, Object>> bidData = new ArrayList<>();
             for (Bid bid : bids) {
@@ -492,11 +413,11 @@ public class PurchaseService {
                     bidData.add(bidInfo);
                 }
             }
-            
-            return ApiResponse.ok(bidData);
+
+            return bidData;
         } catch (RuntimeException e) {
             logger.error("Failed to get user's product bids: " + e.getMessage());
-            return ApiResponse.fail("Failed to get user's product bids: " + e.getMessage());
+            throw new RuntimeException("Failed to get user's product bids: " + e.getMessage());
         }
     }
 }

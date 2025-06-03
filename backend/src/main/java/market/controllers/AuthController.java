@@ -3,6 +3,8 @@ package market.controllers;
 import market.application.AuthService;
 import market.dto.AuthDTO;
 import utils.ApiResponse;
+import utils.ApiResponseBuilder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +26,9 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthService.AuthToken>> login(@RequestBody AuthDTO.LoginRequest request) {
-        ApiResponse<AuthService.AuthToken> response = authService.login(request.username(), request.password());
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            authService.login(request.username(), request.password())
+        );
     }
 
     /**
@@ -35,8 +38,9 @@ public class AuthController {
     @PostMapping("/validate")
     public ResponseEntity<ApiResponse<Void>> validateToken(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
-        ApiResponse<Void> response = authService.validateToken(token);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            authService.validateToken(token)    
+        );
     }
 
     /**
@@ -46,7 +50,8 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
-        ApiResponse<Void> response = authService.logout(token);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            authService.logout(token)    
+        );
     }
 } 

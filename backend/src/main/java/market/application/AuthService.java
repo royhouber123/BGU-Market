@@ -35,7 +35,7 @@ public class AuthService {
         logger.info("AuthService initialized");
     }
 
-    public ApiResponse<String> generateToken(User user) {
+    public String generateToken(User user) {
         logger.info("Generating token for user: " + user.getUserName());
         Date now = new Date();
         Date expiry = new Date(now.getTime() + tokenTtlMs);
@@ -50,74 +50,59 @@ public class AuthService {
                 .signWith(tokenKey, SignatureAlgorithm.HS256)
                 .compact();
         logger.info("Token generated for user: " + user.getUserName());
-        return ApiResponse.ok(token);
+        return token;
     }
 
-    public ApiResponse<Void> validateToken(String token) {
+    public Void validateToken(String token) {
         logger.info("Validating token");
-        try {
-            Jwts.parserBuilder()
+        Jwts.parserBuilder()
+            .setSigningKey(tokenKey)
+            .build()
+            .parseClaimsJws(token);
+        logger.info("Token valid");
+        return null;
+    }
+
+    public Claims parseToken(String token) {
+        logger.info("Parsing token");
+        Claims claims = Jwts.parserBuilder()
                 .setSigningKey(tokenKey)
                 .build()
-                .parseClaimsJws(token);
-            logger.info("Token valid");
-            return ApiResponse.ok(null);
-        } catch (JwtException e) {
-            logger.error("Invalid token: " + e.getMessage());
-            return ApiResponse.fail("Invalid token: " + e.getMessage());
-        }
+                .parseClaimsJws(token)
+                .getBody();
+        logger.info("Token parsed successfully");
+        return claims;
     }
 
-    public ApiResponse<Claims> parseToken(String token) {
-        logger.info("Parsing token");
-        try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(tokenKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-            logger.info("Token parsed successfully");
-            return ApiResponse.ok(claims);
-        } catch (JwtException e) {
-            logger.error("Failed to parse token: " + e.getMessage());
-            return ApiResponse.fail("Failed to parse token: " + e.getMessage());
-        }
-    }
-
-    public ApiResponse<AuthToken> login(String username, String password) {
+    public AuthToken login(String username, String password) {
         logger.info("Logging in user: " + username);
         //DB Check 
-        try {
-            User u = this.userRepository.findById(username);
-            // Verify the provided password matches the stored hashed password
-            if (!this.userRepository.verifyPassword(username, password)) {
-                logger.error("Invalid password for user: " + username);
-                return ApiResponse.fail("Invalid username or password");
-            }
-            String token = generateToken(u).getData();
-            logger.info("User logged in successfully");
-            return ApiResponse.ok(new AuthToken(token));
-        } catch (RuntimeException e) {
-            logger.error("User not registered: " + username);
-            return ApiResponse.fail("Invalid username or password");
+        User u = this.userRepository.findById(username);
+        // Verify the provided password matches the stored hashed password
+        if (!this.userRepository.verifyPassword(username, password)) {
+            logger.error("Invalid password for user: " + username);
+            throw new IllegalArgumentException("Invalid username or password");
         }
+        String token = generateToken(u);
+        logger.info("User logged in successfully");
+        return new AuthToken(token);
     }
 
     /** Log out: revoke the user's token */
-    public ApiResponse<Void> logout(String token) {
+    public Void logout(String token) {
         logger.info("Logging out user");
         
         // Parse the token, extract the username (subject)
-        Claims claims = parseToken(token).getData();
+        Claims claims = parseToken(token);
         String username = claims.getSubject();
         if (username == null || username.isBlank()) {
             logger.error("Invalid token: subject is missing");
-            return ApiResponse.fail("Invalid token: subject is missing");
+            throw new IllegalArgumentException("Invalid token: subject is missing");
         }
     
         // Delete the user via the repository
         userRepository.delete(username);
         logger.info("User logged out successfully");
-        return ApiResponse.ok(null);
+        return null;
     }
 }

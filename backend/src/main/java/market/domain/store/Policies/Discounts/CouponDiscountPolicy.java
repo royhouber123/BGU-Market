@@ -5,6 +5,7 @@ import market.domain.store.Policies.DiscountPolicy;
 import market.dto.PolicyDTO;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class CouponDiscountPolicy implements DiscountPolicy {
 
@@ -48,5 +49,20 @@ public class CouponDiscountPolicy implements DiscountPolicy {
             null,               // subDiscounts (not applicable)
             null                // combinationType (not applicable)
         );
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // Same object reference
+        if (obj == null || getClass() != obj.getClass()) return false; // Different class or null object
+        CouponDiscountPolicy that = (CouponDiscountPolicy) obj;
+        return Double.compare(that.discountAmount, discountAmount) == 0 && // Compare discountAmount values
+               couponUsed == that.couponUsed && // Compare couponUsed (boolean, so uses ==)
+               validCouponCode.equals(that.validCouponCode); // Compare validCouponCode (String, uses equals)
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(validCouponCode, discountAmount, couponUsed); // Use Objects.hash() for simplicity
     }
 }
