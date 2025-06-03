@@ -585,7 +585,7 @@ public class GuestTests extends AcceptanceTestBase {
             String token = authService.generateToken(guest);
             TokenUtils.setMockToken(token);
 
-            String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0);
+            String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0, "REGULAR");
             when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
             when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
             userService.addProductToCart(storeId, listingIdOfGvina, 2);

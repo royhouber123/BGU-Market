@@ -78,7 +78,7 @@ public class PurchaseService {
             try {
                 Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
-                user.clearCart();
+                 user.clearCart();
                 purchaseRepository.save(finalPurchase);
                 return finalPurchase;
             } catch (IllegalArgumentException e) {
@@ -322,7 +322,7 @@ public class PurchaseService {
     }
 
 
-     public List<Purchase> getPurchasesByUser(String userId) {
+    public List<Purchase> getPurchasesByUser(String userId) {
         List<Purchase> purchases = purchaseRepository.getPurchasesByUser(userId);
         return purchases;
     }
@@ -384,16 +384,16 @@ public class PurchaseService {
     }
 
     // Add new method to get current user's bids for a product
-    public ApiResponse<List<Map<String, Object>>> getMyProductBids(String storeId, String productId, String requestingUser) {
+    public List<Map<String, Object>> getMyProductBids(String storeId, String productId, String requestingUser) {
         try {
             // Get bids for the product
             BidKey key = new BidKey(storeId, productId);
             List<Bid> bids = BidPurchase.getBids().get(key);
-            
+
             if (bids == null || bids.isEmpty()) {
-                return ApiResponse.ok(new ArrayList<>());
+                return new ArrayList<>();
             }
-            
+
             // Filter bids to only include the requesting user's bids
             List<Map<String, Object>> bidData = new ArrayList<>();
             for (Bid bid : bids) {
@@ -413,11 +413,11 @@ public class PurchaseService {
                     bidData.add(bidInfo);
                 }
             }
-            
-            return ApiResponse.ok(bidData);
+
+            return bidData;
         } catch (RuntimeException e) {
             logger.error("Failed to get user's product bids: " + e.getMessage());
-            return ApiResponse.fail("Failed to get user's product bids: " + e.getMessage());
+            throw new RuntimeException("Failed to get user's product bids: " + e.getMessage());
         }
     }
 }

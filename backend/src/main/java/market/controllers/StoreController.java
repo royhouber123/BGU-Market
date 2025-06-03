@@ -380,8 +380,9 @@ public class StoreController {
             @PathVariable String storeID,
             @PathVariable String managerID,
             @RequestParam String appointerID) {
-        ApiResponse<Void> response = storeService.removeManager(appointerID, managerID, storeID);
-        return ResponseEntity.ok(response);
+        return ApiResponseBuilder.build(() ->
+            storeService.removeManager(appointerID, managerID, storeID)
+        );
     }
 
     /**

@@ -177,7 +177,7 @@ public class StoreService {
                 userRepository.findById(newOwnerID);
             } catch (Exception e) {
                 logger.debug("Attempted to add non-existent user as owner: " + newOwnerID + " to store: " + storeID);
-                return ApiResponse.fail("User '" + newOwnerID + "' does not exist in the system");
+                throw new IllegalArgumentException("User '" + newOwnerID + "' does not exist in the system");
             }
 
             s.addNewOwner(appointerID, newOwnerID);
@@ -291,7 +291,7 @@ public class StoreService {
                 userRepository.findById(newManagerName);
             } catch (Exception e) {
                 logger.debug("Attempted to add non-existent user as manager: " + newManagerName + " to store: " + storeID);
-                return ApiResponse.fail("User '" + newManagerName + "' does not exist in the system");
+                throw new IllegalArgumentException("User '" + newManagerName + "' does not exist in the system");
             }
 
             if (s.addNewManager(appointerID,newManagerName)){

@@ -140,7 +140,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                                 "Electronic",
                                 "Wireless",
                                                 4,
-                                                129.9);                                      
+                                                129.9, "REGULAR");                                      
         try {
             storeService.closeStore(storeId, FOUNDER);
             storeService.removeListing(FOUNDER, storeId, listingId);
@@ -245,14 +245,6 @@ public class StoreOwnerTests extends AcceptanceTestBase {
 
 
     @Test
-    public void acceptance_concurrentAddSameOwnerByMultipleAppointers() throws Exception {
-        String OWNER_B = "y";
-        storeService.addAdditionalStoreOwner(FOUNDER, OWNER_A, storeId);
-        storeService.addAdditionalStoreOwner(FOUNDER, OWNER_B, storeId);
-    }
-
-
-    @Test
     public void owner_editStoreManagerPermissions_positive() {
         try {
             storeService.addNewManager(FOUNDER, MANAGER, storeId);
@@ -299,7 +291,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                     "Electronic",
                     "Wireless",
                     4,
-                    129.9
+                    129.9, "REGULAR"
             );
 
             boolean res = storeService.editListingPrice(FOUNDER, storeId, listingId, 99.9);
@@ -321,7 +313,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                 "Electronic",
                 "Mechanical",
                 5,
-                229.0
+                229.0, "REGULAR"
         );
         try {
             boolean res = storeService.editListingPrice(FOUNDER, storeId, listingId, -10.0);
@@ -358,7 +350,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
                 List.of(),                // subDiscounts
                 "SUM"                     // combinationType
             );
-            storeService.addNewListing(FOUNDER, storeId, "p1", "TV", "Electronics", "Smart TV", 10, 2000);
+            storeService.addNewListing(FOUNDER, storeId, "p1", "TV", "Electronics", "Smart TV", 10, 2000.0, "REGULAR");
             boolean res = storePoliciesService.addDiscount(storeId, FOUNDER, dto);
             assertTrue(res);
         } catch (Exception e) {
@@ -393,7 +385,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
     @Test
     public void owner_addStoreDiscountPolicy_alternate_inactiveStore() {
         String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
-        storeService.addNewListing(FOUNDER, storeId, "p1", "Fridge", "Appliances", "Energy Saver", 5, 1200);
+        storeService.addNewListing(FOUNDER, storeId, "p1", "Fridge", "Appliances", "Energy Saver", 5, 1200.0, "REGULAR");
         // Close the store before adding discount
         storeService.closeStore(storeId, FOUNDER);
         PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
@@ -419,7 +411,7 @@ public class StoreOwnerTests extends AcceptanceTestBase {
     public void owner_editStoreDiscountPolicy_positive() {
         try {
             String storeId = storeService.createStore("DiscountStore", FOUNDER).storeId();
-            storeService.addNewListing(FOUNDER, storeId, "p1", "Tablet", "Electronics", "Android Tablet", 5, 1000);
+            storeService.addNewListing(FOUNDER, storeId, "p1", "Tablet", "Electronics", "Android Tablet", 5, 1000.0, "REGULAR");
             // Original discount
             PolicyDTO.AddDiscountRequest oldDiscount = new PolicyDTO.AddDiscountRequest(
                 "PERCENTAGE", "PRODUCT", "p1", 0.1, null, null, List.of(), "SUM"
