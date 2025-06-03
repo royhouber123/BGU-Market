@@ -1,50 +1,60 @@
 package market.application;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 import market.domain.user.Admin;
 import market.domain.user.IUserRepository;
+import market.domain.user.ISuspensionRepository;
+import market.domain.user.User;
 import market.domain.Role.IRoleRepository;
 import utils.Logger;
 
-
+/**
+ * Provides administrative operations for the marketplace system,
+ * such as managing stores and user suspensions.
+ */
 public class AdminService {
 
     private final IUserRepository userRepository;
     private final IStoreRepository storeRepository;
     private final IRoleRepository roleRepository;
+    private final ISuspensionRepository suspensionRepository;
+
     private static final Logger logger = Logger.getInstance();
 
+    /**
+     * Constructs an AdminService with access to user, store, role, and suspension repositories.
+     *
+     * @param userRepository Repository for user data
+     * @param storeRepository Repository for store data
+     * @param roleRepository Repository for role management
+     * @param suspensionRepository Repository for suspension management
+     */
     public AdminService(IUserRepository userRepository,
                         IStoreRepository storeRepository,
-                        IRoleRepository roleRepository) {
+                        IRoleRepository roleRepository,
+                        ISuspensionRepository suspensionRepository) {
         this.userRepository = userRepository;
         this.storeRepository = storeRepository;
         this.roleRepository = roleRepository;
+        this.suspensionRepository = suspensionRepository;
     }
 
     /**
      * Closes a store by request of a system administrator.
+     * This action deactivates the store and removes all roles assigned to users in that store.
      *
      * @param adminId ID of the acting system administrator
      * @param storeId ID of the store to close
-     * @throws Exception if the user is not an admin, or the store is invalid or already inactive
+     * @throws Exception if the admin or store is invalid, or store is already inactive
      */
     public void closeStoreByAdmin(String adminId, String storeId) throws Exception {
         logger.info("Admin " + adminId + " is attempting to close store " + storeId);
 
-        // validate Asmin exists
-        Admin admin = (Admin) userRepository.findById(adminId);
-        if (admin == null) {
-            logger.error("User with ID " + adminId + " is not an admin.");
-            throw new Exception("User is not an admin or not found.");
-        }
+        Admin admin = validateAdmin(adminId);
 
-        //Validate store exists and is active
         Store store = storeRepository.getStoreByID(storeId);
         if (store == null) {
             logger.error("Store with ID " + storeId + " not found.");
@@ -52,22 +62,98 @@ public class AdminService {
         }
 
         if (!store.isActive()) {
-            logger.info("Store " + storeId + " is already inactive.");
+            logger.warn("Store " + storeId + " is already inactive.");
             throw new Exception("Store is already inactive.");
         }
 
-        //Deactivate the store
         store.setActive(false);
         storeRepository.save(store);
         logger.info("Store " + storeId + " has been deactivated.");
 
-        //Remove all owners and managers
         List<String> affectedUserIds = roleRepository.getAllStoreUserIdsWithRoles(storeId);
         for (String userId : affectedUserIds) {
             roleRepository.removeAllRolesForUserInStore(userId, storeId);
         }
-        logger.info("Removed all roles from " + affectedUserIds.size() + " users in store " + storeId);
+        logger.info("Removed roles from " + affectedUserIds.size() + " users in store " + storeId);
+    }
 
-        //Prepare notification system. In the future, notify affected users about store closure and role removal.
+    /**
+     * Suspends a user for a specified duration (in milliseconds).
+     * If duration is 0, the suspension is permanent.
+     *
+     * @param adminId ID of the acting admin
+     * @param targetUserId ID of the user to suspend
+     * @param durationMillis Duration of suspension in milliseconds (0 = permanent)
+     * @throws Exception if the admin or user is invalid, or suspension fails
+     */
+    public void suspendUser(String adminId, String targetUserId, long durationMillis) throws Exception {
+        logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId);
+
+        Admin admin = validateAdmin(adminId);
+
+        if (userRepository.findById(targetUserId) == null) {
+            logger.error("User " + targetUserId + " does not exist.");
+            throw new Exception("User not found.");
+        }
+
+        boolean success = suspensionRepository.suspendUser(targetUserId, durationMillis);
+        if (!success) {
+            logger.error("Suspension failed for user " + targetUserId);
+            throw new Exception("Suspension failed.");
+        }
+
+        logger.info("User " + targetUserId + " suspended for " +
+                    (durationMillis == 0 ? "an indefinite period." : durationMillis + " ms."));
+    }
+
+    /**
+     * Lifts the suspension from a user.
+     *
+     * @param adminId ID of the acting admin
+     * @param targetUserId ID of the user to unsuspend
+     * @throws Exception if the admin is invalid or user is not suspended
+     */
+    public void unsuspendUser(String adminId, String targetUserId) throws Exception {
+        logger.info("Admin " + adminId + " is attempting to unsuspend user " + targetUserId);
+
+        Admin admin = validateAdmin(adminId);
+
+        boolean success = suspensionRepository.unsuspendUser(targetUserId);
+        if (!success) {
+            logger.warn("User " + targetUserId + " was not suspended.");
+            throw new Exception("User was not suspended or does not exist.");
+        }
+
+        logger.info("User " + targetUserId + " has been unsuspended.");
+    }
+
+    /**
+     * Retrieves the usernames of all currently suspended users.
+     *
+     * @param adminId ID of the acting admin
+     * @return List of usernames for suspended users
+     * @throws Exception if the admin is invalid
+     */
+    public List<String> getSuspendedUserIds(String adminId) throws Exception {
+        Admin admin = validateAdmin(adminId);
+
+        List<User> suspended = suspensionRepository.getSuspendedUsers();
+        return suspended.stream().map(User::getUserName).toList();
+    }
+
+    /**
+     * Internal helper to validate that a user is an administrator.
+     *
+     * @param adminId ID of the user to validate
+     * @return The Admin object if valid
+     * @throws Exception if the user is not an admin
+     */
+    private Admin validateAdmin(String adminId) throws Exception {
+        User user = userRepository.findById(adminId);
+        if (!(user instanceof Admin admin)) {
+            logger.error("User " + adminId + " is not an admin.");
+            throw new Exception("Permission denied: User is not an admin.");
+        }
+        return admin;
     }
 }

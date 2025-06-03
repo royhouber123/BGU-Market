@@ -39,6 +39,7 @@ public abstract class AcceptanceTestBase {
     protected StorePoliciesService storePoliciesService;
     protected StoreRepository storeRepository;
     protected IListingRepository listingRepository;
+    protected ISuspentionRepository suspentionRepository;
     
     
     @BeforeEach
@@ -46,16 +47,17 @@ public abstract class AcceptanceTestBase {
       
         IUserRepository userRepository = new UserRepository();
         listingRepository = new ListingRepository();
+        ISuspentionRepository suspentionRepository = new SuspentionRepository();
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
         storeRepository = new StoreRepository();
          
         authService = new AuthService(userRepository);
-        userService = new UserService(userRepository, authService);
+        userService = new UserService(userRepository, authService, suspentionRepository);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
-        storeService = new StoreService(storerepo,userRepository,listingRepository); // Use the real implementation
-        storePoliciesService = new StorePoliciesService(storerepo);
-        productService = new ProductService(listingRepository);
+        storeService = new StoreService(storerepo,userRepository,listingRepository,suspentionRepository); // Use the real implementation
+        storePoliciesService = new StorePoliciesService(storerepo,suspentionRepository);
+        productService = new ProductService(listingRepository,suspentionRepository);
         paymentService = mock(IPaymentService.class); // Mock external service
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();

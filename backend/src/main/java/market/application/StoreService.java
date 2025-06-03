@@ -20,12 +20,14 @@ public class StoreService {
     private IListingRepository listingRepository;
     private String storeIDs ="1";
     private Logger logger = Logger.getInstance();
+    private ISuspentionRepository suspentionRepository; 
 
-    public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository) {
+    public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository,ISuspentionRepository suspentionRepository) {
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
         storeIDs = storeRepository.getNextStoreID();
         this.listingRepository = listingRepository;
+        this.suspentionRepository= suspentionRepository;
     }
 
 
@@ -34,6 +36,7 @@ public class StoreService {
     */
     public ApiResponse<market.dto.StoreDTO.CreateStoreResponse> createStore(String storeName, String founderId) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             // ? - do we need store type
             if(storeRepository.containsStore(storeName)) {
                 logger.debug("Attempted to create store with existing name: " + storeName);
@@ -68,6 +71,7 @@ public class StoreService {
      */
     public ApiResponse<String> closeStore(String storeID, String userName) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.debug("Attempted to close non-existent store: " + storeID);
@@ -114,6 +118,7 @@ public class StoreService {
      */
     public ApiResponse<String> openStore(String storeID, String userName) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.debug("Attempted to open non-existent store: " + storeID);
@@ -164,6 +169,7 @@ public class StoreService {
     */
     public ApiResponse<Void> addAdditionalStoreOwner(String appointerID, String newOwnerID, String storeID) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.debug("Attempted to add owner to non-existent store: " + storeID);
@@ -200,6 +206,7 @@ public class StoreService {
     */
     public ApiResponse<Void> OwnerAppointmentRequest(String appointerID, String newOwnerId, String storeID) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("store doesn't exist");
@@ -241,6 +248,7 @@ public class StoreService {
         List<List<String>> ret = new ArrayList<>();
         ret.add(new ArrayList<>());
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("store doesn't exist");
@@ -278,6 +286,7 @@ public class StoreService {
      */
     public ApiResponse<Void> addNewManager(String appointerID, String newManagerName, String storeID){
         try{
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null){
                 logger.debug("Attempted to add manager to non-existent store: " + storeID);
@@ -322,6 +331,7 @@ public class StoreService {
      */
     public ApiResponse<Void> removeManager(String appointerID, String managerID, String storeID) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.debug("Attempted to remove manager from non-existent store: " + storeID);
@@ -358,6 +368,7 @@ public class StoreService {
      */
     public ApiResponse<Void> addPermissionToManager(String managerID, String appointerID, int permissionID, String storeID) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.debug("Attempted to add permission to non-existent store: " + storeID);
@@ -417,6 +428,7 @@ public class StoreService {
      */
     public ApiResponse<Void> removePermissionFromManager(String managerID, int permissionID, String appointerID, String storeID) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.debug("Attempted to remove permission from non-existent store: " + storeID);
@@ -452,6 +464,7 @@ public class StoreService {
      */
     public ApiResponse<String> addNewListing(String userName, String storeID, String productId, String productName, String productCategory, String productDescription, int quantity, double price, String purchaseType) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("Store doesn't exist");
@@ -476,6 +489,7 @@ public class StoreService {
      */
     public ApiResponse<Void> removeListing(String userName, String storeID, String listingId) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("Store doesn't exist");
@@ -493,6 +507,7 @@ public class StoreService {
 
     public ApiResponse<Boolean> editListingPrice(String userName, String storeID, String listingId, double newPrice) {
     try {
+        suspentionRepository.checkNotSuspended(userId);// check if user is suspended
         Store s = storeRepository.getStoreByID(storeID);
         if (s == null)
             return ApiResponse.fail("Store doesn't exist");
@@ -507,6 +522,7 @@ public class StoreService {
 
     public ApiResponse<Boolean> editListingProductName(String userName, String storeID, String listingId, String newName) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("Store doesn't exist");
@@ -520,6 +536,7 @@ public class StoreService {
 
     public ApiResponse<Boolean> editListingDescription(String userName, String storeID, String listingId, String newDescription) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("Store doesn't exist");
@@ -533,6 +550,7 @@ public class StoreService {
 
     public ApiResponse<Boolean> editListingQuantity(String userName, String storeID, String listingId, int newQuantity) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("Store doesn't exist");
@@ -546,6 +564,7 @@ public class StoreService {
 
     public ApiResponse<Boolean> editListingCategory(String userName, String storeID, String listingId, String newCategory) {
         try {
+            suspentionRepository.checkNotSuspended(userId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
                 return ApiResponse.fail("Store doesn't exist");
