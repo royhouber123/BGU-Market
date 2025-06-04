@@ -255,7 +255,7 @@ export default function Profile() {
 		if (!isAdmin) return;
 		setAdminLoading(true);
 		try {
-		  const stores = await adminService.getAllStores();
+		  const { stores } = await storeService.getAllStoresAndProducts();
 		  setAllStores(stores);
 		} catch (error) {
 		  console.error("Error loading all stores:", error);
@@ -269,8 +269,10 @@ export default function Profile() {
 		if (!isAdmin) return;
 		setAdminLoading(true);
 		try {
-		  const users = await adminService.getAllUsers();
+		  const { users } = await adminService.getAllUsers();
+		  console.log("admin users: ", users);
 		  setAllUsers(users);
+		  console.log("all users: ", allUsers);
 		} catch (error) {
 		  console.error("Error loading all users:", error);
 		  toast({ title: "Error", description: "Failed to load users", variant: "destructive" });
@@ -283,6 +285,7 @@ export default function Profile() {
 		if (!isAdmin) return;
 		try {
 		  const suspendedUserIds = await adminService.getSuspendedUsers();
+		  console.log("admin suspended users: ", suspendedUserIds);
 		  setSuspendedUsers(suspendedUserIds);
 		  console.log('Loaded suspended users:', suspendedUserIds);
 		} catch (error) {
@@ -902,8 +905,6 @@ export default function Profile() {
 								<TableRow>
 								<TableCell>Store Name</TableCell>
 								<TableCell>Status</TableCell>
-								<TableCell>Founder</TableCell>
-								<TableCell>Owners</TableCell>
 								<TableCell>Actions</TableCell>
 								</TableRow>
 							</TableHead>
@@ -918,8 +919,6 @@ export default function Profile() {
 										color={store.isActive ? "success" : "default"}
 									/>
 									</TableCell>
-									<TableCell>{store.founder}</TableCell>
-									<TableCell>{store.owners?.join(", ") || "None"}</TableCell>
 									<TableCell>
 									<Button
 										size="small"
@@ -957,7 +956,7 @@ export default function Profile() {
 							<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
 							))}
 						</Box>
-						) : allUsers.length > 0 ? (
+						) : Object.values(allUsers).length > 0 ? (
 						<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
 							<Table>
 							<TableHead>
@@ -970,9 +969,9 @@ export default function Profile() {
 								</TableRow>
 							</TableHead>
 							<TableBody>
-								{allUsers.map((user) => (
-								<TableRow key={user.userName}>
-									<TableCell>{user.userName}</TableCell>
+								{Object.values(allUsers).map((user) => (
+								<TableRow key={user.username}>
+									<TableCell>{user.username}</TableCell>
 									<TableCell>
 									<Chip
 										size="small"
@@ -984,22 +983,22 @@ export default function Profile() {
 									<TableCell>
 									<Chip
 										size="small"
-										label={suspendedUsers.includes(user.userName) ? "Suspended" : "Active"}
-										color={suspendedUsers.includes(user.userName) ? "error" : "success"}
+										label={suspendedUsers.includes(user.username) ? "Suspended" : "Active"}
+										color={suspendedUsers.includes(user.username) ? "error" : "success"}
 									/>
 									</TableCell>
 									<TableCell>
-									{user.roles && user.roles.length > 0
-										? user.roles.map(role => role.storeName ? `${role.roleName} (${role.storeName})` : role.roleName).join(", ")
+									{user.roles && Object.keys(user.roles).length > 0
+										? Object.entries(user.roles).map(([storeId, roles]) => `${roles.join(", ")} (Store ${storeId})`).join("; ")
 										: "No roles"}
 									</TableCell>
 									<TableCell>
-									{suspendedUsers.includes(user.userName) ? (
+									{suspendedUsers.includes(user.username) ? (
 										<Button
 											size="small"
 											color="success"
-											disabled={user.isAdmin || user.userName === currentUser.userName}
-											onClick={() => handleUnsuspendUser(user.userName)}
+											disabled={user.isAdmin || user.username === currentUser.username}
+											onClick={() => handleUnsuspendUser(user.username)}
 											sx={{ mr: 1 }}
 										>
 											Unsuspend
@@ -1009,20 +1008,20 @@ export default function Profile() {
 										<Button
 											size="small"
 											color="warning"
-											disabled={user.isAdmin || user.userName === currentUser.userName}
-											onClick={() => handleSuspendUser(user.userName, false)}
+											disabled={user.isAdmin || user.username === currentUser.username}
+											onClick={() => handleSuspendUser(user.username, false)}
 											sx={{ mr: 1 }}
 										>
-											Suspend Temp
+											Suspend
 										</Button>
-										<Button
+										{/* <Button
 											size="small"
 											color="error"
-											disabled={user.isAdmin || user.userName === currentUser.userName}
-											onClick={() => handleSuspendUser(user.userName, true)}
+											disabled={user.isAdmin || user.username === currentUser.username}
+											onClick={() => handleSuspendUser(user.username, true)}
 										>
 											Suspend Perm
-										</Button>
+										</Button> */}
 										</>
 									)}
 									</TableCell>
@@ -1065,9 +1064,9 @@ export default function Profile() {
 								</TableRow>
 							</TableHead>
 							<TableBody>
-								{allUsers.filter(user => suspendedUsers.includes(user.userName)).map((user) => (
-								<TableRow key={user.userName}>
-									<TableCell>{user.userName}</TableCell>
+								{suspendedUsers.length > 0 && Object.values(allUsers).filter(user => suspendedUsers.includes(user.username)).map((user) => (
+								<TableRow key={user.username}>
+									<TableCell>{user.username}</TableCell>
 									<TableCell>
 									<Chip
 										size="small"
@@ -1077,16 +1076,16 @@ export default function Profile() {
 									/>
 									</TableCell>
 									<TableCell>
-									{user.roles && user.roles.length > 0
-										? user.roles.map(role => role.storeName ? `${role.roleName} (${role.storeName})` : role.roleName).join(", ")
+									{user.roles && Object.keys(user.roles).length > 0
+										? Object.entries(user.roles).map(([storeId, roles]) => `${roles.join(", ")} (Store ${storeId})`).join("; ")
 										: "No roles"}
 									</TableCell>
 									<TableCell>
 									<Button
 										size="small"
 										color="success"
-										disabled={user.isAdmin || user.userName === currentUser.userName}
-										onClick={() => handleUnsuspendUser(user.userName)}
+										disabled={user.isAdmin || user.username === currentUser.username}
+										onClick={() => handleUnsuspendUser(user.username)}
 									>
 										Unsuspend User
 									</Button>

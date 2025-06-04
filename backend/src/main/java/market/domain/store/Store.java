@@ -881,8 +881,23 @@ public class Store {
         return this.ownerToAssignedOwners.keySet();
     }
 
-
-
+    /**
+     * Returns a list of all owner usernames in the store.
+     *
+     * @return A list of strings containing all owner usernames
+     */
+    public List<String> getAllOwnersStrs() {
+        return new ArrayList<>(getAllOwners());
+    }
+    
+    /**
+     * Gets the store's unique identifier.
+     *
+     * @return The store ID
+     */
+    public String getStoreId() {
+        return storeID;
+    }
 
 /**
  * Retrieves the set of user IDs that are allowed to approve bids in the store.

@@ -45,4 +45,8 @@ public class Logger {
     public void error(String message) {
         log("ERROR", message);
     }
+    
+    public void warn(String message) {
+        log("WARN", message);
+    }
 }

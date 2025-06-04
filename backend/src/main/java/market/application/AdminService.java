@@ -2,6 +2,7 @@ package market.application;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import market.domain.Role.IRoleRepository;
@@ -55,7 +56,10 @@ public class AdminService {
     public void closeStoreByAdmin(String adminId, String storeId) throws Exception {
         logger.info("Admin " + adminId + " is attempting to close store " + storeId);
 
-        validateAdmin(adminId);
+        // Validate admin credentials
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
 
         Store store = storeRepository.getStoreByID(storeId);
         if (store == null) {
@@ -89,9 +93,12 @@ public class AdminService {
      * @throws Exception if the admin or user is invalid, or suspension fails
      */
     public void suspendUser(String adminId, String targetUserId, long durationHours) throws Exception {
-        logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId);
+        logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId +
+                 " for " + (durationHours == 0 ? "an indefinite period" : durationHours + " hours"));
 
-        validateAdmin(adminId);
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
 
         if (userRepository.findById(targetUserId) == null) {
             logger.error("User " + targetUserId + " does not exist.");
@@ -118,7 +125,9 @@ public class AdminService {
     public void unsuspendUser(String adminId, String targetUserId) throws Exception {
         logger.info("Admin " + adminId + " is attempting to unsuspend user " + targetUserId);
 
-        validateAdmin(adminId);
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
 
         boolean success = suspensionRepository.unsuspendUser(targetUserId);
         if (!success) {
@@ -137,25 +146,33 @@ public class AdminService {
      * @throws Exception if the admin is invalid
      */
     public List<String> getSuspendedUserIds(String adminId) throws Exception {
-        validateAdmin(adminId);
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
+        logger.info("Admin " + adminId + " is requesting suspended users");
         List<String> suspended = suspensionRepository.getSuspendedUsers();
         return suspended;
     }
 
     /**
-     * Internal helper to validate that a user is an administrator.
+     * Validates that a user is an administrator.
      *
      * @param adminId ID of the user to validate
      * @return The Admin object if valid
      * @throws Exception if the user is not an admin
      */
-    private Admin validateAdmin(String adminId) throws Exception {
-        User user = userRepository.findById(adminId);
-        if (!(user instanceof Admin admin)) {
-            logger.error("User " + adminId + " is not an admin.");
-            throw new Exception("Permission denied: User is not an admin.");
+    public Boolean validateAdmin(String adminId) throws Exception {
+        try {
+            User user = userRepository.findById(adminId);
+            if (!(user instanceof Admin)) {
+                logger.error("User " + adminId + " is not an admin.");
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error("Error validating admin: " + e.getMessage());
+            return false;
         }
-        return admin;
     }
 
     /**
@@ -178,7 +195,6 @@ public class AdminService {
         for (User user : allUsers) {
             Map<String, Object> userData = new HashMap<>();
             userData.put("username", user.getUserName());
-            userData.put("banned", user.isBanned());
             userData.put("isAdmin", user instanceof Admin);
             
             // Get user's store roles if any

@@ -21,11 +21,11 @@ const adminService = {
   isAdmin: async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.id) {
+      if (!user?.userName) {
         return false;
       }
       
-      const response = await api.get(`/admin/verify/${user.id}`);
+      const response = await api.get(`/admin/verify/${user.userName}`);
       return response.data.success && response.data.data === true;
     } catch (error) {
       console.error('Admin verification error:', error);
@@ -39,12 +39,12 @@ const adminService = {
   closeStore: async (storeId) => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.id) {
+      if (!user?.userName) {
         throw new Error('User not authenticated');
       }
       
       const response = await api.post('/admin/stores/close', {
-        adminId: user.id,
+        adminId: user.userName,
         storeId: storeId
       });
       
@@ -108,12 +108,12 @@ const adminService = {
   suspendUser: async (userId, durationHours = 0) => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.id) {
+      if (!user?.userName) {
         throw new Error('User not authenticated');
       }
       
       const response = await api.post('/admin/users/suspend', {
-        adminId: user.id,
+        adminId: user.userName,
         userId: userId,
         durationHours: durationHours
       });
@@ -135,12 +135,12 @@ const adminService = {
   unsuspendUser: async (userId) => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.id) {
+      if (!user?.userName) {
         throw new Error('User not authenticated');
       }
       
       const response = await api.post('/admin/users/unsuspend', {
-        adminId: user.id,
+        adminId: user.userName,
         userId: userId
       });
       
@@ -161,11 +161,11 @@ const adminService = {
   getSuspendedUsers: async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.id) {
+      if (!user?.userName) {
         throw new Error('User not authenticated');
       }
       
-      const response = await api.get(`/admin/users/suspended?adminId=${user.id}`);
+      const response = await api.get(`/admin/users/suspended?adminId=${user.userName}`);
       
       if (response.data.success) {
         return response.data.data;
