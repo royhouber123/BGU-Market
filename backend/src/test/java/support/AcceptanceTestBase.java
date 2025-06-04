@@ -18,10 +18,12 @@ import market.domain.store.IStoreRepository;
 import market.domain.user.IUserRepository;
 import market.domain.user.ISuspensionRepository;
 import market.infrastructure.ListingRepository;
+import market.infrastructure.ListingRepositoryPersistence;
 import market.infrastructure.PurchaseRepository;
 import market.infrastructure.StoreRepository;
 import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepository;
+
 
 /**
  * Base class for Acceptance tests.
@@ -47,7 +49,7 @@ public abstract class AcceptanceTestBase {
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
-        listingRepository = new ListingRepository();
+        listingRepository = new ListingRepository(); // Use the real implementation
         ISuspensionRepository susRepo = new SuspensionRepository(userRepository);
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
         storeRepository = new StoreRepository();

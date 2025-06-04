@@ -4,78 +4,96 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
+import market.infrastructure.ListingJpaRepository;
 
-/**
- * In-memory implementation of the {@link IListingRepository} interface.
- * Stores listings in maps grouped by listing ID, store ID, product ID, and product name.
- */
-public class ListingRepository implements IListingRepository {
 
-   private final Map<String, Listing> listingsById = new ConcurrentHashMap<>();
-;
+@Repository
+@Transactional
+public class ListingRepositoryPersistence implements IListingRepository {
+
+    @Autowired
+    private ListingJpaRepository listingJpaRepository;
 
     @Override
     public String addListing(Listing listing) {
-        listingsById.put(listing.getListingId(), listing);
-        return listing.getListingId();
+        Listing savedListing = listingJpaRepository.save(listing);
+        return savedListing.getListingId();
     }
 
     @Override
     public boolean removeListing(String listingId) {
-        return listingsById.remove(listingId) != null;
+        Optional<Listing> listing = listingJpaRepository.findById(listingId);
+        if (listing.isPresent()) {
+            listingJpaRepository.delete(listing.get());
+            return true;
+        }
+        return false;
     }
 
     @Override
     public Listing getListingById(String listingId) {
-        return listingsById.get(listingId);
+        return listingJpaRepository.findById(listingId).orElse(null);
     }
+
+
+   
+   
+
 
     @Override
     public List<Listing> getListingsByProductId(String productId) {
-        return listingsById.values().stream()
-                .filter(l -> l.getProductId().equals(productId))
-                .collect(Collectors.toList());
+        return listingJpaRepository.findByProductId(productId);
     }
 
     @Override
     public List<Listing> getListingsByProductName(String productName) {
-        return listingsById.values().stream()
-                .filter(l -> l.getProductName().equals(productName))
-                .collect(Collectors.toList());
-    }
+        return listingJpaRepository.findByProductName(productName);
+    }   
 
     @Override
     public List<Listing> getAllListings() {
-        return new ArrayList<>(listingsById.values());
-    }
+        List<Listing> listings = listingJpaRepository.findAll();
+        return listings.stream()
+                .sorted(Comparator.comparing(Listing::getProductName))
+                .collect(Collectors.toList());
+    }   
 
     @Override
     public List<Listing> getListingsByProductIdAndStore(String productId, String storeId) {
-        return listingsById.values().stream()
-                .filter(l -> l.getProductId().equals(productId) && l.getStoreId().equals(storeId))
-                .collect(Collectors.toList());
+        return listingJpaRepository.findByStoreIdAndProductId(storeId, productId);
     }
 
     @Override
     public List<Listing> getListingsByProductNameAndStore(String productName, String storeId) {
-        return listingsById.values().stream()
-                .filter(l -> l.getProductName().equals(productName) && l.getStoreId().equals(storeId))
-                .collect(Collectors.toList());
+        return listingJpaRepository.findByStoreIdAndProductName(storeId, productName);
     }
 
     @Override
     public List<Listing> getListingsByStoreId(String storeId) {
-        return listingsById.values().stream()
-                .filter(l -> l.getStoreId().equals(storeId))
-                .collect(Collectors.toList());
+        return listingJpaRepository.findByStoreId(storeId);
     }
 
-    
+    @Override
+    public List<Listing> getListingsByCategory(String category) {
+        return listingJpaRepository.findByCategory(category);
+    }
+
+    @Override
+    public List<Listing> getListingsByCategoryAndStore(String category, String storeId) {
+        return listingJpaRepository.findByStoreIdAndCategory(storeId, category);
+    }
+
+
+
     @Override
     public boolean updateOrRestoreStock(Map<String, Map<String, Integer>> stockMap, boolean isRestore) {
         if (stockMap == null || stockMap.isEmpty()) {
@@ -130,11 +148,15 @@ public class ListingRepository implements IListingRepository {
                 }
             }
         });
-    
+        // Save all listings after the operation
+        for (Listing listing : toLock) {
+            listingJpaRepository.save(listing);
+        }
         return true;
     }
 
-    // Utility method to synchronize on multiple objects
+
+     // Utility method to synchronize on multiple objects
     private void synchronizedLocks(List<Object> locks, Runnable criticalSection) {
         synchronizedRecursive(locks, 0, criticalSection);
     }
@@ -150,46 +172,7 @@ public class ListingRepository implements IListingRepository {
     }
 
 
-    @Override
-    public List<Listing> getListingsByCategory(String category) {
-        return listingsById.values().stream()
-                .filter(l -> l.getCategory().equalsIgnoreCase(category))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Listing> getListingsByCategoryAndStore(String category, String storeId) {
-        return listingsById.values().stream()
-                .filter(l -> l.getCategory().equalsIgnoreCase(category) && l.getStoreId().equals(storeId))
-                .collect(Collectors.toList());
-    }
-
-
-    @Override
-    public void disableListingsByStoreId(String storeId) {
-        listingsById.values().stream()
-            .filter(l -> l.getStoreId().equals(storeId))
-            .forEach(l -> {
-                synchronized (l) {
-                    l.disable();
-                }
-            });
-    }
-    
-    @Override
-    public void enableListingsByStoreId(String storeId) {
-        listingsById.values().stream()
-            .filter(l -> l.getStoreId().equals(storeId))
-            .forEach(l -> {
-                synchronized (l) {
-                    l.enable();
-                }
-            });
-    }
-
-    
-
-    @Override//
+       @Override//
     public double calculateStoreBagWithoutDiscount(Map<String, Integer> prodsToQuantity) throws Exception {
         double result = 0.0;
         for (Map.Entry<String, Integer> entry : prodsToQuantity.entrySet()) {
@@ -205,16 +188,41 @@ public class ListingRepository implements IListingRepository {
         return result;
     }
 
-    @Override//
-    public double ProductPrice(String listingId) throws Exception {
-        Listing l = getListingById(listingId);
-        if (l == null || !Boolean.TRUE.equals(l.isActive())) {
-            throw new Exception("Listing " + listingId + " not found or inactive.");
-        }
-        return l.getPrice();
+
+    @Override
+    public void disableListingsByStoreId(String storeId) {
+        listingJpaRepository.findAll().stream()
+            .filter(l -> l.getStoreId().equals(storeId))
+            .forEach(l -> {
+                synchronized (l) {
+                    l.disable();
+                    listingJpaRepository.save(l);
+                }
+            });
     }
 
-    
+    @Override
+    public void enableListingsByStoreId(String storeId) {
+        listingJpaRepository.findAll().stream()
+            .filter(l -> l.getStoreId().equals(storeId))
+            .forEach(l -> {
+                synchronized (l) {
+                    l.enable();
+                    listingJpaRepository.save(l);
+                }
+            });
+    }
+
+    @Override//
+    public double ProductPrice(String listingId) throws Exception {
+        Listing listing = getListingById(listingId);
+        if (listing == null) {
+            throw new Exception("Listing not found: " + listingId);
+        }
+        return listing.getPrice();
+    }
+
+
     @Override
     public boolean editPriceForListing(String listingId, Double newPrice) throws Exception {
         if (newPrice < 0)
@@ -226,9 +234,11 @@ public class ListingRepository implements IListingRepository {
 
         synchronized (l) {
             l.setPrice(newPrice);
+            listingJpaRepository.save(l);
         }
         return true;
     }
+
 
      @Override
     public void editProductName(String listingId, String newName) throws Exception {
@@ -237,6 +247,7 @@ public class ListingRepository implements IListingRepository {
             throw new Exception("Listing " + listingId + " not found or inactive.");
         synchronized (l) {
             l.setProductName(newName);
+            listingJpaRepository.save(l);
         }
     }
 
@@ -247,6 +258,7 @@ public class ListingRepository implements IListingRepository {
             throw new Exception("Listing " + listingId + " not found or inactive.");
         synchronized (l) {
             l.setProductDescription(newDescription);
+            listingJpaRepository.save(l);
         }
     }
 
@@ -257,6 +269,7 @@ public class ListingRepository implements IListingRepository {
             throw new Exception("Listing " + listingId + " not found or inactive.");
         synchronized (l) {
             l.setQuantityAvailable(newQuantity);
+            listingJpaRepository.save(l);
         }
     }
 
@@ -267,11 +280,9 @@ public class ListingRepository implements IListingRepository {
             throw new Exception("Listing " + listingId + " not found or inactive.");
         synchronized (l) {
             l.setCategory(newCategory);
+            listingJpaRepository.save(l);
         }
     }
 
 
-        
-
 }
-

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
 import utils.ApiResponse;
@@ -14,10 +17,12 @@ import utils.ApiResponse;
  * Provides product-related search services across all stores.
  * Designed for use by end users to discover products.
  */
+@Service
 public class ProductService {
 
     private final IListingRepository listingRepository;
 
+    @Autowired
     public ProductService(IListingRepository listingRepository) {
         this.listingRepository = Objects.requireNonNull(listingRepository);
     }
