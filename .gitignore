@@ -9,7 +9,15 @@ Thumbs.db
 # ────────── Backend (Maven) ──────────
 /backend/target/
 /backend/out/
+# ────────── Java Build Outputs ──────────
 /out/                    # IntelliJ default output (if recreated)
+**/out/                  # Any nested out folder
+target/                  # Maven build directory
+build/                   # Gradle build directory
+bin/                     # Alternative build directory
+*.class                  # Java class files
+*.jar                    # JAR files
+*.war                    # WAR files
 
 # ────────── Frontend (Node/Vite) ──────────
 node_modules/
@@ -23,10 +31,23 @@ package-lock.json
 yarn.lock
 
 # ────────── IDE Metadata ──────────
+# ────────── IDE Files ──────────
 /.idea/
+**/.idea/               # Any nested .idea folder
+.idea/                  # Alternative format for .idea folder
 /.vscode/
+**/.vscode/            # Any nested .vscode folder
 /*.iml
 **/*.iml
+*.ipr                   # IntelliJ project files
+*.iws                   # IntelliJ workspace files
+.classpath              # Eclipse files
+.project                # Eclipse files
+.settings/              # Eclipse settings
+*.launch                # Eclipse launch configurations
+.c9/                    # Cloud9 IDE
+*.swp                   # Vim swap files
+*.swo                   # Vim swap files
 
 # ────────── Environment ──────────
 .env
