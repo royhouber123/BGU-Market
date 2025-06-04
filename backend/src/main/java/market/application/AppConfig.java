@@ -67,8 +67,9 @@ public class AppConfig {
     public StoreService storeService(IStoreRepository storeRepository, 
                                    IUserRepository userRepository, 
                                    IListingRepository listingRepository,
-                                   ISuspensionRepository suspensionRepository) {
-        return new StoreService(storeRepository, userRepository, listingRepository, suspensionRepository);
+                                   ISuspensionRepository suspensionRepository,
+                                   NotificationService notificationService) {
+        return new StoreService(storeRepository, userRepository, listingRepository, suspensionRepository, notificationService);
     }
 
     @Bean
@@ -83,9 +84,10 @@ public class AppConfig {
                                          IUserRepository userRepository,
                                          IPaymentService paymentService,
                                          IShipmentService shipmentService,
-                                         ISuspensionRepository suspensionRepository) {
+                                         ISuspensionRepository suspensionRepository,
+                                         NotificationService notificationService) {
         return new PurchaseService(storeRepository, purchaseRepository, listingRepository, 
-                                 userRepository, paymentService, shipmentService, suspensionRepository);
+                                 userRepository, paymentService, shipmentService, suspensionRepository,notificationService);
     }
 
     @Bean

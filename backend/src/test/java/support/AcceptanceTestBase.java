@@ -3,7 +3,10 @@ package support;
 import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.Mockito.mock;
 
+import javax.management.Notification;
+
 import market.application.AuthService;
+import market.application.NotificationService;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.application.ProductService;
@@ -12,6 +15,7 @@ import market.application.StorePoliciesService;
 import market.application.StoreService;
 import market.application.UserService;
 import market.domain.Role.IRoleRepository;
+import market.domain.notification.INotificationRepository;
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
@@ -56,14 +60,20 @@ public abstract class AcceptanceTestBase {
         userService = new UserService(userRepository, authService, susRepo);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
-        storeService = new StoreService(storerepo,userRepository,listingRepository,susRepo); // Use the real implementation
+        INotificationRepository notificationRepository = mock(INotificationRepository.class); // Mock notification repository
+        NotificationService notificationService = new NotificationService(notificationRepository);
+
+        storeService = new StoreService(storerepo,userRepository,listingRepository,susRepo,notificationService); // Use the real implementation
         storePoliciesService = new StorePoliciesService(storerepo,susRepo);
         productService = new ProductService(listingRepository);
         paymentService = mock(IPaymentService.class); // Mock external service
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();
 
-        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo);
+        INotificationRepository notificationRepo = mock(INotificationRepository.class); // Mock notification repository
+        NotificationService notificationServiceMock = new NotificationService(notificationRepo);
+
+        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo,notificationServiceMock);
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
         

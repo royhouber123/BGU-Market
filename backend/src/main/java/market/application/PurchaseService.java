@@ -13,7 +13,7 @@ import java.util.*;
 import javax.management.RuntimeErrorException;
 
 public class PurchaseService {
-
+    private final NotificationService notificationService;
     private final IStoreRepository storeRepository;
     private final IPurchaseRepository purchaseRepository;
     private final IListingRepository listingRepository;
@@ -23,14 +23,24 @@ public class PurchaseService {
     private final Logger logger = Logger.getInstance();
     private ISuspensionRepository suspensionRepository; 
 
-    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService, ISuspensionRepository suspentionRepository) {
+    public PurchaseService(
+        IStoreRepository storeRepository,
+        IPurchaseRepository purchaseRepository,
+        IListingRepository listingRepository,
+        IUserRepository userRepository,
+        IPaymentService paymentService,
+        IShipmentService shipmentService,
+        ISuspensionRepository suspensionRepository,
+        NotificationService notificationService // <-- add this
+    ) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
         this.listingRepository=listingRepository;
         this.userRepository = userRepository;
         this.paymentService = paymentService;
         this.shipmentService = shipmentService;
-        this.suspensionRepository = suspentionRepository;
+        this.suspensionRepository = suspensionRepository;
+        this.notificationService = notificationService;
     }
 
     // Regular Purchase
@@ -80,7 +90,7 @@ public class PurchaseService {
             try {
                 Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
-                 user.clearCart();
+                user.clearCart();
                 purchaseRepository.save(finalPurchase);
                 return finalPurchase;
             } catch (IllegalArgumentException e) {
@@ -432,6 +442,15 @@ public class PurchaseService {
         } catch (RuntimeException e) {
             logger.error("Failed to get user's product bids: " + e.getMessage());
             throw new RuntimeException("Failed to get user's product bids: " + e.getMessage());
+        }
+    }
+
+    private void notifyAllOwners(String storeID, String message) {
+        Store store = storeRepository.getStoreByID(storeID);
+        if (store != null) {
+            for (String ownerId : store.getAllOwners()) {
+                notificationService.sendNotification(ownerId, message);
+            }
         }
     }
 }
