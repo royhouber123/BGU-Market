@@ -7,6 +7,8 @@ import java.util.Set;
 
 import javax.management.RuntimeErrorException;
 
+import org.springframework.stereotype.Service;
+
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
@@ -15,8 +17,10 @@ import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
 import utils.ApiResponse;
 import utils.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-
+@Service
 public class StoreService {
     private IStoreRepository storeRepository;
     private IUserRepository userRepository;

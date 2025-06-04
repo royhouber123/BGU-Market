@@ -12,6 +12,10 @@ import java.util.*;
 
 import javax.management.RuntimeErrorException;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
 public class PurchaseService {
 
     private final IStoreRepository storeRepository;
@@ -23,6 +27,7 @@ public class PurchaseService {
     private final Logger logger = Logger.getInstance();
     private ISuspensionRepository suspensionRepository; 
 
+    @Autowired
     public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService, ISuspensionRepository suspentionRepository) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;

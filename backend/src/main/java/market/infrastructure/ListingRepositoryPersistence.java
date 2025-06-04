@@ -22,6 +22,8 @@ public class ListingRepositoryPersistence implements IListingRepository {
 
     @Autowired
     private ListingJpaRepository listingJpaRepository;
+    
+   
 
     @Override
     public String addListing(Listing listing) {

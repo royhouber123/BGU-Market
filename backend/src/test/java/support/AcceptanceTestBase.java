@@ -25,6 +25,7 @@ import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepository;
 
 
+
 /**
  * Base class for Acceptance tests.
  */
