@@ -15,6 +15,14 @@ import market.domain.store.Policies.DiscountPolicy;
 import market.domain.store.Policies.PolicyHandler;
 import market.domain.store.Policies.PurchasePolicy;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.util.UUID;
+import org.springframework.stereotype.Controller;
+import java.beans.ConstructorProperties;
+
 
 
 /**
@@ -23,25 +31,40 @@ import market.domain.store.Policies.PurchasePolicy;
  * Managers can be granted specific permissions (such as editing products or policies).
  * Products are managed through an injected {@link IStoreProductsManager} interface.
  */
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "stores")
 public class Store {
+    @Id
+    @Column(name = "store_id", nullable = false, unique = true)
     private String storeID;
+
+    @Column(name = "name", nullable = false)
     private String name;
-    boolean active;
 
-    String founderID;
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
+    @Column(name = "founder_id", nullable = false)
+    private String founderID;
+
+    @Transient
     private HashMap<String,String> ownerToWhoAssignedHim;
+    @Transient
     private HashMap<String, List<String>> ownerToAssignedOwners;
     //every mangaer has a key in the dict.
     // if manager 1 assign manager 2, so manager2 in managers[manager1]
 
-
+    @Transient
     private HashMap<String, List<Manager>> ownerToAssignedManagers;
-
+    @Transient
     private IStoreProductsManager storeProductsManager;
-
+    @Transient
     private PolicyHandler policyHandler;
-
+    @Transient
     private final Object ownershipLock = new Object();
 
 
