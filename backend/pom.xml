@@ -127,13 +127,11 @@
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.0.0</version>
         </dependency>
     
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.2.6.Final</version> <!-- Or any stable version -->
         </dependency>
 
         <!-- Lombok – saves boiler-plate getters/setters -->

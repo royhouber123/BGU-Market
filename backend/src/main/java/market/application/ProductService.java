@@ -18,13 +18,13 @@ import utils.ApiResponse;
  * Provides product-related search services across all stores.
  * Designed for use by end users to discover products.
  */
-@Service
-@Transactional
+
+
 public class ProductService {
 
     private final IListingRepository listingRepository;
 
-    @Autowired
+    
     public ProductService(IListingRepository listingRepository) {
         this.listingRepository = listingRepository;
     }
