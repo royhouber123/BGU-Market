@@ -20,6 +20,7 @@ public interface ListingJpaRepository extends JpaRepository<Listing, String> {
     List<Listing> findByCategory(String category);
     List<Listing> findByStoreIdAndCategory(String storeId, String category);
     List<Listing> findByStoreIdAndActiveTrue(String storeId);
+    
     @Query("SELECT l FROM Listing l WHERE l.category = :category AND l.storeId = :storeId")
     List<Listing> getListingsByCategoryAndStore(String category, @Param("storeId") String storeId);
 
