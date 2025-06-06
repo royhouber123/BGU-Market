@@ -1,10 +1,18 @@
 package market.domain.purchase;
 
+import jakarta.persistence.Embeddable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+
+@Getter
+@NoArgsConstructor 
+@Embeddable
 public class PurchasedProduct {
-    private final String productId;
-    private final String storeId;
-    private final int quantity;
-    private final double unitPrice;
+    private String productId;
+    private String storeId;
+    private int quantity;
+    private double unitPrice;
 
     public PurchasedProduct(String productId, String storeId, int quantity, double unitPrice) {
         this.productId = productId;

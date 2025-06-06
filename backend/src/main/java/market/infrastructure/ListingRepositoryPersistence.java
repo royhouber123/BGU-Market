@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
-import market.infrastructure.ListingJpaRepository;
+import market.infrastructure.IListingJpaRepository;
 
 
 @Repository
@@ -21,7 +21,7 @@ import market.infrastructure.ListingJpaRepository;
 public class ListingRepositoryPersistence implements IListingRepository {
 
     @Autowired
-    private ListingJpaRepository listingJpaRepository;
+    private IListingJpaRepository listingJpaRepository;
     
    
 

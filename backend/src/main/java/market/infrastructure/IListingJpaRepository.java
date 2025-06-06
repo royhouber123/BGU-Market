@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ListingJpaRepository extends JpaRepository<Listing, String> {
+public interface IListingJpaRepository extends JpaRepository<Listing, String> {
 
     List<Listing> findByStoreId(String storeId);
     List<Listing> findByProductId(String productId);
