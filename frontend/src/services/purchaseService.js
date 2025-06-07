@@ -61,6 +61,33 @@ const purchaseService = {
     }
   },
 
+  // Open auction
+  openAuction: async (storeId, productId, productName, productCategory, productDescription, startingPrice, endTimeMillis) => {
+    try {
+      const response = await api.post('/purchases/auction/open', {
+        storeId: parseInt(storeId),
+        productId,
+        productName,
+        productCategory,
+        productDescription,
+        startingPrice: parseInt(startingPrice),
+        endTimeMillis
+      });
+      
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Failed to open auction');
+      }
+    } catch (error) {
+      console.error('Open auction error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
+  },
+
   // Submit bid
   submitBid: async (storeId, productId, bidAmount) => {
     try {
