@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 import { useAuth } from "../../contexts/AuthContext";
 import userService from "../../services/userService";
+import notificationService from "../../services/notificationService";
+import broadcaster from "../../notification/Broadcaster";
 import "./Header.css";
+
+// Add this import if using STOMP
+import { Client } from '@stomp/stompjs';
 
 import {
 	AppBar,
@@ -18,10 +23,12 @@ import {
 	InputAdornment,
 	Drawer,
 	List,
+	ListItem,
 	ListItemButton,
 	ListItemIcon,
 	ListItemText,
 	Divider,
+	Popover,
 } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
@@ -31,15 +38,22 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 
 import AuthDialog from "../AuthDialog/AuthDialog";
 
 export default function Header() {
+	console.log("Header component rendered");
 	const navigate = useNavigate();
 	const { currentUser, isAuthenticated, logout, cart } = useAuth();
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [authOpen, setAuthOpen] = useState(false);
+	const [notifications, setNotifications] = useState([]);
+	const [unreadCount, setUnreadCount] = useState(0);
+	const [notifAnchorEl, setNotifAnchorEl] = useState(null);
+	const wsRef = useRef(null);
 
+	
 	const handleSearch = (e) => {
 		e.preventDefault();
 		const query = new FormData(e.currentTarget).get("search")?.toString().trim();
@@ -55,6 +69,107 @@ export default function Header() {
 		}
 	};
 
+	const handleNotifClick = (event) => {
+		setNotifAnchorEl(event.currentTarget);
+	};
+
+	const handleNotifClose = () => {
+		setNotifAnchorEl(null);
+	};
+
+	const handleNotificationClick = async (notif) => {
+		if (!notif.read) {
+			try {
+				await notificationService.markAsRead(currentUser.userName, notif.id);
+				setNotifications((prev) =>
+					prev.map((n) => n.id === notif.id ? { ...n, read: true } : n)
+				);
+				setUnreadCount((prev) => Math.max(0, prev - 1));
+			} catch (e) {
+				console.error("Failed to mark notification as read", e);
+			}
+		}
+		handleNotifClose();
+	};
+
+	const handleMarkAllAsRead = async () => {
+		try {
+			// Mark all unread notifications as read in the backend
+			await Promise.all(
+				notifications
+					.filter(n => !n.read)
+					.map(n => notificationService.markAsRead(currentUser.userName, n.id))
+			);
+			// Update state in frontend
+			setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+			setUnreadCount(0);
+		} catch (e) {
+			console.error("Failed to mark all notifications as read", e);
+		}
+	};
+
+	// Fetch notifications when authenticated
+	useEffect(() => {
+		const fetchNotifications = async () => {
+			console.log("useEffect ran", { isAuthenticated, currentUser });
+			if (isAuthenticated && currentUser && currentUser.userName) {
+				try {
+					const data = await notificationService.getNotifications(currentUser.userName);
+					console.log("Fetched notifications:", data);
+					console.log("Current user ID:", currentUser.userName);
+					setNotifications(data);
+					setUnreadCount(data.filter(n => !n.read).length);
+				} catch (e) {
+					console.error("Failed to fetch notifications", e);
+				}
+			}
+		};
+		fetchNotifications();
+	}, [isAuthenticated, currentUser]);
+
+	//notification broadcaster
+	// Register for notifications using the broadcaster
+	useEffect(() => {
+		if (!currentUser || !currentUser.userName) return;
+		const remove = broadcaster.register(currentUser.userName, (message) => {
+			setNotifications(prev => [message, ...prev]);
+			setUnreadCount(prev => prev + 1);
+		});
+		return () => remove();
+	}, [currentUser && currentUser.userName]);
+
+
+	// Example using STOMP over WebSocket
+	useEffect(() => {
+		if (isAuthenticated && currentUser && currentUser.userName) {
+			const stompClient = new Client({
+				brokerURL: `ws://localhost:8080/ws/notifications`
+			});
+
+			stompClient.onConnect = () => {
+				stompClient.subscribe('/topic/notifications', (notification) => {
+					const data = JSON.parse(notification.body);
+					console.log("STOMP notification:", data);
+
+					// Only show notification if it's for current user
+					if (data.targetUserId === currentUser.userName) {
+						setNotifications(prev => [data.message, ...prev]);
+						setUnreadCount(prev => prev + 1);
+					}
+					//debug!:remove!
+					console.log("Received:", data.targetUserId, "Current:", currentUser.userName);
+				});
+			};
+
+			stompClient.activate();
+
+			return () => {
+				stompClient.deactivate();
+			};
+		}
+	}, [isAuthenticated, currentUser]);
+
+
 	const navItems = [
 		{
 			label: "Cart",
@@ -69,8 +184,12 @@ export default function Header() {
 		},
 		{
 			label: "Notifications",
-			icon: <NotificationsIcon />,
-			action: () => navigate(createPageUrl("Dashboard")), // placeholder
+			icon: (
+				<Badge badgeContent={unreadCount} color="error">
+					<NotificationsIcon />
+				</Badge>
+			),
+			action: handleNotifClick,
 		},
 	];
 
@@ -128,13 +247,7 @@ export default function Header() {
 						<Box className="header-desktop-actions header-hide-mobile">
 							{navItems.map(({ label, icon, action, badge }) => (
 								<IconButton key={label} onClick={action} size="large">
-									{badge !== undefined ? (
-										<Badge badgeContent={badge} color="error">
-											{icon}
-										</Badge>
-									) : (
-										icon
-									)}
+									{icon}
 								</IconButton>
 							))}
 
@@ -251,8 +364,93 @@ export default function Header() {
 				</Box>
 			</Drawer>
 
+			{/* ——— Notifications Popover ——— */}
+			<Popover
+				open={Boolean(notifAnchorEl)}
+				anchorEl={notifAnchorEl}
+				onClose={handleNotifClose}
+				anchorOrigin={{
+					vertical: 'bottom',
+					horizontal: 'right',
+				}}
+				transformOrigin={{
+					vertical: 'top',
+					horizontal: 'right',
+				}}
+			>
+				<Box sx={{
+					minWidth: 350,
+					maxWidth: 400,
+					p: 0,
+					position: 'relative',
+					display: 'flex',
+					flexDirection: 'column',
+					height: 400 // or any max height you want for the popover
+				}}>
+					<Box sx={{
+						flex: 1,
+						overflowY: 'auto',
+						p: 2,
+						pb: 8,
+						minHeight: 0 // ensures flexbox works with overflow
+					}}>
+						{notifications.length === 0 ? (
+							<Typography sx={{ p: 2 }}>No notifications</Typography>
+						) : (
+							notifications
+								.slice()
+								.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+								.map((notif) => (
+									<ListItem
+										button
+										key={notif.id}
+										onClick={() => handleNotificationClick(notif)}
+										selected={!notif.read}
+										sx={{ bgcolor: notif.read ? 'inherit' : 'rgba(25,118,210,0.08)', pr: 4, position: 'relative' }}
+									>
+										<ListItemText
+											primary={notif.message}
+											secondary={new Date(notif.timestamp).toLocaleString()}
+										/>
+									</ListItem>
+								))
+						)}
+					</Box>
+					<Divider sx={{ m: 0 }} />
+					<Box sx={{
+						position: 'sticky',
+						bottom: 0,
+						left: 0,
+						width: '100%',
+						bgcolor: 'background.paper',
+						p: 2,
+						boxShadow: '0 -2px 8px rgba(0,0,0,0.04)'
+					}}>
+						{notifications.length > 0 && unreadCount > 0 && (
+							<Button
+								onClick={handleMarkAllAsRead}
+								size="small"
+								sx={{ m: 1, float: 'right' }}
+							>
+								Mark all as read
+							</Button>
+						)}
+						<Button
+							component={RouterLink}
+							to="/notifications/history"
+							fullWidth
+							size="small"
+						>
+							View all notification history
+						</Button>
+					</Box>
+				</Box>
+			</Popover>
+
 			{/* ——— Auth dialog ——— */}
 			<AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
 		</>
 	);
-} 
+
+	
+}

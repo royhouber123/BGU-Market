@@ -1,25 +1,41 @@
 package market.application;
 
 import market.domain.notification.*;
+import market.notification.INotifier;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 public class NotificationService {
     private final INotificationRepository notificationRepository;
+    private final INotifier notificationSender; // Changed from NotificationWebSocketHandler
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public NotificationService(INotificationRepository notificationRepository) {
+    public NotificationService(INotificationRepository notificationRepository, INotifier notificationSender) {
         this.notificationRepository = notificationRepository;
+        this.notificationSender = notificationSender; // Updated parameter
     }
 
-    public void sendNotification(String userId, String message) {
+    public void sendNotification(String userName, String message) {
         Notification notification = new Notification(
             UUID.randomUUID().toString(),
-            userId,
+            userName,
             message,
             Instant.now()
         );
         notificationRepository.addNotification(notification);
+
+        // Send via notification sender interface
+        try {
+            String notifJson = objectMapper.writeValueAsString(notification);
+            notificationSender.notifyUser(userName, notifJson); // Updated method call
+        } catch (Exception e) {
+            System.out.println("Error sending notification: " + e.getMessage());
+            // handle error
+        }
     }
 
     public List<Notification> getNotifications(String userId) {

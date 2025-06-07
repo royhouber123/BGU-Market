@@ -2,6 +2,7 @@ package market.domain;
 
 import market.application.NotificationService;
 import market.domain.notification.*;
+import market.notification.INotifier; // Updated import
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -14,12 +15,14 @@ import static org.mockito.Mockito.*;
 
 class NotificationServiceTest {
     private INotificationRepository repository;
+    private INotifier notifier; // Updated variable name and type
     private NotificationService service;
 
     @BeforeEach
     void setUp() {
         repository = mock(INotificationRepository.class);
-        service = new NotificationService(repository);
+        notifier = mock(INotifier.class); // Updated to mock INotifier interface
+        service = new NotificationService(repository, notifier); // Updated parameter
     }
 
     @Test
@@ -61,5 +64,12 @@ class NotificationServiceTest {
         service.sendNotification("user1", "msg1");
         service.sendNotification("user2", "msg2");
         verify(repository, times(2)).addNotification(any(Notification.class));
+    }
+
+    @Test
+    void sendNotification_callsNotifierWithCorrectUserAndMessage() {
+        // Test that the notifier is called with the correct parameters
+        service.sendNotification("user1", "Test message");
+        verify(notifier, times(1)).notifyUser(eq("user1"), any(String.class));
     }
 }

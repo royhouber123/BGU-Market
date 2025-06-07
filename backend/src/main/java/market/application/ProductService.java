@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
-import utils.ApiResponse;
 
 /**
  * Provides product-related search services across all stores.

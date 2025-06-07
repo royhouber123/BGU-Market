@@ -4,12 +4,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import market.domain.user.IUserRepository;
 import market.domain.user.User;
-import utils.ApiResponse;
-
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 

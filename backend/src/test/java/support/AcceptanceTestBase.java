@@ -26,6 +26,7 @@ import market.infrastructure.PurchaseRepository;
 import market.infrastructure.StoreRepository;
 import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepository;
+import market.notification.INotifier; // Updated import
 
 /**
  * Base class for Acceptance tests.
@@ -61,9 +62,10 @@ public abstract class AcceptanceTestBase {
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
         INotificationRepository notificationRepository = mock(INotificationRepository.class); // Mock notification repository
-        NotificationService notificationService = new NotificationService(notificationRepository);
+        INotifier notifier = mock(INotifier.class);   // Mock notifier interface
+        NotificationService notificationService = new NotificationService(notificationRepository, notifier);
 
-        storeService = new StoreService(storerepo,userRepository,listingRepository,susRepo,notificationService); // Use the real implementation
+        storeService = new StoreService(storerepo, userRepository, listingRepository, susRepo, notificationService); // Use the real implementation
         storePoliciesService = new StorePoliciesService(storerepo,susRepo);
         productService = new ProductService(listingRepository);
         paymentService = mock(IPaymentService.class); // Mock external service
@@ -71,7 +73,8 @@ public abstract class AcceptanceTestBase {
         IPurchaseRepository prep = new PurchaseRepository();
 
         INotificationRepository notificationRepo = mock(INotificationRepository.class); // Mock notification repository
-        NotificationService notificationServiceMock = new NotificationService(notificationRepo);
+        INotifier notifier2 = mock(INotifier.class); // Mock notifier interface
+        NotificationService notificationServiceMock = new NotificationService(notificationRepo, notifier2);
 
         purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo,notificationServiceMock);
         // Initialize the bridge with the mocked services
