@@ -1,7 +1,12 @@
 package market.domain.store;
 
+import java.beans.ConstructorProperties;
 import java.util.UUID;
 
+import org.springframework.stereotype.Controller;
+
+import jakarta.persistence.*;
+import lombok.*;
 import market.domain.purchase.PurchaseType;
 
 
@@ -11,16 +16,40 @@ import market.domain.purchase.PurchaseType;
  * Represents a single listing for a product in the store.
  * A listing defines how the product is sold (regular, auction, bid).
  */
+@Getter @Setter @NoArgsConstructor
+@Entity
+@Table(name = "listings")
 public class Listing {
-    private final String listingId;          // Unique ID for this listing
-    private final String storeId;             // ID of the store that owns this listing
-    private final String productId;           // ID of the product type
+    @Id
+    @Column(name = "listing_id", nullable = false, unique = true)
+    private  String listingId;          // Unique ID for this listing
+    
+    @Column(name = "store_id", nullable = false)
+    private String storeId;             // ID of the store that owns this listing
+    
+    @Column(name = "product_id", nullable = false)
+    private String productId;           // ID of the product type
+    
+    @Column(name = "product_name", nullable = false)
     private  String productName;         // Product display name
+    
+    @Column(name = "product_description", nullable = true)
     private  String productDescription;  // Product description
+    
+    @Column(name = "quantity_available", nullable = false)
     private int quantityAvailable;            // Stock for this listing
-    private final PurchaseType purchaseType; // How it is purchased
+    
+    @Column(name = "purchase_type", nullable = false)
+    @Enumerated(EnumType.STRING) 
+    private PurchaseType purchaseType; // How it is purchased
+    
+    @Column(name = "price", nullable = false)
     private double price;
+
+    @Column(name = "category", nullable = true)
     private String category = "";
+
+    @Column(name = "active", nullable = false)
     private Boolean active;
 
 
@@ -81,7 +110,9 @@ public class Listing {
     }
 
     // ==================== Getters ====================
-
+    /**
+     * Getters for the listing properties.
+     */
     public String getListingId() {
         return listingId;
     }

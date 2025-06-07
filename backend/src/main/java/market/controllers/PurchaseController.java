@@ -74,6 +74,32 @@ public class PurchaseController {
      */
     @PostMapping("/auction/offer")
     public ResponseEntity<ApiResponse<Void>> submitAuctionOffer(@RequestBody AuctionOfferRequest request) {
+        // Validate request
+        if (request == null) {
+            return ResponseEntity.ok(ApiResponse.fail("Request body cannot be null"));
+        }
+
+        // Additional validation for request fields
+        if (request.productId() == null) {
+            return ResponseEntity.ok(ApiResponse.fail("Product ID cannot be null"));
+        }
+
+        if (request.storeId() <= 0) {
+            return ResponseEntity.ok(ApiResponse.fail("Invalid store ID"));
+        }
+
+        if (request.offerAmount() <= 0) {
+            return ResponseEntity.ok(ApiResponse.fail("Offer amount must be positive"));
+        }
+
+        if (request.shippingAddress() == null || request.shippingAddress().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Shipping address is required"));
+        }
+
+        if (request.paymentDetails() == null || request.paymentDetails().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Payment details are required"));
+        }
+
         return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
             purchaseService.submitOffer(
@@ -81,8 +107,8 @@ public class PurchaseController {
                 String.valueOf(request.productId()),
                 username,
                 request.offerAmount(),
-                "Default shipping address",
-                "Default contact info"
+                request.shippingAddress(),
+                request.paymentDetails()
             );
             return null;
         });
@@ -96,14 +122,69 @@ public class PurchaseController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAuctionStatus(
             @PathVariable int userId,
             @PathVariable int storeId,
-            @PathVariable int productId) {
+            @PathVariable String productId) {
         return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
             return purchaseService.getAuctionStatus(
                 username,
                 String.valueOf(storeId),
-                String.valueOf(productId)
+                productId
             );
+        });
+    }
+
+    /**
+     * Open an auction
+     * POST /api/purchases/auction/open
+     */
+    @PostMapping("/auction/open")
+    public ResponseEntity<ApiResponse<Void>> openAuction(@RequestBody OpenAuctionRequest request) {
+        // Validate request
+        if (request == null) {
+            return ResponseEntity.ok(ApiResponse.fail("Request body cannot be null"));
+        }
+
+        if (request.storeId() <= 0) {
+            return ResponseEntity.ok(ApiResponse.fail("Invalid store ID"));
+        }
+
+        if (request.productId() == null || request.productId().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Product ID is required"));
+        }
+
+        if (request.productName() == null || request.productName().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Product name is required"));
+        }
+
+        if (request.productCategory() == null || request.productCategory().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Product category is required"));
+        }
+
+        if (request.productDescription() == null || request.productDescription().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Product description is required"));
+        }
+
+        if (request.startingPrice() <= 0) {
+            return ResponseEntity.ok(ApiResponse.fail("Starting price must be positive"));
+        }
+
+        if (request.endTimeMillis() <= System.currentTimeMillis()) {
+            return ResponseEntity.ok(ApiResponse.fail("End time must be in the future"));
+        }
+
+        return ApiResponseBuilder.build(() -> {
+            String username = extractUsernameFromToken();
+            purchaseService.openAuction(
+                username,
+                String.valueOf(request.storeId()),
+                request.productId(),
+                request.productName(),
+                request.productCategory(),
+                request.productDescription(),
+                request.startingPrice(),
+                request.endTimeMillis()
+            );
+            return null;
         });
     }
 
@@ -130,6 +211,15 @@ public class PurchaseController {
         if (request.bidAmount() <= 0) {
             return ResponseEntity.ok(ApiResponse.fail("Bid amount must be positive"));
         }
+
+        if (request.shippingAddress() == null || request.shippingAddress().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Shipping address is required"));
+        }
+
+        if (request.paymentDetails() == null || request.paymentDetails().trim().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.fail("Payment details are required"));
+        }
+
         return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
             purchaseService.submitBid(
@@ -137,8 +227,8 @@ public class PurchaseController {
                 request.productId(), // Use productId directly as String
                 username,
                 request.bidAmount(),
-                "Default shipping address",
-                "Default contact info"
+                request.shippingAddress(), // Use actual shipping address from request
+                request.paymentDetails() // Use actual payment details from request
             );
             return null;
         });

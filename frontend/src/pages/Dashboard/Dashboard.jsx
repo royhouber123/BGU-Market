@@ -6,6 +6,7 @@ import CategoryCard from '../../components/CategoryCard/CategoryCard';
 import FeaturedSection from '../../components/FeaturedSection/FeaturedSection';
 import MiniCart from '../../components/MiniCart/MiniCart';
 import { productService } from '../../services/productService';
+import { useAuth } from '../../contexts/AuthContext';
 import './Dashboard.css';
 
 // Material-UI imports
@@ -34,6 +35,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [showMiniCart, setShowMiniCart] = useState(false);
 
   // Icon mapping for categories
@@ -228,12 +230,14 @@ const Dashboard = () => {
 
       {/* Dialogs & Overlays */}
       {showMiniCart && <MiniCart onClose={() => setShowMiniCart(false)} />}
-      {showAuthDialog && (
-        <AuthDialog
-          open={showAuthDialog}
-          onClose={() => setShowAuthDialog(false)}
-        />
-      )}
+      {/* Only show auth dialog when explicitly triggered, not on refresh */
+      // showAuthDialog && !isAuthenticated && (
+      //   <AuthDialog
+      //     open={showAuthDialog}
+      //     onClose={() => setShowAuthDialog(false)}
+      //   />
+      // )
+      }
     </Box>
   );
 };

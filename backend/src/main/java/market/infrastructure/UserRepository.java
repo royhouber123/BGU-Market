@@ -5,6 +5,7 @@ import utils.Logger;
 import utils.PasswordUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
@@ -166,4 +167,19 @@ public class UserRepository implements IUserRepository {
         passwordMap.put(admin.getUserName(), PasswordUtil.hashPassword(password));
     }
     
+    @Override
+    public void save(User user) {
+        logger.info("[UserRepository] Saving user: " + user.getUserName());
+        if (user instanceof Subscriber) {
+            userMap.put(user.getUserName(), (Subscriber) user);
+        } else {
+            guestMap.put(user.getUserName(), user);
+        }
+    }
+    
+    @Override
+    public List<User> getAllUsers() {
+        logger.info("[UserRepository] Getting all users");
+        return new java.util.ArrayList<>(userMap.values());
+    }
 }

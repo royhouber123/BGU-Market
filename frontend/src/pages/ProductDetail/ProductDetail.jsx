@@ -27,7 +27,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -45,6 +49,8 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import CasinoIcon from "@mui/icons-material/Casino";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { format } from "date-fns";
 import './ProductDetail.css';
 
@@ -71,6 +77,25 @@ export default function ProductDetail() {
   const [bidAmount, setBidAmount] = useState('');
   const [showBidDialog, setShowBidDialog] = useState(false);
   const [submittingBid, setSubmittingBid] = useState(false);
+  const [bidShippingAddress, setBidShippingAddress] = useState({
+    fullName: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: ""
+  });
+
+  // Add detailed bid form states
+  const [bidCardDetails, setBidCardDetails] = useState({
+    cardName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: ""
+  });
+
+  const [bidPaymentMethod, setBidPaymentMethod] = useState("credit");
 
   // Raffle-specific states
   const [showRaffleDialog, setShowRaffleDialog] = useState(false);
@@ -82,7 +107,70 @@ export default function ProductDetail() {
   const [submittingOffer, setSubmittingOffer] = useState(false);
   const [auctionStatus, setAuctionStatus] = useState(null);
 
-  const { refreshCart, cart } = useAuth();
+  // New auction states for real-time updates
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [auctionEnded, setAuctionEnded] = useState(false);
+  const [refreshingAuctionStatus, setRefreshingAuctionStatus] = useState(false);
+
+  // Auction offer form states (similar to bid forms)
+  const [offerShippingAddress, setOfferShippingAddress] = useState({
+    fullName: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: ""
+  });
+
+  const [offerCardDetails, setOfferCardDetails] = useState({
+    cardName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: ""
+  });
+
+  const [offerPaymentMethod, setOfferPaymentMethod] = useState("credit");
+
+  const { refreshCart, cart, addToCart: addToCartContext, isAuthenticated, isGuest, guestService } = useAuth();
+
+  // Add form handler functions
+  const handleBidShippingAddressChange = (e) => {
+    setBidShippingAddress({
+      ...bidShippingAddress,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleBidCardDetailsChange = (e) => {
+    setBidCardDetails({
+      ...bidCardDetails,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleBidPaymentMethodChange = (e) => {
+    setBidPaymentMethod(e.target.value);
+  };
+
+  // Add form handler functions for auction offers
+  const handleOfferShippingAddressChange = (e) => {
+    setOfferShippingAddress({
+      ...offerShippingAddress,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleOfferCardDetailsChange = (e) => {
+    setOfferCardDetails({
+      ...offerCardDetails,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleOfferPaymentMethodChange = (e) => {
+    setOfferPaymentMethod(e.target.value);
+  };
 
   const toast = (props) => {
     setSnackbar({
@@ -124,9 +212,59 @@ export default function ProductDetail() {
   // Fetch auction status for auction type products
   useEffect(() => {
     if (product && product.purchaseType === 'AUCTION') {
+      // Add debugging to check user state
+      if (isAuthenticated) {
+        console.log('[ProductDetail] User is authenticated, attempting to fetch auction status');
+        // Check what user data we have in context
+        const currentUser = userService.getCurrentUser();
+        console.log('[ProductDetail] Current user from service:', currentUser);
+      } else {
+        console.log('[ProductDetail] User not authenticated, skipping auction status fetch');
+      }
+
       fetchAuctionStatus();
     }
-  }, [product]);
+  }, [product, isAuthenticated]);
+
+  // Add effect for auction timer countdown
+  useEffect(() => {
+    let interval = null;
+
+    if (product?.purchaseType === 'AUCTION' && auctionStatus && !auctionEnded) {
+      interval = setInterval(() => {
+        const now = Date.now();
+        const timeLeftMs = auctionStatus.timeLeftMillis - (now - auctionStatus.fetchedAt);
+
+        if (timeLeftMs <= 0) {
+          setTimeLeft(0);
+          setAuctionEnded(true);
+          clearInterval(interval);
+        } else {
+          setTimeLeft(timeLeftMs);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [auctionStatus, auctionEnded, product]);
+
+  // Add effect for periodic auction status refresh
+  useEffect(() => {
+    let refreshInterval = null;
+
+    if (product?.purchaseType === 'AUCTION' && !auctionEnded && isAuthenticated) {
+      // Refresh auction status every 30 seconds
+      refreshInterval = setInterval(() => {
+        fetchAuctionStatus();
+      }, 30000);
+    }
+
+    return () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    };
+  }, [product, auctionEnded, isAuthenticated]);
 
   const refreshDiscountedPrice = async () => {
     if (product) {
@@ -234,11 +372,6 @@ export default function ProductDetail() {
     if (addingToCart) return; // Prevent double-clicking
 
     try {
-      if (!userService.isAuthenticated()) {
-        setShowAuthDialog(true);
-        return;
-      }
-
       if (!product) {
         toast({
           title: "Error",
@@ -259,17 +392,13 @@ export default function ProductDetail() {
 
       setAddingToCart(true);
 
-      // Use the backend API to add product to cart
-      // Note: Despite the parameter name "productName", the backend expects the listing ID
-      await userService.addProductToCart(
-        product.storeId || "1", // Use the product's store ID or default to "1"
-        product.id, // Use product ID (which is the listing ID) - this is what the backend expects
-        quantity // Use selected quantity
-      );
+      // Use the context addToCart method which handles both guest and authenticated users
+      await addToCartContext(product, quantity);
 
-      // Refresh cart state after adding
-      await refreshCart();
-      await checkUserLists();
+      // Refresh user lists check for authenticated users
+      if (isAuthenticated) {
+        await checkUserLists();
+      }
 
       setIsInCart(true);
       setShowMiniCart(true);
@@ -307,6 +436,31 @@ export default function ProductDetail() {
       return;
     }
 
+    // Validate shipping address
+    if (!bidShippingAddress.fullName || !bidShippingAddress.addressLine1 ||
+      !bidShippingAddress.city || !bidShippingAddress.state ||
+      !bidShippingAddress.postalCode || !bidShippingAddress.country) {
+      toast({
+        title: "Error",
+        description: "Please complete all required shipping address fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate payment details for credit card
+    if (bidPaymentMethod === 'credit') {
+      if (!bidCardDetails.cardName || !bidCardDetails.cardNumber ||
+        !bidCardDetails.expiryDate || !bidCardDetails.cvv) {
+        toast({
+          title: "Error",
+          description: "Please complete all credit card details",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     // Check minimum bid amount if product has one
     if (product.minBidAmount && parseFloat(bidAmount) < parseFloat(product.minBidAmount)) {
       toast({
@@ -335,11 +489,24 @@ export default function ProductDetail() {
     setSubmittingBid(true);
 
     try {
+      // Prepare payment details based on payment method
+      let paymentDetails = '';
+      if (bidPaymentMethod === 'credit') {
+        paymentDetails = `Credit Card - ${bidCardDetails.cardName} - ****${bidCardDetails.cardNumber.slice(-4)}`;
+      } else {
+        paymentDetails = 'PayPal Payment';
+      }
+
+      // Prepare shipping address string
+      const shippingAddressString = `${bidShippingAddress.fullName}, ${bidShippingAddress.addressLine1}${bidShippingAddress.addressLine2 ? ', ' + bidShippingAddress.addressLine2 : ''}, ${bidShippingAddress.city}, ${bidShippingAddress.state} ${bidShippingAddress.postalCode}, ${bidShippingAddress.country}`;
+
       // Debug logging
       console.log("Submitting bid with product data:", {
         productId: product.id,
         storeId: product.storeId,
         bidAmount: bidAmount,
+        shippingAddress: shippingAddressString,
+        paymentDetails: paymentDetails,
         productIdType: typeof product.id,
         storeIdType: typeof product.storeId
       });
@@ -352,9 +519,11 @@ export default function ProductDetail() {
         },
         body: JSON.stringify({
           storeId: parseInt(product.storeId),
-          productId: String(product.id), // Send as string instead of parseInt
+          productId: String(product.id),
           bidAmount: parseFloat(bidAmount),
-          quantity: 1
+          quantity: 1,
+          shippingAddress: shippingAddressString,
+          paymentDetails: paymentDetails
         })
       });
 
@@ -368,6 +537,22 @@ export default function ProductDetail() {
         });
         setShowBidDialog(false);
         setBidAmount('');
+        setBidShippingAddress({
+          fullName: "",
+          addressLine1: "",
+          addressLine2: "",
+          city: "",
+          state: "",
+          postalCode: "",
+          country: ""
+        });
+        setBidCardDetails({
+          cardName: "",
+          cardNumber: "",
+          expiryDate: "",
+          cvv: ""
+        });
+        setBidPaymentMethod("credit");
       } else {
         throw new Error(result.error || result.message || 'Bid submission failed');
       }
@@ -383,6 +568,169 @@ export default function ProductDetail() {
     }
   };
 
+  const fetchAuctionStatus = async () => {
+    if (!product || !userService.isAuthenticated()) return;
+
+    // Validate product data
+    if (!product.id || !product.storeId) {
+      console.error("Product ID or Store ID is missing");
+      return;
+    }
+
+    setRefreshingAuctionStatus(true);
+
+    try {
+      let user;
+
+      // Try to get user profile, fallback to getCurrentUser if needed
+      try {
+        user = await userService.getProfile();
+      } catch (profileError) {
+        console.warn("Failed to get profile from API, using cached user:", profileError);
+        user = userService.getCurrentUser();
+      }
+
+      console.log('[fetchAuctionStatus] Raw user data:', user);
+
+      // The backend API expects a userId in the URL but actually uses the username from JWT token
+      // So we can use any placeholder ID (like 0) since it's ignored by the backend
+      const userIdPlaceholder = 0;
+
+      // Validate that we have at least a username for authentication
+      if (!user || !user.userName) {
+        console.error("Username not found in user data. User object structure:", JSON.stringify(user, null, 2));
+
+        toast({
+          title: "Authentication Error",
+          description: "User identification not available. Please log out and log back in.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Fetching auction status for:", {
+        userName: user.userName,
+        userIdPlaceholder: userIdPlaceholder,
+        storeId: product.storeId,
+        productId: product.id
+      });
+
+      // Debug the JWT token being sent
+      const token = userService.getToken();
+      console.log('[fetchAuctionStatus] JWT Token being sent:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
+      console.log('[fetchAuctionStatus] Token exists:', !!token);
+      console.log('[fetchAuctionStatus] Authorization header will be:', `Bearer ${token ? token.substring(0, 20) + '...' : 'NO TOKEN'}`);
+
+      // Test if authentication works with a simple endpoint first
+      console.log('[fetchAuctionStatus] Testing authentication with profile endpoint...');
+      try {
+        const profileTestResponse = await fetch('http://localhost:8080/api/users/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        console.log('[fetchAuctionStatus] Profile test response status:', profileTestResponse.status);
+        if (!profileTestResponse.ok) {
+          console.error('[fetchAuctionStatus] Authentication test failed - token may be invalid');
+          toast({
+            title: "Authentication Error",
+            description: "Your session has expired. Please log out and log back in.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (authTestError) {
+        console.error('[fetchAuctionStatus] Authentication test error:', authTestError);
+        toast({
+          title: "Connection Error",
+          description: "Cannot connect to server. Please check your connection.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8080/api/purchases/auction/status/${userIdPlaceholder}/${product.storeId}/${String(product.id)}`, {
+        headers: {
+          'Authorization': `Bearer ${userService.getToken()}`
+        }
+      });
+
+      console.log('[fetchAuctionStatus] Response status:', response.status);
+      console.log('[fetchAuctionStatus] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        if (response.status === 403) {
+          console.error("Access forbidden - check authentication");
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to view this auction status. Please verify your login.",
+            variant: "destructive",
+          });
+          return;
+        } else if (response.status === 404) {
+          console.error("Auction not found");
+          toast({
+            title: "Not Found",
+            description: "Auction information not found",
+            variant: "destructive",
+          });
+          return;
+        } else {
+          const errorText = await response.text();
+          console.error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
+
+      // Check if response has content before parsing JSON
+      const contentType = response.headers.get('content-type');
+      console.log('[fetchAuctionStatus] Response content-type:', contentType);
+
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.error("Response is not JSON:", responseText);
+        throw new Error("Server response is not valid JSON");
+      }
+
+      const result = await response.json();
+      console.log('[fetchAuctionStatus] API response:', result);
+
+      if (result.success && result.data) {
+        const statusData = {
+          ...result.data,
+          fetchedAt: Date.now() // Track when we fetched this data
+        };
+        setAuctionStatus(statusData);
+
+        // Update time left and auction ended status
+        const timeLeftMs = statusData.timeLeftMillis;
+        setTimeLeft(timeLeftMs);
+        setAuctionEnded(timeLeftMs <= 0);
+
+        console.log('[fetchAuctionStatus] Auction status updated:', statusData);
+      } else {
+        console.error("Auction status API returned error:", result);
+        if (result.error) {
+          toast({
+            title: "Error",
+            description: result.error,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching auction status:", error);
+      toast({
+        title: "Error",
+        description: "Could not load auction status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingAuctionStatus(false);
+    }
+  };
+
   const handleOfferSubmit = async () => {
     if (!offerAmount || parseFloat(offerAmount) <= 0) {
       toast({
@@ -394,11 +742,46 @@ export default function ProductDetail() {
     }
 
     // Check minimum price based on current auction status or product price
-    const minimumPrice = auctionStatus?.currentHighestBid || product.price;
+    const minimumPrice = auctionStatus?.currentMaxOffer || product.price;
     if (parseFloat(offerAmount) <= minimumPrice) {
       toast({
         title: "Error",
-        description: `Offer amount must be higher than the current price of $${minimumPrice.toFixed(2)}`,
+        description: `Offer amount must be higher than the current highest bid of $${minimumPrice.toFixed(2)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate shipping address
+    if (!offerShippingAddress.fullName || !offerShippingAddress.addressLine1 ||
+      !offerShippingAddress.city || !offerShippingAddress.state ||
+      !offerShippingAddress.postalCode || !offerShippingAddress.country) {
+      toast({
+        title: "Error",
+        description: "Please complete all required shipping address fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate payment details for credit card
+    if (offerPaymentMethod === 'credit') {
+      if (!offerCardDetails.cardName || !offerCardDetails.cardNumber ||
+        !offerCardDetails.expiryDate || !offerCardDetails.cvv) {
+        toast({
+          title: "Error",
+          description: "Please complete all credit card details",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Check if auction has ended
+    if (auctionEnded || (timeLeft !== null && timeLeft <= 0)) {
+      toast({
+        title: "Error",
+        description: "This auction has already ended",
         variant: "destructive",
       });
       return;
@@ -422,6 +805,17 @@ export default function ProductDetail() {
     setSubmittingOffer(true);
 
     try {
+      // Prepare payment details based on payment method
+      let paymentDetails = '';
+      if (offerPaymentMethod === 'credit') {
+        paymentDetails = `Credit Card - ${offerCardDetails.cardName} - ****${offerCardDetails.cardNumber.slice(-4)}`;
+      } else {
+        paymentDetails = 'PayPal Payment';
+      }
+
+      // Prepare shipping address string
+      const shippingAddressString = `${offerShippingAddress.fullName}, ${offerShippingAddress.addressLine1}${offerShippingAddress.addressLine2 ? ', ' + offerShippingAddress.addressLine2 : ''}, ${offerShippingAddress.city}, ${offerShippingAddress.state} ${offerShippingAddress.postalCode}, ${offerShippingAddress.country}`;
+
       const response = await fetch('http://localhost:8080/api/purchases/auction/offer', {
         method: 'POST',
         headers: {
@@ -429,9 +823,12 @@ export default function ProductDetail() {
           'Authorization': `Bearer ${userService.getToken()}`
         },
         body: JSON.stringify({
+          userId: 0, // Placeholder - server uses JWT token username instead
           storeId: parseInt(product.storeId),
-          productId: String(product.id), // Send as string instead of parseInt
-          offerAmount: parseFloat(offerAmount)
+          productId: String(product.id),
+          offerAmount: parseFloat(offerAmount),
+          shippingAddress: shippingAddressString,
+          paymentDetails: paymentDetails // Changed from contactInfo to paymentDetails
         })
       });
 
@@ -440,12 +837,31 @@ export default function ProductDetail() {
       if (result.success) {
         toast({
           title: "Offer Submitted",
-          description: `Your offer of $${offerAmount} has been submitted successfully! You'll be notified if you win the auction.`,
+          description: `Your offer of $${offerAmount} has been submitted successfully! The current highest bid is now $${offerAmount}.`,
           variant: "default",
         });
         setShowOfferDialog(false);
         setOfferAmount('');
-        // Refresh auction status after submitting offer
+
+        // Reset form data
+        setOfferShippingAddress({
+          fullName: "",
+          addressLine1: "",
+          addressLine2: "",
+          city: "",
+          state: "",
+          postalCode: "",
+          country: ""
+        });
+        setOfferCardDetails({
+          cardName: "",
+          cardNumber: "",
+          expiryDate: "",
+          cvv: ""
+        });
+        setOfferPaymentMethod("credit");
+
+        // Immediately refresh auction status to show new price
         await fetchAuctionStatus();
       } else {
         throw new Error(result.error || result.message || 'Offer submission failed');
@@ -459,33 +875,6 @@ export default function ProductDetail() {
       });
     } finally {
       setSubmittingOffer(false);
-    }
-  };
-
-  const fetchAuctionStatus = async () => {
-    if (!product || !userService.isAuthenticated()) return;
-
-    // Validate product data
-    if (!product.id || !product.storeId) {
-      console.error("Product ID or Store ID is missing");
-      return;
-    }
-
-    try {
-      const user = await userService.getProfile();
-      const response = await fetch(`http://localhost:8080/api/purchases/auction/status/${user.id}/${product.storeId}/${String(product.id)}`, {
-        headers: {
-          'Authorization': `Bearer ${userService.getToken()}`
-        }
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.data) {
-        setAuctionStatus(result.data);
-      }
-    } catch (error) {
-      console.error("Error fetching auction status:", error);
     }
   };
 
@@ -587,9 +976,32 @@ export default function ProductDetail() {
     return 1;
   };
 
-  const formatTimeLeft = () => {
-    // In this system, listings don't have expiration dates
-    return "Available";
+  // Helper function to format time left
+  const formatTimeLeft = (timeInMs) => {
+    if (!timeInMs || timeInMs <= 0) return "Auction Ended";
+
+    const totalSeconds = Math.floor(timeInMs / 1000);
+    const days = Math.floor(totalSeconds / (24 * 3600));
+    const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m ${seconds}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
+  // Helper function to get auction status color
+  const getAuctionStatusColor = (timeInMs) => {
+    if (!timeInMs || timeInMs <= 0) return 'error';
+    if (timeInMs < 3600000) return 'warning'; // Less than 1 hour
+    return 'success';
   };
 
   const handleTabChange = (event, newValue) => {
@@ -636,6 +1048,27 @@ export default function ProductDetail() {
 
     const purchaseType = product.purchaseType || 'REGULAR';
     const typeDisplay = getPurchaseTypeDisplay();
+
+    // Check if guest can interact with this product
+    if (isGuest && !guestService.canGuestInteract(product)) {
+      return (
+        <Box sx={{ mb: 4 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Guests can only purchase regular products. Please{' '}
+              <Button
+                color="inherit"
+                onClick={() => setShowAuthDialog(true)}
+                sx={{ textDecoration: 'underline', p: 0, minWidth: 'auto' }}
+              >
+                login or register
+              </Button>
+              {' '}to interact with {typeDisplay?.label?.toLowerCase()} products.
+            </Typography>
+          </Alert>
+        </Box>
+      );
+    }
 
     switch (purchaseType) {
       case 'BID':
@@ -692,21 +1125,34 @@ export default function ProductDetail() {
             <Button
               variant="contained"
               size="large"
-              startIcon={<TrendingUpIcon />}
+              startIcon={auctionEnded ? <AccessTimeIcon /> : <TrendingUpIcon />}
               onClick={() => setShowOfferDialog(true)}
+              disabled={auctionEnded}
               sx={{
                 flex: 1,
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
-                bgcolor: 'info.main',
+                bgcolor: auctionEnded ? 'grey.400' : 'info.main',
                 '&:hover': {
-                  bgcolor: 'info.dark',
+                  bgcolor: auctionEnded ? 'grey.400' : 'info.dark',
+                },
+                '&:disabled': {
+                  bgcolor: 'grey.400',
+                  color: 'white'
                 }
               }}
             >
-              Place Offer
+              {auctionEnded ? 'Auction Ended' : 'Place Offer'}
             </Button>
+            {auctionStatus && timeLeft !== null && !auctionEnded && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
+                <AccessTimeIcon fontSize="small" color={getAuctionStatusColor(timeLeft)} />
+                <Typography variant="body2" color={getAuctionStatusColor(timeLeft) + '.main'} fontWeight="medium">
+                  {formatTimeLeft(timeLeft)}
+                </Typography>
+              </Box>
+            )}
           </>
         );
 
@@ -965,7 +1411,21 @@ export default function ProductDetail() {
               <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
                 {/* Price and badges */}
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-                  {discountedPrice !== null && discountedPrice < product.price ? (
+                  {product?.purchaseType === 'BID' ? (
+                    <Box>
+                      <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+                        Bid Product
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Submit your offer - no fixed price
+                      </Typography>
+                      {product.minBidAmount && (
+                        <Typography variant="body2" color="warning.dark" sx={{ mt: 0.5 }}>
+                          Minimum bid: ${parseFloat(product.minBidAmount).toFixed(2)}
+                        </Typography>
+                      )}
+                    </Box>
+                  ) : discountedPrice !== null && discountedPrice < product.price ? (
                     <>
                       <Typography
                         variant="h4"
@@ -1038,36 +1498,131 @@ export default function ProductDetail() {
                 </Box>
 
                 {/* Auction Status Info (for auction products) */}
-                {product?.purchaseType === 'AUCTION' && auctionStatus && (
+                {product?.purchaseType === 'AUCTION' && (
                   <Box sx={{ mb: 3 }}>
-                    <Paper variant="outlined" sx={{ p: 2, bgcolor: 'info.50', borderColor: 'info.200' }}>
-                      <Typography variant="subtitle2" color="info.main" gutterBottom>
-                        Auction Status
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" color="text.secondary">Current Highest Bid</Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            ${auctionStatus.currentHighestBid?.toFixed(2) || product.price.toFixed(2)}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" color="text.secondary">Status</Typography>
-                          <Chip
-                            label={auctionStatus.status || 'ACTIVE'}
-                            color={auctionStatus.isActive ? 'success' : 'error'}
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 3,
+                        bgcolor: auctionEnded ? 'grey.50' : 'info.50',
+                        borderColor: auctionEnded ? 'grey.300' : 'info.200',
+                        border: '2px solid',
+                        borderRadius: 2
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                        <Typography variant="h6" color={auctionEnded ? 'text.secondary' : 'info.main'} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <GavelIcon />
+                          {auctionEnded ? 'Auction Ended' : 'Live Auction'}
+                        </Typography>
+                        {auctionStatus && (
+                          <Button
                             size="small"
-                          />
-                        </Box>
-                        {auctionStatus.endTime && (
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="body2" color="text.secondary">Ends</Typography>
-                            <Typography variant="body2">
-                              {format(new Date(auctionStatus.endTime), "MMM d, yyyy 'at' h:mm a")}
-                            </Typography>
-                          </Box>
+                            variant="outlined"
+                            onClick={fetchAuctionStatus}
+                            disabled={refreshingAuctionStatus}
+                            sx={{ minWidth: 'auto', px: 1 }}
+                          >
+                            {refreshingAuctionStatus ? (
+                              <CircularProgress size={16} />
+                            ) : (
+                              '↻'
+                            )}
+                          </Button>
                         )}
                       </Box>
+
+                      {auctionStatus ? (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {/* Current Highest Bid */}
+                          <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            p: 2,
+                            bgcolor: 'background.paper',
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}>
+                            <Typography variant="subtitle1" fontWeight="medium">
+                              Current Highest Bid
+                            </Typography>
+                            <Typography variant="h5" fontWeight="bold" color="primary.main">
+                              ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product.price).toFixed(2)}
+                            </Typography>
+                          </Box>
+
+                          {/* Starting Price */}
+                          {auctionStatus.startingPrice && (
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Starting Price
+                              </Typography>
+                              <Typography variant="body2" fontWeight="medium">
+                                ${auctionStatus.startingPrice.toFixed(2)}
+                              </Typography>
+                            </Box>
+                          )}
+
+                          {/* Time Left */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">
+                              {auctionEnded ? 'Auction Status' : 'Time Remaining'}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <AccessTimeIcon
+                                fontSize="small"
+                                color={getAuctionStatusColor(timeLeft)}
+                              />
+                              <Chip
+                                label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
+                                color={getAuctionStatusColor(timeLeft)}
+                                size="medium"
+                                sx={{ fontWeight: 'bold', minWidth: '120px' }}
+                              />
+                            </Box>
+                          </Box>
+
+                          {/* Additional auction info */}
+                          {auctionEnded && (
+                            <Box sx={{
+                              mt: 1,
+                              p: 2,
+                              bgcolor: 'warning.50',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'warning.200'
+                            }}>
+                              <Typography variant="body2" color="warning.dark" sx={{ textAlign: 'center' }}>
+                                🏁 This auction has ended. No more bids can be placed.
+                              </Typography>
+                            </Box>
+                          )}
+
+                          {!auctionEnded && auctionStatus.currentMaxOffer > auctionStatus.startingPrice && (
+                            <Box sx={{
+                              mt: 1,
+                              p: 2,
+                              bgcolor: 'success.50',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'success.200'
+                            }}>
+                              <Typography variant="body2" color="success.dark" sx={{ textAlign: 'center' }}>
+                                🔥 {((auctionStatus.currentMaxOffer - auctionStatus.startingPrice) / auctionStatus.startingPrice * 100).toFixed(1)}% above starting price!
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <CircularProgress size={20} />
+                          <Typography variant="body2" color="text.secondary">
+                            Loading auction status...
+                          </Typography>
+                        </Box>
+                      )}
                     </Paper>
                   </Box>
                 )}
@@ -1265,41 +1820,249 @@ export default function ProductDetail() {
         </div>
 
         {/* Bid Dialog */}
-        <Dialog open={showBidDialog} onClose={() => setShowBidDialog(false)} maxWidth="sm" fullWidth>
+        <Dialog open={showBidDialog} onClose={() => setShowBidDialog(false)} maxWidth="md" fullWidth>
           <DialogTitle>Place Your Bid</DialogTitle>
           <DialogContent>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your bid amount for "{product?.title}". Your bid will be reviewed by the seller.
+              Enter your bid details for "{product?.title}". Your bid will be reviewed by the seller.
+              If your bid is approved, we'll use the shipping and payment information provided to complete your purchase.
             </Typography>
 
             {product?.minBidAmount && (
-              <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
+              <Box sx={{ mb: 3, p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
                 <Typography variant="body2" color="warning.dark">
                   <strong>Minimum bid required:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
                 </Typography>
               </Box>
             )}
 
-            <TextField
-              label="Bid Amount ($)"
-              type="number"
-              value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              fullWidth
-              inputProps={{
-                min: product?.minBidAmount || "0.01",
-                step: "0.01"
-              }}
-              sx={{ mb: 2 }}
-              helperText={
-                product?.minBidAmount
-                  ? `Must be at least $${parseFloat(product.minBidAmount).toFixed(2)}`
-                  : "Enter your bid amount"
-              }
-            />
-            <Typography variant="caption" color="text.secondary">
-              Current price: ${product?.price?.toFixed(2)}
-            </Typography>
+            <Grid container spacing={2}>
+              {/* Bid Amount */}
+              <Grid item xs={12}>
+                <TextField
+                  label="Bid Amount ($)"
+                  type="number"
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(e.target.value)}
+                  fullWidth
+                  inputProps={{
+                    min: product?.minBidAmount || "0.01",
+                    step: "0.01"
+                  }}
+                  helperText={
+                    product?.minBidAmount
+                      ? `Must be at least $${parseFloat(product.minBidAmount).toFixed(2)}`
+                      : "Enter your bid amount"
+                  }
+                  required
+                />
+              </Grid>
+
+              {/* Shipping Address Section */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6">
+                    Shipping Address
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  name="fullName"
+                  value={bidShippingAddress.fullName}
+                  onChange={handleBidShippingAddressChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Address Line 1"
+                  name="addressLine1"
+                  value={bidShippingAddress.addressLine1}
+                  onChange={handleBidShippingAddressChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Address Line 2 (Optional)"
+                  name="addressLine2"
+                  value={bidShippingAddress.addressLine2}
+                  onChange={handleBidShippingAddressChange}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  name="city"
+                  value={bidShippingAddress.city}
+                  onChange={handleBidShippingAddressChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="State/Province"
+                  name="state"
+                  value={bidShippingAddress.state}
+                  onChange={handleBidShippingAddressChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Postal Code"
+                  name="postalCode"
+                  value={bidShippingAddress.postalCode}
+                  onChange={handleBidShippingAddressChange}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Country"
+                  name="country"
+                  value={bidShippingAddress.country}
+                  onChange={handleBidShippingAddressChange}
+                  required
+                />
+              </Grid>
+
+              {/* Payment Method Section */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <CreditCardIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6">
+                    Payment Method
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                  <FormControl component="fieldset">
+                    <RadioGroup
+                      value={bidPaymentMethod}
+                      onChange={handleBidPaymentMethodChange}
+                    >
+                      <FormControlLabel
+                        value="credit"
+                        control={<Radio />}
+                        label={
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <CreditCardIcon sx={{ mr: 1 }} />
+                            Credit Card
+                          </Box>
+                        }
+                      />
+                      <FormControlLabel
+                        value="paypal"
+                        control={<Radio />}
+                        label={
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <img
+                              src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
+                              alt="PayPal"
+                              style={{ height: 18, marginRight: 8 }}
+                            />
+                            PayPal
+                          </Box>
+                        }
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </Paper>
+              </Grid>
+
+              {/* Credit Card Details (shown only if credit card is selected) */}
+              {bidPaymentMethod === "credit" && (
+                <>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Name on Card"
+                      name="cardName"
+                      value={bidCardDetails.cardName}
+                      onChange={handleBidCardDetailsChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Card Number"
+                      name="cardNumber"
+                      value={bidCardDetails.cardNumber}
+                      onChange={handleBidCardDetailsChange}
+                      required
+                      inputProps={{ maxLength: 19 }}
+                      placeholder="0000 0000 0000 0000"
+                    />
+                  </Grid>
+
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Expiry Date"
+                      name="expiryDate"
+                      value={bidCardDetails.expiryDate}
+                      onChange={handleBidCardDetailsChange}
+                      required
+                      placeholder="MM/YY"
+                      inputProps={{ maxLength: 5 }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="CVV"
+                      name="cvv"
+                      value={bidCardDetails.cvv}
+                      onChange={handleBidCardDetailsChange}
+                      required
+                      inputProps={{ maxLength: 4 }}
+                      type="password"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                      <SecurityIcon fontSize="small" sx={{ mr: 1 }} />
+                      <Typography variant="caption">
+                        Your payment information is secure and encrypted
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </>
+              )}
+            </Grid>
+
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+              <Typography variant="body2" color="info.dark">
+                <strong>Note:</strong> By submitting this bid, you agree to purchase this item at your bid price if approved.
+                Your payment and shipping information will be used to complete the transaction.
+              </Typography>
+            </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setShowBidDialog(false)}>Cancel</Button>
@@ -1315,54 +2078,304 @@ export default function ProductDetail() {
         </Dialog>
 
         {/* Auction Offer Dialog */}
-        <Dialog open={showOfferDialog} onClose={() => setShowOfferDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Place Your Offer</DialogTitle>
+        <Dialog open={showOfferDialog} onClose={() => setShowOfferDialog(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TrendingUpIcon color="primary" />
+            Place Your Offer
+            {auctionEnded && (
+              <Chip label="ENDED" color="error" size="small" />
+            )}
+          </DialogTitle>
           <DialogContent>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your offer amount for "{product?.title}". Your offer must be higher than the current highest bid.
+              Enter your offer details for "{product?.title}". Your offer must be higher than the current highest bid.
+              If your offer wins the auction, we'll use the shipping and payment information provided to complete your purchase.
             </Typography>
 
+            {/* Auction Status Summary */}
             {auctionStatus && (
-              <Box sx={{ mb: 2, p: 2, bgcolor: 'info.50', borderRadius: 1, border: '1px solid', borderColor: 'info.200' }}>
-                <Typography variant="body2" color="info.dark">
-                  <strong>Current highest bid:</strong> ${(auctionStatus.currentHighestBid || product?.price || 0).toFixed(2)}
-                </Typography>
-                <Typography variant="body2" color="info.dark" sx={{ mt: 0.5 }}>
-                  Your offer must be higher than this amount.
-                </Typography>
-              </Box>
+              <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: auctionEnded ? 'grey.50' : 'success.50' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Current Highest Bid
+                    </Typography>
+                    <Typography variant="h6" color="primary.main" fontWeight="bold">
+                      ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product?.price || 0).toFixed(2)}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Time Remaining
+                    </Typography>
+                    <Chip
+                      label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
+                      color={getAuctionStatusColor(timeLeft)}
+                      size="small"
+                      sx={{ fontWeight: 'bold' }}
+                    />
+                  </Box>
+
+                  {auctionStatus.startingPrice && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Starting Price
+                      </Typography>
+                      <Typography variant="body2">
+                        ${auctionStatus.startingPrice.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Paper>
             )}
 
-            <TextField
-              label="Offer Amount ($)"
-              type="number"
-              value={offerAmount}
-              onChange={(e) => setOfferAmount(e.target.value)}
-              fullWidth
-              inputProps={{
-                min: ((auctionStatus?.currentHighestBid || product?.price || 0) + 0.01).toFixed(2),
-                step: "0.01"
-              }}
-              sx={{ mb: 2 }}
-              helperText={`Must be higher than $${(auctionStatus?.currentHighestBid || product?.price || 0).toFixed(2)}`}
-            />
+            {auctionEnded ? (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                This auction has ended. No more offers can be placed.
+              </Alert>
+            ) : (
+              <Grid container spacing={2}>
+                {/* Offer Amount */}
+                <Grid item xs={12}>
+                  <TextField
+                    label="Offer Amount ($)"
+                    type="number"
+                    value={offerAmount}
+                    onChange={(e) => setOfferAmount(e.target.value)}
+                    fullWidth
+                    inputProps={{
+                      min: ((auctionStatus?.currentMaxOffer || product?.price || 0) + 0.01).toFixed(2),
+                      step: "0.01"
+                    }}
+                    helperText={`Must be higher than $${(auctionStatus?.currentMaxOffer || product?.price || 0).toFixed(2)}`}
+                    error={parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
+                    required
+                  />
+                </Grid>
 
-            {auctionStatus?.endTime && (
-              <Typography variant="caption" color="text.secondary">
-                Auction ends: {format(new Date(auctionStatus.endTime), "MMM d, yyyy 'at' h:mm a")}
-              </Typography>
+                {/* Shipping Address Section */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6">
+                      Shipping Address
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Full Name"
+                    name="fullName"
+                    value={offerShippingAddress.fullName}
+                    onChange={handleOfferShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 1"
+                    name="addressLine1"
+                    value={offerShippingAddress.addressLine1}
+                    onChange={handleOfferShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 2 (Optional)"
+                    name="addressLine2"
+                    value={offerShippingAddress.addressLine2}
+                    onChange={handleOfferShippingAddressChange}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="City"
+                    name="city"
+                    value={offerShippingAddress.city}
+                    onChange={handleOfferShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="State/Province"
+                    name="state"
+                    value={offerShippingAddress.state}
+                    onChange={handleOfferShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Postal Code"
+                    name="postalCode"
+                    value={offerShippingAddress.postalCode}
+                    onChange={handleOfferShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Country"
+                    name="country"
+                    value={offerShippingAddress.country}
+                    onChange={handleOfferShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                {/* Payment Method Section */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <CreditCardIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6">
+                      Payment Method
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                    <FormControl component="fieldset">
+                      <RadioGroup
+                        value={offerPaymentMethod}
+                        onChange={handleOfferPaymentMethodChange}
+                      >
+                        <FormControlLabel
+                          value="credit"
+                          control={<Radio />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <CreditCardIcon sx={{ mr: 1 }} />
+                              Credit Card
+                            </Box>
+                          }
+                        />
+                        <FormControlLabel
+                          value="paypal"
+                          control={<Radio />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <img
+                                src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
+                                alt="PayPal"
+                                style={{ height: 18, marginRight: 8 }}
+                              />
+                              PayPal
+                            </Box>
+                          }
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  </Paper>
+                </Grid>
+
+                {/* Credit Card Details (shown only if credit card is selected) */}
+                {offerPaymentMethod === "credit" && (
+                  <>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Name on Card"
+                        name="cardName"
+                        value={offerCardDetails.cardName}
+                        onChange={handleOfferCardDetailsChange}
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Card Number"
+                        name="cardNumber"
+                        value={offerCardDetails.cardNumber}
+                        onChange={handleOfferCardDetailsChange}
+                        required
+                        inputProps={{ maxLength: 19 }}
+                        placeholder="0000 0000 0000 0000"
+                      />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Expiry Date"
+                        name="expiryDate"
+                        value={offerCardDetails.expiryDate}
+                        onChange={handleOfferCardDetailsChange}
+                        required
+                        placeholder="MM/YY"
+                        inputProps={{ maxLength: 5 }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="CVV"
+                        name="cvv"
+                        value={offerCardDetails.cvv}
+                        onChange={handleOfferCardDetailsChange}
+                        required
+                        inputProps={{ maxLength: 4 }}
+                        type="password"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                        <SecurityIcon fontSize="small" sx={{ mr: 1 }} />
+                        <Typography variant="caption">
+                          Your payment information is secure and encrypted
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </>
+                )}
+
+                <Grid item xs={12}>
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+                    <Typography variant="body2" color="info.dark">
+                      <strong>Note:</strong> By submitting this offer, you agree to purchase this item at your offer price if you win the auction.
+                      Your payment and shipping information will be used to complete the transaction if you are the highest bidder when the auction ends.
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
             )}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setShowOfferDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleOfferSubmit}
-              variant="contained"
-              disabled={submittingOffer}
-              startIcon={submittingOffer ? <CircularProgress size={16} /> : <TrendingUpIcon />}
-            >
-              {submittingOffer ? 'Submitting...' : 'Submit Offer'}
-            </Button>
+            {!auctionEnded && (
+              <Button
+                onClick={handleOfferSubmit}
+                variant="contained"
+                disabled={submittingOffer || parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
+                startIcon={submittingOffer ? <CircularProgress size={16} /> : <TrendingUpIcon />}
+              >
+                {submittingOffer ? 'Submitting...' : 'Submit Offer'}
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
 

@@ -32,6 +32,17 @@ public class AuthController {
     }
 
     /**
+     * Guest login - generate token for guest user
+     * POST /api/auth/guest-login
+     */
+    @PostMapping("/guest-login")
+    public ResponseEntity<ApiResponse<AuthService.AuthToken>> guestLogin(@RequestBody AuthDTO.GuestLoginRequest request) {
+        return ApiResponseBuilder.build(() ->
+            authService.loginGuest(request.guestId())
+        );
+    }
+
+    /**
      * Validate token
      * POST /api/auth/validate
      */

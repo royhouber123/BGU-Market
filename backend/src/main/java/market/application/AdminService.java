@@ -1,6 +1,9 @@
 package market.application;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import market.domain.Role.IRoleRepository;
 import market.domain.store.IStoreRepository;
@@ -53,7 +56,10 @@ public class AdminService {
     public void closeStoreByAdmin(String adminId, String storeId) throws Exception {
         logger.info("Admin " + adminId + " is attempting to close store " + storeId);
 
-        validateAdmin(adminId);
+        // Validate admin credentials
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
 
         Store store = storeRepository.getStoreByID(storeId);
         if (store == null) {
@@ -87,9 +93,12 @@ public class AdminService {
      * @throws Exception if the admin or user is invalid, or suspension fails
      */
     public void suspendUser(String adminId, String targetUserId, long durationHours) throws Exception {
-        logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId);
+        logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId +
+                 " for " + (durationHours == 0 ? "an indefinite period" : durationHours + " hours"));
 
-        validateAdmin(adminId);
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
 
         if (userRepository.findById(targetUserId) == null) {
             logger.error("User " + targetUserId + " does not exist.");
@@ -116,7 +125,9 @@ public class AdminService {
     public void unsuspendUser(String adminId, String targetUserId) throws Exception {
         logger.info("Admin " + adminId + " is attempting to unsuspend user " + targetUserId);
 
-        validateAdmin(adminId);
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
 
         boolean success = suspensionRepository.unsuspendUser(targetUserId);
         if (!success) {
@@ -135,24 +146,101 @@ public class AdminService {
      * @throws Exception if the admin is invalid
      */
     public List<String> getSuspendedUserIds(String adminId) throws Exception {
-        validateAdmin(adminId);
+        if (!validateAdmin(adminId)) {
+            throw new Exception("Permission denied: User is not an admin.");
+        }
+        logger.info("Admin " + adminId + " is requesting suspended users");
         List<String> suspended = suspensionRepository.getSuspendedUsers();
         return suspended;
     }
 
     /**
-     * Internal helper to validate that a user is an administrator.
+     * Validates that a user is an administrator.
      *
      * @param adminId ID of the user to validate
      * @return The Admin object if valid
      * @throws Exception if the user is not an admin
      */
-    private Admin validateAdmin(String adminId) throws Exception {
-        User user = userRepository.findById(adminId);
-        if (!(user instanceof Admin admin)) {
-            logger.error("User " + adminId + " is not an admin.");
-            throw new Exception("Permission denied: User is not an admin.");
+    public Boolean validateAdmin(String adminId) throws Exception {
+        try {
+            User user = userRepository.findById(adminId);
+            if (!(user instanceof Admin)) {
+                logger.error("User " + adminId + " is not an admin.");
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error("Error validating admin: " + e.getMessage());
+            return false;
         }
-        return admin;
+    }
+
+    /**
+     * Retrieves all users in the system for admin management purposes.
+     *
+     * @param adminId ID of the acting system administrator
+     * @return Map containing user data with user IDs as keys
+     * @throws Exception if the user is not an admin
+     */
+    public Map<String, Object> getAllUsers() throws Exception {
+        logger.info("Admin is requesting all users");
+        
+        // Get all users from repository
+        List<User> allUsers = userRepository.getAllUsers();
+        
+        // Convert to a map of user data for the response
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> usersMap = new HashMap<>();
+        
+        for (User user : allUsers) {
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("username", user.getUserName());
+            userData.put("isAdmin", user instanceof Admin);
+            
+            // Get user's store roles if any
+            Map<String, List<market.domain.Role.Role>> roles = storeRepository.getUsersRoles(user.getUserName());
+            userData.put("roles", roles);
+            
+            usersMap.put(user.getUserName(), userData);
+        }
+        
+        result.put("users", usersMap);
+        result.put("count", allUsers.size());
+        
+        logger.info("Returning " + allUsers.size() + " users");
+        return result;
+    }
+
+    /**
+     * Retrieves all stores in the system for admin management purposes.
+     *
+     * @return Map containing store data with store IDs as keys
+     * @throws Exception if the user is not an admin
+     */
+    public Map<String, Object> getAllStores() throws Exception {
+        logger.info("Admin is requesting all stores");
+        
+        // Get all active stores
+        List<Store> activeStores = storeRepository.getAllActiveStores();
+        
+        // Convert to a map of store data for the response
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> storesMap = new HashMap<>();
+        
+        for (Store store : activeStores) {
+            Map<String, Object> storeData = new HashMap<>();
+            storeData.put("name", store.getName());
+            storeData.put("active", store.isActive());
+            storeData.put("owners", store.getAllOwnersStrs());
+            storeData.put("managers", store.getAllManagersStrs());
+            
+            storesMap.put(store.getStoreId(), storeData);
+        }
+        
+        result.put("stores", storesMap);
+        result.put("count", activeStores.size());
+        
+        logger.info("Returning " + activeStores.size() + " active stores");
+        return result;
     }
 }

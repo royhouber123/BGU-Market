@@ -1,11 +1,30 @@
 package market.domain.user;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.util.UUID;
+import org.springframework.stereotype.Controller;
+import java.beans.ConstructorProperties;
+
+
 /**
  * Represents a user in the system with a username and shopping cart.
  */
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "users")
 public class User {
 
-    private String userName;                  
+    @Id
+    @Column(name = "user_name", nullable = false, unique = true)
+    private String userName;  
+    
+    @Transient
     private ShoppingCart shoppingCart;
 
     /**

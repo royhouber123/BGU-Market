@@ -514,5 +514,77 @@ export const productService = {
       console.error('Filter products error:', error);
       throw error;
     }
+  },
+
+  // Get products by category with discounted prices
+  getProductsByCategory: async (category) => {
+    try {
+      const response = await api.get('/stores/info');
+      const apiResponse = response.data;
+      
+      if (apiResponse.success) {
+        const products = [];
+        
+        // Handle new API response format: List of {store, listings}
+        for (const storeData of apiResponse.data) {
+          const store = storeData.store;
+          const listings = storeData.listings;
+          
+          for (const listing of listings) {
+            // Filter by category (case-insensitive)
+            if (listing.category && listing.category.toLowerCase() === category.toLowerCase()) {
+              let discountedPrice = listing.price;
+              
+              // Try to get discounted price for this product
+              try {
+                const discountResponse = await api.get(`/stores/${store.storeID}/products/${listing.listingId}/discounted-price`);
+                if (discountResponse.data.success && discountResponse.data.data !== undefined) {
+                  discountedPrice = discountResponse.data.data;
+                }
+              } catch (discountError) {
+                // If discount API fails, use original price
+                console.warn(`Could not get discount for ${listing.listingId}:`, discountError.message);
+              }
+              
+              products.push({
+                id: listing.listingId,
+                title: listing.productName,
+                price: listing.price,
+                discountedPrice: discountedPrice,
+                hasDiscount: discountedPrice < listing.price,
+                status: listing.active ? 'active' : 'inactive',
+                images: listing.images || [],
+                category: listing.category,
+                shipping_cost: listing.shippingCost || 0,
+                featured: listing.active,
+                description: listing.productDescription,
+                quantity: listing.quantityAvailable,
+                storeId: store.storeID,
+                storeName: store.storeName,
+                productId: listing.productId,
+                purchaseType: listing.purchaseType,
+                seller: {
+                  id: store.storeID,
+                  name: store.storeName,
+                  rating: store.rating || 0
+                },
+                created_date: listing.createdDate || new Date().toISOString(),
+                rating: listing.rating || 0,
+                reviews: listing.reviews || []
+              });
+            }
+          }
+        }
+        
+        return products;
+      } else {
+        throw new Error(apiResponse.error || 'Failed to get products by category');
+      }
+    } catch (error) {
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(error.message || 'Failed to get products by category');
+    }
   }
 };

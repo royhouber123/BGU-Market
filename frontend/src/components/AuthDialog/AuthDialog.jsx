@@ -26,8 +26,8 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import GoogleIcon from "@mui/icons-material/Google";
 
-export default function AuthDialog({ open, onOpenChange }) {
-	const { login } = useAuth();
+export default function AuthDialog({ open, onOpenChange, onClose }) {
+	const { login, registerWithCart } = useAuth();
 	const [isLogin, setIsLogin] = useState(true);
 	const [formData, setFormData] = useState({
 		username: "",
@@ -70,7 +70,12 @@ export default function AuthDialog({ open, onOpenChange }) {
 				if (success) {
 					setSuccess("Login successful!");
 					setTimeout(() => {
-						onOpenChange(false);
+						// Use onOpenChange if provided, otherwise fall back to onClose
+						if (onOpenChange) {
+							onOpenChange(false);
+						} else if (onClose) {
+							onClose();
+						}
 					}, 1000);
 				} else {
 					setError("Invalid username or password");
@@ -87,16 +92,15 @@ export default function AuthDialog({ open, onOpenChange }) {
 					return;
 				}
 
-				// Import authService dynamically to avoid circular dependency issues
-				const { authService } = await import('../../services/authService');
-
-				await authService.register({
+				// Use the AuthContext method which handles guest cart transfer
+				await registerWithCart({
 					username: formData.username,
 					password: formData.password,
 					email: formData.email
 				});
 
-				setSuccess("Registration successful! Please login.");
+				setSuccess("Registration successful! Your cart items have been saved. Please log in to continue.");
+
 				// Switch to login form after successful registration
 				setTimeout(() => {
 					setIsLogin(true);
@@ -132,7 +136,14 @@ export default function AuthDialog({ open, onOpenChange }) {
 	};
 
 	return (
-		<Dialog open={open} onClose={() => onOpenChange(false)} maxWidth="sm" fullWidth>
+		<Dialog open={open} onClose={() => {
+			// Use onOpenChange if provided, otherwise fall back to onClose
+			if (onOpenChange) {
+				onOpenChange(false);
+			} else if (onClose) {
+				onClose();
+			}
+		}} maxWidth="sm" fullWidth>
 			<DialogTitle className="auth-dialog-title">
 				{!isLogin && (
 					<IconButton

@@ -22,6 +22,7 @@ import market.middleware.TokenUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -185,11 +186,19 @@ public class GuestTests extends AcceptanceTestBase {
             assertTrue(store2Found, "Expected to find 'AnotherStore' in the returned data");
             //Step 6: Check that both products are listed
             boolean product1Found = storeInfo.stream()
-                .flatMap(storeData -> ((List<Listing>) storeData.get("listings")).stream())
-                .anyMatch(listing -> listing.getProductName().equals("Blue Notebook"));
+            .flatMap(storeData -> {
+                @SuppressWarnings("unchecked")
+                List<Listing> listings = (List<Listing>) storeData.get("listings");
+                return listings.stream();
+            })
+            .anyMatch(listing -> listing.getProductName().equals("Blue Notebook"));
             boolean product2Found = storeInfo.stream()
-                .flatMap(storeData -> ((List<Listing>) storeData.get("listings")).stream())
-                .anyMatch(listing -> listing.getProductName().equals("Red Pencil"));
+            .flatMap(storeData -> {
+                @SuppressWarnings("unchecked")
+                List<Listing> listings = (List<Listing>) storeData.get("listings");
+                return listings.stream();
+            })
+            .anyMatch(listing -> listing.getProductName().equals("Red Pencil"));
             assertTrue(product1Found, "Expected to find the product 'Blue Notebook' in the returned listings");
             assertTrue(product2Found, "Expected to find the product 'Red Pencil' in the returned listings");
         } catch (Exception e) {
