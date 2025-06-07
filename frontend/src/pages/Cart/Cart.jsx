@@ -1,168 +1,126 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../components/Header/Header";
 import AuthDialog from "../../components/AuthDialog/AuthDialog";
-import { Button, IconButton, Typography, Box, Container, Grid, Paper, Divider } from "@mui/material";
+import { Button, IconButton, Typography, Box, Container, Grid, Paper, Divider, Chip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import userService from "../../services/userService";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 import { useAuth } from "../../contexts/AuthContext";
+import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
 import './Cart.css';
 
 export default function Cart() {
   const [loading, setLoading] = useState(true);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [cartWithPrices, setCartWithPrices] = useState([]);
+  const [loadingPrices, setLoadingPrices] = useState(false);
   const navigate = useNavigate();
-  const { cart, refreshCart, isAuthenticated, loading: authLoading } = useAuth();
-  // Local state to track cart updates immediately
-  const [localCart, setLocalCart] = useState([]);
+  const { cart, refreshCart, isAuthenticated, updateCartQuantity, removeFromCart } = useAuth();
 
   useEffect(() => {
     loadCart();
   }, [isAuthenticated]);
-  
-  // Keep localCart in sync with the context cart
+
   useEffect(() => {
-    if (cart) {
-      setLocalCart(cart);
+    if (cart.length > 0) {
+      fetchCartPrices();
+    } else {
+      setCartWithPrices([]);
     }
   }, [cart]);
 
   const loadCart = async () => {
     try {
-      if (isAuthenticated) {
-        // Get cart data from local storage to ensure consistency
-        const userData = userService.getCurrentUser() || {};
-        const userCart = userData.cart || [];
-        setLocalCart(userCart);
-        
-        // Only refresh from backend if we don't have cart data
-        if (userCart.length === 0) {
-          // Sync cart from backend (this will update localStorage)
-          await userService.syncCartFromBackend();
-          
-          // Get updated cart from AuthContext
-          await refreshCart();
-        }
-      }
+      // The cart is automatically managed by AuthContext for both guest and authenticated users
+      await refreshCart();
     } catch (error) {
       console.error("Error loading cart:", error);
     }
     setLoading(false);
   };
 
-  const updateCart = async (newCart) => {
+  const fetchCartPrices = async () => {
+    setLoadingPrices(true);
     try {
-      // Use userService to update the cart data
-      await userService.updateUserData({ cart: newCart });
-      
-      // Update local state immediately for responsive UI
-      setLocalCart(newCart);
-      
-      // Get the current user data
-      const currentUser = userService.getCurrentUser() || {};
-      
-      // Update the cart in the user data
-      currentUser.cart = newCart;
-      
-      // Save the updated user data to localStorage
-      localStorage.setItem('user', JSON.stringify(currentUser));
-      
-      // No need to call refreshCart() which would overwrite our changes
-      // by calling syncCartFromBackend()
-      
-      return true;
+      const cartItemsWithPrices = await Promise.all(
+        cart.map(async (item) => {
+          // Create a product object for the price utility
+          const product = {
+            id: item.productId,
+            storeId: item.storeId,
+            price: item.price // Original stored price
+          };
+
+          // Fetch current discounted price
+          const discountedPrice = await fetchDiscountedPrice(product);
+
+          return {
+            ...item,
+            originalPrice: item.price,
+            discountedPrice,
+            effectivePrice: getEffectivePrice(product, discountedPrice),
+            hasDiscount: hasDiscount(product, discountedPrice),
+            savings: calculateSavings(product, discountedPrice)
+          };
+        })
+      );
+
+      setCartWithPrices(cartItemsWithPrices);
     } catch (error) {
-      console.error("Error updating cart:", error);
-      // Revert local state on error
-      setLocalCart(cart);
-      return false;
+      console.error("Error fetching cart prices:", error);
+      // Fallback to original cart items
+      setCartWithPrices(cart.map(item => ({
+        ...item,
+        originalPrice: item.price,
+        discountedPrice: null,
+        effectivePrice: item.price,
+        hasDiscount: false,
+        savings: 0
+      })));
     }
+    setLoadingPrices(false);
   };
 
   const updateQuantity = async (productId, change) => {
     try {
-      // Find the current item in localCart for immediate UI response
-      const currentItem = localCart.find(item => item.productId === productId);
+      // Find the current item in cart
+      const currentItem = cart.find(item => item.productId === productId);
       if (!currentItem) {
         console.error('Product not found in cart:', productId);
         return;
       }
-      
+
       // Calculate new quantity (ensure it's at least 1)
       const newQuantity = Math.max(1, currentItem.quantity + change);
-      
+
       // Don't update if quantity is the same
       if (newQuantity === currentItem.quantity) return;
-      
-      // Update UI immediately for responsiveness
-      const newCart = localCart.map(item => {
-        if (item.productId === productId) {
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      });
-      setLocalCart(newCart);
-      
-      // Call the appropriate backend API based on whether we're adding or removing
-      if (change > 0) {
-        // Adding items
-        await userService.addProductToCart(
-          currentItem.storeId,
-          productId,
-          change // Only add the difference
-        );
-      } else {
-        // Removing items
-        await userService.removeFromCart(
-          currentItem.storeId,
-          productId,
-          Math.abs(change) // Only remove the difference
-        );
-      }
-      
-      // Refresh cart from backend to ensure consistency
-      await refreshCart();
+
+      // Use context method which handles both guest and authenticated users
+      await updateCartQuantity(productId, newQuantity);
     } catch (error) {
       console.error('Error updating quantity:', error);
-      
-      // Revert to original cart on error
-      await refreshCart();
     }
   };
 
   const removeItem = async (productId) => {
     try {
-      // Find the item in localCart to get its storeId and quantity
-      const item = localCart.find(item => item.productId === productId);
-      if (!item) {
-        console.error('Product not found in cart:', productId);
-        return;
-      }
-      
-      // Call the backend API to remove the item
-      await userService.removeFromCart(
-        item.storeId,
-        productId,
-        item.quantity
-      );
-      
-      // After removing from backend, refresh the cart from context
-      await refreshCart();
-      
-      // Also update local cart for immediate UI response
-      const newCart = localCart.filter(item => item.productId !== productId);
-      setLocalCart(newCart);
+      // Use context method which handles both guest and authenticated users
+      await removeFromCart(productId);
     } catch (error) {
       console.error('Error removing item from cart:', error);
     }
   };
 
   const calculateTotal = () => {
-    return localCart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartWithPrices.reduce((total, item) => total + (item.effectivePrice * item.quantity), 0);
+  };
+
+  const calculateTotalSavings = () => {
+    return cartWithPrices.reduce((total, item) => total + (item.savings * item.quantity), 0);
   };
 
   const handleCheckout = () => {
@@ -188,6 +146,8 @@ export default function Cart() {
     );
   }
 
+  const displayCart = cartWithPrices.length > 0 ? cartWithPrices : cart;
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Header />
@@ -196,12 +156,12 @@ export default function Cart() {
           Your Cart
         </Typography>
 
-        {localCart.length > 0 ? (
+        {cart.length > 0 ? (
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
               <Paper sx={{ p: 3, borderRadius: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  {localCart.map((item) => (
+                  {displayCart.map((item) => (
                     <Box
                       key={item.productId}
                       sx={{
@@ -233,9 +193,50 @@ export default function Cart() {
                         <Typography variant="body2" color="text.secondary">
                           Quantity: {item.quantity}
                         </Typography>
-                        <Typography variant="body1" fontWeight="medium" color="primary">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </Typography>
+
+                        {/* Price Display with Discount Info */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                          {item.hasDiscount ? (
+                            <>
+                              <Typography variant="body1" fontWeight="medium" color="primary">
+                                ${formatPrice(item.effectivePrice * item.quantity)}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
+                              >
+                                ${formatPrice(item.originalPrice * item.quantity)}
+                              </Typography>
+                              <Chip
+                                label={`Save $${formatPrice(item.savings * item.quantity)}`}
+                                color="success"
+                                size="small"
+                                sx={{ height: 20, fontSize: '0.7rem' }}
+                              />
+                            </>
+                          ) : (
+                            <Typography variant="body1" fontWeight="medium" color="primary">
+                              ${formatPrice((item.effectivePrice || item.price) * item.quantity)}
+                            </Typography>
+                          )}
+                          {loadingPrices && (
+                            <Box
+                              sx={{
+                                display: 'inline-block',
+                                width: 12,
+                                height: 12,
+                                border: '1px solid currentColor',
+                                borderTop: '1px solid transparent',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                '@keyframes spin': {
+                                  '0%': { transform: 'rotate(0deg)' },
+                                  '100%': { transform: 'rotate(360deg)' }
+                                }
+                              }}
+                            />
+                          )}
+                        </Box>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
@@ -282,9 +283,22 @@ export default function Cart() {
                       Subtotal
                     </Typography>
                     <Typography variant="body1" fontWeight="medium" color="primary">
-                      ${(calculateTotal()).toFixed(2)}
+                      ${formatPrice(calculateTotal())}
                     </Typography>
                   </Box>
+
+                  {/* Show total savings if any discounts are applied */}
+                  {calculateTotalSavings() > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="body2" color="success.main">
+                        Your Savings
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium" color="success.main">
+                        -${formatPrice(calculateTotalSavings())}
+                      </Typography>
+                    </Box>
+                  )}
+
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                       Shipping
@@ -299,7 +313,7 @@ export default function Cart() {
                       Total
                     </Typography>
                     <Typography variant="h6" component="h2" fontWeight="medium" color="primary">
-                      ${(calculateTotal()).toFixed(2)}
+                      ${formatPrice(calculateTotal())}
                     </Typography>
                   </Box>
                   <Button

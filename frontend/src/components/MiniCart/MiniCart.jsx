@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../../utils";
+import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
 import "./MiniCart.css";
 
 // Material-UI imports
@@ -19,23 +20,77 @@ import {
   ListItem,
   ListItemText,
   ListItemAvatar,
-  Avatar
+  Avatar,
+  Chip
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
 export default function MiniCart({ cart = [], onClose }) {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [cartWithPrices, setCartWithPrices] = useState([]);
+  const [loadingPrices, setLoadingPrices] = useState(false);
 
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+  useEffect(() => {
+    if (cart.length > 0) {
+      fetchCartPrices();
+    } else {
+      setCartWithPrices([]);
+    }
+  }, [cart]);
+
+  const fetchCartPrices = async () => {
+    setLoadingPrices(true);
+    try {
+      const cartItemsWithPrices = await Promise.all(
+        cart.map(async (item) => {
+          // Create a product object for the price utility
+          const product = {
+            id: item.productId,
+            storeId: item.storeId,
+            price: item.price // Original stored price
+          };
+
+          // Fetch current discounted price
+          const discountedPrice = await fetchDiscountedPrice(product);
+
+          return {
+            ...item,
+            originalPrice: item.price,
+            discountedPrice,
+            effectivePrice: getEffectivePrice(product, discountedPrice),
+            hasDiscount: hasDiscount(product, discountedPrice),
+            savings: calculateSavings(product, discountedPrice)
+          };
+        })
+      );
+
+      setCartWithPrices(cartItemsWithPrices);
+    } catch (error) {
+      console.error("Error fetching cart prices:", error);
+      // Fallback to original cart items
+      setCartWithPrices(cart.map(item => ({
+        ...item,
+        originalPrice: item.price,
+        discountedPrice: null,
+        effectivePrice: item.price,
+        hasDiscount: false,
+        savings: 0
+      })));
+    }
+    setLoadingPrices(false);
+  };
+
+  const displayCart = cartWithPrices.length > 0 ? cartWithPrices : cart;
+  const totalItems = displayCart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = displayCart.reduce(
+    (sum, item) => sum + (item.effectivePrice || item.price) * item.quantity,
     0
   );
 
   // Show at most 3 items in mini cart
-  const displayItems = cart.slice(0, 3);
-  const hasMoreItems = cart.length > 3;
+  const displayItems = displayCart.slice(0, 3);
+  const hasMoreItems = displayCart.length > 3;
 
   const handleViewCart = () => {
     handleClose();
@@ -93,7 +148,7 @@ export default function MiniCart({ cart = [], onClose }) {
             </Typography>
           </Box>
 
-          {cart.length === 0 ? (
+          {displayCart.length === 0 ? (
             <Box className="mini-cart-empty">
               <Typography color="text.secondary">Your cart is empty</Typography>
             </Box>
@@ -121,9 +176,31 @@ export default function MiniCart({ cart = [], onClose }) {
                           <Typography variant="caption" color="text.secondary">
                             Qty: {item.quantity}
                           </Typography>
-                          <Typography variant="caption" fontWeight="medium">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            {item.hasDiscount ? (
+                              <>
+                                <Typography variant="caption" fontWeight="medium" color="primary">
+                                  ${formatPrice((item.effectivePrice || item.price) * item.quantity)}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
+                                >
+                                  ${formatPrice(item.originalPrice * item.quantity)}
+                                </Typography>
+                                <Chip
+                                  label={`Save $${formatPrice(item.savings * item.quantity)}`}
+                                  color="success"
+                                  size="small"
+                                  sx={{ height: 16, fontSize: '0.65rem', mt: 0.25 }}
+                                />
+                              </>
+                            ) : (
+                              <Typography variant="caption" fontWeight="medium">
+                                ${formatPrice((item.effectivePrice || item.price) * item.quantity)}
+                              </Typography>
+                            )}
+                          </Box>
                         </Box>
                       }
                     />
@@ -133,7 +210,7 @@ export default function MiniCart({ cart = [], onClose }) {
                 {hasMoreItems && (
                   <ListItem className="mini-cart-more-items">
                     <Typography variant="caption" color="text.secondary">
-                      And {cart.length - 3} more items...
+                      And {displayCart.length - 3} more items...
                     </Typography>
                   </ListItem>
                 )}
@@ -143,7 +220,7 @@ export default function MiniCart({ cart = [], onClose }) {
                 <Box className="mini-cart-subtotal">
                   <Typography variant="subtitle2">Subtotal:</Typography>
                   <Typography variant="subtitle1" fontWeight="bold">
-                    ${cartTotal.toFixed(2)}
+                    ${formatPrice(cartTotal)}
                   </Typography>
                 </Box>
 
@@ -211,7 +288,7 @@ export default function MiniCart({ cart = [], onClose }) {
           </Typography>
         </Box>
 
-        {cart.length === 0 ? (
+        {displayCart.length === 0 ? (
           <Box className="mini-cart-empty">
             <Typography color="text.secondary">Your cart is empty</Typography>
           </Box>
@@ -239,9 +316,31 @@ export default function MiniCart({ cart = [], onClose }) {
                         <Typography variant="caption" color="text.secondary">
                           Qty: {item.quantity}
                         </Typography>
-                        <Typography variant="caption" fontWeight="medium">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                          {item.hasDiscount ? (
+                            <>
+                              <Typography variant="caption" fontWeight="medium" color="primary">
+                                ${formatPrice((item.effectivePrice || item.price) * item.quantity)}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
+                              >
+                                ${formatPrice(item.originalPrice * item.quantity)}
+                              </Typography>
+                              <Chip
+                                label={`Save $${formatPrice(item.savings * item.quantity)}`}
+                                color="success"
+                                size="small"
+                                sx={{ height: 16, fontSize: '0.65rem', mt: 0.25 }}
+                              />
+                            </>
+                          ) : (
+                            <Typography variant="caption" fontWeight="medium">
+                              ${formatPrice((item.effectivePrice || item.price) * item.quantity)}
+                            </Typography>
+                          )}
+                        </Box>
                       </Box>
                     }
                   />
@@ -251,7 +350,7 @@ export default function MiniCart({ cart = [], onClose }) {
               {hasMoreItems && (
                 <ListItem className="mini-cart-more-items">
                   <Typography variant="caption" color="text.secondary">
-                    And {cart.length - 3} more items...
+                    And {displayCart.length - 3} more items...
                   </Typography>
                 </ListItem>
               )}
@@ -261,7 +360,7 @@ export default function MiniCart({ cart = [], onClose }) {
               <Box className="mini-cart-subtotal">
                 <Typography variant="subtitle2">Subtotal:</Typography>
                 <Typography variant="subtitle1" fontWeight="bold">
-                  ${cartTotal.toFixed(2)}
+                  ${formatPrice(cartTotal)}
                 </Typography>
               </Box>
 

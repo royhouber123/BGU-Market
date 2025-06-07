@@ -82,7 +82,7 @@ export default function ProductDetail() {
   const [submittingOffer, setSubmittingOffer] = useState(false);
   const [auctionStatus, setAuctionStatus] = useState(null);
 
-  const { refreshCart, cart } = useAuth();
+  const { refreshCart, cart, addToCart: addToCartContext, isAuthenticated, isGuest, guestService } = useAuth();
 
   const toast = (props) => {
     setSnackbar({
@@ -234,11 +234,6 @@ export default function ProductDetail() {
     if (addingToCart) return; // Prevent double-clicking
 
     try {
-      if (!userService.isAuthenticated()) {
-        setShowAuthDialog(true);
-        return;
-      }
-
       if (!product) {
         toast({
           title: "Error",
@@ -259,17 +254,13 @@ export default function ProductDetail() {
 
       setAddingToCart(true);
 
-      // Use the backend API to add product to cart
-      // Note: Despite the parameter name "productName", the backend expects the listing ID
-      await userService.addProductToCart(
-        product.storeId || "1", // Use the product's store ID or default to "1"
-        product.id, // Use product ID (which is the listing ID) - this is what the backend expects
-        quantity // Use selected quantity
-      );
+      // Use the context addToCart method which handles both guest and authenticated users
+      await addToCartContext(product, quantity);
 
-      // Refresh cart state after adding
-      await refreshCart();
-      await checkUserLists();
+      // Refresh user lists check for authenticated users
+      if (isAuthenticated) {
+        await checkUserLists();
+      }
 
       setIsInCart(true);
       setShowMiniCart(true);
@@ -636,6 +627,27 @@ export default function ProductDetail() {
 
     const purchaseType = product.purchaseType || 'REGULAR';
     const typeDisplay = getPurchaseTypeDisplay();
+
+    // Check if guest can interact with this product
+    if (isGuest && !guestService.canGuestInteract(product)) {
+      return (
+        <Box sx={{ mb: 4 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Guests can only purchase regular products. Please{' '}
+              <Button
+                color="inherit"
+                onClick={() => setShowAuthDialog(true)}
+                sx={{ textDecoration: 'underline', p: 0, minWidth: 'auto' }}
+              >
+                login or register
+              </Button>
+              {' '}to interact with {typeDisplay?.label?.toLowerCase()} products.
+            </Typography>
+          </Alert>
+        </Box>
+      );
+    }
 
     switch (purchaseType) {
       case 'BID':

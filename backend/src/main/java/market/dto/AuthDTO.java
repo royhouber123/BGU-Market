@@ -12,6 +12,14 @@ public class AuthDTO {
         String password
     ) {}
     
+    public record GuestCheckoutRequest(
+        String email
+    ) {}
+    
+    public record GuestLoginRequest(
+        String guestId
+    ) {}
+    
     public record LoginResponse(
         String token,
         String username,

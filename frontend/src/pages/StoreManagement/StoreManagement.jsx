@@ -23,7 +23,8 @@ import {
 	Tabs,
 	Tab,
 	Badge,
-	Tooltip
+	Tooltip,
+	CardMedia
 } from "@mui/material";
 import {
 	ArrowBack as ArrowBackIcon,
@@ -49,6 +50,212 @@ import AddProductDialog from "../../components/AddProductDialog/AddProductDialog
 import BidManagementDialog from "../../components/BidManagementDialog/BidManagementDialog";
 import UserManagement from "../../components/UserManagement/UserManagement";
 import './StoreManagement.css';
+import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
+
+// Create a proper React component for the product card
+const ProductCard = ({ product, pendingBidCounts, storePermissions, handleViewProduct, handleManageBids, handleEditProduct }) => {
+	const [discountedPrice, setDiscountedPrice] = useState(null);
+	const [loading, setLoading] = useState(true);
+
+	// Fetch real-time discounted price
+	useEffect(() => {
+		const fetchPrice = async () => {
+			setLoading(true);
+			const discount = await fetchDiscountedPrice(product);
+			setDiscountedPrice(discount);
+			setLoading(false);
+		};
+		fetchPrice();
+	}, [product.id, product.storeId]);
+
+	const currentHasDiscount = hasDiscount(product, discountedPrice);
+	const effectivePrice = getEffectivePrice(product, discountedPrice);
+	const savings = calculateSavings(product, discountedPrice);
+
+	// Calculate pending bids for bid products
+	const pendingBids = product.purchaseType === 'BID' && storePermissions.canApproveBids ?
+		(pendingBidCounts[product.id] || 0) : 0;
+
+	return (
+		<Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+			<Card
+				sx={{
+					height: "100%",
+					display: "flex",
+					flexDirection: "column",
+					boxShadow: 2,
+					'&:hover': { boxShadow: 4 },
+					position: 'relative'
+				}}
+			>
+				{/* Pending Bid Indicator */}
+				{pendingBids > 0 && (
+					<Box
+						sx={{
+							position: 'absolute',
+							top: 8,
+							right: 8,
+							zIndex: 1,
+							animation: 'pulse 2s infinite',
+							'@keyframes pulse': {
+								'0%': { opacity: 1, transform: 'scale(1)' },
+								'50%': { opacity: 0.8, transform: 'scale(1.1)' },
+								'100%': { opacity: 1, transform: 'scale(1)' }
+							}
+						}}
+					>
+						<Chip
+							size="small"
+							label={pendingBids}
+							color="error"
+							icon={<GavelIcon />}
+							sx={{ fontWeight: 'bold', bgcolor: 'error.main', color: 'white' }}
+						/>
+					</Box>
+				)}
+
+				<CardMedia
+					component="img"
+					height="160"
+					image={product.images?.[0] || "https://via.placeholder.com/300x160"}
+					alt={product.title}
+					sx={{
+						objectFit: "cover",
+						cursor: "pointer",
+						'&:hover': { opacity: 0.8 }
+					}}
+					onClick={() => handleViewProduct(product.id)}
+				/>
+				<CardContent sx={{ flex: 1 }}>
+					<Typography variant="h6" component="h3" fontWeight="bold" gutterBottom>
+						{product.title}
+					</Typography>
+					<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+						{product.description || "No description available"}
+					</Typography>
+
+					{/* Price Display - Updated to use real-time pricing */}
+					<Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+						{loading ? (
+							<Box>
+								<Typography variant="h6" color="primary" fontWeight="bold">
+									${formatPrice(product.price)}
+								</Typography>
+								<Typography variant="caption" color="text.secondary">
+									Checking for discounts...
+								</Typography>
+							</Box>
+						) : currentHasDiscount ? (
+							<Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+								<Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
+									${formatPrice(product.price)}
+								</Typography>
+								<Typography variant="h6" color="primary" fontWeight="bold">
+									${formatPrice(effectivePrice)}
+								</Typography>
+								<Typography variant="caption" color="success.main">
+									Save ${formatPrice(savings)}
+								</Typography>
+							</Box>
+						) : (
+							<Box>
+								<Typography variant="h6" color="primary" fontWeight="bold">
+									${formatPrice(effectivePrice)}
+								</Typography>
+								{product.purchaseType === 'BID' && (
+									<Typography variant="caption" color="text.secondary">
+										Starting price
+									</Typography>
+								)}
+							</Box>
+						)}
+						<Chip
+							size="small"
+							label={product.status === 'active' ? 'Active' : 'Inactive'}
+							color={product.status === 'active' ? 'success' : 'default'}
+						/>
+					</Box>
+
+					{/* Product Details */}
+					<Box sx={{ display: "flex", gap: 1, mb: 1, flexWrap: "wrap" }}>
+						{product.category && (
+							<Chip size="small" label={product.category} variant="outlined" />
+						)}
+						<Chip size="small" label={`Qty: ${product.quantity || 0}`} variant="outlined" />
+					</Box>
+
+					{/* Purchase Type Specific Info */}
+					{product.purchaseType === 'AUCTION' && (
+						<Box sx={{ mt: 1, p: 1, bgcolor: 'info.light', borderRadius: 1 }}>
+							<Typography variant="caption" color="info.dark" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+								<TimerIcon fontSize="small" />
+								Auction Item - Time Limited
+							</Typography>
+						</Box>
+					)}
+					{product.purchaseType === 'BID' && (
+						<Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1 }}>
+							<Typography variant="caption" color="warning.dark" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+								<TrendingUpIcon fontSize="small" />
+								Negotiable Price - Accepts Bids
+							</Typography>
+						</Box>
+					)}
+					{product.purchaseType === 'RAFFLE' && (
+						<Box sx={{ mt: 1, p: 1, bgcolor: 'secondary.light', borderRadius: 1 }}>
+							<Typography variant="caption" color="secondary.dark" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+								<LocalOfferIcon fontSize="small" />
+								Raffle Entry - Random Selection
+							</Typography>
+						</Box>
+					)}
+				</CardContent>
+				<CardActions sx={{ justifyContent: "flex-end", p: 2 }}>
+					<Button
+						size="small"
+						startIcon={<VisibilityIcon />}
+						onClick={() => handleViewProduct(product.id)}
+					>
+						View
+					</Button>
+					{product.purchaseType === 'BID' && storePermissions.canApproveBids && (
+						<Button
+							size="small"
+							startIcon={<GavelIcon />}
+							onClick={() => handleManageBids(product.id)}
+							color="warning"
+							variant={pendingBids > 0 ? "contained" : "outlined"}
+							sx={{
+								animation: pendingBids > 0 ? 'glow 2s infinite' : 'none',
+								'@keyframes glow': {
+									'0%': { boxShadow: '0 0 0 0 rgba(255, 152, 0, 0.4)' },
+									'50%': { boxShadow: '0 0 0 8px rgba(255, 152, 0, 0)' },
+									'100%': { boxShadow: '0 0 0 0 rgba(255, 152, 0, 0)' }
+								}
+							}}
+						>
+							{pendingBids > 0 ? `Review ${pendingBids} Bid${pendingBids > 1 ? 's' : ''}` : 'Manage Bids'}
+						</Button>
+					)}
+					{storePermissions.canEditProducts && (
+						<Button
+							size="small"
+							startIcon={<EditIcon />}
+							onClick={() => handleEditProduct(product.id)}
+						>
+							Edit
+						</Button>
+					)}
+					{!storePermissions.canEditProducts && !storePermissions.canApproveBids && (
+						<Typography variant="caption" color="text.disabled" sx={{ ml: 1 }}>
+							View only
+						</Typography>
+					)}
+				</CardActions>
+			</Card>
+		</Grid>
+	);
+};
 
 export default function StoreManagement() {
 	const { storeId } = useParams();
@@ -334,200 +541,16 @@ export default function StoreManagement() {
 	};
 
 	const renderProductCard = (product) => {
-		const purchaseInfo = getPurchaseTypeInfo(product.purchaseType);
-		const totalBids = bidCounts[product.id] || 0;
-		const pendingBids = pendingBidCounts[product.id] || 0;
-
 		return (
-			<Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-				<Card sx={{ height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
-					{/* Purchase Type Badge */}
-					<Box sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}>
-						<Tooltip title={purchaseInfo.description}>
-							<Chip
-								icon={purchaseInfo.icon}
-								label={purchaseInfo.label}
-								color={purchaseInfo.color}
-								size="small"
-								variant="filled"
-								sx={{ fontWeight: 'bold' }}
-							/>
-						</Tooltip>
-					</Box>
-
-					{/* Bid Count Badge for BID products */}
-					{product.purchaseType === 'BID' && storePermissions.canApproveBids && (
-						<Box sx={{ position: "absolute", top: 8, left: 8, zIndex: 1 }}>
-							{pendingBids > 0 ? (
-								<Tooltip title={`${pendingBids} pending bid${pendingBids > 1 ? 's' : ''}, ${totalBids} total`}>
-									<Badge badgeContent={pendingBids} color="warning" max={99}>
-										<Chip
-											icon={<GavelIcon />}
-											label={`${totalBids} bid${totalBids !== 1 ? 's' : ''}`}
-											color="warning"
-											size="small"
-											variant="filled"
-											sx={{
-												fontWeight: 'bold',
-												animation: pendingBids > 0 ? 'pulse 2s infinite' : 'none',
-												'@keyframes pulse': {
-													'0%': { opacity: 1 },
-													'50%': { opacity: 0.7 },
-													'100%': { opacity: 1 }
-												}
-											}}
-										/>
-									</Badge>
-								</Tooltip>
-							) : totalBids > 0 ? (
-								<Tooltip title={`${totalBids} total bid${totalBids > 1 ? 's' : ''}`}>
-									<Chip
-										icon={<GavelIcon />}
-										label={`${totalBids} bid${totalBids !== 1 ? 's' : ''}`}
-										color="success"
-										size="small"
-										variant="outlined"
-										sx={{ fontWeight: 'bold' }}
-									/>
-								</Tooltip>
-							) : null}
-						</Box>
-					)}
-
-					<Box
-						component="img"
-						src={product.images?.[0] || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=="}
-						alt={product.title}
-						sx={{
-							width: "100%",
-							height: 200,
-							objectFit: "cover"
-						}}
-						onError={(e) => {
-							if (!e.target.src.includes('data:image/svg+xml')) {
-								e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==";
-							}
-						}}
-					/>
-					<CardContent sx={{ flex: 1 }}>
-						<Typography variant="h6" component="h3" fontWeight="bold" gutterBottom>
-							{product.title}
-						</Typography>
-						<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-							{product.description || "No description available"}
-						</Typography>
-
-						{/* Price Display */}
-						<Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-							{product.hasDiscount ? (
-								<Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-									<Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
-										${product.price?.toFixed(2)}
-									</Typography>
-									<Typography variant="h6" color="primary" fontWeight="bold">
-										${product.discountedPrice?.toFixed(2)}
-									</Typography>
-									<Typography variant="caption" color="success.main">
-										Save ${(product.price - product.discountedPrice)?.toFixed(2)}
-									</Typography>
-								</Box>
-							) : (
-								<Box>
-									<Typography variant="h6" color="primary" fontWeight="bold">
-										${product.price?.toFixed(2)}
-									</Typography>
-									{product.purchaseType === 'BID' && (
-										<Typography variant="caption" color="text.secondary">
-											Starting price
-										</Typography>
-									)}
-								</Box>
-							)}
-							<Chip
-								size="small"
-								label={product.status === 'active' ? 'Active' : 'Inactive'}
-								color={product.status === 'active' ? 'success' : 'default'}
-							/>
-						</Box>
-
-						{/* Product Details */}
-						<Box sx={{ display: "flex", gap: 1, mb: 1, flexWrap: "wrap" }}>
-							{product.category && (
-								<Chip size="small" label={product.category} variant="outlined" />
-							)}
-							<Chip size="small" label={`Qty: ${product.quantity || 0}`} variant="outlined" />
-						</Box>
-
-						{/* Purchase Type Specific Info */}
-						{product.purchaseType === 'AUCTION' && (
-							<Box sx={{ mt: 1, p: 1, bgcolor: 'info.light', borderRadius: 1 }}>
-								<Typography variant="caption" color="info.dark" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-									<TimerIcon fontSize="small" />
-									Auction Item - Time Limited
-								</Typography>
-							</Box>
-						)}
-						{product.purchaseType === 'BID' && (
-							<Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1 }}>
-								<Typography variant="caption" color="warning.dark" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-									<TrendingUpIcon fontSize="small" />
-									Negotiable Price - Accepts Bids
-								</Typography>
-							</Box>
-						)}
-						{product.purchaseType === 'RAFFLE' && (
-							<Box sx={{ mt: 1, p: 1, bgcolor: 'secondary.light', borderRadius: 1 }}>
-								<Typography variant="caption" color="secondary.dark" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-									<LocalOfferIcon fontSize="small" />
-									Raffle Entry - Random Selection
-								</Typography>
-							</Box>
-						)}
-					</CardContent>
-					<CardActions sx={{ justifyContent: "flex-end", p: 2 }}>
-						<Button
-							size="small"
-							startIcon={<VisibilityIcon />}
-							onClick={() => handleViewProduct(product.id)}
-						>
-							View
-						</Button>
-						{product.purchaseType === 'BID' && storePermissions.canApproveBids && (
-							<Button
-								size="small"
-								startIcon={<GavelIcon />}
-								onClick={() => handleManageBids(product.id)}
-								color="warning"
-								variant={pendingBids > 0 ? "contained" : "outlined"}
-								sx={{
-									animation: pendingBids > 0 ? 'glow 2s infinite' : 'none',
-									'@keyframes glow': {
-										'0%': { boxShadow: '0 0 0 0 rgba(255, 152, 0, 0.4)' },
-										'50%': { boxShadow: '0 0 0 8px rgba(255, 152, 0, 0)' },
-										'100%': { boxShadow: '0 0 0 0 rgba(255, 152, 0, 0)' }
-									}
-								}}
-							>
-								{pendingBids > 0 ? `Review ${pendingBids} Bid${pendingBids > 1 ? 's' : ''}` : 'Manage Bids'}
-							</Button>
-						)}
-						{storePermissions.canEditProducts && (
-							<Button
-								size="small"
-								startIcon={<EditIcon />}
-								onClick={() => handleEditProduct(product.id)}
-							>
-								Edit
-							</Button>
-						)}
-						{!storePermissions.canEditProducts && !storePermissions.canApproveBids && (
-							<Typography variant="caption" color="text.disabled" sx={{ ml: 1 }}>
-								View only
-							</Typography>
-						)}
-					</CardActions>
-				</Card>
-			</Grid>
+			<ProductCard
+				key={product.id}
+				product={product}
+				pendingBidCounts={pendingBidCounts}
+				storePermissions={storePermissions}
+				handleViewProduct={handleViewProduct}
+				handleManageBids={handleManageBids}
+				handleEditProduct={handleEditProduct}
+			/>
 		);
 	};
 

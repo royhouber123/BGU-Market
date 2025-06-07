@@ -154,4 +154,15 @@ public class UserController {
             userService.getCart()
         );
     }
+
+    /**
+     * Register a new guest user with email for checkout
+     * POST /api/users/register/guest-checkout
+     */
+    @PostMapping("/register/guest-checkout")
+    public ResponseEntity<ApiResponse<Void>> registerGuestForCheckout(@RequestBody AuthDTO.GuestCheckoutRequest request) {
+        return ApiResponseBuilder.build(() -> 
+            userService.register(request.email())
+        );
+    }
 } 
