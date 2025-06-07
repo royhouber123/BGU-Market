@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createPageUrl } from "../../utils";
 import { useNavigate } from "react-router-dom";
 import userService from "../../services/userService";
+import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
 import "./ProductCard.css";
 
 // Material-UI imports
@@ -11,6 +12,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 export default function ProductCard({ product }) {
 	const [isInWatchlist, setIsInWatchlist] = useState(false);
+	const [discountedPrice, setDiscountedPrice] = useState(null);
 	const navigate = useNavigate();
 	const [openToast, setOpenToast] = useState(false);
 	const [toastMessage, setToastMessage] = useState({ severity: "success", title: "", description: "" });
@@ -27,9 +29,15 @@ export default function ProductCard({ product }) {
 		}
 	}, [product.id]);
 
+	const fetchProductDiscountedPrice = useCallback(async () => {
+		const discount = await fetchDiscountedPrice(product);
+		setDiscountedPrice(discount);
+	}, [product]);
+
 	useEffect(() => {
 		checkWatchlist();
-	}, [checkWatchlist]);
+		fetchProductDiscountedPrice();
+	}, [checkWatchlist, fetchProductDiscountedPrice]);
 
 	const timeLeft = product.bid_end_date
 		? new Date(product.bid_end_date) - new Date()
@@ -106,6 +114,11 @@ export default function ProductCard({ product }) {
 		setOpenToast(false);
 	};
 
+	// Use utility functions for pricing calculations
+	const currentHasDiscount = hasDiscount(product, discountedPrice);
+	const finalPrice = getEffectivePrice(product, discountedPrice);
+	const savings = calculateSavings(product, discountedPrice);
+
 	return (
 		<Box className="product-card-container">
 			<Card className="product-card">
@@ -154,21 +167,21 @@ export default function ProductCard({ product }) {
 					</Typography>
 
 					<Box className="product-card-price-container">
-						{product.hasDiscount ? (
+						{currentHasDiscount ? (
 							<Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
 								<Typography variant="body2" color="text.secondary" sx={{ textDecoration: "line-through" }}>
-									${product.price?.toFixed(2)}
+									${formatPrice(product.price)}
 								</Typography>
 								<Typography variant="h6" component="span" fontWeight="bold" color="primary">
-									${product.discountedPrice?.toFixed(2)}
+									${formatPrice(finalPrice)}
 								</Typography>
 								<Typography variant="caption" color="success.main">
-									Save ${(product.price - product.discountedPrice)?.toFixed(2)}
+									Save ${formatPrice(savings)}
 								</Typography>
 							</Box>
 						) : (
 							<Typography variant="h6" component="span" fontWeight="bold">
-								${product.price?.toFixed(2)}
+								${formatPrice(finalPrice)}
 							</Typography>
 						)}
 
@@ -178,7 +191,7 @@ export default function ProductCard({ product }) {
 							</Typography>
 						) : (
 							<Typography variant="body2" color="text.secondary">
-								+${product.shipping_cost?.toFixed(2)} shipping
+								+${formatPrice(product.shipping_cost)} shipping
 							</Typography>
 						)}
 					</Box>
