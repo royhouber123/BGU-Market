@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import market.domain.notification.INotificationRepository;
 import javax.management.RuntimeErrorException;
 
 import org.springframework.stereotype.Service;
@@ -25,16 +26,18 @@ public class StoreService {
     private IStoreRepository storeRepository;
     private IUserRepository userRepository;
     private IListingRepository listingRepository;
+    private final NotificationService notificationService;
     private String storeIDs ="1";
     private Logger logger = Logger.getInstance();
     private ISuspensionRepository suspentionRepository; 
 
-    public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository,ISuspensionRepository suspentionRepository) {
+    public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository,ISuspensionRepository suspentionRepository, NotificationService notificationService) {
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
         storeIDs = storeRepository.getNextStoreID();
         this.listingRepository = listingRepository;
         this.suspentionRepository= suspentionRepository;
+        this.notificationService = notificationService;
     }
 
 
@@ -90,19 +93,8 @@ public class StoreService {
                 throw new RuntimeException("store can't be closed");
             }
 
-            Set<String> users = s.getPositionsInStore(userName).keySet();
-            for (String ownerOrManager : users) {
-                if (s.isManager(ownerOrManager))
-                    ; // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Manager");
-                if (s.isOwner(ownerOrManager))
-                    ; // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Owner");
-                if (s.getFounderID().equals(ownerOrManager)) {
-                    ; // ((Subscriber)userRepository.findById(ownerOrManager)).removeStoreRole(storeID,"Founder");
-                    ; // ((Subscriber)userRepository.findById(ownerOrManager)).removeStore(storeID);
-                }
-
-                //TODO:need to notify all the owners and managers
-            }
+            // Notify all owners
+            notifyAllOwners(storeID, "The store" + s.getName() + " has been closed by " + userName + ".");
 
             logger.info("Store closed: " + storeID + ", by user: " + userName);
             return storeID;
@@ -135,7 +127,8 @@ public class StoreService {
             s.openStore(userName);
             logger.info("Store opened: " + storeID + ", by user: " + userName);
 
-            //TODO:need to notify all the owners and managers
+            // Notify all owners
+            notifyAllOwners(storeID, "The store " + s.getName() + " has been reopened by " + userName + ".");
 
             return storeID;
 
@@ -195,14 +188,13 @@ public class StoreService {
             s.addNewOwner(appointerID, newOwnerID);
             logger.info("Added new owner: " + newOwnerID + " to store: " + storeID + ", by: " + appointerID);
 
-            //((Subscriber)userRepository.findById(newOwnerID)).setStoreRole(storeID , "Owner");
-            //PAY ATTENTION! לעשות בכל מקום
+            // Notify the new owner
+            notifyUser(newOwnerID, "You have been appointed as an owner of store " + s.getName() + ".");
 
             return null;
 
         } catch (Exception e) {
             logger.error("Error adding owner: " + newOwnerID + " to store: " + storeID + ". Reason: " + e.getMessage());
-            //TODO:we need to decide how to handle things here
             throw new RuntimeException("Failed to add new owner: " + e.getMessage());
         }
     }
@@ -260,27 +252,29 @@ public class StoreService {
             suspentionRepository.checkNotSuspended(id);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null)
-            throw new IllegalArgumentException("store doesn't exist");
+                throw new IllegalArgumentException("store doesn't exist");
 
             List<List<String>> removedWorkers = s.removeOwner(id, toRemove);
             logger.info("Removed owner: " + toRemove + " from store: " + storeID + ", by: " + id);
 
-            // for (String i:removedWorkers.get(0) ){
-            //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Owner");
-            //     //TODO: need to change data on those users
-            // }
-            // for (String i:removedWorkers.get(1) ){
-            //     ((Subscriber)userRepository.findById(i)).removeStoreRole(id,"Manager");
-            //     //TODO: need to change data on those users
-            // }
+            // Notify the removed owner
+            notifyUser(toRemove, "You have been removed as an owner from store " + s.getName() + ".");
+
+            // Notify all users that were removed as a result (owners and managers assigned by 'toRemove')
+            for (List<String> group : removedWorkers) {
+                for (String removedUserId : group) {
+                    if (!removedUserId.equals(toRemove)) { // Avoid double notification
+                        notifyUser(removedUserId, "You have been removed from store " + s.getName() + " because your appointer was removed.");
+                    }
+                }
+            }
 
             return removedWorkers;
         } catch (Exception e) {
             logger.error("Error removing owner: " + toRemove + " from store: " + storeID + ". Reason: " + e.getMessage());
-            throw new RuntimeException("Error removing owner: " + e.getMessage());
+            throw new RuntimeException("Error removing owner: " + toRemove + " from store: " + storeID + ". Reason: " + e.getMessage());
         }
     }
-
 
     /**
      * Adds a new manager to the store by delegating to the business logic layer.
@@ -313,7 +307,10 @@ public class StoreService {
 
             if (s.addNewManager(appointerID,newManagerName)){
                 logger.info("Added new manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
-                //((Subscriber)userRepository.findById(newManagerName)).setStoreRole(storeID,"Manager");
+
+                // Notify the new manager
+                notifyUser(newManagerName, "You have been appointed as a manager of store " + s.getName() + ".");
+
                 return null;
             }
             else{
@@ -327,7 +324,6 @@ public class StoreService {
         }
     }
 
-    
     /**
      * Removes a manager from the store by delegating to the business logic layer.
      * Only the owner who originally appointed the manager can remove them.
@@ -351,6 +347,10 @@ public class StoreService {
 
             if (s.removeManager(appointerID, managerID)) {
                 logger.info("Removed manager: " + managerID + " from store: " + storeID + ", by: " + appointerID);
+
+                // Notify the removed manager
+                notifyUser(managerID, "You have been removed as a manager from store " + s.getName() + ".");
+
                 return null;
             } else {
                 logger.error("Failed to remove manager: " + managerID + " from store: " + storeID + ", by: " + appointerID);
@@ -511,8 +511,10 @@ public class StoreService {
                 return null;
             else {
                 logger.error("Error removing listing: " + listingId + " from store: " + storeID );
-                throw new RuntimeException("Error removing listing: " + listingId + " from store: " + storeID);}
-        } catch (Exception e) {
+                throw new RuntimeException("Error removing listing: " + listingId + " from store: " + storeID);
+            }
+        }
+        catch (Exception e) {
             logger.error("Error removing listing: " + listingId + " from store: " + storeID + ". Reason: " + e.getMessage());
             throw new RuntimeException("Error removing listing: " + listingId + " from store: " + storeID + ". Reason: " + e.getMessage());
         }
@@ -823,4 +825,43 @@ public class StoreService {
         } 
         return res;
     }
+
+        /**
+     * Allows a user to send a message to a store. All store owners will receive a notification.
+     *
+     * @param storeID The ID of the store.
+     * @param senderUserId The ID of the user sending the message.
+     * @param message The message content.
+     */
+    public void sendMessageToStore(String storeID, String senderUserId, String message) {
+        Store store = storeRepository.getStoreByID(storeID);
+        if (store == null) {
+            logger.error("Attempted to send message to non-existent store: " + storeID);
+            throw new IllegalArgumentException("Store doesn't exist");
+        }
+        String notificationMessage = "Message from user " + senderUserId + " to store " + store.getName() + ": " + message;
+        notifyAllOwners(storeID, notificationMessage);
+    }
+
+    /**
+     * Sends a notification to all owners of the specified store.
+     *
+     * @param storeID The ID of the store.
+     * @param message The notification message.
+     */
+    private void notifyAllOwners(String storeID, String message) {
+        Store store = storeRepository.getStoreByID(storeID);
+        if (store == null) {
+            logger.error("Attempted to notify owners of non-existent store: " + storeID);
+            throw new IllegalArgumentException("Store doesn't exist");
+        }
+        for (String ownerId : store.getAllOwners()) {
+            notifyUser(ownerId, message);
+        }
+    }
+
+    private void notifyUser(String userId, String message) {
+        notificationService.sendNotification(userId, message);
+    }
+
 }
