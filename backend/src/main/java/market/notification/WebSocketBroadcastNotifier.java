@@ -16,8 +16,6 @@ public class WebSocketBroadcastNotifier implements INotifier {
 
     @Override
     public boolean notifyUser(String userId, String message) {
-        //debug!: remove!
-        System.out.println("Sending notification to: " + userId + " message: " + message);
         // Create notification object with target user
         NotificationMessage notification = new NotificationMessage(userId, message);
         

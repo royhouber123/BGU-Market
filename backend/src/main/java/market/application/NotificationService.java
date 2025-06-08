@@ -33,7 +33,7 @@ public class NotificationService {
             String notifJson = objectMapper.writeValueAsString(notification);
             notificationSender.notifyUser(userName, notifJson); // Updated method call
         } catch (Exception e) {
-            System.out.println("Error sending notification: " + e.getMessage());
+            throw new RuntimeException("Failed to send notification", e);
             // handle error
         }
     }
