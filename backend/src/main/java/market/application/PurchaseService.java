@@ -28,14 +28,14 @@ public class PurchaseService {
     private ISuspensionRepository suspensionRepository; 
 
     @Autowired
-    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService, ISuspensionRepository suspentionRepository) {
+    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService, ISuspensionRepository suspentionRepository, NotificationService notificationService) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
         this.listingRepository=listingRepository;
         this.userRepository = userRepository;
         this.paymentService = paymentService;
         this.shipmentService = shipmentService;
-        this.suspensionRepository = suspensionRepository;
+        this.suspensionRepository = suspentionRepository;
         this.notificationService = notificationService;
     }
 

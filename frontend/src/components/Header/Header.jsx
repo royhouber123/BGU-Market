@@ -9,6 +9,7 @@ import "./Header.css";
 
 // Add this import if using STOMP
 import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 import {
 	AppBar,
@@ -29,6 +30,8 @@ import {
 	ListItemText,
 	Divider,
 	Popover,
+	Snackbar,
+	Alert,
 } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
@@ -51,6 +54,8 @@ export default function Header() {
 	const [notifications, setNotifications] = useState([]);
 	const [unreadCount, setUnreadCount] = useState(0);
 	const [notifAnchorEl, setNotifAnchorEl] = useState(null);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [toastMessage, setToastMessage] = useState('');
 	const wsRef = useRef(null);
 
 	
@@ -142,29 +147,61 @@ export default function Header() {
 	// Example using STOMP over WebSocket
 	useEffect(() => {
 		if (isAuthenticated && currentUser && currentUser.userName) {
+			console.log('Setting up WebSocket connection for user:', currentUser.userName);
+			
+			const socket = new SockJS('http://localhost:8080/ws/notifications');
 			const stompClient = new Client({
-				brokerURL: `ws://localhost:8080/ws/notifications`
+				webSocketFactory: () => socket,
+				debug: (str) => {
+					console.log('STOMP: ' + str);
+				},
+				onConnect: (frame) => {
+					console.log('Connected to WebSocket:', frame);
+					
+					stompClient.subscribe('/topic/notifications', (message) => {
+						console.log('Received notification:', message.body);
+						const rawNotification = JSON.parse(message.body);
+						
+						let notification;
+						if (rawNotification.message && typeof rawNotification.message === 'string') {
+							try {
+								notification = JSON.parse(rawNotification.message);
+								console.log('Parsed nested notification:', notification);
+							} catch (e) {
+								notification = rawNotification;
+							}
+						} else {
+							notification = rawNotification;
+						}
+						
+						const targetUser = notification.userName || notification.userId;
+						if (targetUser === currentUser.userName) {
+							console.log('Notification is for current user, adding to list');
+							setNotifications(prev => [notification, ...prev]);
+							setUnreadCount(prev => prev + 1);
+							
+							// Show toast notification
+							setToastMessage(notification.message);
+							setToastOpen(true);
+						} else {
+							console.log('Notification is for different user, ignoring');
+						}
+					});
+				},
+				onStompError: (frame) => {
+					console.error('STOMP error:', frame);
+				},
+				onWebSocketError: (error) => {
+					console.error('WebSocket error:', error);
+				}
 			});
-
-			stompClient.onConnect = () => {
-				stompClient.subscribe('/topic/notifications', (notification) => {
-					const data = JSON.parse(notification.body);
-					console.log("STOMP notification:", data);
-
-					// Only show notification if it's for current user
-					if (data.targetUserId === currentUser.userName) {
-						setNotifications(prev => [data.message, ...prev]);
-						setUnreadCount(prev => prev + 1);
-					}
-					//debug!:remove!
-					console.log("Received:", data.targetUserId, "Current:", currentUser.userName);
-				});
-			};
-
+			
 			stompClient.activate();
-
+			
 			return () => {
-				stompClient.deactivate();
+				if (stompClient.active) {
+					stompClient.deactivate();
+				}
 			};
 		}
 	}, [isAuthenticated, currentUser]);
@@ -192,6 +229,14 @@ export default function Header() {
 			action: handleNotifClick,
 		},
 	];
+
+	// Handle toast close
+	const handleToastClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setToastOpen(false);
+	};
 
 	return (
 		<>
@@ -446,6 +491,37 @@ export default function Header() {
 					</Box>
 				</Box>
 			</Popover>
+
+			{/* ——— Toast Notification ——— */}
+			<Snackbar
+				open={toastOpen}
+				autoHideDuration={3000}
+				onClose={handleToastClose}
+				anchorOrigin={{ 
+					vertical: 'top', 
+					horizontal: 'right' 
+				}}
+				sx={{
+					mt: 8, // Add margin top to position below header
+				}}
+			>
+				<Alert 
+					onClose={handleToastClose} 
+					severity="info" 
+					variant="filled"
+					sx={{
+						minWidth: 300,
+						maxWidth: 400,
+					}}
+				>
+					<Typography variant="body2" component="div">
+						<strong>New Notification</strong>
+					</Typography>
+					<Typography variant="body2" component="div">
+						{toastMessage}
+					</Typography>
+				</Alert>
+			</Snackbar>
 
 			{/* ——— Auth dialog ——— */}
 			<AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
