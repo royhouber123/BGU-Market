@@ -39,12 +39,15 @@ const purchaseService = {
   },
 
   // Submit auction offer
-  submitAuctionOffer: async (storeId, productId, offerAmount) => {
+  submitAuctionOffer: async (storeId, productId, offerAmount, shippingAddress, paymentDetails) => {
     try {
       const response = await api.post('/purchases/auction/offer', {
-        storeId,
-        productId,
-        offerAmount
+        userId: 0, // Placeholder - server uses JWT token username instead
+        storeId: parseInt(storeId),
+        productId: String(productId),
+        offerAmount: parseFloat(offerAmount),
+        shippingAddress,
+        paymentDetails
       });
       
       if (response.data.success) {
@@ -89,12 +92,15 @@ const purchaseService = {
   },
 
   // Submit bid
-  submitBid: async (storeId, productId, bidAmount) => {
+  submitBid: async (storeId, productId, bidAmount, quantity, shippingAddress, paymentDetails) => {
     try {
       const response = await api.post('/purchases/bid/submit', {
-        storeId,
-        productId,
-        bidAmount
+        storeId: parseInt(storeId),
+        productId: String(productId),
+        bidAmount: parseFloat(bidAmount),
+        quantity: quantity || 1,
+        shippingAddress,
+        paymentDetails
       });
       
       if (response.data.success) {
