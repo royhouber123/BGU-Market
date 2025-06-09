@@ -513,6 +513,7 @@ export default function StoreManagement() {
 		try {
 			const counts = {};
 			const pendingCounts = {};
+			const rejectedCounts = {};
 
 			await Promise.all(
 				bidProducts.map(async (product) => {
@@ -520,10 +521,12 @@ export default function StoreManagement() {
 						const bids = await purchaseService.getProductBids(store.id, product.id);
 						counts[product.id] = bids?.length || 0;
 						pendingCounts[product.id] = bids?.filter(bid => !bid.isApproved && !bid.isRejected)?.length || 0;
+						rejectedCounts[product.id] = bids?.filter(bid => bid.isRejected)?.length || 0;
 					} catch (error) {
 						console.warn(`Could not fetch bids for product ${product.id}:`, error);
 						counts[product.id] = 0;
 						pendingCounts[product.id] = 0;
+						rejectedCounts[product.id] = 0;
 					}
 				})
 			);
@@ -550,6 +553,9 @@ export default function StoreManagement() {
 
 			setPendingBidCounts(pendingCounts);
 			setLastBidCheckTime(Date.now());
+
+			// Store rejected counts for display (you can add this state if needed)
+			// setRejectedBidCounts(rejectedCounts);
 		} catch (error) {
 			console.error("Error loading bid counts:", error);
 		}

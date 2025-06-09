@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { productService } from "../../services/productService";
 import userService from "../../services/userService";
+import purchaseService from "../../services/purchaseService";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 // Import all relevant components
@@ -514,51 +515,39 @@ export default function ProductDetail() {
         storeIdType: typeof product.storeId
       });
 
-      const response = await fetch('http://localhost:8080/api/purchases/bid/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userService.getToken()}`
-        },
-        body: JSON.stringify({
-          storeId: parseInt(product.storeId),
-          productId: String(product.id),
-          bidAmount: parseFloat(bidAmount),
-          quantity: 1,
-          shippingAddress: shippingAddressString,
-          paymentDetails: paymentDetails
-        })
+      const response = await purchaseService.submitBid(
+        product.storeId,
+        product.id,
+        bidAmount,
+        1, // quantity
+        shippingAddressString,
+        paymentDetails
+      );
+
+      // The purchaseService already handles the response parsing and returns the data directly
+      toast({
+        title: "Bid Submitted",
+        description: `Your bid of $${bidAmount} has been submitted successfully! The seller will review your bid.`,
+        variant: "default",
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: "Bid Submitted",
-          description: `Your bid of $${bidAmount} has been submitted successfully! The seller will review your bid.`,
-          variant: "default",
-        });
-        setShowBidDialog(false);
-        setBidAmount('');
-        setBidShippingAddress({
-          fullName: "",
-          addressLine1: "",
-          addressLine2: "",
-          city: "",
-          state: "",
-          postalCode: "",
-          country: ""
-        });
-        setBidCardDetails({
-          cardName: "",
-          cardNumber: "",
-          expiryDate: "",
-          cvv: ""
-        });
-        setBidPaymentMethod("credit");
-      } else {
-        throw new Error(result.error || result.message || 'Bid submission failed');
-      }
+      setShowBidDialog(false);
+      setBidAmount('');
+      setBidShippingAddress({
+        fullName: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: ""
+      });
+      setBidCardDetails({
+        cardName: "",
+        cardNumber: "",
+        expiryDate: "",
+        cvv: ""
+      });
+      setBidPaymentMethod("credit");
     } catch (error) {
       console.error("Error submitting bid:", error);
       toast({
@@ -819,56 +808,43 @@ export default function ProductDetail() {
       // Prepare shipping address string
       const shippingAddressString = `${offerShippingAddress.fullName}, ${offerShippingAddress.addressLine1}${offerShippingAddress.addressLine2 ? ', ' + offerShippingAddress.addressLine2 : ''}, ${offerShippingAddress.city}, ${offerShippingAddress.state} ${offerShippingAddress.postalCode}, ${offerShippingAddress.country}`;
 
-      const response = await fetch('http://localhost:8080/api/purchases/auction/offer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userService.getToken()}`
-        },
-        body: JSON.stringify({
-          userId: 0, // Placeholder - server uses JWT token username instead
-          storeId: parseInt(product.storeId),
-          productId: String(product.id),
-          offerAmount: parseFloat(offerAmount),
-          shippingAddress: shippingAddressString,
-          paymentDetails: paymentDetails // Changed from contactInfo to paymentDetails
-        })
+      const response = await purchaseService.submitAuctionOffer(
+        product.storeId,
+        product.id,
+        offerAmount,
+        shippingAddressString,
+        paymentDetails
+      );
+
+      // The purchaseService already handles the response parsing and returns the data directly
+      toast({
+        title: "Offer Submitted",
+        description: `Your offer of $${offerAmount} has been submitted successfully! The current highest bid is now $${offerAmount}.`,
+        variant: "default",
       });
+      setShowOfferDialog(false);
+      setOfferAmount('');
 
-      const result = await response.json();
+      // Reset form data
+      setOfferShippingAddress({
+        fullName: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: ""
+      });
+      setOfferCardDetails({
+        cardName: "",
+        cardNumber: "",
+        expiryDate: "",
+        cvv: ""
+      });
+      setOfferPaymentMethod("credit");
 
-      if (result.success) {
-        toast({
-          title: "Offer Submitted",
-          description: `Your offer of $${offerAmount} has been submitted successfully! The current highest bid is now $${offerAmount}.`,
-          variant: "default",
-        });
-        setShowOfferDialog(false);
-        setOfferAmount('');
-
-        // Reset form data
-        setOfferShippingAddress({
-          fullName: "",
-          addressLine1: "",
-          addressLine2: "",
-          city: "",
-          state: "",
-          postalCode: "",
-          country: ""
-        });
-        setOfferCardDetails({
-          cardName: "",
-          cardNumber: "",
-          expiryDate: "",
-          cvv: ""
-        });
-        setOfferPaymentMethod("credit");
-
-        // Immediately refresh auction status to show new price
-        await fetchAuctionStatus();
-      } else {
-        throw new Error(result.error || result.message || 'Offer submission failed');
-      }
+      // Immediately refresh auction status to show new price
+      await fetchAuctionStatus();
     } catch (error) {
       console.error("Error submitting offer:", error);
       toast({
@@ -1330,850 +1306,553 @@ export default function ProductDetail() {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Header />
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <main className="container px-4 py-8" style={{ maxWidth: '1600px' }}>
-        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-          {/* Product Title at the top */}
-          <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
-            {product.title}
-          </Typography>
+        <main className="container px-4 py-8" style={{ maxWidth: '1600px' }}>
+          <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+            {/* Product Title at the top */}
+            <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
+              {product.title}
+            </Typography>
 
-          {/* Product Type Badge */}
-          {typeDisplay && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-              <Chip
-                icon={typeDisplay.icon}
-                label={typeDisplay.label}
-                color={typeDisplay.color}
-                variant="filled"
-                size="medium"
-                sx={{ fontSize: '1rem', py: 1, px: 2 }}
-              />
-            </Box>
-          )}
-
-          {/* Main content area with image on the left and details on the right */}
-          <Grid container spacing={4} sx={{ display: 'flex', flexWrap: 'nowrap' }}>
-            {/* Product Images on the left */}
-            <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-              <Box sx={{
-                width: '100%',
-                maxWidth: '500px',
-                aspectRatio: '1/1',
-                borderRadius: 2,
-                overflow: 'hidden',
-                mb: 2,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                bgcolor: 'background.paper'
-              }}>
-                <img
-                  src={mainImage || product.images?.[0] || DEFAULT_IMAGE}
-                  alt={product.title}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain'
-                  }}
+            {/* Product Type Badge */}
+            {typeDisplay && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                <Chip
+                  icon={typeDisplay.icon}
+                  label={typeDisplay.label}
+                  color={typeDisplay.color}
+                  variant="filled"
+                  size="medium"
+                  sx={{ fontSize: '1rem', py: 1, px: 2 }}
                 />
               </Box>
+            )}
 
-              <Box sx={{
-                display: 'flex',
-                gap: 1,
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                maxWidth: '500px'
-              }}>
-                {(product.images && product.images.length > 0) ? product.images.map((image, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      width: '70px',
-                      height: '70px',
-                      borderRadius: 1,
-                      overflow: 'hidden',
-                      border: image === mainImage ? '2px solid #1976d2' : '2px solid transparent',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+            {/* Main content area with image on the left and details on the right */}
+            <Grid container spacing={4} sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+              {/* Product Images on the left */}
+              <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                <Box sx={{
+                  width: '100%',
+                  maxWidth: '500px',
+                  aspectRatio: '1/1',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  mb: 2,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                  bgcolor: 'background.paper'
+                }}>
+                  <img
+                    src={mainImage || product.images?.[0] || DEFAULT_IMAGE}
+                    alt={product.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain'
                     }}
-                    onClick={() => setMainImage(image)}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.title} view ${index + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Box>
-                )) : (
-                  <Box
-                    sx={{
-                      width: '70px',
-                      height: '70px',
-                      borderRadius: 1,
-                      overflow: 'hidden',
-                      border: '2px solid #1976d2',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <img
-                      src={DEFAULT_IMAGE}
-                      alt={`${product.title} default view`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  </Box>
-                )}
-              </Box>
-            </Grid>
-
-            {/* Product Details on the right */}
-            <Grid item xs={12} md={7} sx={{ pl: { xs: 0, md: 4 } }}>
-              <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
-                {/* Price and badges */}
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-                  {product?.purchaseType === 'BID' ? (
-                    <Box>
-                      <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
-                        Bid Product
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Submit your offer - no fixed price
-                      </Typography>
-                      {product.minBidAmount && (
-                        <Typography variant="body2" color="warning.dark" sx={{ mt: 0.5 }}>
-                          Minimum bid: ${parseFloat(product.minBidAmount).toFixed(2)}
-                        </Typography>
-                      )}
-                    </Box>
-                  ) : discountedPrice !== null && discountedPrice < product.price ? (
-                    <>
-                      <Typography
-                        variant="h4"
-                        component="div"
-                        sx={{ fontWeight: 'bold', color: 'blue' }}
-                      >
-                        ${discountedPrice?.toFixed(2) || "0.00"}
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        component="div"
-                        sx={{
-                          textDecoration: 'line-through',
-                          color: 'text.secondary',
-                          fontWeight: 'normal'
-                        }}
-                      >
-                        ${product.price?.toFixed(2) || "0.00"}
-                      </Typography>
-                      <Chip
-                        label={`${Math.round(((product.price - discountedPrice) / product.price) * 100)}% OFF`}
-                        color="error"
-                        size="small"
-                        sx={{ ml: 1 }}
-                      />
-                    </>
-                  ) : (
-                    <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
-                      ${product.price?.toFixed(2) || "0.00"}
-                      {loadingDiscount && (
-                        <Box
-                          component="span"
-                          sx={{
-                            ml: 1,
-                            display: 'inline-block',
-                            width: 16,
-                            height: 16,
-                            border: '2px solid currentColor',
-                            borderTop: '2px solid transparent',
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite',
-                            '@keyframes spin': {
-                              '0%': { transform: 'rotate(0deg)' },
-                              '100%': { transform: 'rotate(360deg)' }
-                            }
-                          }}
-                        />
-                      )}
-                    </Typography>
-                  )}
+                  />
                 </Box>
 
-                {/* Product Type Description */}
-                {typeDisplay && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {typeDisplay.description}
-                    </Typography>
-                  </Box>
-                )}
-
-                {/* Availability Info */}
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <InventoryIcon fontSize="small" color={product?.quantity > 0 ? 'success' : 'error'} />
-                    <Typography variant="body2" color={product?.quantity > 0 ? 'success.main' : 'error.main'}>
-                      {product?.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* Auction Status Info (for auction products) */}
-                {product?.purchaseType === 'AUCTION' && (
-                  <Box sx={{ mb: 3 }}>
-                    <Paper
-                      variant="outlined"
+                <Box sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  maxWidth: '500px'
+                }}>
+                  {(product.images && product.images.length > 0) ? product.images.map((image, index) => (
+                    <Box
+                      key={index}
                       sx={{
-                        p: 3,
-                        bgcolor: auctionEnded ? 'grey.50' : 'info.50',
-                        borderColor: auctionEnded ? 'grey.300' : 'info.200',
-                        border: '2px solid',
-                        borderRadius: 2
+                        width: '70px',
+                        height: '70px',
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: image === mainImage ? '2px solid #1976d2' : '2px solid transparent',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => setMainImage(image)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${product.title} view ${index + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </Box>
+                  )) : (
+                    <Box
+                      sx={{
+                        width: '70px',
+                        height: '70px',
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: '2px solid #1976d2',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                        <Typography variant="h6" color={auctionEnded ? 'text.secondary' : 'info.main'} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <GavelIcon />
-                          {auctionEnded ? 'Auction Ended' : 'Live Auction'}
+                      <img
+                        src={DEFAULT_IMAGE}
+                        alt={`${product.title} default view`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              </Grid>
+
+              {/* Product Details on the right */}
+              <Grid item xs={12} md={7} sx={{ pl: { xs: 0, md: 4 } }}>
+                <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
+                  {/* Price and badges */}
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
+                    {product?.purchaseType === 'BID' ? (
+                      <Box>
+                        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+                          Bid Product
                         </Typography>
-                        {auctionStatus && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={fetchAuctionStatus}
-                            disabled={refreshingAuctionStatus}
-                            sx={{ minWidth: 'auto', px: 1 }}
-                          >
-                            {refreshingAuctionStatus ? (
-                              <CircularProgress size={16} />
-                            ) : (
-                              '↻'
-                            )}
-                          </Button>
+                        <Typography variant="body2" color="text.secondary">
+                          Submit your offer - no fixed price
+                        </Typography>
+                        {product.minBidAmount && (
+                          <Typography variant="body2" color="warning.dark" sx={{ mt: 0.5 }}>
+                            Minimum bid: ${parseFloat(product.minBidAmount).toFixed(2)}
+                          </Typography>
                         )}
                       </Box>
-
-                      {auctionStatus ? (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          {/* Current Highest Bid */}
-                          <Box sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            p: 2,
-                            bgcolor: 'background.paper',
-                            borderRadius: 1,
-                            border: '1px solid',
-                            borderColor: 'divider'
-                          }}>
-                            <Typography variant="subtitle1" fontWeight="medium">
-                              Current Highest Bid
-                            </Typography>
-                            <Typography variant="h5" fontWeight="bold" color="primary.main">
-                              ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product.price).toFixed(2)}
-                            </Typography>
-                          </Box>
-
-                          {/* Starting Price */}
-                          {auctionStatus.startingPrice && (
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <Typography variant="body2" color="text.secondary">
-                                Starting Price
-                              </Typography>
-                              <Typography variant="body2" fontWeight="medium">
-                                ${auctionStatus.startingPrice.toFixed(2)}
-                              </Typography>
-                            </Box>
-                          )}
-
-                          {/* Time Left */}
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="body2" color="text.secondary">
-                              {auctionEnded ? 'Auction Status' : 'Time Remaining'}
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <AccessTimeIcon
-                                fontSize="small"
-                                color={getAuctionStatusColor(timeLeft)}
-                              />
-                              <Chip
-                                label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
-                                color={getAuctionStatusColor(timeLeft)}
-                                size="medium"
-                                sx={{ fontWeight: 'bold', minWidth: '120px' }}
-                              />
-                            </Box>
-                          </Box>
-
-                          {/* Additional auction info */}
-                          {auctionEnded && (
-                            <Box sx={{
-                              mt: 1,
-                              p: 2,
-                              bgcolor: 'warning.50',
-                              borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'warning.200'
-                            }}>
-                              <Typography variant="body2" color="warning.dark" sx={{ textAlign: 'center' }}>
-                                🏁 This auction has ended. No more bids can be placed.
-                              </Typography>
-                            </Box>
-                          )}
-
-                          {!auctionEnded && auctionStatus.currentMaxOffer > auctionStatus.startingPrice && (
-                            <Box sx={{
-                              mt: 1,
-                              p: 2,
-                              bgcolor: 'success.50',
-                              borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'success.200'
-                            }}>
-                              <Typography variant="body2" color="success.dark" sx={{ textAlign: 'center' }}>
-                                🔥 {((auctionStatus.currentMaxOffer - auctionStatus.startingPrice) / auctionStatus.startingPrice * 100).toFixed(1)}% above starting price!
-                              </Typography>
-                            </Box>
-                          )}
-                        </Box>
-                      ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <CircularProgress size={20} />
-                          <Typography variant="body2" color="text.secondary">
-                            Loading auction status...
-                          </Typography>
-                        </Box>
-                      )}
-                    </Paper>
-                  </Box>
-                )}
-
-                {/* Minimum Bid Info (for bid products) */}
-                {product?.purchaseType === 'BID' && product.minBidAmount && (
-                  <Box sx={{ mb: 3 }}>
-                    <Paper variant="outlined" sx={{ p: 2, bgcolor: 'warning.50', borderColor: 'warning.200' }}>
-                      <Typography variant="body2" color="warning.dark">
-                        <strong>Minimum Bid:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
-                      </Typography>
-                    </Paper>
-                  </Box>
-                )}
-
-                {/* Action Buttons - Type-specific */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
-                  {renderActionButtons()}
-
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    onClick={toggleWatchlist}
-                    sx={{
-                      minWidth: '60px',
-                      py: 1.5,
-                      borderColor: 'primary.main',
-                      color: isInWatchlist ? 'primary.main' : 'text.secondary',
-                      '&:hover': {
-                        borderColor: 'primary.dark',
-                        bgcolor: 'primary.50',
-                      }
-                    }}
-                  >
-                    {isInWatchlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                  </Button>
-                </Box>
-
-                <Divider sx={{ my: 4 }} />
-
-                {/* Product Tabs */}
-                <Box sx={{ width: '100%', mb: 4 }}>
-                  <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    aria-label="product details tabs"
-                    sx={{ mb: 3 }}
-                  >
-                    <Tab label="Details" />
-                    <Tab label="Shipping" />
-                    <Tab label="Returns" />
-                  </Tabs>
-
-                  {tabValue === 0 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Product Details
-                      </Typography>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                          <Paper variant="outlined" sx={{ p: 2 }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                              Specifications
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Type</Typography>
-                                <Typography variant="body2">{typeDisplay?.label || "Regular Product"}</Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Condition</Typography>
-                                <Typography variant="body2">{product.condition?.replace("_", " ") || "New"}</Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Category</Typography>
-                                <Typography variant="body2">{product.category || "Uncategorized"}</Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Brand</Typography>
-                                <Typography variant="body2">{product.brand || "Unbranded"}</Typography>
-                              </Box>
-                              {product.weight && (
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <Typography variant="body2" color="text.secondary">Weight</Typography>
-                                  <Typography variant="body2">{product.weight} kg</Typography>
-                                </Box>
-                              )}
-                            </Box>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <Paper variant="outlined" sx={{ p: 2 }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                              Seller Information
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                              <StoreIcon fontSize="small" sx={{ mr: 1 }} />
-                              <Typography variant="body2">
-                                {product.seller?.name || "MarketPlace Seller"}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Rating
-                                value={4.5}
-                                precision={0.5}
-                                readOnly
-                                size="small"
-                                sx={{ mr: 1 }}
-                              />
-                              <Typography variant="body2">
-                                4.5 (123 reviews)
-                              </Typography>
-                            </Box>
-                          </Paper>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  )}
-
-                  {tabValue === 1 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Shipping Information
-                      </Typography>
-                      <Paper variant="outlined" sx={{ p: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
-                          <LocalShippingIcon sx={{ mr: 1, mt: 0.5 }} />
-                          <Box>
-                            <Typography variant="subtitle2">
-                              Standard Shipping
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Estimated delivery: 3-5 business days
-                            </Typography>
-                            <Typography variant="body2" fontWeight="medium" sx={{ mt: 0.5 }}>
-                              {product.shipping_cost === 0
-                                ? "Free"
-                                : `$${product.shipping_cost?.toFixed(2) || "0.00"}`}
-                            </Typography>
-                          </Box>
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          All items are carefully packaged to ensure they arrive safely.
-                          Tracking information will be provided after your order is shipped.
-                        </Typography>
-                        <Button
-                          variant="text"
-                          endIcon={<ArrowForwardIcon />}
-                          sx={{ mt: 2 }}
+                    ) : discountedPrice !== null && discountedPrice < product.price ? (
+                      <>
+                        <Typography
+                          variant="h4"
+                          component="div"
+                          sx={{ fontWeight: 'bold', color: 'blue' }}
                         >
-                          View shipping policies
-                        </Button>
-                      </Paper>
-                    </Box>
-                  )}
-
-                  {tabValue === 2 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Return Policy
+                          ${discountedPrice?.toFixed(2) || "0.00"}
+                        </Typography>
+                        <Typography
+                          variant="h6"
+                          component="div"
+                          sx={{
+                            textDecoration: 'line-through',
+                            color: 'text.secondary',
+                            fontWeight: 'normal'
+                          }}
+                        >
+                          ${product.price?.toFixed(2) || "0.00"}
+                        </Typography>
+                        <Chip
+                          label={`${Math.round(((product.price - discountedPrice) / product.price) * 100)}% OFF`}
+                          color="error"
+                          size="small"
+                          sx={{ ml: 1 }}
+                        />
+                      </>
+                    ) : (
+                      <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
+                        ${product.price?.toFixed(2) || "0.00"}
+                        {loadingDiscount && (
+                          <Box
+                            component="span"
+                            sx={{
+                              ml: 1,
+                              display: 'inline-block',
+                              width: 16,
+                              height: 16,
+                              border: '2px solid currentColor',
+                              borderTop: '2px solid transparent',
+                              borderRadius: '50%',
+                              animation: 'spin 1s linear infinite',
+                              '@keyframes spin': {
+                                '0%': { transform: 'rotate(0deg)' },
+                                '100%': { transform: 'rotate(360deg)' }
+                              }
+                            }}
+                          />
+                        )}
                       </Typography>
-                      <Paper variant="outlined" sx={{ p: 2 }}>
-                        <Typography variant="body2" paragraph>
-                          We want you to be completely satisfied with your purchase. If you're not
-                          happy with your order for any reason, you can return it within 30 days
-                          of delivery.
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" paragraph>
-                          Items must be returned in the original packaging and in the same
-                          condition as when you received them. Please include a copy of your
-                          receipt or order confirmation.
-                        </Typography>
-                        <Typography variant="subtitle2">
-                          Return shipping:
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          The buyer is responsible for return shipping costs unless the item
-                          is defective or not as described.
+                    )}
+                  </Box>
+
+                  {/* Product Type Description */}
+                  {typeDisplay && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {typeDisplay.description}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Availability Info */}
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <InventoryIcon fontSize="small" color={product?.quantity > 0 ? 'success' : 'error'} />
+                      <Typography variant="body2" color={product?.quantity > 0 ? 'success.main' : 'error.main'}>
+                        {product?.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Auction Status Info (for auction products) */}
+                  {product?.purchaseType === 'AUCTION' && (
+                    <Box sx={{ mb: 3 }}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 3,
+                          bgcolor: auctionEnded ? 'grey.50' : 'info.50',
+                          borderColor: auctionEnded ? 'grey.300' : 'info.200',
+                          border: '2px solid',
+                          borderRadius: 2
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Typography variant="h6" color={auctionEnded ? 'text.secondary' : 'info.main'} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <GavelIcon />
+                            {auctionEnded ? 'Auction Ended' : 'Live Auction'}
+                          </Typography>
+                          {auctionStatus && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={fetchAuctionStatus}
+                              disabled={refreshingAuctionStatus}
+                              sx={{ minWidth: 'auto', px: 1 }}
+                            >
+                              {refreshingAuctionStatus ? (
+                                <CircularProgress size={16} />
+                              ) : (
+                                '↻'
+                              )}
+                            </Button>
+                          )}
+                        </Box>
+
+                        {auctionStatus ? (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {/* Current Highest Bid */}
+                            <Box sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              p: 2,
+                              bgcolor: 'background.paper',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'divider'
+                            }}>
+                              <Typography variant="subtitle1" fontWeight="medium">
+                                Current Highest Bid
+                              </Typography>
+                              <Typography variant="h5" fontWeight="bold" color="primary.main">
+                                ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product.price).toFixed(2)}
+                              </Typography>
+                            </Box>
+
+                            {/* Starting Price */}
+                            {auctionStatus.startingPrice && (
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Starting Price
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                  ${auctionStatus.startingPrice.toFixed(2)}
+                                </Typography>
+                              </Box>
+                            )}
+
+                            {/* Time Left */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {auctionEnded ? 'Auction Status' : 'Time Remaining'}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <AccessTimeIcon
+                                  fontSize="small"
+                                  color={getAuctionStatusColor(timeLeft)}
+                                />
+                                <Chip
+                                  label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
+                                  color={getAuctionStatusColor(timeLeft)}
+                                  size="medium"
+                                  sx={{ fontWeight: 'bold', minWidth: '120px' }}
+                                />
+                              </Box>
+                            </Box>
+
+                            {/* Additional auction info */}
+                            {auctionEnded && (
+                              <Box sx={{
+                                mt: 1,
+                                p: 2,
+                                bgcolor: 'warning.50',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'warning.200'
+                              }}>
+                                <Typography variant="body2" color="warning.dark" sx={{ textAlign: 'center' }}>
+                                  🏁 This auction has ended. No more bids can be placed.
+                                </Typography>
+                              </Box>
+                            )}
+
+                            {!auctionEnded && auctionStatus.currentMaxOffer > auctionStatus.startingPrice && (
+                              <Box sx={{
+                                mt: 1,
+                                p: 2,
+                                bgcolor: 'success.50',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'success.200'
+                              }}>
+                                <Typography variant="body2" color="success.dark" sx={{ textAlign: 'center' }}>
+                                  🔥 {((auctionStatus.currentMaxOffer - auctionStatus.startingPrice) / auctionStatus.startingPrice * 100).toFixed(1)}% above starting price!
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <CircularProgress size={20} />
+                            <Typography variant="body2" color="text.secondary">
+                              Loading auction status...
+                            </Typography>
+                          </Box>
+                        )}
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* Minimum Bid Info (for bid products) */}
+                  {product?.purchaseType === 'BID' && product.minBidAmount && (
+                    <Box sx={{ mb: 3 }}>
+                      <Paper variant="outlined" sx={{ p: 2, bgcolor: 'warning.50', borderColor: 'warning.200' }}>
+                        <Typography variant="body2" color="warning.dark">
+                          <strong>Minimum Bid:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
                         </Typography>
                       </Paper>
                     </Box>
                   )}
-                </Box>
-              </Paper>
-            </Grid>
-            <Grid item xs={false} md={1} />
-          </Grid>
 
-          {/* Related Products Section */}
-          {/* <FeaturedSection 
+                  {/* Action Buttons - Type-specific */}
+                  <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
+                    {renderActionButtons()}
+
+                    <Button
+                      variant="outlined"
+                      size="large"
+                      onClick={toggleWatchlist}
+                      sx={{
+                        minWidth: '60px',
+                        py: 1.5,
+                        borderColor: 'primary.main',
+                        color: isInWatchlist ? 'primary.main' : 'text.secondary',
+                        '&:hover': {
+                          borderColor: 'primary.dark',
+                          bgcolor: 'primary.50',
+                        }
+                      }}
+                    >
+                      {isInWatchlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    </Button>
+                  </Box>
+
+                  <Divider sx={{ my: 4 }} />
+
+                  {/* Product Tabs */}
+                  <Box sx={{ width: '100%', mb: 4 }}>
+                    <Tabs
+                      value={tabValue}
+                      onChange={handleTabChange}
+                      aria-label="product details tabs"
+                      sx={{ mb: 3 }}
+                    >
+                      <Tab label="Details" />
+                      <Tab label="Shipping" />
+                      <Tab label="Returns" />
+                    </Tabs>
+
+                    {tabValue === 0 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Product Details
+                        </Typography>
+                        <Grid container spacing={3}>
+                          <Grid item xs={12} md={6}>
+                            <Paper variant="outlined" sx={{ p: 2 }}>
+                              <Typography variant="subtitle2" gutterBottom>
+                                Specifications
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Type</Typography>
+                                  <Typography variant="body2">{typeDisplay?.label || "Regular Product"}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Condition</Typography>
+                                  <Typography variant="body2">{product.condition?.replace("_", " ") || "New"}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Category</Typography>
+                                  <Typography variant="body2">{product.category || "Uncategorized"}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Brand</Typography>
+                                  <Typography variant="body2">{product.brand || "Unbranded"}</Typography>
+                                </Box>
+                                {product.weight && (
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="body2" color="text.secondary">Weight</Typography>
+                                    <Typography variant="body2">{product.weight} kg</Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Paper>
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <Paper variant="outlined" sx={{ p: 2 }}>
+                              <Typography variant="subtitle2" gutterBottom>
+                                Seller Information
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <StoreIcon fontSize="small" sx={{ mr: 1 }} />
+                                <Typography variant="body2">
+                                  {product.seller?.name || "MarketPlace Seller"}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Rating
+                                  value={4.5}
+                                  precision={0.5}
+                                  readOnly
+                                  size="small"
+                                  sx={{ mr: 1 }}
+                                />
+                                <Typography variant="body2">
+                                  4.5 (123 reviews)
+                                </Typography>
+                              </Box>
+                            </Paper>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    )}
+
+                    {tabValue === 1 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Shipping Information
+                        </Typography>
+                        <Paper variant="outlined" sx={{ p: 2 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                            <LocalShippingIcon sx={{ mr: 1, mt: 0.5 }} />
+                            <Box>
+                              <Typography variant="subtitle2">
+                                Standard Shipping
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Estimated delivery: 3-5 business days
+                              </Typography>
+                              <Typography variant="body2" fontWeight="medium" sx={{ mt: 0.5 }}>
+                                {product.shipping_cost === 0
+                                  ? "Free"
+                                  : `$${product.shipping_cost?.toFixed(2) || "0.00"}`}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            All items are carefully packaged to ensure they arrive safely.
+                            Tracking information will be provided after your order is shipped.
+                          </Typography>
+                          <Button
+                            variant="text"
+                            endIcon={<ArrowForwardIcon />}
+                            sx={{ mt: 2 }}
+                          >
+                            View shipping policies
+                          </Button>
+                        </Paper>
+                      </Box>
+                    )}
+
+                    {tabValue === 2 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Return Policy
+                        </Typography>
+                        <Paper variant="outlined" sx={{ p: 2 }}>
+                          <Typography variant="body2" paragraph>
+                            We want you to be completely satisfied with your purchase. If you're not
+                            happy with your order for any reason, you can return it within 30 days
+                            of delivery.
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            Items must be returned in the original packaging and in the same
+                            condition as when you received them. Please include a copy of your
+                            receipt or order confirmation.
+                          </Typography>
+                          <Typography variant="subtitle2">
+                            Return shipping:
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            The buyer is responsible for return shipping costs unless the item
+                            is defective or not as described.
+                          </Typography>
+                        </Paper>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+              <Grid item xs={false} md={1} />
+            </Grid>
+
+            {/* Related Products Section */}
+            {/* <FeaturedSection 
           title="You may also like" 
           subtitle="Similar products you might be interested in" 
           limit={4} 
         /> */}
-        </div>
+          </div>
 
-        {/* Bid Dialog */}
-        <Dialog open={showBidDialog} onClose={() => setShowBidDialog(false)} maxWidth="md" fullWidth>
-          <DialogTitle>Place Your Bid</DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your bid details for "{product?.title}". Your bid will be reviewed by the seller.
-              If your bid is approved, we'll use the shipping and payment information provided to complete your purchase.
-            </Typography>
-
-            {product?.minBidAmount && (
-              <Box sx={{ mb: 3, p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
-                <Typography variant="body2" color="warning.dark">
-                  <strong>Minimum bid required:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
-                </Typography>
-              </Box>
-            )}
-
-            <Grid container spacing={2}>
-              {/* Bid Amount */}
-              <Grid item xs={12}>
-                <TextField
-                  label="Bid Amount ($)"
-                  type="number"
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value)}
-                  fullWidth
-                  inputProps={{
-                    min: product?.minBidAmount || "0.01",
-                    step: "0.01"
-                  }}
-                  helperText={
-                    product?.minBidAmount
-                      ? `Must be at least $${parseFloat(product.minBidAmount).toFixed(2)}`
-                      : "Enter your bid amount"
-                  }
-                  required
-                />
-              </Grid>
-
-              {/* Shipping Address Section */}
-              <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="h6">
-                    Shipping Address
-                  </Typography>
-                </Box>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  name="fullName"
-                  value={bidShippingAddress.fullName}
-                  onChange={handleBidShippingAddressChange}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address Line 1"
-                  name="addressLine1"
-                  value={bidShippingAddress.addressLine1}
-                  onChange={handleBidShippingAddressChange}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address Line 2 (Optional)"
-                  name="addressLine2"
-                  value={bidShippingAddress.addressLine2}
-                  onChange={handleBidShippingAddressChange}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="City"
-                  name="city"
-                  value={bidShippingAddress.city}
-                  onChange={handleBidShippingAddressChange}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="State/Province"
-                  name="state"
-                  value={bidShippingAddress.state}
-                  onChange={handleBidShippingAddressChange}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Postal Code"
-                  name="postalCode"
-                  value={bidShippingAddress.postalCode}
-                  onChange={handleBidShippingAddressChange}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Country"
-                  name="country"
-                  value={bidShippingAddress.country}
-                  onChange={handleBidShippingAddressChange}
-                  required
-                />
-              </Grid>
-
-              {/* Payment Method Section */}
-              <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <CreditCardIcon sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="h6">
-                    Payment Method
-                  </Typography>
-                </Box>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-                  <FormControl component="fieldset">
-                    <RadioGroup
-                      value={bidPaymentMethod}
-                      onChange={handleBidPaymentMethodChange}
-                    >
-                      <FormControlLabel
-                        value="credit"
-                        control={<Radio />}
-                        label={
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <CreditCardIcon sx={{ mr: 1 }} />
-                            Credit Card
-                          </Box>
-                        }
-                      />
-                      <FormControlLabel
-                        value="paypal"
-                        control={<Radio />}
-                        label={
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <img
-                              src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
-                              alt="PayPal"
-                              style={{ height: 18, marginRight: 8 }}
-                            />
-                            PayPal
-                          </Box>
-                        }
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                </Paper>
-              </Grid>
-
-              {/* Credit Card Details (shown only if credit card is selected) */}
-              {bidPaymentMethod === "credit" && (
-                <>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Name on Card"
-                      name="cardName"
-                      value={bidCardDetails.cardName}
-                      onChange={handleBidCardDetailsChange}
-                      required
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Card Number"
-                      name="cardNumber"
-                      value={bidCardDetails.cardNumber}
-                      onChange={handleBidCardDetailsChange}
-                      required
-                      inputProps={{ maxLength: 19 }}
-                      placeholder="0000 0000 0000 0000"
-                    />
-                  </Grid>
-
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Expiry Date"
-                      name="expiryDate"
-                      value={bidCardDetails.expiryDate}
-                      onChange={handleBidCardDetailsChange}
-                      required
-                      placeholder="MM/YY"
-                      inputProps={{ maxLength: 5 }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="CVV"
-                      name="cvv"
-                      value={bidCardDetails.cvv}
-                      onChange={handleBidCardDetailsChange}
-                      required
-                      inputProps={{ maxLength: 4 }}
-                      type="password"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-                      <SecurityIcon fontSize="small" sx={{ mr: 1 }} />
-                      <Typography variant="caption">
-                        Your payment information is secure and encrypted
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </>
-              )}
-            </Grid>
-
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
-              <Typography variant="body2" color="info.dark">
-                <strong>Note:</strong> By submitting this bid, you agree to purchase this item at your bid price if approved.
-                Your payment and shipping information will be used to complete the transaction.
+          {/* Bid Dialog */}
+          <Dialog open={showBidDialog} onClose={() => setShowBidDialog(false)} maxWidth="md" fullWidth>
+            <DialogTitle>Place Your Bid</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Enter your bid details for "{product?.title}". Your bid will be reviewed by the seller.
+                If your bid is approved, we'll use the shipping and payment information provided to complete your purchase.
               </Typography>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowBidDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleBidSubmit}
-              variant="contained"
-              disabled={submittingBid}
-              startIcon={submittingBid ? <CircularProgress size={16} /> : <GavelIcon />}
-            >
-              {submittingBid ? 'Submitting...' : 'Submit Bid'}
-            </Button>
-          </DialogActions>
-        </Dialog>
 
-        {/* Auction Offer Dialog */}
-        <Dialog open={showOfferDialog} onClose={() => setShowOfferDialog(false)} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TrendingUpIcon color="primary" />
-            Place Your Offer
-            {auctionEnded && (
-              <Chip label="ENDED" color="error" size="small" />
-            )}
-          </DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your offer details for "{product?.title}". Your offer must be higher than the current highest bid.
-              If your offer wins the auction, we'll use the shipping and payment information provided to complete your purchase.
-            </Typography>
-
-            {/* Auction Status Summary */}
-            {auctionStatus && (
-              <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: auctionEnded ? 'grey.50' : 'success.50' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      Current Highest Bid
-                    </Typography>
-                    <Typography variant="h6" color="primary.main" fontWeight="bold">
-                      ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product?.price || 0).toFixed(2)}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Time Remaining
-                    </Typography>
-                    <Chip
-                      label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
-                      color={getAuctionStatusColor(timeLeft)}
-                      size="small"
-                      sx={{ fontWeight: 'bold' }}
-                    />
-                  </Box>
-
-                  {auctionStatus.startingPrice && (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Starting Price
-                      </Typography>
-                      <Typography variant="body2">
-                        ${auctionStatus.startingPrice.toFixed(2)}
-                      </Typography>
-                    </Box>
-                  )}
+              {product?.minBidAmount && (
+                <Box sx={{ mb: 3, p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
+                  <Typography variant="body2" color="warning.dark">
+                    <strong>Minimum bid required:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
+                  </Typography>
                 </Box>
-              </Paper>
-            )}
+              )}
 
-            {auctionEnded ? (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                This auction has ended. No more offers can be placed.
-              </Alert>
-            ) : (
               <Grid container spacing={2}>
-                {/* Offer Amount */}
+                {/* Bid Amount */}
                 <Grid item xs={12}>
                   <TextField
-                    label="Offer Amount ($)"
+                    label="Bid Amount ($)"
                     type="number"
-                    value={offerAmount}
-                    onChange={(e) => setOfferAmount(e.target.value)}
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
                     fullWidth
                     inputProps={{
-                      min: ((auctionStatus?.currentMaxOffer || product?.price || 0) + 0.01).toFixed(2),
+                      min: product?.minBidAmount || "0.01",
                       step: "0.01"
                     }}
-                    helperText={`Must be higher than $${(auctionStatus?.currentMaxOffer || product?.price || 0).toFixed(2)}`}
-                    error={parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
+                    helperText={
+                      product?.minBidAmount
+                        ? `Must be at least $${parseFloat(product.minBidAmount).toFixed(2)}`
+                        : "Enter your bid amount"
+                    }
                     required
                   />
                 </Grid>
@@ -2194,8 +1873,8 @@ export default function ProductDetail() {
                     fullWidth
                     label="Full Name"
                     name="fullName"
-                    value={offerShippingAddress.fullName}
-                    onChange={handleOfferShippingAddressChange}
+                    value={bidShippingAddress.fullName}
+                    onChange={handleBidShippingAddressChange}
                     required
                   />
                 </Grid>
@@ -2205,8 +1884,8 @@ export default function ProductDetail() {
                     fullWidth
                     label="Address Line 1"
                     name="addressLine1"
-                    value={offerShippingAddress.addressLine1}
-                    onChange={handleOfferShippingAddressChange}
+                    value={bidShippingAddress.addressLine1}
+                    onChange={handleBidShippingAddressChange}
                     required
                   />
                 </Grid>
@@ -2216,8 +1895,8 @@ export default function ProductDetail() {
                     fullWidth
                     label="Address Line 2 (Optional)"
                     name="addressLine2"
-                    value={offerShippingAddress.addressLine2}
-                    onChange={handleOfferShippingAddressChange}
+                    value={bidShippingAddress.addressLine2}
+                    onChange={handleBidShippingAddressChange}
                   />
                 </Grid>
 
@@ -2226,8 +1905,8 @@ export default function ProductDetail() {
                     fullWidth
                     label="City"
                     name="city"
-                    value={offerShippingAddress.city}
-                    onChange={handleOfferShippingAddressChange}
+                    value={bidShippingAddress.city}
+                    onChange={handleBidShippingAddressChange}
                     required
                   />
                 </Grid>
@@ -2237,8 +1916,8 @@ export default function ProductDetail() {
                     fullWidth
                     label="State/Province"
                     name="state"
-                    value={offerShippingAddress.state}
-                    onChange={handleOfferShippingAddressChange}
+                    value={bidShippingAddress.state}
+                    onChange={handleBidShippingAddressChange}
                     required
                   />
                 </Grid>
@@ -2248,8 +1927,8 @@ export default function ProductDetail() {
                     fullWidth
                     label="Postal Code"
                     name="postalCode"
-                    value={offerShippingAddress.postalCode}
-                    onChange={handleOfferShippingAddressChange}
+                    value={bidShippingAddress.postalCode}
+                    onChange={handleBidShippingAddressChange}
                     required
                   />
                 </Grid>
@@ -2259,8 +1938,8 @@ export default function ProductDetail() {
                     fullWidth
                     label="Country"
                     name="country"
-                    value={offerShippingAddress.country}
-                    onChange={handleOfferShippingAddressChange}
+                    value={bidShippingAddress.country}
+                    onChange={handleBidShippingAddressChange}
                     required
                   />
                 </Grid>
@@ -2280,8 +1959,8 @@ export default function ProductDetail() {
                   <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
                     <FormControl component="fieldset">
                       <RadioGroup
-                        value={offerPaymentMethod}
-                        onChange={handleOfferPaymentMethodChange}
+                        value={bidPaymentMethod}
+                        onChange={handleBidPaymentMethodChange}
                       >
                         <FormControlLabel
                           value="credit"
@@ -2313,15 +1992,15 @@ export default function ProductDetail() {
                 </Grid>
 
                 {/* Credit Card Details (shown only if credit card is selected) */}
-                {offerPaymentMethod === "credit" && (
+                {bidPaymentMethod === "credit" && (
                   <>
                     <Grid item xs={12}>
                       <TextField
                         fullWidth
                         label="Name on Card"
                         name="cardName"
-                        value={offerCardDetails.cardName}
-                        onChange={handleOfferCardDetailsChange}
+                        value={bidCardDetails.cardName}
+                        onChange={handleBidCardDetailsChange}
                         required
                       />
                     </Grid>
@@ -2331,8 +2010,8 @@ export default function ProductDetail() {
                         fullWidth
                         label="Card Number"
                         name="cardNumber"
-                        value={offerCardDetails.cardNumber}
-                        onChange={handleOfferCardDetailsChange}
+                        value={bidCardDetails.cardNumber}
+                        onChange={handleBidCardDetailsChange}
                         required
                         inputProps={{ maxLength: 19 }}
                         placeholder="0000 0000 0000 0000"
@@ -2344,8 +2023,8 @@ export default function ProductDetail() {
                         fullWidth
                         label="Expiry Date"
                         name="expiryDate"
-                        value={offerCardDetails.expiryDate}
-                        onChange={handleOfferCardDetailsChange}
+                        value={bidCardDetails.expiryDate}
+                        onChange={handleBidCardDetailsChange}
                         required
                         placeholder="MM/YY"
                         inputProps={{ maxLength: 5 }}
@@ -2357,8 +2036,8 @@ export default function ProductDetail() {
                         fullWidth
                         label="CVV"
                         name="cvv"
-                        value={offerCardDetails.cvv}
-                        onChange={handleOfferCardDetailsChange}
+                        value={bidCardDetails.cvv}
+                        onChange={handleBidCardDetailsChange}
                         required
                         inputProps={{ maxLength: 4 }}
                         type="password"
@@ -2375,86 +2054,383 @@ export default function ProductDetail() {
                     </Grid>
                   </>
                 )}
-
-                <Grid item xs={12}>
-                  <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
-                    <Typography variant="body2" color="info.dark">
-                      <strong>Note:</strong> By submitting this offer, you agree to purchase this item at your offer price if you win the auction.
-                      Your payment and shipping information will be used to complete the transaction if you are the highest bidder when the auction ends.
-                    </Typography>
-                  </Box>
-                </Grid>
               </Grid>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowOfferDialog(false)}>Cancel</Button>
-            {!auctionEnded && (
+
+              <Box sx={{ mt: 3, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="info.dark">
+                  <strong>Note:</strong> By submitting this bid, you agree to purchase this item at your bid price if approved.
+                  Your payment and shipping information will be used to complete the transaction.
+                </Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowBidDialog(false)}>Cancel</Button>
               <Button
-                onClick={handleOfferSubmit}
+                onClick={handleBidSubmit}
                 variant="contained"
-                disabled={submittingOffer || parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
-                startIcon={submittingOffer ? <CircularProgress size={16} /> : <TrendingUpIcon />}
+                disabled={submittingBid}
+                startIcon={submittingBid ? <CircularProgress size={16} /> : <GavelIcon />}
               >
-                {submittingOffer ? 'Submitting...' : 'Submit Offer'}
+                {submittingBid ? 'Submitting...' : 'Submit Bid'}
               </Button>
-            )}
-          </DialogActions>
-        </Dialog>
+            </DialogActions>
+          </Dialog>
 
-        {/* Raffle Dialog */}
-        <Dialog open={showRaffleDialog} onClose={() => setShowRaffleDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Join Raffle</DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Join the raffle for "{product?.title}" for a chance to win at the listed price of ${product?.price?.toFixed(2)}.
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              How it works:
-            </Typography>
-            <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 2 }}>
-              <li>Enter the raffle by clicking "Join"</li>
-              <li>Wait for the raffle period to end</li>
-              <li>Winners are selected randomly</li>
-              <li>If you win, you'll be notified and can complete the purchase</li>
-            </Typography>
-            <Typography variant="body2" color="warning.main">
-              Note: Raffle functionality is currently in development.
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowRaffleDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleRaffleJoin}
-              variant="contained"
-              disabled={joiningRaffle}
-              startIcon={joiningRaffle ? <CircularProgress size={16} /> : <CasinoIcon />}
-            >
-              {joiningRaffle ? 'Joining...' : 'Join Raffle'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+          {/* Auction Offer Dialog */}
+          <Dialog open={showOfferDialog} onClose={() => setShowOfferDialog(false)} maxWidth="md" fullWidth>
+            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <TrendingUpIcon color="primary" />
+              Place Your Offer
+              {auctionEnded && (
+                <Chip label="ENDED" color="error" size="small" />
+              )}
+            </DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Enter your offer details for "{product?.title}". Your offer must be higher than the current highest bid.
+                If your offer wins the auction, we'll use the shipping and payment information provided to complete your purchase.
+              </Typography>
 
-        {/* Mini Cart and Auth Dialog with conditional rendering */}
-        {showMiniCart && <MiniCart cart={cart} onClose={() => setShowMiniCart(false)} />}
-        {showAuthDialog && <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+              {/* Auction Status Summary */}
+              {auctionStatus && (
+                <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: auctionEnded ? 'grey.50' : 'success.50' }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        Current Highest Bid
+                      </Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight="bold">
+                        ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product?.price || 0).toFixed(2)}
+                      </Typography>
+                    </Box>
 
-        {/* Snackbar for notifications */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Time Remaining
+                      </Typography>
+                      <Chip
+                        label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
+                        color={getAuctionStatusColor(timeLeft)}
+                        size="small"
+                        sx={{ fontWeight: 'bold' }}
+                      />
+                    </Box>
+
+                    {auctionStatus.startingPrice && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Starting Price
+                        </Typography>
+                        <Typography variant="body2">
+                          ${auctionStatus.startingPrice.toFixed(2)}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              )}
+
+              {auctionEnded ? (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  This auction has ended. No more offers can be placed.
+                </Alert>
+              ) : (
+                <Grid container spacing={2}>
+                  {/* Offer Amount */}
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Offer Amount ($)"
+                      type="number"
+                      value={offerAmount}
+                      onChange={(e) => setOfferAmount(e.target.value)}
+                      fullWidth
+                      inputProps={{
+                        min: ((auctionStatus?.currentMaxOffer || product?.price || 0) + 0.01).toFixed(2),
+                        step: "0.01"
+                      }}
+                      helperText={`Must be higher than $${(auctionStatus?.currentMaxOffer || product?.price || 0).toFixed(2)}`}
+                      error={parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
+                      required
+                    />
+                  </Grid>
+
+                  {/* Shipping Address Section */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
+                      <Typography variant="h6">
+                        Shipping Address
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      name="fullName"
+                      value={offerShippingAddress.fullName}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Address Line 1"
+                      name="addressLine1"
+                      value={offerShippingAddress.addressLine1}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Address Line 2 (Optional)"
+                      name="addressLine2"
+                      value={offerShippingAddress.addressLine2}
+                      onChange={handleOfferShippingAddressChange}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="City"
+                      name="city"
+                      value={offerShippingAddress.city}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="State/Province"
+                      name="state"
+                      value={offerShippingAddress.state}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Postal Code"
+                      name="postalCode"
+                      value={offerShippingAddress.postalCode}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Country"
+                      name="country"
+                      value={offerShippingAddress.country}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  {/* Payment Method Section */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <CreditCardIcon sx={{ mr: 1, color: 'primary.main' }} />
+                      <Typography variant="h6">
+                        Payment Method
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                      <FormControl component="fieldset">
+                        <RadioGroup
+                          value={offerPaymentMethod}
+                          onChange={handleOfferPaymentMethodChange}
+                        >
+                          <FormControlLabel
+                            value="credit"
+                            control={<Radio />}
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <CreditCardIcon sx={{ mr: 1 }} />
+                                Credit Card
+                              </Box>
+                            }
+                          />
+                          <FormControlLabel
+                            value="paypal"
+                            control={<Radio />}
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <img
+                                  src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
+                                  alt="PayPal"
+                                  style={{ height: 18, marginRight: 8 }}
+                                />
+                                PayPal
+                              </Box>
+                            }
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </Paper>
+                  </Grid>
+
+                  {/* Credit Card Details (shown only if credit card is selected) */}
+                  {offerPaymentMethod === "credit" && (
+                    <>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Name on Card"
+                          name="cardName"
+                          value={offerCardDetails.cardName}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Card Number"
+                          name="cardNumber"
+                          value={offerCardDetails.cardNumber}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                          inputProps={{ maxLength: 19 }}
+                          placeholder="0000 0000 0000 0000"
+                        />
+                      </Grid>
+
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Expiry Date"
+                          name="expiryDate"
+                          value={offerCardDetails.expiryDate}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                          placeholder="MM/YY"
+                          inputProps={{ maxLength: 5 }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="CVV"
+                          name="cvv"
+                          value={offerCardDetails.cvv}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                          inputProps={{ maxLength: 4 }}
+                          type="password"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                          <SecurityIcon fontSize="small" sx={{ mr: 1 }} />
+                          <Typography variant="caption">
+                            Your payment information is secure and encrypted
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </>
+                  )}
+
+                  <Grid item xs={12}>
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+                      <Typography variant="body2" color="info.dark">
+                        <strong>Note:</strong> By submitting this offer, you agree to purchase this item at your offer price if you win the auction.
+                        Your payment and shipping information will be used to complete the transaction if you are the highest bidder when the auction ends.
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowOfferDialog(false)}>Cancel</Button>
+              {!auctionEnded && (
+                <Button
+                  onClick={handleOfferSubmit}
+                  variant="contained"
+                  disabled={submittingOffer || parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
+                  startIcon={submittingOffer ? <CircularProgress size={16} /> : <TrendingUpIcon />}
+                >
+                  {submittingOffer ? 'Submitting...' : 'Submit Offer'}
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
+
+          {/* Raffle Dialog */}
+          <Dialog open={showRaffleDialog} onClose={() => setShowRaffleDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>Join Raffle</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Join the raffle for "{product?.title}" for a chance to win at the listed price of ${product?.price?.toFixed(2)}.
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                How it works:
+              </Typography>
+              <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 2 }}>
+                <li>Enter the raffle by clicking "Join"</li>
+                <li>Wait for the raffle period to end</li>
+                <li>Winners are selected randomly</li>
+                <li>If you win, you'll be notified and can complete the purchase</li>
+              </Typography>
+              <Typography variant="body2" color="warning.main">
+                Note: Raffle functionality is currently in development.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowRaffleDialog(false)}>Cancel</Button>
+              <Button
+                onClick={handleRaffleJoin}
+                variant="contained"
+                disabled={joiningRaffle}
+                startIcon={joiningRaffle ? <CircularProgress size={16} /> : <CasinoIcon />}
+              >
+                {joiningRaffle ? 'Joining...' : 'Join Raffle'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Mini Cart and Auth Dialog with conditional rendering */}
+          {showMiniCart && <MiniCart cart={cart} onClose={() => setShowMiniCart(false)} />}
+          {showAuthDialog && <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+
+          {/* Snackbar for notifications */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
             onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
-            variant="filled"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </main>
+            <Alert
+              onClose={() => setSnackbar({ ...snackbar, open: false })}
+              severity={snackbar.severity}
+              variant="filled"
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </main>
       </Box>
     </Box>
   );

@@ -494,8 +494,8 @@ export default function Profile() {
 		try {
 			await storeService.createStore({
 				storeName: storeName,
-				founderId: currentUser.userName,
-				description: "New store"
+				founderId: currentUser.userName
+				// description: "New store"
 			});
 			toast({ title: "Success", description: "Store created successfully" });
 			loadUserManagedStores(); // Refresh managed stores
@@ -1235,7 +1235,7 @@ export default function Profile() {
 												</TableRow>
 											</TableHead>
 											<TableBody>
-												{suspendedUsers.length > 0 && Object.values(allUsers).filter(user => 
+												{suspendedUsers.length > 0 && Object.values(allUsers).filter(user =>
 													suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase())
 												).map((user) => (
 													<TableRow key={user.username}>
