@@ -172,7 +172,9 @@ public class StoreService {
             suspentionRepository.checkNotSuspended(appointerID);// check if appointer is suspended
             suspentionRepository.checkNotSuspended(newOwnerID);// check if newOwner is suspended
             Store s = storeRepository.getStoreByID(storeID);
+            System.out.println("Founder " + appointerID + " added new owner: " + newOwnerID + " to store: " + storeID);
             if (s == null) {
+                System.out.println("Store doesn't exist owner");
                 logger.debug("Attempted to add owner to non-existent store: " + storeID);
                 throw new IllegalArgumentException("store doesn't exist");
             }
@@ -209,6 +211,7 @@ public class StoreService {
             suspentionRepository.checkNotSuspended(appointerID);// check if user is suspended
             suspentionRepository.checkNotSuspended(newOwnerId);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
+            System.out.println("Founder " + appointerID + " added new owner: " + newOwnerId + " to store: " + storeID);
             if (s == null)
                 throw new IllegalArgumentException("store doesn't exist");
 
@@ -289,10 +292,12 @@ public class StoreService {
      */
     public Void addNewManager(String appointerID, String newManagerName, String storeID){
         try{
+            System.out.println("Adding new manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
             suspentionRepository.checkNotSuspended(appointerID);// check if user is suspended
             suspentionRepository.checkNotSuspended(newManagerName);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null){
+                System.out.println("Store doesn't exist manager");
                 logger.debug("Attempted to add manager to non-existent store: " + storeID);
                 throw new IllegalArgumentException("store doesn't exist");
             }
@@ -477,11 +482,16 @@ public class StoreService {
      */
     public String addNewListing(String userName, String storeID, String productId, String productName, String productCategory, String productDescription, int quantity, double price, String purchaseType) {
         try {
+
+            System.out.println("Adding new listing: " + productName + " to store: " + storeID + ", by: " + userName + " with purchase type: " + purchaseType);
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
-            if (s == null)
+            if (s == null){
+                System.out.println("Store doesn't exist");
                 throw new IllegalArgumentException("Store doesn't exist");
-            logger.info("Added new listing: " + productName + " to store: " + storeID + ", by: " + userName + " with purchase type: " + purchaseType);
+            
+            }
+            logger.info("Added new listing 2 " + productName);
             return s.addNewListing(userName, productId, productName, productCategory, productDescription, quantity, price, purchaseType);
         } catch (Exception e) {
             logger.error("Error adding listing: " + productName + " to store: " + storeID + ". Reason: " + e.getMessage());

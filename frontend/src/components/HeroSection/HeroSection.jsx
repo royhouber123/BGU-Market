@@ -33,6 +33,7 @@ export default function HeroSection() {
 						<Stack
 							direction={{ xs: 'column', sm: 'row' }}
 							spacing={2}
+							p={2}
 						>
 							<Button
 								variant="contained"
@@ -40,16 +41,6 @@ export default function HeroSection() {
 								className="hero-section-shop-btn"
 							>
 								Shop Now
-							</Button>
-							<Button
-								component={Link}
-								to={createPageUrl("Dashboard")}
-								variant="outlined"
-								size="large"
-								endIcon={<ArrowRightAltIcon />}
-								className="hero-section-sell-btn"
-							>
-								Sell Your Items
 							</Button>
 						</Stack>
 					</Box>

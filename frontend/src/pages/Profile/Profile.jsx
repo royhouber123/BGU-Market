@@ -344,6 +344,19 @@ export default function Profile() {
 		}
 	}, [isAdmin, toast]);
 
+	const loadSuspendedUsers = useCallback(async () => {
+		if (!isAdmin) return;
+		try {
+			const suspendedUserIds = await adminService.getSuspendedUsers();
+			console.log("admin suspended users: ", suspendedUserIds);
+			setSuspendedUsers(suspendedUserIds);
+			console.log('Loaded suspended users:', suspendedUserIds);
+		} catch (error) {
+			console.error("Error loading suspended users:", error);
+			toast({ title: "Error", description: "Failed to load suspended users", variant: "destructive" });
+		}
+	}, [isAdmin, toast]);
+
 	const loadAllUsers = useCallback(async () => {
 		if (!isAdmin) return;
 		setAdminLoading(true);
@@ -358,28 +371,9 @@ export default function Profile() {
 		} finally {
 			setAdminLoading(false);
 		}
-	}, [isAdmin, toast]);
-
-	const loadSuspendedUsers = useCallback(async () => {
-		if (!isAdmin) return;
-		try {
-			const suspendedUserIds = await adminService.getSuspendedUsers();
-			console.log("admin suspended users: ", suspendedUserIds);
-			setSuspendedUsers(suspendedUserIds);
-			console.log('Loaded suspended users:', suspendedUserIds);
-		} catch (error) {
-			console.error("Error loading suspended users:", error);
-			toast({ title: "Error", description: "Failed to load suspended users", variant: "destructive" });
-		}
-	}, [isAdmin, toast]);
-
-	useEffect(() => {
-		if (!currentUser) {
-			setAuthOpen(true);
-			return;
-		}
+		loadSuspendedUsers();
 		loadProfileData();
-	}, [currentUser, loadProfileData]);
+	}, [currentUser, loadProfileData, loadSuspendedUsers]);
 
 	useEffect(() => {
 		if (purchaseHistory.length > 0) {
@@ -392,9 +386,16 @@ export default function Profile() {
 	// Load admin data when admin tab is selected
 	useEffect(() => {
 		if (isAdmin && activeTab === 3) {
-			loadAllStores();
-			loadAllUsers();
-			loadSuspendedUsers();
+			// Load suspended users first, so we can highlight them in the users list
+			loadSuspendedUsers().then(() => {
+				loadAllStores();
+				loadAllUsers();
+			}).catch(error => {
+				console.error("Error loading suspended users:", error);
+				// Continue with loading other data even if suspended users fails
+				loadAllStores();
+				loadAllUsers();
+			});
 		}
 	}, [isAdmin, activeTab, loadAllStores, loadAllUsers, loadSuspendedUsers]);
 
@@ -436,6 +437,7 @@ export default function Profile() {
 		const durationText = hours === 0 ? "permanently" : `for ${hours} hours`;
 
 		try {
+			console.log("Suspension duration:", hours);
 			await adminService.suspendUser(userId, hours);
 			toast({ title: "Success", description: `User "${userId}" has been suspended ${durationText}` });
 			loadAllUsers(); // Refresh the user list
@@ -452,6 +454,7 @@ export default function Profile() {
 
 	const handleUnsuspendUser = async (username) => {
 		try {
+			console.log("Unsuspending user:", username);
 			await adminService.unsuspendUser(username);
 			toast({ title: "Success", description: `User "${username}" has been unsuspended` });
 			loadAllUsers(); // Refresh the user list
@@ -1159,8 +1162,8 @@ export default function Profile() {
 														<TableCell>
 															<Chip
 																size="small"
-																label={suspendedUsers.includes(user.username) ? "Suspended" : "Active"}
-																color={suspendedUsers.includes(user.username) ? "error" : "success"}
+																label={suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase()) ? "Suspended" : "Active"}
+																color={suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase()) ? "error" : "success"}
 															/>
 														</TableCell>
 														<TableCell>
@@ -1169,11 +1172,11 @@ export default function Profile() {
 																: "No roles"}
 														</TableCell>
 														<TableCell>
-															{suspendedUsers.includes(user.username) ? (
+															{suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase()) ? (
 																<Button
 																	size="small"
 																	color="success"
-																	disabled={user.isAdmin || user.username === currentUser.username}
+																	disabled={user.isAdmin || user.username === currentUser.userName}
 																	onClick={() => handleUnsuspendUser(user.username)}
 																	sx={{ mr: 1 }}
 																>
@@ -1184,7 +1187,7 @@ export default function Profile() {
 																	<Button
 																		size="small"
 																		color="warning"
-																		disabled={user.isAdmin || user.username === currentUser.username}
+																		disabled={user.isAdmin || user.username === currentUser.userName}
 																		onClick={() => handleSuspendUser(user.username, false)}
 																		sx={{ mr: 1 }}
 																	>
@@ -1232,7 +1235,9 @@ export default function Profile() {
 												</TableRow>
 											</TableHead>
 											<TableBody>
-												{suspendedUsers.length > 0 && Object.values(allUsers).filter(user => suspendedUsers.includes(user.username)).map((user) => (
+												{suspendedUsers.length > 0 && Object.values(allUsers).filter(user => 
+													suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase())
+												).map((user) => (
 													<TableRow key={user.username}>
 														<TableCell>{user.username}</TableCell>
 														<TableCell>
@@ -1252,7 +1257,7 @@ export default function Profile() {
 															<Button
 																size="small"
 																color="success"
-																disabled={user.isAdmin || user.username === currentUser.username}
+																disabled={user.isAdmin || user.username === currentUser.userName}
 																onClick={() => handleUnsuspendUser(user.username)}
 															>
 																Unsuspend User

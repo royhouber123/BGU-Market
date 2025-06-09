@@ -26,25 +26,31 @@ public class SuspensionRepository implements ISuspensionRepository {
     @Override
     public boolean suspendUser(String userName, long durationHours) {
         if (userRepository.findById(userName) == null) return false;
-        suspendedUsers.put(userName, new Suspension(userName, durationHours));
+        // Store with lowercase key for case-insensitive lookups
+        suspendedUsers.put(userName.toLowerCase(), new Suspension(userName, durationHours));
         return true;
     }
 
     @Override
     public boolean unsuspendUser(String userName) {
-        return suspendedUsers.remove(userName) != null;
+        // Use lowercase key for case-insensitive lookups
+        return suspendedUsers.remove(userName.toLowerCase()) != null;
     }
 
     @Override
     public List<String> getSuspendedUsers() {
         cleanExpiredSuspensions();
-        return new ArrayList<>(suspendedUsers.keySet());
+        // Convert keys back to original case for return
+        return suspendedUsers.values().stream()
+                .map(Suspension::getUserName)
+                .collect(Collectors.toList());
     }
 
     @Override
     public boolean isSuspended(String userName) {
         cleanExpiredSuspensions();
-        Suspension s = suspendedUsers.get(userName);
+        // Use lowercase key for case-insensitive lookups
+        Suspension s = suspendedUsers.get(userName.toLowerCase());
         return s != null && s.isSuspended();
     }
 

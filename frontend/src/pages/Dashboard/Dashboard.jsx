@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header/Header';
 import AuthDialog from '../../components/AuthDialog/AuthDialog';
 import HeroSection from '../../components/HeroSection/HeroSection';
@@ -37,6 +37,7 @@ const Dashboard = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [showMiniCart, setShowMiniCart] = useState(false);
+  const [dataFetched, setDataFetched] = useState(false);
 
   // Icon mapping for categories
   const getCategoryIcon = (categoryName) => {
@@ -68,78 +69,122 @@ const Dashboard = () => {
     return imageMap[categoryName] || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80";
   };
 
-  // Fetch discounted price for a single product
-  const fetchDiscountedPrice = async (product) => {
-    if (!product || !product.storeId || !product.id) {
-      return product;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:8080/api/stores/${product.storeId}/products/${product.id}/discounted-price`);
-      const apiResponse = await response.json();
-
-      if (apiResponse.success && apiResponse.data !== undefined) {
-        const discountPrice = apiResponse.data;
-        // Only set discounted price if it's actually different from the original price
-        if (discountPrice < product.price) {
-          return {
-            ...product,
-            hasDiscount: true,
-            discountedPrice: discountPrice
-          };
-        }
-      }
-    } catch (error) {
-      console.warn(`Could not fetch discounted price for product ${product.id}:`, error);
-    }
-
-    return product;
-  };
-
-  // Fetch discounted prices for multiple products
-  const fetchDiscountedPrices = async (products) => {
+  // More efficient version of discount fetching - batches products by store
+  const fetchDiscountedPrices = useCallback(async (products) => {
     if (!products || products.length === 0) {
       return products;
     }
 
+    // Group products by storeId for more efficient API calls
+    const productsByStore = {};
+    products.forEach(product => {
+      if (product && product.storeId && product.id) {
+        if (!productsByStore[product.storeId]) {
+          productsByStore[product.storeId] = [];
+        }
+        productsByStore[product.storeId].push(product);
+      }
+    });
+
+    // Updated products array that will contain products with discounts
+    const updatedProducts = [...products];
+    const productMap = {};
+    
+    // Create a map for easy lookup when updating
+    products.forEach((product, index) => {
+      if (product.id) {
+        productMap[product.id] = index;
+      }
+    });
+
     try {
-      const updatedProducts = await Promise.all(
-        products.map(product => fetchDiscountedPrice(product))
-      );
+      // Process each store's products in parallel
+      const storePromises = Object.entries(productsByStore).map(async ([storeId, storeProducts]) => {
+        try {
+          // Batch fetch discounted prices - ideally the backend would support this
+          // This is a fallback to individual fetches
+          await Promise.all(storeProducts.map(async (product) => {
+            try {
+              const response = await fetch(`http://localhost:8080/api/stores/${product.storeId}/products/${product.id}/discounted-price`);
+              const apiResponse = await response.json();
+              
+              if (apiResponse.success && apiResponse.data !== undefined) {
+                const discountPrice = apiResponse.data;
+                // Only set discounted price if it's actually different from the original price
+                if (discountPrice < product.price) {
+                  const index = productMap[product.id];
+                  if (index !== undefined) {
+                    updatedProducts[index] = {
+                      ...product,
+                      hasDiscount: true,
+                      discountedPrice: discountPrice
+                    };
+                  }
+                }
+              }
+            } catch (error) {
+              console.warn(`Could not fetch discounted price for product ${product.id}:`, error);
+            }
+          }));
+        } catch (error) {
+          console.error(`Error processing store ${storeId} discounts:`, error);
+        }
+      });
+
+      await Promise.all(storePromises);
       return updatedProducts;
+      
     } catch (error) {
       console.error('Error fetching discounted prices:', error);
       return products;
     }
-  };
+  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError('');
+    // Only fetch data if it hasn't been fetched yet
+    if (!dataFetched) {
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          setError('');
 
-        // Fetch products from the API
-        const apiProducts = await productService.getAllProducts();
+          // Fetch products from the API
+          const apiProducts = await productService.getAllProducts();
+          
+          // Fetch categories from the API
+          const apiCategories = await productService.getCategories();
 
-        // Fetch categories from the API
-        const apiCategories = await productService.getCategories();
+          // Only fetch discounted prices for a reasonable number of products to avoid API spam
+          // You could limit this to featured products only
+          const productsToProcess = apiProducts.slice(0, 20); // Process max 20 products
+          const productsWithDiscounts = await fetchDiscountedPrices(productsToProcess);
+          
+          // Merge processed products back with the full list
+          const productMap = {};
+          productsWithDiscounts.forEach(product => {
+            if (product.id) {
+              productMap[product.id] = product;
+            }
+          });
+          
+          const mergedProducts = apiProducts.map(product => 
+            productMap[product.id] ? productMap[product.id] : product
+          );
 
-        // Fetch discounted prices for all products
-        const productsWithDiscounts = await fetchDiscountedPrices(apiProducts);
+          setProducts(mergedProducts);
+          setCategories(apiCategories);
+          setDataFetched(true);
+        } catch (err) {
+          console.error('Error fetching dashboard data:', err);
+          setError(err.message || 'Failed to load dashboard data');
+        } finally {
+          setLoading(false);
+        }
+      };
 
-        setProducts(productsWithDiscounts);
-        setCategories(apiCategories);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError(err.message || 'Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+      fetchData();
+    }
+  }, [dataFetched, fetchDiscountedPrices]);  // Only depend on dataFetched flag
 
   if (loading) {
     return (

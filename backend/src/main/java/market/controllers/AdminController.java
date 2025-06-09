@@ -115,6 +115,7 @@ public class AdminController {
             }
             
             try {
+                System.out.println("Suspension user: " + userId + " for " + durationHours + " hours");
                 adminService.suspendUser(adminId, userId, durationHours);
                 return true;
             } catch (Exception e) {
@@ -135,6 +136,7 @@ public class AdminController {
             String userId = request.get("userId");
             
             try {
+                System.out.println("Unsuspending user: " + userId);
                 adminService.unsuspendUser(adminId, userId);
                 return true;
             } catch (Exception e) {
@@ -152,6 +154,7 @@ public class AdminController {
     public ResponseEntity<ApiResponse<List<String>>> getSuspendedUsers(@RequestParam String adminId) {
         return ApiResponseBuilder.build(() -> {
             try {
+                System.out.println("Get all suspended users Admin ID: " + adminId);
                 return adminService.getSuspendedUserIds(adminId);
             } catch (Exception e) {
                 logger.error("Error getting suspended users: " + e.getMessage());

@@ -151,6 +151,7 @@ public class AdminService {
         }
         logger.info("Admin " + adminId + " is requesting suspended users");
         List<String> suspended = suspensionRepository.getSuspendedUsers();
+        System.out.println("Suspended users: " + suspended);
         return suspended;
     }
 

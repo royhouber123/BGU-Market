@@ -10,6 +10,9 @@ import utils.Logger;
 /**
  * Startup configuration that runs when the application boots.
  * Handles initialization tasks like creating the default admin user.
+ * 
+ * Note: Demo data population is handled by DemoDataPopulator using the ApplicationReadyEvent
+ * which runs after all beans are initialized and the application context is ready.
  */
 @Component
 public class StartupConfig implements CommandLineRunner {
@@ -38,6 +41,7 @@ public class StartupConfig implements CommandLineRunner {
         String adminUsername = adminConfig.getAdminUsername();
         String adminPassword = adminConfig.getAdminPassword();
         
+        System.out.println("[StartupConfig] Initializing admin user with username: " + adminUsername);
         logger.info("[StartupConfig] Initializing admin user with username: " + adminUsername);
 
         try {

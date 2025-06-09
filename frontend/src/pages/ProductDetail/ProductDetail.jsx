@@ -272,6 +272,9 @@ export default function ProductDetail() {
     }
   };
 
+  // Default image for products without images - professional product placeholder
+  const DEFAULT_IMAGE = "https://placehold.co/600x400/e2e8f0/1e293b?text=Product+Image";
+
   const fetchProduct = async () => {
     try {
       // Try to fetch the listing directly by listing ID first
@@ -280,7 +283,7 @@ export default function ProductDetail() {
         const foundProduct = await productService.getListing(productId);
         if (foundProduct) {
           setProduct(foundProduct);
-          setMainImage(foundProduct.images?.[0] || "");
+          setMainImage(foundProduct.images?.[0] || DEFAULT_IMAGE);
 
           // Fetch discounted price after setting the product
           await fetchDiscountedPrice(foundProduct);
@@ -299,7 +302,7 @@ export default function ProductDetail() {
 
       if (foundProduct) {
         setProduct(foundProduct);
-        setMainImage(foundProduct.images?.[0] || "");
+        setMainImage(foundProduct.images?.[0] || DEFAULT_IMAGE);
 
         // Fetch discounted price after setting the product
         await fetchDiscountedPrice(foundProduct);
@@ -1226,7 +1229,7 @@ export default function ProductDetail() {
               onClick={addToCart}
               disabled={addingToCart || (product?.quantity || 0) <= 0}
               sx={{
-                flex: 1,
+                width: '220px',
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
@@ -1326,7 +1329,8 @@ export default function ProductDetail() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <main className="container px-4 py-8" style={{ maxWidth: '1600px' }}>
         <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
           {/* Product Title at the top */}
           <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
@@ -1347,13 +1351,10 @@ export default function ProductDetail() {
             </Box>
           )}
 
-          {/* Main content area with image in the center and details on the right */}
-          <Grid container spacing={4}>
-            {/* Left spacer on large screens */}
-            <Grid item xs={false} md={1} />
-
-            {/* Product Images in the middle */}
-            <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {/* Main content area with image on the left and details on the right */}
+          <Grid container spacing={4} sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+            {/* Product Images on the left */}
+            <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
               <Box sx={{
                 width: '100%',
                 maxWidth: '500px',
@@ -1365,7 +1366,7 @@ export default function ProductDetail() {
                 bgcolor: 'background.paper'
               }}>
                 <img
-                  src={mainImage || product.images?.[0]}
+                  src={mainImage || product.images?.[0] || DEFAULT_IMAGE}
                   alt={product.title}
                   style={{
                     width: '100%',
@@ -1382,7 +1383,7 @@ export default function ProductDetail() {
                 justifyContent: 'center',
                 maxWidth: '500px'
               }}>
-                {product.images?.map((image, index) => (
+                {(product.images && product.images.length > 0) ? product.images.map((image, index) => (
                   <Box
                     key={index}
                     sx={{
@@ -1402,12 +1403,34 @@ export default function ProductDetail() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </Box>
-                ))}
+                )) : (
+                  <Box
+                    sx={{
+                      width: '70px',
+                      height: '70px',
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      border: '2px solid #1976d2',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <img
+                      src={DEFAULT_IMAGE}
+                      alt={`${product.title} default view`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  </Box>
+                )}
               </Box>
             </Grid>
 
             {/* Product Details on the right */}
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={7} sx={{ pl: { xs: 0, md: 4 } }}>
               <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
                 {/* Price and badges */}
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
@@ -2432,6 +2455,7 @@ export default function ProductDetail() {
           </Alert>
         </Snackbar>
       </main>
+      </Box>
     </Box>
   );
 }

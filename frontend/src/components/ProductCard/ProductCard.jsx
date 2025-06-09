@@ -131,7 +131,7 @@ export default function ProductCard({ product }) {
 					<CardMedia
 						component="img"
 						height="192"
-						image={product.images[0]}
+						image={product.images && product.images.length > 0 && product.images[0] ? product.images[0] : "https://placehold.co/600x400/e2e8f0/1e293b?text=Product+Image"}
 						alt={product.title}
 						className="product-card-media"
 					/>

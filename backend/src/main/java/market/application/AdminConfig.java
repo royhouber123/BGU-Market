@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdminConfig {
 
-    @Value("${admin.username:admin}")
+    @Value("${admin.username:u1}")
     private String adminUsername;
 
-    @Value("${admin.password:admin}")
+    @Value("${admin.password:password123}")
     private String adminPassword;
 
     public String getAdminUsername() {
