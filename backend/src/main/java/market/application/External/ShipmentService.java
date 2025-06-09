@@ -8,23 +8,24 @@ public class ShipmentService implements IShipmentService {
     // It can be used to handle shipment-related operations in the future.
     /** Schedules a delivery and returns a tracking id. */
     @Override
-    public ApiResponse<String> ship(String address, String recipient, double weight) {
+    public String ship(String name, String address, String city, 
+                                String country, String zip) {
 
-        System.out.println("Shipping to: " + address + ", Recipient: " + recipient + ", Weight: " + weight);
-        return ApiResponse.ok("trackingId");
+        System.out.println("Scheduling delivery for: " + name + ", " + address + ", " + city + ", " + country + ", " + zip);
+        return "tracking-id-12345"; // Placeholder tracking ID
     }
 
     /** Cancels a shipment (best-effort). */
     @Override
-    public ApiResponse<Void> cancel(String trackingId) {
+    public boolean cancel(String trackingId) {
         System.out.println("Cancelling shipment with tracking ID: " + trackingId);
-        return ApiResponse.ok(null);
+        return true; // Assuming cancellation is always successful for this placeholder
     }
     
 
-    @Override
-    public ApiResponse<String> getShippingInfo(String trackingId) {
-        // Placeholder for getting shipping information based on tracking ID.
-        return ApiResponse.ok("Shipping info for tracking ID: " + trackingId);
-    }
+    // @Override
+    // public ApiResponse<String> getShippingInfo(String trackingId) {
+    //     // Placeholder for getting shipping information based on tracking ID.
+    //     return ApiResponse.ok("Shipping info for tracking ID: " + trackingId);
+    // }
 }

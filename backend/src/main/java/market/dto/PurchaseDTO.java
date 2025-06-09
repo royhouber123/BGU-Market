@@ -10,19 +10,29 @@ public class PurchaseDTO {
     
     // Regular Purchase
     public record ExecutePurchaseRequest(
-        int userId,
         String paymentDetails,
-        String shippingAddress
+        String shippingAddress,
+        String currency,
+        String cardNumber,
+        String month,
+        String year,
+        String holder,
+        String ccv
     ) {}
     
     // Auction Operations
     public record AuctionOfferRequest(
-        int userId,
         int storeId,
         String productId,
         double offerAmount,
         String shippingAddress,
-        String paymentDetails
+        String paymentDetails,
+        String currency,
+        String cardNumber,
+        String month,
+        String year,
+        String holder,
+        String ccv
     ) {}
     
     public record OpenAuctionRequest(
@@ -31,7 +41,7 @@ public class PurchaseDTO {
         String productName,
         String productCategory,
         String productDescription,
-        int startingPrice,
+        double startingPrice,
         long endTimeMillis
     ) {}
     
@@ -47,16 +57,20 @@ public class PurchaseDTO {
         int storeId,
         String productId,
         double bidAmount,
-        int quantity,
         String shippingAddress,
-        String paymentDetails
+        String paymentDetails,
+        String currency,
+        String cardNumber,
+        String month,
+        String year,
+        String holder,
+        String ccv
     ) {}
     
     public record BidApprovalRequest(
         int storeId,
         String productId,
-        String bidderUsername,
-        boolean approved
+        String bidderUsername
     ) {}
     
     public record CounterBidRequest(
@@ -97,4 +111,4 @@ public class PurchaseDTO {
         int totalPurchases,
         double totalSpent
     ) {}
-} 
+}

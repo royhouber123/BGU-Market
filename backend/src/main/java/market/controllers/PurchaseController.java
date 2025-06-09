@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import utils.ApiResponse;
 import utils.ApiResponseBuilder;
+// import market.application.GuestService;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,9 @@ public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
     
+    // @Autowired
+    // private GuestService guestService;
+
     @Autowired
     private AuthService authService;
 
@@ -54,18 +58,30 @@ public class PurchaseController {
      * POST /api/purchases/execute
      */
     @PostMapping("/execute")
-    public ResponseEntity<ApiResponse<String>> executePurchase(@RequestBody ExecutePurchaseRequest request) {
-        String token = TokenUtils.getToken();
-        if (token == null) {
-            return ResponseEntity.ok(ApiResponse.fail("No authentication token provided"));
-        }
-        return ApiResponseBuilder.build(() ->
-            purchaseService.executePurchaseByUsername(
-                token,
-                request.paymentDetails(),
-                request.shippingAddress()
-            )
-        );
+    public ResponseEntity<ApiResponse<String>> executePurchase(@RequestBody Map<String, Object> request) {
+        System.out.println("Executing purchase with request: " + request);
+        return ApiResponseBuilder.build(() -> {
+            String username = extractUsernameFromToken();
+            System.out.println("Username extracted: " + username);
+            System.out.println("About to call purchaseService.executePurchaseByUsername");
+            
+            // Parse the flattened payment details from request body
+            String shippingAddress = (String) request.get("shippingAddress");
+            String contactInfo = (String) request.get("contactInfo");
+            String currency = (String) request.get("currency");
+            String cardNumber = (String) request.get("cardNumber");
+            String month = (String) request.get("month");
+            String year = (String) request.get("year");
+            String holder = (String) request.get("holder");
+            String ccv = (String) request.get("ccv");
+            
+            String result = purchaseService.executePurchaseByUsername(
+                username, shippingAddress, contactInfo, currency, cardNumber, month, year, holder, ccv
+            );
+            
+            System.out.println("Purchase service returned: " + result);
+            return result;
+        });
     }
 
     /**
@@ -73,42 +89,26 @@ public class PurchaseController {
      * POST /api/purchases/auction/offer
      */
     @PostMapping("/auction/offer")
-    public ResponseEntity<ApiResponse<Void>> submitAuctionOffer(@RequestBody AuctionOfferRequest request) {
-        // Validate request
-        if (request == null) {
-            return ResponseEntity.ok(ApiResponse.fail("Request body cannot be null"));
-        }
-
-        // Additional validation for request fields
-        if (request.productId() == null) {
-            return ResponseEntity.ok(ApiResponse.fail("Product ID cannot be null"));
-        }
-
-        if (request.storeId() <= 0) {
-            return ResponseEntity.ok(ApiResponse.fail("Invalid store ID"));
-        }
-
-        if (request.offerAmount() <= 0) {
-            return ResponseEntity.ok(ApiResponse.fail("Offer amount must be positive"));
-        }
-
-        if (request.shippingAddress() == null || request.shippingAddress().trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.fail("Shipping address is required"));
-        }
-
-        if (request.paymentDetails() == null || request.paymentDetails().trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.fail("Payment details are required"));
-        }
-
+    public ResponseEntity<ApiResponse<Void>> submitAuctionOffer(@RequestBody Map<String, Object> request) {
         return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
+            
+            // Parse the flattened request
+            String storeId = (String) request.get("storeId");
+            String productId = (String) request.get("productId");
+            Double offerAmount = (Double) request.get("offerAmount");
+            String shippingAddress = (String) request.get("shippingAddress");
+            String contactInfo = (String) request.get("contactInfo");
+            String currency = (String) request.get("currency");
+            String cardNumber = (String) request.get("cardNumber");
+            String month = (String) request.get("month");
+            String year = (String) request.get("year");
+            String holder = (String) request.get("holder");
+            String ccv = (String) request.get("ccv");
+            
             purchaseService.submitOffer(
-                String.valueOf(request.storeId()),
-                String.valueOf(request.productId()),
-                username,
-                request.offerAmount(),
-                request.shippingAddress(),
-                request.paymentDetails()
+                storeId, productId, username, offerAmount, shippingAddress, contactInfo,
+                currency, cardNumber, month, year, holder, ccv
             );
             return null;
         });
@@ -181,7 +181,7 @@ public class PurchaseController {
                 request.productName(),
                 request.productCategory(),
                 request.productDescription(),
-                request.startingPrice(),
+                (int)request.startingPrice(),
                 request.endTimeMillis()
             );
             return null;
@@ -193,45 +193,29 @@ public class PurchaseController {
      * POST /api/purchases/bid/submit
      */
     @PostMapping("/bid/submit")
-    public ResponseEntity<ApiResponse<Void>> submitBid(@RequestBody BidSubmissionRequest request) {
-        // Validate request
-        if (request == null) {
-            return ResponseEntity.ok(ApiResponse.fail("Request body cannot be null"));
-        }
-
-        // Additional validation for request fields
-        if (request.productId() == null) {
-            return ResponseEntity.ok(ApiResponse.fail("Product ID cannot be null"));
-        }
-
-        if (request.storeId() <= 0) {
-            return ResponseEntity.ok(ApiResponse.fail("Invalid store ID"));
-        }
-
-        if (request.bidAmount() <= 0) {
-            return ResponseEntity.ok(ApiResponse.fail("Bid amount must be positive"));
-        }
-
-        if (request.shippingAddress() == null || request.shippingAddress().trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.fail("Shipping address is required"));
-        }
-
-        if (request.paymentDetails() == null || request.paymentDetails().trim().isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.fail("Payment details are required"));
-        }
-
+    public ResponseEntity<ApiResponse<Void>> submitBid(@RequestBody Map<String, Object> request) {
         return ApiResponseBuilder.build(() -> {
             String username = extractUsernameFromToken();
+            
+            // Parse the flattened request
+            String storeId = (String) request.get("storeId");
+            String productId = (String) request.get("productId");
+            Double bidAmount = (Double) request.get("bidAmount");
+            String shippingAddress = (String) request.get("shippingAddress");
+            String contactInfo = (String) request.get("contactInfo");
+            String currency = (String) request.get("currency");
+            String cardNumber = (String) request.get("cardNumber");
+            String month = (String) request.get("month");
+            String year = (String) request.get("year");
+            String holder = (String) request.get("holder");
+            String ccv = (String) request.get("ccv");
+            
             purchaseService.submitBid(
-                String.valueOf(request.storeId()),
-                request.productId(), // Use productId directly as String
-                username,
-                request.bidAmount(),
-                request.shippingAddress(), // Use actual shipping address from request
-                request.paymentDetails() // Use actual payment details from request
+                storeId, productId, username, bidAmount, shippingAddress, contactInfo,
+                currency, cardNumber, month, year, holder, ccv
             );
             return null;
-        });
+        }); 
     }
 
     /**
@@ -247,7 +231,7 @@ public class PurchaseController {
             String username = extractUsernameFromToken();
             return purchaseService.getBidStatus(
                 String.valueOf(storeId),
-                productId,  // Use productId directly as String
+                productId,
                 username
             );
         });
@@ -263,8 +247,8 @@ public class PurchaseController {
             String username = extractUsernameFromToken();
             purchaseService.acceptCounterOffer(
                 String.valueOf(request.storeId()),
-                request.productId(), // Use productId directly as String
-                username // Use username instead of integer userId
+                request.productId(),
+                username
             );
             return null;
         });
@@ -280,8 +264,8 @@ public class PurchaseController {
             String username = extractUsernameFromToken();
             purchaseService.declineCounterOffer(
                 String.valueOf(request.storeId()),
-                request.productId(), // Use productId directly as String
-                username // Use username instead of integer userId
+                request.productId(),
+                username
             );
             return null;
         });
@@ -322,7 +306,7 @@ public class PurchaseController {
             return ApiResponseBuilder.build(() ->
                 purchaseService.getProductBids(
                     String.valueOf(storeId), 
-                    productId, // Use productId directly as String
+                    productId,
                     username
                 )
             );
@@ -340,7 +324,7 @@ public class PurchaseController {
             return ApiResponseBuilder.build(() ->
                 purchaseService.getMyProductBids(
                     String.valueOf(storeId), 
-                    productId, // Use productId directly as String
+                    productId,
                     username
                 )
             );
@@ -356,7 +340,7 @@ public class PurchaseController {
         return ApiResponseBuilder.build(() -> {
             purchaseService.approveBid(
                 String.valueOf(request.storeId()),
-                request.productId(), // Use productId directly as String
+                request.productId(),
                 request.bidderUsername(),
                 username // approver username
             );
@@ -374,7 +358,7 @@ public class PurchaseController {
         return ApiResponseBuilder.build(() -> {
             purchaseService.rejectBid(
                 String.valueOf(request.storeId()),
-                request.productId(), // Use productId directly as String
+                request.productId(),
                 request.bidderUsername(),
                 username // approver username
             );
@@ -392,7 +376,7 @@ public class PurchaseController {
         return ApiResponseBuilder.build(() -> {
             purchaseService.proposeCounterBid(
                 String.valueOf(request.storeId()),
-                request.productId(), // Use productId directly as String
+                request.productId(),
                 request.bidderUsername(),
                 username, // approver username
                 request.counterAmount()
@@ -400,4 +384,6 @@ public class PurchaseController {
             return null;
         });
     }
-} 
+
+    
+}

@@ -31,14 +31,14 @@ public class BidPurchase {
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
     public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
-                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep) {
+                             String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep, String currency, String cardNumber, String month, String year, String holder, String ccv) {
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
-        storeRepository=rep;
-        shipmentService=shipment;
-        paymentService=payment;
-        purchaseRepository=purchaseRep;
+        storeRepository = rep;
+        shipmentService = shipment;
+        paymentService = payment;
+        purchaseRepository = purchaseRep;
         BidKey key = buildKey(storeId, productId);
-        Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
+        Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers, currency, cardNumber, month, year, holder, ccv);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
         NotificationForPurchase.notifyApprovers(approvers, "New bid submitted for product " + productId);
     }
@@ -64,7 +64,6 @@ public class BidPurchase {
                 }
                 bid.approve(approverId);
                 if (bid.approved) {
-                    //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
                     System.out.println("Bid approved for user: " + bid.userId);
                     // Call purchase directly with simple arguments
                     Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
@@ -81,7 +80,13 @@ public class BidPurchase {
                             productId,
                             bid.price,
                             bid.shippingAddress,
-                            bid.contactInfo
+                            bid.contactInfo,
+                            bid.currency,
+                            bid.cardNumber,
+                            bid.month,
+                            bid.year,
+                            bid.holder,
+                            bid.ccv
                     );
                     System.out.println("Purchase completed for user: " + purchase.getUserId());
                 }
@@ -177,7 +182,13 @@ public class BidPurchase {
                         productId,
                         bid.price,
                         bid.shippingAddress,
-                        bid.contactInfo
+                        bid.contactInfo,
+                        bid.currency,
+                        bid.cardNumber,
+                        bid.month,
+                        bid.year,
+                        bid.holder,
+                        bid.ccv
                 );
                 System.out.println("Purchase completed for user: " + purchase.getUserId());
                 return;
@@ -278,16 +289,37 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo) {
+    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo, String currency, String cardNumber, String month, String year, String holder, String ccv) {
         PurchasedProduct product = new PurchasedProduct(
                 productId,
                 storeId,
                 1, // Always 1 in a bid purchase
                 price
         );
-        paymentService.processPayment("User: " + userId + ", Amount: " + price);
-        shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
-        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        
+        // Updated to match interface: processPayment(String currency, double amount, String cardNumber, String month, String year, String holder, String ccv)
+        String paymentId = paymentService.processPayment(currency, price, cardNumber, month, year, holder, ccv);
+        if (paymentId == null || paymentId.trim().isEmpty()) {
+            throw new RuntimeException("Payment failed for user: " + userId);
+        }
+        
+        // Parse shipping address to extract components (assuming format: "Name, Address, City, Country, ZIP")
+        String[] addressParts = shippingAddress.split(", ");
+        String name = addressParts.length > 0 ? addressParts[0] : holder; // Use holder name if available
+        String address = addressParts.length > 1 ? addressParts[1] : shippingAddress;
+        String city = addressParts.length > 2 ? addressParts[2] : "Unknown";
+        String country = addressParts.length > 3 ? addressParts[3] : "Unknown";
+        String zip = addressParts.length > 4 ? addressParts[4] : "00000";
+        
+        // Updated to match interface: ship(String name, String address, String city, String country, String zip)
+        String trackingId = shipmentService.ship(name, address, city, country, zip);
+        if (trackingId == null || trackingId.trim().isEmpty()) {
+            // If shipment fails, cancel the payment
+            paymentService.cancelPayment(paymentId);
+            throw new RuntimeException("Shipment failed for user: " + userId);
+        }
+        
+        Purchase newP = new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
         purchaseRepository.save(newP);
         return newP;
     } 

@@ -4,76 +4,46 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Bid {
+    public String userId;
+    public double price;
+    public String shippingAddress;
+    public String contactInfo;
+    public Set<String> requiredApprovers;
+    public Set<String> approvers;
+    public boolean approved;
+    public boolean rejected;
+    public boolean counterOffered;
+    public double counterOfferAmount;
+    
+    // Add payment details
+    public String currency;
+    public String cardNumber;
+    public String month;
+    public String year;
+    public String holder;
+    public String ccv;
 
-    String userId;
-    double price;
-    String shippingAddress;
-    String contactInfo;
-    Set<String> requiredApprovers;
-    Set<String> approvedBy = new HashSet<>();
-    boolean approved = false;
-    boolean rejected = false;
-    boolean counterOffered = false;
-    double counterOfferAmount = -1; //no counter offer yet
-
-    public Bid(String userId, double price, String shippingAddress, String contactInfo, Set<String> requiredApprovers) {
+    public Bid(String userId, double price, String shippingAddress, String contactInfo, Set<String> requiredApprovers, String currency, String cardNumber, String month, String year, String holder, String ccv) {
         this.userId = userId;
         this.price = price;
         this.shippingAddress = shippingAddress;
         this.contactInfo = contactInfo;
-        this.requiredApprovers = requiredApprovers;
-    }
-
-    public void approve(String approverId) {
-        if (requiredApprovers.contains(approverId)) {
-            approvedBy.add(approverId);
-            if (approvedBy.containsAll(requiredApprovers)) {
-                approved = true;
-            }
-        }
-    }
-
-    public boolean isApproved() {
-        return approved;
-    }
-
-    public void reject(String approverId) {
-        if (requiredApprovers.contains(approverId)) {
-            rejected = true;
-        }
-    }
-
-    public boolean isRejected() {
-        return rejected;
-    }
-
-    public void proposeCounterOffer(double newAmount) {
-        counterOffered = true;
-        counterOfferAmount = newAmount;
+        this.requiredApprovers = new HashSet<>(requiredApprovers);
+        this.approvers = new HashSet<>();
+        this.approved = false;
+        this.rejected = false;
+        this.counterOffered = false;
+        this.counterOfferAmount = 0.0;
+        this.currency = currency;
+        this.cardNumber = cardNumber;
+        this.month = month;
+        this.year = year;
+        this.holder = holder;
+        this.ccv = ccv;
     }
 
     public String getUserId() {
         return userId;
-    }
-
-    public Set<String> getRequiredApprovers() {
-        return requiredApprovers;
-    }
-
-    public double getCounterOfferAmount() {
-        if (!counterOffered) {
-            throw new RuntimeException("No counter offer has been made yet.");
-        }
-        return counterOfferAmount;
-    }
-
-    public void setCounterOfferAmount(double counterOfferAmount) {
-        counterOffered = true;
-        this.counterOfferAmount = counterOfferAmount;
-    }
-
-    public Boolean isCounterOffered() {
-        return counterOffered;
     }
 
     public double getPrice() {
@@ -88,7 +58,74 @@ public class Bid {
         return contactInfo;
     }
 
+    public String getCurrency() {
+        return currency;
+    }
+
+    public String getCardNumber() {
+        return cardNumber;
+    }
+
+    public String getMonth() {
+        return month;
+    }
+
+    public String getYear() {
+        return year;
+    }
+
+    public String getHolder() {
+        return holder;
+    }
+
+    public String getCcv() {
+        return ccv;
+    }
+
+    // Add missing getter methods
+    public Set<String> getRequiredApprovers() {
+        return requiredApprovers;
+    }
+
     public Set<String> getApprovedBy() {
-        return approvedBy;
+        return approvers;
+    }
+
+    public boolean isApproved() {
+        return approved;
+    }
+
+    public boolean isRejected() {
+        return rejected;
+    }
+
+    public boolean isCounterOffered() {
+        return counterOffered;
+    }
+
+    public double getCounterOfferAmount() {
+        return counterOfferAmount;
+    }
+
+    // Add business logic methods
+    public void approve(String approverId) {
+        if (requiredApprovers.contains(approverId)) {
+            approvers.add(approverId);
+            // Check if all required approvers have approved
+            if (approvers.containsAll(requiredApprovers)) {
+                this.approved = true;
+            }
+        }
+    }
+
+    public void reject(String approverId) {
+        if (requiredApprovers.contains(approverId)) {
+            this.rejected = true;
+        }
+    }
+
+    public void proposeCounterOffer(double amount) {
+        this.counterOffered = true;
+        this.counterOfferAmount = amount;
     }
 }

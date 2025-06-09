@@ -39,8 +39,8 @@ public class PurchaseService {
         this.notificationService = notificationService;
     }
 
-    // Regular Purchase
-    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo)  {
+    // Regular Purchase - Fix the executePurchase method
+    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo, String currency, String cardNumber, String month, String year, String holder, String ccv)  {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
             double totalDiscountPrice = 0.0;
@@ -84,7 +84,8 @@ public class PurchaseService {
             RegularPurchase regularPurchase = new RegularPurchase();
             logger.info("Purchase executed successfully for user: " + userId + ", total: " + totalDiscountPrice);
             try {
-                Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
+                // Updated to include payment details parameters
+                Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService, currency, cardNumber, month, year, holder, ccv);
                 User user = userRepository.findById(userId);
                 user.clearCart();
                 purchaseRepository.save(finalPurchase);
@@ -99,8 +100,8 @@ public class PurchaseService {
             }
     }
     
-    // Overloaded method for simplified API access - automatically gets user's cart
-    public String executePurchase(int userId, String paymentDetails, String shippingAddress) throws Exception{
+    // Update the overloaded method to include payment details
+    public String executePurchase(int userId, String paymentDetails, String shippingAddress, String currency, String cardNumber, String month, String year, String holder, String ccv) throws Exception{
             String userIdStr = String.valueOf(userId);
             suspensionRepository.checkNotSuspended(userIdStr);// check if user is suspended
             User user = userRepository.findById(userIdStr);
@@ -114,12 +115,12 @@ public class PurchaseService {
                 throw new IllegalArgumentException("Shopping cart is empty");
             }
             
-            Purchase result = executePurchase(userIdStr, cart, shippingAddress, paymentDetails);
+            Purchase result = executePurchase(userIdStr, cart, shippingAddress, paymentDetails, currency, cardNumber, month, year, holder, ccv);
             return "Purchase completed successfully. Total: $" + result.getTotalPrice() + " at " + result.getTimestamp();
     }
 
     // Auction Purchase
-    public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+    public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo, String currency, String cardNumber, String month, String year, String holder, String ccv) {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             User user = userRepository.findById(userId);
             if (!(user instanceof Subscriber)) {
@@ -127,7 +128,8 @@ public class PurchaseService {
                 throw new IllegalArgumentException("User is not a subscriber: " + userId);
             }
     
-            AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo);
+            // Updated to include payment details
+            AuctionPurchase.submitOffer(storeId, productId, userId, offerPrice, shippingAddress, contactInfo, currency, cardNumber, month, year, holder, ccv);
             logger.info("Auction offer submitted: user " + userId + ", product " + productId + ", store " + storeId + ", price " + offerPrice);
 
     }
@@ -173,7 +175,7 @@ public class PurchaseService {
     }
     
     // Bid Purchase:
-    public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
+    public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo, String currency, String cardNumber, String month, String year, String holder, String ccv) {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
 
             // Validate input parameters
@@ -203,6 +205,7 @@ public class PurchaseService {
                 throw new IllegalArgumentException("No approvers found for store: " + storeId);
             }
     
+            // Updated to include payment details
             BidPurchase.submitBid(
                 storeRepository,
                 storeId,
@@ -214,7 +217,13 @@ public class PurchaseService {
                 approvers,
                 shipmentService,
                 paymentService,
-                purchaseRepository
+                purchaseRepository,
+                currency,
+                cardNumber,
+                month,
+                year,
+                holder,
+                ccv
             );
     
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
@@ -319,7 +328,7 @@ public class PurchaseService {
                 if (bid.isCounterOffered()) {
                     bidInfo.put("counterOfferAmount", bid.getCounterOfferAmount());
                 }
-                bidInfo.put("requiredApprovers", bid.getRequiredApprovers());
+                bidInfo.put("requiredApprovers", bid.getApprovedBy());
                 bidInfo.put("approvedBy", bid.getApprovedBy());
                 bidData.add(bidInfo);
             }
@@ -372,18 +381,13 @@ public class PurchaseService {
     }
 
     // New method to handle purchase using JWT token
-    public String executePurchaseByUsername(String token, String paymentDetails, String shippingAddress) {
-            // Extract username from token (simplified approach without AuthService dependency)
-            Claims claims = io.jsonwebtoken.Jwts.parserBuilder()
-                .setSigningKey(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
-                    io.jsonwebtoken.io.Decoders.BASE64URL.decode("JMvzGmTQtUL4OWwh-JAiawZXbxKKrFssCXZtkC_ZUKc")))
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-            String username = claims.getSubject();
+    public String executePurchaseByUsername(String username, String shippingAddress, String contactInfo, 
+                                      String currency, String cardNumber, String month, String year, 
+                                      String holder, String ccv) {
+        try {
             
             if (username == null) {
-                throw new IllegalArgumentException("Invalid token: no username found");
+                throw new IllegalArgumentException("Username cannot be null");
             }
             
             // Get user and execute purchase
@@ -392,15 +396,23 @@ public class PurchaseService {
                 throw new IllegalArgumentException("User not found: " + username);
             }
             
-            suspensionRepository.checkNotSuspended(username);// check if user is suspended
+            suspensionRepository.checkNotSuspended(username);
             
             ShoppingCart cart = user.getShoppingCart();
             if (cart == null || cart.getAllStoreBags().isEmpty()) {
                 throw new IllegalArgumentException("Shopping cart is empty for user: " + username);
             }
             
-            Purchase result = executePurchase(username, cart, shippingAddress, paymentDetails);
-            return "Purchase completed successfully. Total: $" + result.getTotalPrice() + " at " + result.getTimestamp();
+            // Call the existing executePurchase method with correct parameters
+            Purchase result = executePurchase(username, cart, shippingAddress, contactInfo, currency, cardNumber, month, year, holder, ccv);
+            return "Purchase completed successfully for user: " + username + ". Total: $" + result.getTotalPrice() + " at " + result.getTimestamp();
+        } catch (Exception e) {
+            System.err.println("=== ERROR in executePurchaseByUsername ===");
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Purchase failed: " + e.getMessage(), e);
+        }
+        
     }
 
     // Add new method to get current user's bids for a product

@@ -3,17 +3,13 @@ package market.domain;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.domain.purchase.*;
-import utils.ApiResponse;
 
 import org.junit.jupiter.api.*;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -28,20 +24,41 @@ class RegularPurchaseTest {
     private String productId;
     private String shippingAddress;
     private String contactInfo;
+    
+    // Payment details for tests
+    private String currency;
+    private String cardNumber;
+    private String month;
+    private String year;
+    private String holder;
+    private String ccv;
 
     @BeforeEach
     void setUp() {
         userId = "user1";
         storeId = "store1";
         productId = "prod1";
-        shippingAddress = "123 Main St";
+        shippingAddress = "John Doe, 123 Main St, New York, USA, 12345";
         contactInfo = "555-555-5555";
+        
+        // Initialize payment details
+        currency = "USD";
+        cardNumber = "4111111111111111";
+        month = "12";
+        year = "2025";
+        holder = "John Doe";
+        ccv = "123";
 
         paymentService = mock(IPaymentService.class);
         shipmentService = mock(IShipmentService.class);
 
-        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
+        // Updated mock configurations to match new interface signatures
+        when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn("payment-id-123");
+        when(paymentService.cancelPayment(anyString())).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn("tracking-id-123");
+        when(shipmentService.cancel(anyString())).thenReturn(true);
 
         regularPurchase = new RegularPurchase();
     }
@@ -58,7 +75,22 @@ class RegularPurchaseTest {
         PurchasedProduct product = new PurchasedProduct(productId, storeId, 2, 50.0);
         List<PurchasedProduct> products = List.of(product);
 
-        Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 10.0, paymentService, shipmentService);
+        // Updated to include payment details parameters
+        Purchase purchase = regularPurchase.purchase(
+            userId, 
+            products, 
+            shippingAddress, 
+            contactInfo, 
+            10.0, 
+            paymentService, 
+            shipmentService,
+            currency,
+            cardNumber,
+            month,
+            year,
+            holder,
+            ccv
+        );
 
         assertNotNull(purchase);
         assertEquals(userId, purchase.getUserId());
@@ -74,7 +106,22 @@ class RegularPurchaseTest {
         PurchasedProduct p2 = new PurchasedProduct("p2", storeId, 1, 60.0);
         List<PurchasedProduct> products = List.of(p1, p2);
 
-        Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 25.0, paymentService, shipmentService);
+        // Updated to include payment details parameters
+        Purchase purchase = regularPurchase.purchase(
+            userId, 
+            products, 
+            shippingAddress, 
+            contactInfo, 
+            25.0, 
+            paymentService, 
+            shipmentService,
+            currency,
+            cardNumber,
+            month,
+            year,
+            holder,
+            ccv
+        );
 
         assertEquals(75.0, purchase.getTotalPrice());
     }
@@ -84,7 +131,22 @@ class RegularPurchaseTest {
         PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 100.0);
         List<PurchasedProduct> products = List.of(product);
 
-        Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 0.0, paymentService, shipmentService);
+        // Updated to include payment details parameters
+        Purchase purchase = regularPurchase.purchase(
+            userId, 
+            products, 
+            shippingAddress, 
+            contactInfo, 
+            0.0, 
+            paymentService, 
+            shipmentService,
+            currency,
+            cardNumber,
+            month,
+            year,
+            holder,
+            ccv
+        );
 
         assertEquals(100.0, purchase.getTotalPrice());
     }
@@ -94,17 +156,48 @@ class RegularPurchaseTest {
         PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 70.0);
         List<PurchasedProduct> products = List.of(product);
 
-        regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 20.0, paymentService, shipmentService);
+        // Updated to include payment details parameters
+        regularPurchase.purchase(
+            userId, 
+            products, 
+            shippingAddress, 
+            contactInfo, 
+            20.0, 
+            paymentService, 
+            shipmentService,
+            currency,
+            cardNumber,
+            month,
+            year,
+            holder,
+            ccv
+        );
 
-        verify(paymentService).processPayment(contains("User: " + userId));
-        verify(shipmentService).ship(eq(shippingAddress), eq(userId), anyDouble());
+        // Updated verification to match new interface signatures
+        verify(paymentService).processPayment(eq(currency), eq(50.0), eq(cardNumber), eq(month), eq(year), eq(holder), eq(ccv));
+        verify(shipmentService).ship(eq("John Doe"), eq("123 Main St"), eq("New York"), eq("USA"), eq("12345"));
     }
 
     @Test
     void purchase_emptyProductList_shouldThrowException() {
         List<PurchasedProduct> products = List.of();
         Exception e = assertThrows(IllegalArgumentException.class, () -> {
-            regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 0.0, paymentService, shipmentService);
+            // Updated to include payment details parameters
+            regularPurchase.purchase(
+                userId, 
+                products, 
+                shippingAddress, 
+                contactInfo, 
+                0.0, 
+                paymentService, 
+                shipmentService,
+                currency,
+                cardNumber,
+                month,
+                year,
+                holder,
+                ccv
+            );
         });
         assertTrue(e.getMessage().contains("Items list cannot be null or empty"));
     }
@@ -113,9 +206,93 @@ class RegularPurchaseTest {
     void purchase_discountGreaterThanTotal_shouldPayZero() {
         PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 20.0);
         List<PurchasedProduct> products = List.of(product);
-        Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 30.0, paymentService, shipmentService);
+        
+        // Updated to include payment details parameters
+        Purchase purchase = regularPurchase.purchase(
+            userId, 
+            products, 
+            shippingAddress, 
+            contactInfo, 
+            30.0, 
+            paymentService, 
+            shipmentService,
+            currency,
+            cardNumber,
+            month,
+            year,
+            holder,
+            ccv
+        );
+        
         assertEquals(0.0, purchase.getTotalPrice());
     }
 
+    @Test
+    void purchase_paymentFailure_shouldThrowException() {
+        // Configure payment service to throw exception
+        when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenThrow(new RuntimeException("Payment failed: Insufficient funds"));
 
+        PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 50.0);
+        List<PurchasedProduct> products = List.of(product);
+
+        Exception e = assertThrows(RuntimeException.class, () -> {
+            regularPurchase.purchase(
+                userId, 
+                products, 
+                shippingAddress, 
+                contactInfo, 
+                0.0, 
+                paymentService, 
+                shipmentService,
+                currency,
+                cardNumber,
+                month,
+                year,
+                holder,
+                ccv
+            );
+        });
+
+        assertTrue(e.getMessage().contains("Payment failed"));
+        // Verify payment was attempted
+        verify(paymentService).processPayment(eq(currency), eq(50.0), eq(cardNumber), eq(month), eq(year), eq(holder), eq(ccv));
+        // Verify shipment was not attempted after payment failure
+        verify(shipmentService, never()).ship(anyString(), anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void purchase_shipmentFailure_shouldCancelPaymentAndThrowException() {
+        // Configure shipment service to return null (failure)
+        when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn(null);
+
+        PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 50.0);
+        List<PurchasedProduct> products = List.of(product);
+
+        Exception e = assertThrows(RuntimeException.class, () -> {
+            regularPurchase.purchase(
+                userId, 
+                products, 
+                shippingAddress, 
+                contactInfo, 
+                0.0, 
+                paymentService, 
+                shipmentService,
+                currency,
+                cardNumber,
+                month,
+                year,
+                holder,
+                ccv
+            );
+        });
+
+        assertTrue(e.getMessage().contains("Shipment failed"));
+        // Verify payment was attempted and then cancelled
+        verify(paymentService).processPayment(eq(currency), eq(50.0), eq(cardNumber), eq(month), eq(year), eq(holder), eq(ccv));
+        verify(paymentService).cancelPayment("payment-id-123");
+        // Verify shipment was attempted
+        verify(shipmentService).ship(eq("John Doe"), eq("123 Main St"), eq("New York"), eq("USA"), eq("12345"));
+    }
 }

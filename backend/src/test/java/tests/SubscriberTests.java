@@ -17,8 +17,7 @@ import utils.ApiResponse;
 import market.domain.purchase.Purchase; // Add this import, adjust the package if needed
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -26,14 +25,27 @@ import static org.mockito.Mockito.*;
  */
 class SubscriberTests extends AcceptanceTestBase {
     
-    private final String SHIPPING_ADDRESS = "Subscriber Street";
-    private final String CONTACT_INFO = "Suscriber@example.com";
+    private final String SHIPPING_ADDRESS = "John Doe, 123 Subscriber Street, New York, USA, 12345";
+    private final String CONTACT_INFO = "Subscriber@example.com";
+    private final String CURRENCY = "USD";
+    private final String CARD_NUMBER = "4111111111111111";
+    private final String MONTH = "12";
+    private final String YEAR = "2025";
+    private final String HOLDER = "John Doe";
+    private final String CCV = "123";
 
     @BeforeEach
     void setUp() throws Exception {
         this.userService.register("user1", "password1");
         this.userService.register("user2", "password2");
         
+        // Configure mocks for the new interface signatures
+        when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn("payment-id-123");
+        when(paymentService.cancelPayment(anyString())).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn("tracking-id-123");
+        when(shipmentService.cancel(anyString())).thenReturn(true);
     }
 
     @AfterEach
@@ -288,8 +300,7 @@ class SubscriberTests extends AcceptanceTestBase {
                 10,
                 1000.0,
                 "REGULAR");
-            when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
-            when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId")); 
+            
             // Generate token and inject
             String token = authService.generateToken(user1);
             TokenUtils.setMockToken(token);  // <<--- Key step!
@@ -298,15 +309,30 @@ class SubscriberTests extends AcceptanceTestBase {
             // Assert
             ShoppingCart cart = this.userService.getUserRepository().getCart("user1");
             assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
-            // Call purchase method
-            Purchase purchaseResponse = purchaseService.executePurchase("user1", cart, SHIPPING_ADDRESS, CONTACT_INFO);
+            
+            // Call purchase method with payment details
+            Purchase purchaseResponse = purchaseService.executePurchase(
+                "user1", 
+                cart, 
+                SHIPPING_ADDRESS, 
+                CONTACT_INFO, 
+                CURRENCY, 
+                CARD_NUMBER, 
+                MONTH, 
+                YEAR, 
+                HOLDER, 
+                CCV
+            );
             assertNotNull(purchaseResponse, "Purchase data should not be null");
+            
             //verify that the cart is empty after successful purchase
             ShoppingCart updatedCart = this.userService.getUserRepository().getCart("user1");
             assertTrue(updatedCart.getAllStoreBags().isEmpty(), "Shopping cart should be empty after purchase");
+            
             //verify that the store stock is updated
             Listing listing = this.listingRepository.getListingById(listing_id1);
             assertEquals(8, listing.getQuantityAvailable(), "Stock should be reduced by 2 after purchase");
+            
             // Clean up
             this.listingRepository.removeListing(listing_id1);
             this.storeService.closeStore(storeid1, "user1");
@@ -321,13 +347,23 @@ class SubscriberTests extends AcceptanceTestBase {
         User user1 = this.userService.getUserRepository().findById("user1");
         String storeid1  = this.storeService.createStore("store1", user1.getUserName()).storeId();
         try {
-            String shippingAddress = "123 Guest Street";
-            String contactInfo = "guest@example.com";
             ShoppingCart cart = user1.getShoppingCart();
-            Purchase purchaseResponse = purchaseService.executePurchase(storeid1, cart, shippingAddress, contactInfo);
+            Purchase purchaseResponse = purchaseService.executePurchase(
+                "user1", 
+                cart, 
+                SHIPPING_ADDRESS, 
+                CONTACT_INFO, 
+                CURRENCY, 
+                CARD_NUMBER, 
+                MONTH, 
+                YEAR, 
+                HOLDER, 
+                CCV
+            );
             fail("Purchase should not succeed with empty cart");
         } catch (Exception e) {
-            assertTrue(e.getMessage().toLowerCase().contains("fail"), "Error message should indicate empty cart");
+            assertTrue(e.getMessage().toLowerCase().contains("fail") || 
+                      e.getMessage().toLowerCase().contains("empty"), "Error message should indicate empty cart");
         }
         // Clean up
         this.storeService.closeStore(storeid1, "user1");
@@ -349,15 +385,29 @@ class SubscriberTests extends AcceptanceTestBase {
         ShoppingCart cart = this.userService.getUserRepository().getCart("user1");
         cart.addProduct(storeid1, listing_id1, 2);
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should be 2");
-        // Simulate insufficient funds
-        when(paymentService.processPayment(anyString())).thenReturn(
-            ApiResponse.fail("Insufficient funds")
-        );
+        
+        // Simulate payment failure
+        when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenThrow(new RuntimeException("Payment failed: Insufficient funds"));
+        
         try {
-            Purchase purchaseResponse = purchaseService.executePurchase(storeid1, cart, "123 Guest Street", "guest@example.com");
+            Purchase purchaseResponse = purchaseService.executePurchase(
+                "user1", 
+                cart, 
+                SHIPPING_ADDRESS, 
+                CONTACT_INFO, 
+                CURRENCY, 
+                CARD_NUMBER, 
+                MONTH, 
+                YEAR, 
+                HOLDER, 
+                CCV
+            );
+            fail("Purchase should not succeed with payment failure");
         } catch (Exception e) {
             // Expected exception for insufficient funds
-            assertTrue(e.getMessage().toLowerCase().contains("failed"), "Error message should indicate insufficient funds");
+            assertTrue(e.getMessage().toLowerCase().contains("failed") || 
+                      e.getMessage().toLowerCase().contains("insufficient"), "Error message should indicate payment failure");
         }
         assertEquals(2, cart.getStoreBag(storeid1).getProductQuantity(listing_id1), "Product quantity should remain 2 after failed purchase");
     }
@@ -426,20 +476,22 @@ class SubscriberTests extends AcceptanceTestBase {
             String token = authService.generateToken(user1);
             TokenUtils.setMockToken(token);
             
-            // Configure mocks for successful bid
-            when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
-            when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
-            
             double bidAmount = 1200.0; // Bid below list price
             
-            // Submit bid
+            // Submit bid with payment details
             purchaseService.submitBid(
                 storeid1, 
                 listing_id1, 
                 "user1", 
                 bidAmount, 
                 SHIPPING_ADDRESS, 
-                CONTACT_INFO);
+                CONTACT_INFO,
+                CURRENCY,
+                CARD_NUMBER,
+                MONTH,
+                YEAR,
+                HOLDER,
+                CCV);
 
             // Verify bid status 
             String statusResponse = purchaseService.getBidStatus(storeid1, listing_id1, "user1");
@@ -452,7 +504,7 @@ class SubscriberTests extends AcceptanceTestBase {
         } catch (Exception e) {
             fail("Exception should not be thrown: " + e.getMessage());
         }
-}
+    }
 
     @Test
     void submit_bid_for_product_fail() throws Exception {
@@ -474,10 +526,6 @@ class SubscriberTests extends AcceptanceTestBase {
         String token = authService.generateToken(user1);
         TokenUtils.setMockToken(token);
         
-        // Configure mocks
-        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
-        
         // Attempt to submit an invalid bid (negative amount)
         double invalidBidAmount = -500.0;
         try {    
@@ -488,7 +536,13 @@ class SubscriberTests extends AcceptanceTestBase {
                 "user1", 
                 invalidBidAmount, 
                 SHIPPING_ADDRESS, 
-                CONTACT_INFO);
+                CONTACT_INFO,
+                CURRENCY,
+                CARD_NUMBER,
+                MONTH,
+                YEAR,
+                HOLDER,
+                CCV);
             fail("Bid submission should have failed with negative amount");
         } catch (Exception e) {
             // Expected exception for invalid bid amount
@@ -525,10 +579,6 @@ class SubscriberTests extends AcceptanceTestBase {
             String token = authService.generateToken(user1);
             TokenUtils.setMockToken(token);
             
-            // Configure mocks for payment and shipping
-            when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
-            when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
-            
             // Open auction for the item
             purchaseService.openAuction(
                 "user1", 
@@ -544,7 +594,7 @@ class SubscriberTests extends AcceptanceTestBase {
             User user2 = this.userService.getUserRepository().findById("user2");
             String token2 = authService.generateToken(user2);
             
-            // Submit an offer
+            // Submit an offer with payment details
             TokenUtils.setMockToken(token2);
             purchaseService.submitOffer(
                 storeid1,
@@ -552,7 +602,13 @@ class SubscriberTests extends AcceptanceTestBase {
                 "user2",
                 1800.0, // Offer price
                 SHIPPING_ADDRESS,
-                CONTACT_INFO);
+                CONTACT_INFO,
+                CURRENCY,
+                CARD_NUMBER,
+                MONTH,
+                YEAR,
+                HOLDER,
+                CCV);
                         
             // Check auction status
             Map<String, Object> status = purchaseService.getAuctionStatus("user2", storeid1, listing_id1);
@@ -580,9 +636,4 @@ class SubscriberTests extends AcceptanceTestBase {
             fail("Exception should not be thrown: " + e.getMessage());
         }
     }
-
-
- 
-
-   
 }

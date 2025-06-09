@@ -3,7 +3,8 @@ package market.application.External;
 import utils.ApiResponse;
 
 public interface IShipmentService {
-    ApiResponse<String> ship(String address, String recipient, double weight);
-    ApiResponse<Void> cancel(String trackingId); 
-    ApiResponse<String> getShippingInfo(String trackingId); 
+    String ship(String name, String address, String city, 
+                                String country, String zip);
+    boolean cancel(String trackingId); 
+    // ApiResponse<String> getShippingInfo(String trackingId); 
 }

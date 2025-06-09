@@ -25,8 +25,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class GuestTests extends AcceptanceTestBase {
@@ -37,8 +36,16 @@ public class GuestTests extends AcceptanceTestBase {
     private final String MANAGER_PASSWORD = "1234";
 
     private final String GUEST = "guest";
-    private final String SHIPPING_ADDRESS = "123 Guest Street";
+    private final String SHIPPING_ADDRESS = "John Doe, 123 Guest Street, New York, USA, 12345";
     private final String CONTACT_INFO = "guest@example.com";
+    
+    // Payment details for tests
+    private final String CURRENCY = "USD";
+    private final String CARD_NUMBER = "4111111111111111";
+    private final String MONTH = "12";
+    private final String YEAR = "2025";
+    private final String HOLDER = "John Doe";
+    private final String CCV = "123";
 
     private String storeId;
 
@@ -49,8 +56,15 @@ public class GuestTests extends AcceptanceTestBase {
         userService.register(MANAGER3, MANAGER_PASSWORD);
         userService.register(GUEST);
         storeId = storeService.createStore("store1", MANAGER1).storeId();
+        
+        // Configure mocks for the new interface signatures
+        when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn("payment-id-123");
+        when(paymentService.cancelPayment(anyString())).thenReturn(true);
+        when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn("tracking-id-123");
+        when(shipmentService.cancel(anyString())).thenReturn(true);
     }
-
 
     @Test
     void guest_enters_system_initializes_cart() { 
@@ -282,7 +296,6 @@ public class GuestTests extends AcceptanceTestBase {
         }
     }
 
-
     @Test
     void guest_search_returns_empty_when_no_matches() {
         try {
@@ -301,7 +314,6 @@ public class GuestTests extends AcceptanceTestBase {
             fail("Search operation failed: " + e.getMessage());
         }
     }
-
 
     @Test
     void guest_searches_in_specific_store_exists() {
@@ -327,7 +339,6 @@ public class GuestTests extends AcceptanceTestBase {
         }
     }
 
-
     @Test
     void guest_searches_in_specific_store_doesnt_exist() {
         //Step 1: Use an ID for a store that doesn't exist in the system
@@ -342,7 +353,6 @@ public class GuestTests extends AcceptanceTestBase {
             fail("Search operation failed unexpectedly: " + e.getMessage());
         }
     }
-
 
     @Test
     void guest_searches_in_specific_store_no_matching_products() {
@@ -359,7 +369,6 @@ public class GuestTests extends AcceptanceTestBase {
             fail("Search operation failed unexpectedly: " + e.getMessage());
         }
     }
-
 
     @Test 
     void guest_adds_product_to_cart_valid() {
@@ -390,18 +399,15 @@ public class GuestTests extends AcceptanceTestBase {
         }
     }
 
-
     @Test
     void guest_adds_product_to_cart_product_doesnt_exist() { //we didnt check if the product is exist when add product
         ///
     }
 
-
     @Test
     void guest_adds_product_to_cart_not_enough_quantity_in_stock() { //we didnt check if the product in stock when add product
         ///
     }
-
 
     @Test
     void guest_views_cart_contents_success() { //we didnt have a function- maybe just use the getCart?
@@ -430,8 +436,10 @@ public class GuestTests extends AcceptanceTestBase {
             int quantity=5;
             String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0, "REGULAR");
             //Step 2: Stub the payment and shipment services to simulate success
-            when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
-            when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
+            when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("payment-id-123");
+            when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("tracking-id-123");
             //Step 3: Generate a token for GUEST and set it as the current token
             IUserRepository userRep = userService.getUserRepository();
             User guestUser=userRep.findById(GUEST); 
@@ -441,7 +449,7 @@ public class GuestTests extends AcceptanceTestBase {
             userService.addProductToCart(storeId, listingId, 1);
             ShoppingCart guestCart = guestUser.getShoppingCart();
             //Step 7: Execute the purchase
-            Purchase purchase = purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO);
+            Purchase purchase = purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO, CURRENCY, CARD_NUMBER, MONTH, YEAR, HOLDER, CCV);
             //Step 8: Validate that the purchase object is correct and belongs to the guest
             assertNotNull(purchase, "Purchase should not be null");
             assertEquals(GUEST, purchase.getUserId(), "Buyer ID should be guest");
@@ -466,8 +474,10 @@ public class GuestTests extends AcceptanceTestBase {
             int quantity=5;
             String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0, "REGULAR");
             //Step 2: Stub the payment and shipment services to simulate success (even though stock will fail)
-            when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
-            when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
+            when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("payment-id-123");
+            when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("tracking-id-123");
             //Step 3: Generate a token for GUEST and set it as the current token
             IUserRepository userRep = userService.getUserRepository();
             User guestUser=userRep.findById(GUEST); 
@@ -477,7 +487,7 @@ public class GuestTests extends AcceptanceTestBase {
             userService.addProductToCart(storeId, listingId, quantity + 1); 
             ShoppingCart guestCart = guestUser.getShoppingCart();
             //Step 5: Attempt to execute purchase — should fail due to insufficient stock
-            purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO);
+            purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO, CURRENCY, CARD_NUMBER, MONTH, YEAR, HOLDER, CCV);
             fail("Expected purchase to fail due to insufficient stock, but it succeeded");
         } catch (Exception e) {
             //should fail due to insufficient stock
@@ -493,8 +503,10 @@ public class GuestTests extends AcceptanceTestBase {
         int quantity=5;
         String listingId=storeService.addNewListing(MANAGER1, storeId, "p1", "Notebook", "writing", "Simple notebook", quantity, 25.0, "REGULAR");
         //Step 2: Stub services: simulate payment failure but allow shipment (to isolate payment failure)
-        when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.fail("Simulated payment failure"));
-        when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123"));
+        when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenThrow(new RuntimeException("Simulated payment failure"));
+        when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+            .thenReturn("tracking-id-123");
         //Step 3: Generate a token for GUEST and set it as the current token
         IUserRepository userRep = userService.getUserRepository();
         User guestUser=userRep.findById(GUEST); 
@@ -505,7 +517,7 @@ public class GuestTests extends AcceptanceTestBase {
         ShoppingCart guestCart = guestUser.getShoppingCart();
         try {
             //Step 5: Attempt to execute purchase — should fail due to payment error
-            Purchase purchaseResponse = purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO);
+            Purchase purchaseResponse = purchaseService.executePurchase(GUEST, guestCart, SHIPPING_ADDRESS, CONTACT_INFO, CURRENCY, CARD_NUMBER, MONTH, YEAR, HOLDER, CCV);
             //Step 6: Verify that the purchase failed and the error is payment-related
             fail("Expected purchase to fail due to payment issue, but it succeeded");
         } catch (Exception e) {
@@ -547,14 +559,16 @@ public class GuestTests extends AcceptanceTestBase {
             String token = authService.generateToken(guest);
             TokenUtils.setMockToken(token);  // Set the token for the guest
             String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0, "REGULAR");
-            when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
-            when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
+            when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("payment-id-123");
+            when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("tracking-id-123");
             userService.addProductToCart(storeId, listingIdOfGvina, 2);
             // Step 4: Retrieve the guest's shopping cart and ensure the product was added with the correct quantity
             ShoppingCart cart = userRep.getCart(GUEST);
             assertEquals(2, cart.getStoreBag(storeId).getProductQuantity(listingIdOfGvina), "Expected quantity of 'Gvina' in store bag should be 2");
             // Step 5: Execute the guest's purchase
-            Purchase purchase = purchaseService.executePurchase(GUEST, cart, SHIPPING_ADDRESS, CONTACT_INFO);
+            Purchase purchase = purchaseService.executePurchase(GUEST, cart, SHIPPING_ADDRESS, CONTACT_INFO, CURRENCY, CARD_NUMBER, MONTH, YEAR, HOLDER, CCV);
             // Step 6: Get the final price of the purchase
             double totalPrice = purchase.getTotalPrice();
             // Step 7: Calculate the expected price - 5 * 2 = 10, 10% discount = 1
@@ -595,14 +609,16 @@ public class GuestTests extends AcceptanceTestBase {
             TokenUtils.setMockToken(token);
 
             String listingIdOfGvina = storeService.addNewListing(MANAGER1, storeId, "123", "Gvina", "food", "Gvina", 10, 5.0, "REGULAR");
-            when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true)); 
-            when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("SHIP123")); 
+            when(paymentService.processPayment(anyString(), anyDouble(), anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("payment-id-123");
+            when(shipmentService.ship(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("tracking-id-123");
             userService.addProductToCart(storeId, listingIdOfGvina, 2);
             // Step 4: Retrieve the guest's shopping cart and ensure the product was added with the correct quantity
             ShoppingCart cart = userRep.getCart(GUEST);
             assertEquals(2, cart.getStoreBag(storeId).getProductQuantity(listingIdOfGvina), "Expected quantity of 'Gvina' in store bag should be 2");
             // Step 5: Execute the guest's purchase
-            Purchase purchaseResponse = purchaseService.executePurchase(GUEST, cart, SHIPPING_ADDRESS, CONTACT_INFO);
+            Purchase purchaseResponse = purchaseService.executePurchase(GUEST, cart, SHIPPING_ADDRESS, CONTACT_INFO, CURRENCY, CARD_NUMBER, MONTH, YEAR, HOLDER, CCV);
             // Step 6: Get the final price of the purchase
             double totalPrice = purchaseResponse.getTotalPrice();
             // Step 7: Calculate the expected price - 5 * 2 = 10, coupon discount = 5, final price = 5
@@ -615,5 +631,4 @@ public class GuestTests extends AcceptanceTestBase {
         // Step 9: Clear the token after the test
         TokenUtils.clearMockToken();
     }
-
-}  
+}

@@ -65,7 +65,7 @@ public class AuctionPurchase {
     /// When user submits an offer
     /// This method checks if the auction is active and if the offer is higher than the current maximum.
     /// If the offer is valid, it adds the offer to the list of offers for that auction.
-    public static void submitOffer(String storeId, String productId, String userId, double price, String shippingAddress, String contactInfo) {
+    public static void submitOffer(String storeId, String productId, String userId, double price, String shippingAddress, String contactInfo, String currency, String cardNumber, String month, String year, String holder, String ccv) {
         AuctionKey key = new AuctionKey(storeId, productId);
         long now = System.currentTimeMillis();
         if (!endTimes.containsKey(key) || now > endTimes.get(key)) {
@@ -79,7 +79,7 @@ public class AuctionPurchase {
         if (price <= currentMax) {
             throw new RuntimeException("Offer must be higher than current maximum.");
         }
-        offerList.add(new Offer(userId, price, shippingAddress, contactInfo));
+        offerList.add(new Offer(userId, price, shippingAddress, contactInfo, currency, cardNumber, month, year, holder, ccv));
         offers.put(key, offerList);
     }
 
@@ -148,7 +148,13 @@ public class AuctionPurchase {
                         winner.shippingAddress,
                         winner.contactInfo,
                         shipmentService,
-                        paymentService
+                        paymentService,
+                        winner.currency,
+                        winner.cardNumber,
+                        winner.month,
+                        winner.year,
+                        winner.holder,
+                        winner.ccv
                     );
         return p;
     }
@@ -161,9 +167,60 @@ public class AuctionPurchase {
                 1, //always 1 for auction purchase
                 price // price is set when auction ends
         );
-        paymentService.processPayment("User: " + userId + ", Amount: " + price);
-        shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
-        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        
+        // Updated method calls to match interface signatures
+        // IPaymentService.processPayment(String currency, double amount, String cardNumber, String month, String year, String holder, String ccv)
+        // For auction, we'll need to get payment details from the user or use default values
+        // This assumes you have payment details available - you may need to modify this based on your data structure
+        String paymentId = paymentService.processPayment(
+            "USD",           // currency - default or from system config
+            price,           // amount
+            "4111111111111111", // cardNumber - this should come from user input
+            "12",            // month - this should come from user input
+            "2025",          // year - this should come from user input
+            userId,          // holder - using userId as holder name
+            "123"            // ccv - this should come from user input
+        );
+        
+        // Parse shipping address to extract components (assuming format: "Name, Address, City, Country, ZIP")
+        String[] addressParts = shippingAddress.split(", ");
+        String name = addressParts.length > 0 ? addressParts[0] : userId;
+        String address = addressParts.length > 1 ? addressParts[1] : shippingAddress;
+        String city = addressParts.length > 2 ? addressParts[2] : "Unknown";
+        String country = addressParts.length > 3 ? addressParts[3] : "Unknown";
+        String zip = addressParts.length > 4 ? addressParts[4] : "00000";
+        
+        // IShipmentService.ship(String name, String address, String city, String country, String zip)
+        String trackingId = shipmentService.ship(name, address, city, country, zip);
+        
+        Purchase newP = new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        purchaseRepository.save(newP);
+        return newP;
+    }
+
+    // Update the purchase method to include payment details in constructor parameters
+    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo, IShipmentService shipmentService, IPaymentService paymentService, String currency, String cardNumber, String month, String year, String holder, String ccv) {
+        PurchasedProduct product = new PurchasedProduct(
+                productId,
+                storeId,
+                1, //always 1 for auction purchase
+                price // price is set when auction ends
+        );
+        
+        // Updated method calls to match interface signatures
+        String paymentId = paymentService.processPayment(currency, price, cardNumber, month, year, holder, ccv);
+        
+        // Parse shipping address to extract components
+        String[] addressParts = shippingAddress.split(", ");
+        String name = addressParts.length > 0 ? addressParts[0] : holder; // Use holder name if available
+        String address = addressParts.length > 1 ? addressParts[1] : shippingAddress;
+        String city = addressParts.length > 2 ? addressParts[2] : "Unknown";
+        String country = addressParts.length > 3 ? addressParts[3] : "Unknown";
+        String zip = addressParts.length > 4 ? addressParts[4] : "00000";
+        
+        String trackingId = shipmentService.ship(name, address, city, country, zip);
+        
+        Purchase newP = new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
         purchaseRepository.save(newP);
         return newP;
     }

@@ -22,7 +22,10 @@ import {
   Grid,
   Snackbar,
   Checkbox,
-  Chip
+  Chip,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
@@ -77,6 +80,15 @@ export default function Checkout() {
     cardNumber: "",
     expiryDate: "",
     cvv: ""
+  });
+
+  const [paymentDetails, setPaymentDetails] = useState({
+    currency: 'USD',
+    cardNumber: '',
+    month: '',
+    year: '',
+    holder: '',
+    ccv: ''
   });
 
   const [useSameAddress, setUseSameAddress] = useState(true);
@@ -201,19 +213,10 @@ export default function Checkout() {
     setProcessingPayment(true);
 
     try {
-      // Prepare payment details based on payment method
-      let paymentDetails = '';
-      if (paymentMethod === 'credit') {
-        paymentDetails = `Credit Card - ${cardDetails.cardName} - ****${cardDetails.cardNumber.slice(-4)}`;
-      } else {
-        paymentDetails = 'PayPal Payment';
-      }
-
       // Prepare shipping address
-      const shippingAddressString = `${shippingAddress.fullName}, ${shippingAddress.addressLine1}${shippingAddress.addressLine2 ? ', ' + shippingAddress.addressLine2 : ''}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}, ${shippingAddress.country}`;
+      const shippingAddressString = `${shippingAddress.fullName}, ${shippingAddress.addressLine1}${shippingAddress.addressLine2 ? ', ' + shippingAddress.addressLine2 : ''}, ${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.postalCode}, ${shippingAddress.country}`;
 
       console.log("📦 Prepared purchase data:", {
-        paymentDetails,
         shippingAddressString,
         paymentMethod,
         isGuest
@@ -222,29 +225,50 @@ export default function Checkout() {
       let result;
 
       if (isGuest) {
-        // Guest checkout - extract email from full name or validate it's an email
-        let guestEmail = shippingAddress.fullName;
-
+        // GUEST CHECKOUT - Use guestService.completeGuestCheckout
+        console.log("🚀 Processing guest checkout with email:", shippingAddress.fullName);
+        
         // Simple email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(guestEmail)) {
+        if (!emailRegex.test(shippingAddress.fullName)) {
           throw new Error("Please provide a valid email address in the 'Full Name' field for guest checkout");
         }
 
-        console.log("🚀 Processing guest checkout with email:", guestEmail);
+        // Prepare payment details for guest service
+        let paymentDetails = '';
+        if (paymentMethod === 'credit') {
+          paymentDetails = `Credit Card - ${cardDetails.cardName} - ****${cardDetails.cardNumber.slice(-4)}`;
+        } else {
+          paymentDetails = 'PayPal Payment';
+        }
+
         result = await guestService.completeGuestCheckout(
-          guestEmail,
-          paymentDetails,
-          shippingAddressString
+          shippingAddress.fullName,  // email
+          paymentDetails,           // payment details as string
+          shippingAddressString     // shipping address
         );
 
-        // After successful guest checkout, initialize a new guest session
-        console.log("🔄 Initializing new guest session after purchase...");
-        await guestService.registerGuest();
       } else {
-        // Authenticated user checkout
-        console.log("🚀 Making API call to purchase service...");
-        result = await purchaseService.executePurchase(paymentDetails, shippingAddressString);
+        // REGULAR USER CHECKOUT - Use purchaseService
+        console.log("🚀 Processing regular user checkout");
+
+        // Build complete payment object for regular users
+        const purchaseData = {
+          currency: paymentDetails.currency || 'USD',
+          cardNumber: cardDetails.cardNumber,
+          month: cardDetails.expiryDate?.split('/')[0], // Extract month from MM/YY
+          year: '20' + cardDetails.expiryDate?.split('/')[1], // Extract year and add 20 prefix
+          holder: cardDetails.cardName,
+          ccv: cardDetails.cvv
+        };
+
+        const contactInfo = shippingAddress.fullName;
+
+        result = await purchaseService.executePurchase(
+          purchaseData,           // Complete payment details
+          shippingAddressString,  // Shipping address
+          contactInfo            // Contact info
+        );
       }
 
       console.log("✅ Purchase completed successfully:", result);
@@ -262,7 +286,7 @@ export default function Checkout() {
         message: isGuest
           ? `Your guest order has been confirmed! Your email ${shippingAddress.fullName} has been registered for this purchase.`
           : 'Your order has been confirmed and will be processed soon.',
-        details: `Order Details: ${result.details || result}`
+        details: `Order Details: ${result.details || result.message || result}`
       });
 
     } catch (error) {
@@ -591,7 +615,22 @@ export default function Checkout() {
                 {paymentMethod === "credit" && (
                   <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
                     <Grid container spacing={2}>
-                      <Grid item xs={12}>
+                      {/* Add currency field as first item */}
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Currency</InputLabel>
+                          <Select
+                            value={paymentDetails.currency}
+                            onChange={(e) => setPaymentDetails({...paymentDetails, currency: e.target.value})}
+                          >
+                            <MenuItem value="USD">USD</MenuItem>
+                            <MenuItem value="EUR">EUR</MenuItem>
+                            <MenuItem value="GBP">GBP</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
                           label="Name on Card"

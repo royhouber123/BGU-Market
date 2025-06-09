@@ -1,9 +1,10 @@
 package market.application;
 
+import market.application.External.ExternalPaymentService;  // Change from PaymentService
+import market.application.External.ExternalShipmentService; // Change from ShipmentService
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
-import market.application.External.PaymentService;
-import market.application.External.ShipmentService;
+import market.application.External.config.ExternalServiceConfig;
 import market.domain.Role.IRoleRepository;
 import market.domain.notification.INotificationRepository;
 import market.domain.purchase.IPurchaseRepository;
@@ -15,10 +16,12 @@ import market.infrastructure.ListingRepository;
 import market.infrastructure.PurchaseRepository;
 import market.infrastructure.RoleRepository;
 import market.infrastructure.SuspensionRepository;
+import market.infrastructure.NotificationRepository; // Updated import
 import market.notification.INotifier; // Updated import
 import market.notification.WebSocketBroadcastNotifier; // Updated import
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Spring configuration class that defines all service beans.
@@ -47,13 +50,13 @@ public class AppConfig {
     }
 
     @Bean
-    public IPaymentService paymentService() {
-        return new PaymentService();
+    public IPaymentService paymentService(RestTemplate restTemplate,ExternalServiceConfig externalServiceConfig) {
+        return new ExternalPaymentService(restTemplate, externalServiceConfig); // Use external service
     }
 
     @Bean
-    public IShipmentService shipmentService() {
-        return new ShipmentService();
+    public IShipmentService shipmentService(RestTemplate restTemplate,ExternalServiceConfig externalServiceConfig) {
+        return new ExternalShipmentService(restTemplate, externalServiceConfig); // Use external service
     }
 
     @Bean
@@ -119,8 +122,17 @@ public class AppConfig {
     
     @Bean
     public INotificationRepository notificationRepository() {
-        // Replace with your actual implementation class if different
-        return new market.infrastructure.NotificationRepository();
+        return new NotificationRepository();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
+    public ExternalServiceConfig externalServiceConfig() {
+        return new ExternalServiceConfig(); // You'll need to create this config class
     }
 
 }

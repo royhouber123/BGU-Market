@@ -15,48 +15,71 @@ api.interceptors.request.use(config => {
 });
 
 const purchaseService = {
-  // Execute a purchase
-  executePurchase: async (paymentDetails, shippingAddress) => {
+  // Execute a purchase - flatten payment details
+  executePurchase: async (paymentDetails, shippingAddress, contactInfo) => {
     try {
       const response = await api.post('/purchases/execute', {
-        paymentDetails,
-        shippingAddress
+        shippingAddress,
+        contactInfo,
+        // Send as individual string fields, not nested object
+        currency: paymentDetails.currency || 'USD',
+        cardNumber: paymentDetails.cardNumber,
+        month: paymentDetails.month,
+        year: paymentDetails.year,
+        holder: paymentDetails.holder,
+        ccv: paymentDetails.ccv
       });
-      
-      // Backend returns: {"success": true, "data": "...", "error": null}
-      if (response.data.success) {
-        return response.data.data;
-      } else {
-        throw new Error(response.data.error || 'Purchase failed');
-      }
+      return response.data;
     } catch (error) {
-      console.error('Purchase error:', error);
-      if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
-      }
+      console.error('Purchase failed:', error);
       throw error;
     }
   },
 
-  // Submit auction offer
-  submitAuctionOffer: async (storeId, productId, offerAmount) => {
+  // Submit bid - flatten payment details
+  submitBid: async (storeId, productId, bidAmount, shippingAddress, contactInfo, paymentDetails) => {
+    try {
+      const response = await api.post('/purchases/bid/submit', {
+        storeId,
+        productId,
+        bidAmount,
+        shippingAddress,
+        contactInfo,
+        // Send as individual string fields
+        currency: paymentDetails.currency || 'USD',
+        cardNumber: paymentDetails.cardNumber,
+        month: paymentDetails.month,
+        year: paymentDetails.year,
+        holder: paymentDetails.holder,
+        ccv: paymentDetails.ccv
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Bid submission failed:', error);
+      throw error;
+    }
+  },
+
+  // Submit auction offer - flatten payment details
+  submitAuctionOffer: async (storeId, productId, offerAmount, shippingAddress, contactInfo, paymentDetails) => {
     try {
       const response = await api.post('/purchases/auction/offer', {
         storeId,
         productId,
-        offerAmount
+        offerAmount,
+        shippingAddress,
+        contactInfo,
+        // Send as individual string fields
+        currency: paymentDetails.currency || 'USD',
+        cardNumber: paymentDetails.cardNumber,
+        month: paymentDetails.month,
+        year: paymentDetails.year,
+        holder: paymentDetails.holder,
+        ccv: paymentDetails.ccv
       });
-      
-      if (response.data.success) {
-        return response.data.data;
-      } else {
-        throw new Error(response.data.error || 'Auction offer failed');
-      }
+      return response.data;
     } catch (error) {
-      console.error('Auction offer error:', error);
-      if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
-      }
+      console.error('Auction offer failed:', error);
       throw error;
     }
   },
@@ -81,29 +104,6 @@ const purchaseService = {
       }
     } catch (error) {
       console.error('Open auction error:', error);
-      if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
-      }
-      throw error;
-    }
-  },
-
-  // Submit bid
-  submitBid: async (storeId, productId, bidAmount) => {
-    try {
-      const response = await api.post('/purchases/bid/submit', {
-        storeId,
-        productId,
-        bidAmount
-      });
-      
-      if (response.data.success) {
-        return response.data.data;
-      } else {
-        throw new Error(response.data.error || 'Bid submission failed');
-      }
-    } catch (error) {
-      console.error('Bid submission error:', error);
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
       }
@@ -262,4 +262,4 @@ const purchaseService = {
   }
 };
 
-export default purchaseService; 
+export default purchaseService;
