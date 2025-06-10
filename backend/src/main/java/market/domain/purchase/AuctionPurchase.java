@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
+import javax.management.Notification;
+
 import market.domain.store.*;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
+import market.application.NotificationService;
+
 
 import java.util.Timer;
 
@@ -18,6 +22,7 @@ public class AuctionPurchase {
     //to update and check stock
     private static IStoreRepository storeRepository;
     private static IPurchaseRepository purchaseRepository;
+    private static NotificationService notificationService;
 
 
     /// Map to store offers for each auction
@@ -39,8 +44,9 @@ public class AuctionPurchase {
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep) {
+    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep, NotificationService notificationService) {
         purchaseRepository = purchaseRep;
+        notificationService = notificationService;
         long delay = endTimeMillis - System.currentTimeMillis();
         if (delay <= 0) return;
         storeRepository = rep;
@@ -80,6 +86,9 @@ public class AuctionPurchase {
             throw new RuntimeException("Offer must be higher than current maximum.");
         }
         offerList.add(new Offer(userId, price, shippingAddress, contactInfo));
+        for (Offer offer : offerList) {
+            notificationService.sendNotification(offer.getUserId(), "New offer placed for auction: " + productId + " in store: " + storeId + ". Your offer: " + price + ". Current max offer: " + currentMax);
+        }
         offers.put(key, offerList);
     }
 
@@ -140,6 +149,13 @@ public class AuctionPurchase {
         if (!updatedStock) {
             throw new RuntimeException("Failed to update stock for auction purchase.");
         }
+        // Notify all users about the auction result
+        notificationService.sendNotification(winner.userId, "Congratulations! You won the auction for product: " + productId + " in store: " + storeId + ". Your winning offer: " + winner.price);
+        for(Offer offer : offerList) {
+            if (!offer.userId.equals(winner.userId)) {
+                notificationService.sendNotification(offer.userId, "You lost the auction for product: " + productId + " in store: " + storeId + ". Your offer: " + offer.price + ". Winning offer: " + winner.price);
+            }
+        }
         Purchase p = new AuctionPurchase().purchase(
                         winner.userId,
                         storeId,
@@ -186,5 +202,9 @@ public class AuctionPurchase {
 
     public static void setPurchaseRepository(IPurchaseRepository purchaseRepository) {
         AuctionPurchase.purchaseRepository = purchaseRepository;
+    }
+
+    public static void setNotificationService(NotificationService notificationService) {
+        AuctionPurchase.notificationService = notificationService;
     }
 }
