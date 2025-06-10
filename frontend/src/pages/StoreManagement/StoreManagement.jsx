@@ -49,13 +49,12 @@ import PolicyManagement from "../../components/PolicyManagement/PolicyManagement
 import ProductEditDialog from "../../components/ProductEditDialog/ProductEditDialog";
 import AddProductDialog from "../../components/AddProductDialog/AddProductDialog";
 import BidManagementDialog from "../../components/BidManagementDialog/BidManagementDialog";
-import StartAuctionDialog from "../../components/StartAuctionDialog/StartAuctionDialog";
 import UserManagement from "../../components/UserManagement/UserManagement";
 import './StoreManagement.css';
 import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
 
 // Create a proper React component for the product card
-const ProductCard = ({ product, pendingBidCounts, storePermissions, handleViewProduct, handleManageBids, handleEditProduct, handleStartAuction }) => {
+const ProductCard = ({ product, pendingBidCounts, storePermissions, handleViewProduct, handleManageBids, handleEditProduct }) => {
 	const [discountedPrice, setDiscountedPrice] = useState(null);
 	const [loading, setLoading] = useState(true);
 	// Add auction status states
@@ -417,28 +416,6 @@ const ProductCard = ({ product, pendingBidCounts, storePermissions, handleViewPr
 							{pendingBids > 0 ? `Review ${pendingBids} Bid${pendingBids > 1 ? 's' : ''}` : 'Manage Bids'}
 						</Button>
 					)}
-					{product.purchaseType === 'AUCTION' && storePermissions.canEditProducts && (
-						<Button
-							size="small"
-							startIcon={<ScheduleIcon />}
-							onClick={() => handleStartAuction(product.id)}
-							color="info"
-							variant="contained"
-							disabled={auctionStatus && !auctionEnded} // Disable if auction is already running
-							sx={{
-								background: auctionStatus && !auctionEnded
-									? 'linear-gradient(45deg, #757575 30%, #9E9E9E 90%)'
-									: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-								'&:hover': {
-									background: auctionStatus && !auctionEnded
-										? 'linear-gradient(45deg, #757575 30%, #9E9E9E 90%)'
-										: 'linear-gradient(45deg, #1976D2 30%, #0288D1 90%)',
-								}
-							}}
-						>
-							{auctionStatus && !auctionEnded ? 'Auction Active' : auctionEnded ? 'Auction Ended' : 'Start Auction'}
-						</Button>
-					)}
 					{storePermissions.canEditProducts && (
 						<Button
 							size="small"
@@ -477,8 +454,6 @@ export default function StoreManagement() {
 	const [addProductPurchaseType, setAddProductPurchaseType] = useState('REGULAR');
 	const [bidManagementDialog, setBidManagementDialog] = useState(false);
 	const [selectedBidProduct, setSelectedBidProduct] = useState(null);
-	const [startAuctionDialog, setStartAuctionDialog] = useState(false);
-	const [selectedAuctionProduct, setSelectedAuctionProduct] = useState(null);
 
 	// New state for bid tracking
 	const [bidCounts, setBidCounts] = useState({});
@@ -760,21 +735,6 @@ export default function StoreManagement() {
 		}
 	};
 
-	const handleStartAuction = (productId) => {
-		const product = products.find(p => p.id === productId);
-		if (product && product.purchaseType === 'AUCTION') {
-			setSelectedAuctionProduct(product);
-			setStartAuctionDialog(true);
-		}
-	};
-
-	const handleStartAuctionClose = () => {
-		setStartAuctionDialog(false);
-		setSelectedAuctionProduct(null);
-		// Refresh products after starting auction
-		loadProductsWithDiscounts();
-	};
-
 	const handleBidManagementClose = () => {
 		setBidManagementDialog(false);
 		setSelectedBidProduct(null);
@@ -838,7 +798,6 @@ export default function StoreManagement() {
 				handleViewProduct={handleViewProduct}
 				handleManageBids={handleManageBids}
 				handleEditProduct={handleEditProduct}
-				handleStartAuction={handleStartAuction}
 			/>
 		);
 	};
@@ -977,7 +936,7 @@ export default function StoreManagement() {
 								<Typography variant="body2" color="text.disabled" sx={{ mb: 3 }}>
 									{purchaseType === 'REGULAR' && "Add your first regular product to start selling"}
 									{purchaseType === 'BID' && "Enable bid functionality for negotiable pricing"}
-									{purchaseType === 'AUCTION' && "Create time-limited auctions for competitive bidding"}
+									{purchaseType === 'AUCTION' && "Create auction products that automatically start accepting bids"}
 									{purchaseType === 'RAFFLE' && "Set up raffle entries for exciting giveaways"}
 								</Typography>
 
@@ -1455,16 +1414,6 @@ export default function StoreManagement() {
 					open={bidManagementDialog}
 					onClose={handleBidManagementClose}
 					product={selectedBidProduct}
-					store={store}
-					onUpdate={toast}
-				/>
-			)}
-
-			{startAuctionDialog && (
-				<StartAuctionDialog
-					open={startAuctionDialog}
-					onClose={handleStartAuctionClose}
-					product={selectedAuctionProduct}
 					store={store}
 					onUpdate={toast}
 				/>

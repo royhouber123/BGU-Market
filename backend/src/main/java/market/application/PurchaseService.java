@@ -135,12 +135,19 @@ public class PurchaseService {
     public void openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
         try {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
+            
             Store store = storeRepository.getStoreByID(storeId);
-            store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
+            if (store == null) {
+                throw new IllegalArgumentException("Store not found with ID: " + storeId);
+            }
+            
+            // Get the actual product ID created by the backend
+            String actualProductId = store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
     
-            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository);
+            // Use the actual product ID for the auction
+            AuctionPurchase.openAuction(storeRepository, storeId, actualProductId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository);
     
-            logger.info("Auction opened: store " + storeId + ", product " + productId + ", by user " + userId);
+            logger.info("Auction opened: store " + storeId + ", product " + actualProductId + ", by user " + userId);
     
         } catch (Exception e) {
             logger.error("Failed to open auction for store: " + storeId + ", product: " + productId + ". Reason: " + e.getMessage());
