@@ -36,6 +36,7 @@ public class BidPurchase {
      */
     public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
                                  String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep, NotificationService notifService) { 
+
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
         storeRepository=rep;
         shipmentService=shipment;
