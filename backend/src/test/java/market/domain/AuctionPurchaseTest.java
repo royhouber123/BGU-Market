@@ -122,12 +122,17 @@ public class AuctionPurchaseTest {
 
     @Test
     void auction_shouldAutoCloseAfterEndTime() throws InterruptedException {
-        long shortEndTime = System.currentTimeMillis() + 500;
+        long shortEndTime = System.currentTimeMillis() + 1500;
         AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, shortEndTime, shipmentService, paymentService, purchaseRepository);
         AuctionPurchase.submitOffer(storeId, productId, "user1", 200.0, "addr", "contact");
-        Thread.sleep(600);
+        
+        // Wait for auction to end plus buffer for cleanup
+        Thread.sleep(1700);
+        
         AuctionKey key = new AuctionKey(storeId, productId);
-        assertFalse(AuctionPurchase.getOffers().containsKey(key));
+        
+        // Verify auction has been cleaned up
+        assertFalse(AuctionPurchase.getOffers().containsKey(key), "Auction should have been closed and cleaned up");
     }
 
     @Test

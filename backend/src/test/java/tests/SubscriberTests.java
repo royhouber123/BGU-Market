@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import market.domain.store.Listing;
+import market.domain.store.Store;
 import market.domain.store.StoreDTO;
 import market.domain.user.ShoppingCart;
 import market.domain.user.User;
@@ -452,7 +453,7 @@ class SubscriberTests extends AcceptanceTestBase {
         } catch (Exception e) {
             fail("Exception should not be thrown: " + e.getMessage());
         }
-}
+    }
 
     @Test
     void submit_bid_for_product_fail() throws Exception {
@@ -508,16 +509,6 @@ class SubscriberTests extends AcceptanceTestBase {
             User user1 = this.userService.getUserRepository().findById("user1");
             String storeid1 = this.storeService.createStore("store1", user1.getUserName()).storeId();
 
-            String listing_id1 = this.storeService.addNewListing(
-                "user1", 
-                storeid1, 
-                "p1", 
-                "collectible-item", 
-                "collectibles", 
-                "rare collectible item", 
-                1,
-                2000.0, "REGULAR");
-            
             // Setup end time for auction (1 minute from now)
             long endTime = System.currentTimeMillis() + 60000;
             
@@ -529,11 +520,12 @@ class SubscriberTests extends AcceptanceTestBase {
             when(paymentService.processPayment(anyString())).thenReturn(ApiResponse.ok(true));
             when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
             
-            // Open auction for the item
+            // Open auction for the item - this creates the listing internally
+            String productId = "collectible-item-" + System.currentTimeMillis(); // Use unique product ID
             purchaseService.openAuction(
                 "user1", 
                 storeid1, 
-                listing_id1, 
+                productId, 
                 "collectible-item", 
                 "collectibles", 
                 "rare collectible item", 
@@ -544,22 +536,34 @@ class SubscriberTests extends AcceptanceTestBase {
             User user2 = this.userService.getUserRepository().findById("user2");
             String token2 = authService.generateToken(user2);
             
-            // Submit an offer
+            // Submit an offer - need to use the actual listing ID created by openAuction
             TokenUtils.setMockToken(token2);
+            
+            // Get all listings from the store and find the auction listing
+            List<Listing> allListings = this.productService.searchInStoreByName(storeid1, "collectible-item");
+            String actualListingId = null;
+            for (Listing listing : allListings) {
+                if (listing.getPurchaseType().toString().equals("AUCTION")) {
+                    actualListingId = listing.getListingId();
+                    break;
+                }
+            }
+            assertNotNull(actualListingId, "Auction listing should have been created");
+            
             purchaseService.submitOffer(
                 storeid1,
-                listing_id1,
+                actualListingId,  // Use the actual listing ID
                 "user2",
                 1800.0, // Offer price
                 SHIPPING_ADDRESS,
                 CONTACT_INFO);
                         
             // Check auction status
-            Map<String, Object> status = purchaseService.getAuctionStatus("user2", storeid1, listing_id1);
+            Map<String, Object> status = purchaseService.getAuctionStatus("user2", storeid1, actualListingId);
             
             assertNotNull(status, "Auction status data should not be null");
             
-            // UPDATED: Instead of checking for bidder, check for the current offer value
+            // Check for the current offer value
             assertNotNull(status.get("currentMaxOffer"), "Current max offer should not be null");
             assertEquals(1800.0, (Double)status.get("currentMaxOffer"), 0.001, "Current max offer should match the submitted bid");
         
@@ -572,7 +576,9 @@ class SubscriberTests extends AcceptanceTestBase {
                     "Auction should still have time remaining");
             
             // Clean up
-            this.listingRepository.removeListing(listing_id1);
+            if (actualListingId != null) {
+                this.listingRepository.removeListing(actualListingId);
+            }
             this.storeService.closeStore(storeid1, "user1");
             TokenUtils.clearMockToken();
             
