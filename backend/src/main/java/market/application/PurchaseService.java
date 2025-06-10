@@ -214,9 +214,10 @@ public class PurchaseService {
                 approvers,
                 shipmentService,
                 paymentService,
-                purchaseRepository
+                purchaseRepository,
+                notificationService
             );
-    
+            notifyAllApproversForBid(storeId, "New bid submitted for approval: " + userId + " has submitted a bid of $" + offerPrice + " for product " + productId + " in store " + storeId);
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
 
     }
@@ -224,7 +225,7 @@ public class PurchaseService {
     public void approveBid(String storeId, String productId, String userId, String approverId) {
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.approveBid(storeId, productId, userId, approverId);
-
+        
         logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
@@ -446,6 +447,15 @@ public class PurchaseService {
         if (store != null) {
             for (String ownerId : store.getAllOwners()) {
                 notificationService.sendNotification(ownerId, message);
+            }
+        }
+    }
+
+    private void notifyAllApproversForBid(String storeID, String message) {
+        Store store = storeRepository.getStoreByID(storeID);
+        if (store != null) {
+            for (String approver : store.getApproversForBid()) {
+                notificationService.sendNotification(approver, message);
             }
         }
     }
