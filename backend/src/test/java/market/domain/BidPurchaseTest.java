@@ -54,7 +54,7 @@ public class BidPurchaseTest {
         BidPurchase.setShippingService(shipmentService);
 
         notificationService = mock(NotificationService.class);
-        when(notificationService.sendNotification(anyString(), anyString())).thenReturn(ApiResponse.ok(true));
+        doNothing().when(notificationService).sendNotification(anyString(), anyString());
     }
 
     @AfterEach
