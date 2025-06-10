@@ -55,6 +55,7 @@ public class BidPurchaseTest {
 
         notificationService = mock(NotificationService.class);
         doNothing().when(notificationService).sendNotification(anyString(), anyString());
+        BidPurchase.setNotificationService(notificationService);
     }
 
     @AfterEach
