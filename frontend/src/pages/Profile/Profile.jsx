@@ -89,10 +89,12 @@ export default function Profile() {
 		}
 	}, []);
 
-	// Add to existing loadProfileData function
-	if (currentUser) {
-		checkAdminStatus();
-	}
+	// Check admin status separately from regular data loading
+	useEffect(() => {
+		if (currentUser) {
+			checkAdminStatus();
+		}
+	}, [currentUser, checkAdminStatus]);
 
 	const loadUserManagedStores = useCallback(async () => {
 		try {
@@ -375,6 +377,63 @@ export default function Profile() {
 		loadProfileData();
 	}, [currentUser, loadProfileData, loadSuspendedUsers]);
 
+	// Load tab-specific data when a tab is selected
+	useEffect(() => {
+		if (!currentUser) return;
+
+		// Clear loading state initially
+		setLoading(true);
+		
+		// Load data specific to the selected tab
+		const loadTabData = async () => {
+			try {
+				console.log(`Loading data for tab ${activeTab}`);
+				
+				// Load different data based on active tab
+				switch(activeTab) {
+					case 0: // Personal Details tab
+						// Load user profile data only
+						const profile = await userService.getProfile();
+						setUserProfile(profile);
+						setEditedProfile(profile);
+						break;
+						
+					case 1: // My Stores tab
+						// Load only store data
+						await loadUserManagedStores();
+						break;
+						
+					case 2: // Purchase History tab
+						// Load only purchase history
+						await loadPurchaseHistory();
+						break;
+						
+					case 3: // Admin tab
+						if (isAdmin) {
+							// Load suspended users first, so we can highlight them in the users list
+							await loadSuspendedUsers().catch(error => {
+								console.error("Error loading suspended users:", error);
+							});
+							
+							// Continue with loading other data even if suspended users fails
+							await loadAllStores();
+							await loadAllUsers();
+						}
+						break;
+				}
+			} catch (error) {
+				console.error(`Error loading data for tab ${activeTab}:`, error);
+				toast({ title: "Error", description: `Failed to load data for this tab`, variant: "destructive" });
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		// Execute the data loading function
+		loadTabData();
+
+	}, [activeTab, currentUser, isAdmin, loadUserManagedStores, loadPurchaseHistory, loadSuspendedUsers, loadAllStores, loadAllUsers, toast]);
+
 	useEffect(() => {
 		if (purchaseHistory.length > 0) {
 			fetchPurchaseHistoryPrices();
@@ -382,22 +441,6 @@ export default function Profile() {
 			setPurchaseHistoryWithPrices([]);
 		}
 	}, [purchaseHistory, fetchPurchaseHistoryPrices]);
-
-	// Load admin data when admin tab is selected
-	useEffect(() => {
-		if (isAdmin && activeTab === 3) {
-			// Load suspended users first, so we can highlight them in the users list
-			loadSuspendedUsers().then(() => {
-				loadAllStores();
-				loadAllUsers();
-			}).catch(error => {
-				console.error("Error loading suspended users:", error);
-				// Continue with loading other data even if suspended users fails
-				loadAllStores();
-				loadAllUsers();
-			});
-		}
-	}, [isAdmin, activeTab, loadAllStores, loadAllUsers, loadSuspendedUsers]);
 
 	const handleCloseStore = async (storeId, storeName) => {
 		try {
@@ -528,7 +571,13 @@ export default function Profile() {
 			<Container maxWidth="lg" sx={{ py: 6 }}>
 				<Typography variant="h4" fontWeight={700} mb={3}>My Profile</Typography>
 
-				<Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 3 }}>
+				<Tabs 
+					value={activeTab} 
+					onChange={(_, v) => {
+						setActiveTab(v);
+						// No need to do anything else here - the useEffect will handle data loading
+					}} 
+					sx={{ mb: 3 }}>
 					<Tab
 						icon={<PersonIcon />}
 						label="Personal Details"

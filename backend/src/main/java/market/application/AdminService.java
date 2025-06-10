@@ -96,6 +96,7 @@ public class AdminService {
         logger.info("Admin " + adminId + " is attempting to suspend user " + targetUserId +
                  " for " + (durationHours == 0 ? "an indefinite period" : durationHours + " hours"));
 
+        System.out.println("Admin service suspen user" + adminId);
         if (!validateAdmin(adminId)) {
             throw new Exception("Permission denied: User is not an admin.");
         }

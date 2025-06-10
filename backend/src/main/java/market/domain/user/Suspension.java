@@ -1,15 +1,16 @@
 package market.domain.user;
+import java.time.Duration;
 import java.time.Instant;
 
 public class Suspension {
     private final String userName;
     private final Instant suspensionStart;
-    private final long suspensionDurationMillis; // 0 means permanent
+    private final long suspensionDurationHours; // 0 means permanent
 
-    public Suspension(String userName, long durationMillis) {
+    public Suspension(String userName, long durationHours) {
         this.userName = userName;
         this.suspensionStart = Instant.now();
-        this.suspensionDurationMillis = durationMillis;
+        this.suspensionDurationHours = durationHours;
     }
 
     public String getUserName() {
@@ -17,13 +18,13 @@ public class Suspension {
     }
 
     public boolean isSuspended() {
-        if (suspensionDurationMillis == 0) return true; // permanent
-        Instant end = suspensionStart.plusMillis(suspensionDurationMillis);
+        if (suspensionDurationHours == 0) return true; // permanent
+        Instant end = suspensionStart.plus(Duration.ofHours(suspensionDurationHours));
         return Instant.now().isBefore(end);
     }
 
     public Instant getSuspensionEnd() {
-        return (suspensionDurationMillis == 0) ? null :
-               suspensionStart.plusMillis(suspensionDurationMillis);
+        return (suspensionDurationHours == 0) ? null :
+               suspensionStart.plus(Duration.ofHours(suspensionDurationHours));
     }
 }

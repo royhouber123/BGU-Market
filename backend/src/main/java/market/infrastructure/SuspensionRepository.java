@@ -25,9 +25,12 @@ public class SuspensionRepository implements ISuspensionRepository {
 
     @Override
     public boolean suspendUser(String userName, long durationHours) {
+        System.out.println("Suspension repository suspend user lvl 1 " + userName);
         if (userRepository.findById(userName) == null) return false;
+        System.out.println("Suspension repository suspend user lvl 2 " + userName);
         // Store with lowercase key for case-insensitive lookups
         suspendedUsers.put(userName.toLowerCase(), new Suspension(userName, durationHours));
+        System.out.println("Suspension repository suspend user lvl 3 " + suspendedUsers.keySet());
         return true;
     }
 
@@ -39,7 +42,9 @@ public class SuspensionRepository implements ISuspensionRepository {
 
     @Override
     public List<String> getSuspendedUsers() {
+        System.out.println("Suspension repo get all lvl 1 " + suspendedUsers.keySet());
         cleanExpiredSuspensions();
+        System.out.println("Suspension repo get all lvl 2 " + suspendedUsers.keySet());
         // Convert keys back to original case for return
         return suspendedUsers.values().stream()
                 .map(Suspension::getUserName)
