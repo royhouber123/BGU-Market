@@ -1,6 +1,7 @@
 package market.domain.purchase;
 import market.application.External.*;
 import market.domain.store.*;
+import market.application.NotificationService;
 
 import java.util.*;
 
