@@ -138,8 +138,8 @@ public class PurchaseService {
             Store store = storeRepository.getStoreByID(storeId);
             store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
     
-            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository);
-    
+            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+            
             logger.info("Auction opened: store " + storeId + ", product " + productId + ", by user " + userId);
     
         } catch (Exception e) {
