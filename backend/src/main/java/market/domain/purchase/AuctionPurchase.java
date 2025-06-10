@@ -203,4 +203,8 @@ public class AuctionPurchase {
     public static void setPurchaseRepository(IPurchaseRepository purchaseRepository) {
         AuctionPurchase.purchaseRepository = purchaseRepository;
     }
+
+    public static void setNotificationService(NotificationService notificationService) {
+        AuctionPurchase.notificationService = notificationService;
+    }
 }
