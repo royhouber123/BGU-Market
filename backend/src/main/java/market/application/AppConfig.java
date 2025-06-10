@@ -10,12 +10,15 @@ import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
-import market.infrastructure.ListingRepository;
+import market.infrastructure.ListingRepositoryPersistence;
 import market.infrastructure.PurchaseRepository;
 import market.infrastructure.RoleRepository;
 import market.infrastructure.SuspensionRepository;
+import market.infrastructure.UserRepositoryJpa;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Spring configuration class that defines all service beans.
@@ -24,13 +27,19 @@ import org.springframework.context.annotation.Configuration;
 public class AppConfig {
 
     @Bean
+    @Primary
+    public IUserRepository userRepository(@Qualifier("userRepositoryJpa") UserRepositoryJpa userRepositoryJpa) {
+        return userRepositoryJpa;
+    }
+
+    @Bean
     public ISuspensionRepository suspensionRepository(IUserRepository userRepository) {
         return new SuspensionRepository(userRepository);
     }
 
     @Bean
     public IListingRepository listingRepository() {
-        return new ListingRepository();
+        return new ListingRepositoryPersistence();
     }
 
     @Bean

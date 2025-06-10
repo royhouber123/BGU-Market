@@ -1,12 +1,30 @@
 package market.domain.user;
 
+import jakarta.persistence.*;
+
 /**
  * Represents a user in the system with a username and shopping cart.
  */
+@Entity
+@Table(name = "users")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("USER")
 public class User {
 
+    @Id
+    @Column(name = "user_name", nullable = false, unique = true)
     private String userName;                  
+    
+    @Transient
     private ShoppingCart shoppingCart;
+
+    /**
+     * Default constructor for JPA
+     */
+    public User() {
+        this.shoppingCart = new ShoppingCart();
+    }
 
     /**
      * Creates a new user with the given username and an empty shopping cart.

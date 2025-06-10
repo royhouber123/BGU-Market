@@ -64,6 +64,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>market.BguMarketApplication</mainClass>
+                    <jvmArguments>-Djava.io.tmpdir=./tomcat-tmp</jvmArguments>
                 </configuration>
             </plugin>
             <plugin>

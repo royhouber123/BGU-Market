@@ -50,7 +50,7 @@ public abstract class AcceptanceTestBase {
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
-        listingRepository = new ListingRepository(); // Use the real implementation
+        listingRepository = new ListingRepositoryPersistence(); // Use the real implementation
         ISuspensionRepository susRepo = new SuspensionRepository(userRepository);
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
         storeRepository = new StoreRepository();
