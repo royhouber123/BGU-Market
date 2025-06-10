@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.management.Notification;
+
 import market.domain.Role.IRoleRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Store;
 import market.domain.user.Admin;
 import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
+import market.application.NotificationService;
 import market.domain.user.User;
 import utils.Logger;
 
@@ -24,6 +27,7 @@ public class AdminService {
     private final IStoreRepository storeRepository;
     private final IRoleRepository roleRepository;
     private final ISuspensionRepository suspensionRepository;
+    private final NotificationService notificationService;
 
     private static final Logger logger = Logger.getInstance();
 
@@ -38,7 +42,9 @@ public class AdminService {
     public AdminService(IUserRepository userRepository,
                         IStoreRepository storeRepository,
                         IRoleRepository roleRepository,
-                        ISuspensionRepository suspensionRepository) {
+                        ISuspensionRepository suspensionRepository,
+                        NotificationService notificationService) {
+        this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.storeRepository = storeRepository;
         this.roleRepository = roleRepository;
@@ -79,6 +85,7 @@ public class AdminService {
         List<String> affectedUserIds = roleRepository.getAllStoreUserIdsWithRoles(storeId);
         for (String userId : affectedUserIds) {
             roleRepository.removeAllRolesForUserInStore(userId, storeId);
+            notiftyUser(userId, "Your roles in store " + store.getName() + " have been removed due to store closure.");
         }
         logger.info("Removed roles from " + affectedUserIds.size() + " users in store " + storeId);
     }
@@ -112,6 +119,12 @@ public class AdminService {
             throw new Exception("Suspension failed.");
         }
 
+        if (durationHours > 0) {
+            notiftyUser(targetUserId, "You have been suspended for " + durationHours + " hours.");
+        } else {
+            notiftyUser(targetUserId, "You have been suspended indefinitely.");
+        }
+
         logger.info("User " + targetUserId + " suspended for " +
                     (durationHours == 0 ? "an indefinite period." : durationHours + " hours."));
     }
@@ -135,6 +148,8 @@ public class AdminService {
             logger.debug("User " + targetUserId + " was not suspended.");
             throw new Exception("User was not suspended or does not exist.");
         }
+
+        notiftyUser(targetUserId, "Your suspension has been lifted. You can now access the system.");
 
         logger.info("User " + targetUserId + " has been unsuspended.");
     }
@@ -244,5 +259,15 @@ public class AdminService {
         
         logger.info("Returning " + activeStores.size() + " active stores");
         return result;
+    }
+
+    /**
+     * Notifies a specific user with a message.
+     *
+     * @param userId ID of the user to notify
+     * @param message Message to send to the user
+     */
+    private void notiftyUser(String userId, String message) {
+        notificationService.sendNotification(userId, message);
     }
 }

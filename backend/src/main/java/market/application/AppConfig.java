@@ -102,8 +102,9 @@ public class AppConfig {
     public AdminService adminService(IUserRepository userRepository,
                                    IStoreRepository storeRepository,
                                    IRoleRepository roleRepository, 
-                                   ISuspensionRepository suspensionRepository) {
-        return new AdminService(userRepository, storeRepository, roleRepository, suspensionRepository);
+                                   ISuspensionRepository suspensionRepository,
+                                   NotificationService notificationService) {
+        return new AdminService(userRepository, storeRepository, roleRepository, suspensionRepository, notificationService);
     }
 
     @Bean
