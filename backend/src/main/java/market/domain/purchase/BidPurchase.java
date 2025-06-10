@@ -279,4 +279,8 @@ public class BidPurchase {
     public static void setPurchaseRepository(IPurchaseRepository purchaseRepository2) {
         purchaseRepository=purchaseRepository2;
     }
+
+    public static void setNotificationService(NotificationService notificationService2) {
+        notificationService = notificationService2;
+    }
 }
