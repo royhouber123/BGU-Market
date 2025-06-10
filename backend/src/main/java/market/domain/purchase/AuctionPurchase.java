@@ -35,19 +35,25 @@ public class AuctionPurchase {
     private static final Map<AuctionKey, Double> startingPrices = new HashMap<>();
 
 
-    /// When store opens auction
+        /// When store opens auction
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
     public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep) {
         purchaseRepository = purchaseRep;
-        long delay = endTimeMillis - System.currentTimeMillis();
-        if (delay <= 0) return;
+        long currentTime = System.currentTimeMillis();
+        long delay = endTimeMillis - currentTime;
+        
+        if (delay <= 1000) { // Allow at least 1 second
+            return;
+        }
+        
         storeRepository = rep;
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
         endTimes.put(key, endTimeMillis);
         startingPrices.put(key, startingPrice);
+        
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -90,6 +96,7 @@ public class AuctionPurchase {
     public static Map<String, Object> getAuctionStatus(String storeId, String productId) {
         AuctionKey key = new AuctionKey(storeId, productId);
         Map<String, Object> status = new HashMap<>();
+        
         double startingPrice = startingPrices.getOrDefault(key, 0.0);
         status.put("startingPrice", startingPrice);
         List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
@@ -102,6 +109,7 @@ public class AuctionPurchase {
         long end = endTimes.getOrDefault(key, now);
         long timeLeftMillis = Math.max(0, end - now);
         status.put("timeLeftMillis", timeLeftMillis);
+        
         return status;
     }
 

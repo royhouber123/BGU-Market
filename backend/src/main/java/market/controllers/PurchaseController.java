@@ -168,8 +168,8 @@ public class PurchaseController {
             return ResponseEntity.ok(ApiResponse.fail("Starting price must be positive"));
         }
 
-        if (request.endTimeMillis() <= System.currentTimeMillis()) {
-            return ResponseEntity.ok(ApiResponse.fail("End time must be in the future"));
+        if (request.endTimeMillis() <= System.currentTimeMillis() + 10000) {
+            return ResponseEntity.ok(ApiResponse.fail("End time must be at least 10 seconds in the future to account for processing time"));
         }
 
         return ApiResponseBuilder.build(() -> {
