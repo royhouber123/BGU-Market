@@ -2,7 +2,7 @@ package market.domain;
 
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
-import market.application.NotificationService; // Correct import added
+import market.application.NotificationService;
 import market.domain.purchase.*;
 import market.domain.store.IStoreRepository;
 import utils.ApiResponse;
@@ -22,7 +22,7 @@ public class BidPurchaseTest {
     private IPaymentService paymentService;
     private IStoreRepository storeRepository;
     private IPurchaseRepository purchaseRepository;
-    //private NotificationService notificationService;
+    private NotificationService notificationService;
 
     private String storeId;
     private String productId;
@@ -53,8 +53,8 @@ public class BidPurchaseTest {
         when(shipmentService.ship(anyString(), anyString(), anyDouble())).thenReturn(ApiResponse.ok("trackingId"));
         BidPurchase.setShippingService(shipmentService);
 
-        //notificationService = mock(NotificationService.class);
-        //when(notificationService.sendNotification(anyString(), anyString())).thenReturn(ApiResponse.ok(true));
+        notificationService = mock(NotificationService.class);
+        when(notificationService.sendNotification(anyString(), anyString())).thenReturn(ApiResponse.ok(true));
     }
 
     @AfterEach
