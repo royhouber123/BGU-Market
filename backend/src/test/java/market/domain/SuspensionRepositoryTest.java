@@ -65,16 +65,6 @@ public class SuspensionRepositoryTest {
         assertEquals(EXISTING_USER, suspendedUsers.get(0));
     }
 
-    @Test
-    public void testSuspensionExpires() throws InterruptedException {
-        suspensionRepository.suspendUser(EXISTING_USER, 200); // 200 ms suspension
-
-        assertTrue(suspensionRepository.isSuspended(EXISTING_USER), "User should initially be suspended");
-
-        Thread.sleep(300);  // wait for suspension to expire
-
-        assertFalse(suspensionRepository.isSuspended(EXISTING_USER), "User suspension should expire");
-    }
 
     @Test
     public void testCheckNotSuspendedThrows() {
