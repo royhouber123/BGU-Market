@@ -173,54 +173,31 @@ export default function Profile() {
 
 		setLoadingPurchasePrices(true);
 		try {
-			const historyWithPrices = await Promise.all(
-				purchaseHistory.map(async (purchase) => {
-					// Fetch real-time prices for all items in this purchase
-					const itemsWithPrices = await Promise.all(
-						purchase.items.map(async (item) => {
-							const product = {
-								id: item.productId,
-								storeId: item.storeId,
-								price: item.price // Original stored price
-							};
+			// For purchase history, just use the actual prices that were paid
+			// No need to calculate discounts on completed purchases
+			const historyWithPrices = purchaseHistory.map((purchase) => {
+				const itemsWithPrices = purchase.items.map((item) => ({
+					...item,
+					originalPrice: item.price,
+					discountedPrice: null, // No discounts on completed purchases
+					effectivePrice: item.price, // Use the actual paid price
+					hasDiscount: false,
+					savings: 0
+				}));
 
-							// Fetch current discounted price
-							const discountedPrice = await fetchDiscountedPrice(product);
-
-							return {
-								...item,
-								originalPrice: item.price,
-								discountedPrice,
-								effectivePrice: getEffectivePrice(product, discountedPrice),
-								hasDiscount: hasDiscount(product, discountedPrice),
-								savings: calculateSavings(product, discountedPrice)
-							};
-						})
-					);
-
-					// Calculate new total based on current prices
-					const newTotal = itemsWithPrices.reduce((total, item) =>
-						total + (item.effectivePrice * item.quantity), 0
-					);
-
-					const totalSavings = itemsWithPrices.reduce((total, item) =>
-						total + (item.savings * item.quantity), 0
-					);
-
-					return {
-						...purchase,
-						items: itemsWithPrices,
-						currentTotal: newTotal,
-						originalTotal: purchase.total,
-						totalSavings: totalSavings,
-						hasSavingsAvailable: totalSavings > 0
-					};
-				})
-			);
+				return {
+					...purchase,
+					items: itemsWithPrices,
+					currentTotal: purchase.total, // Use the actual total that was paid
+					originalTotal: purchase.total,
+					totalSavings: 0,
+					hasSavingsAvailable: false
+				};
+			});
 
 			setPurchaseHistoryWithPrices(historyWithPrices);
 		} catch (error) {
-			console.error("Error fetching purchase history prices:", error);
+			console.error("Error processing purchase history:", error);
 			// Fallback to original purchase history
 			setPurchaseHistoryWithPrices(purchaseHistory.map(purchase => ({
 				...purchase,
@@ -383,38 +360,38 @@ export default function Profile() {
 
 		// Clear loading state initially
 		setLoading(true);
-		
+
 		// Load data specific to the selected tab
 		const loadTabData = async () => {
 			try {
 				console.log(`Loading data for tab ${activeTab}`);
-				
+
 				// Load different data based on active tab
-				switch(activeTab) {
+				switch (activeTab) {
 					case 0: // Personal Details tab
 						// Load user profile data only
 						const profile = await userService.getProfile();
 						setUserProfile(profile);
 						setEditedProfile(profile);
 						break;
-						
+
 					case 1: // My Stores tab
 						// Load only store data
 						await loadUserManagedStores();
 						break;
-						
+
 					case 2: // Purchase History tab
 						// Load only purchase history
 						await loadPurchaseHistory();
 						break;
-						
+
 					case 3: // Admin tab
 						if (isAdmin) {
 							// Load suspended users first, so we can highlight them in the users list
 							await loadSuspendedUsers().catch(error => {
 								console.error("Error loading suspended users:", error);
 							});
-							
+
 							// Continue with loading other data even if suspended users fails
 							await loadAllStores();
 							await loadAllUsers();
@@ -571,12 +548,12 @@ export default function Profile() {
 			<Container maxWidth="lg" sx={{ py: 6 }}>
 				<Typography variant="h4" fontWeight={700} mb={3}>My Profile</Typography>
 
-				<Tabs 
-					value={activeTab} 
+				<Tabs
+					value={activeTab}
 					onChange={(_, v) => {
 						setActiveTab(v);
 						// No need to do anything else here - the useEffect will handle data loading
-					}} 
+					}}
 					sx={{ mb: 3 }}>
 					<Tab
 						icon={<PersonIcon />}
@@ -953,14 +930,6 @@ export default function Profile() {
 													color="success"
 													size="small"
 												/>
-												{purchase.hasSavingsAvailable && (
-													<Chip
-														label={`Saved $${formatPrice(purchase.totalSavings)}`}
-														color="success"
-														size="small"
-														variant="outlined"
-													/>
-												)}
 											</Box>
 										</Box>
 										<Divider sx={{ mb: 2 }} />
@@ -981,55 +950,16 @@ export default function Profile() {
 															<Typography variant="body2" fontWeight="medium">
 																{item.title}
 															</Typography>
-															<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+															<Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
 																<Typography variant="caption" color="text.secondary">
 																	Qty: {item.quantity}
 																</Typography>
-																{item.hasDiscount ? (
-																	<>
-																		<Typography variant="caption" color="text.secondary">
-																			×
-																		</Typography>
-																		<Typography variant="caption" fontWeight="medium">
-																			${formatPrice(item.effectivePrice)}
-																		</Typography>
-																		<Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-																			${formatPrice(item.originalPrice)}
-																		</Typography>
-																		<Chip
-																			label={`Save $${formatPrice(item.savings)}`}
-																			color="success"
-																			size="small"
-																			sx={{ height: 16, fontSize: '0.65rem' }}
-																		/>
-																	</>
-																) : (
-																	<>
-																		<Typography variant="caption" color="text.secondary">
-																			×
-																		</Typography>
-																		<Typography variant="caption" fontWeight="medium">
-																			${formatPrice(item.effectivePrice || item.price)}
-																		</Typography>
-																	</>
-																)}
-																{loadingPurchasePrices && (
-																	<Box
-																		sx={{
-																			display: 'inline-block',
-																			width: 8,
-																			height: 8,
-																			border: '1px solid currentColor',
-																			borderTop: '1px solid transparent',
-																			borderRadius: '50%',
-																			animation: 'spin 1s linear infinite',
-																			'@keyframes spin': {
-																				'0%': { transform: 'rotate(0deg)' },
-																				'100%': { transform: 'rotate(360deg)' }
-																			}
-																		}}
-																	/>
-																)}
+																<Typography variant="caption" color="text.secondary">
+																	×
+																</Typography>
+																<Typography variant="caption" fontWeight="medium">
+																	${formatPrice(item.effectivePrice || item.price)}
+																</Typography>
 															</Box>
 														</Box>
 													</Box>
@@ -1040,25 +970,9 @@ export default function Profile() {
 												)}
 											</Grid>
 											<Grid item xs={12} md={4} sx={{ textAlign: { md: "right" } }}>
-												{purchase.currentTotal !== undefined ? (
-													<Box>
-														<Typography variant="h6" fontWeight="bold" color="primary">
-															${formatPrice(purchase.currentTotal)}
-															<Typography component="span" variant="caption" color="text.secondary">
-																{" "}(current)
-															</Typography>
-														</Typography>
-														{purchase.currentTotal !== purchase.originalTotal && (
-															<Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-																Originally: ${formatPrice(purchase.originalTotal)}
-															</Typography>
-														)}
-													</Box>
-												) : (
-													<Typography variant="h6" fontWeight="bold" color="primary">
-														${formatPrice(purchase.total || 0)}
-													</Typography>
-												)}
+												<Typography variant="h6" fontWeight="bold" color="primary">
+													${formatPrice(purchase.total || 0)}
+												</Typography>
 												<Button
 													size="small"
 													variant="outlined"
@@ -1066,17 +980,17 @@ export default function Profile() {
 													onClick={() => navigate(createPageUrl("OrderConfirmation"), {
 														state: {
 															orderInfo: {
-																total: purchase.currentTotal || purchase.total,
+																total: purchase.total,
 																paymentMethod: purchase.contactInfo || "Payment processed",
 																items: purchase.items || [],
 																shippingAddress: purchase.shippingAddress || "",
 																orderDate: purchase.createdAt,
 																orderNumber: `BGU-${String(purchase.id || 'UNKNOWN').padStart(6, '0')}`,
 																isPastPurchase: true,
-																subtotal: purchase.currentTotal || purchase.total,
+																subtotal: purchase.total,
 																tax: 0, // Tax info not available in purchase history
 																shipping: 0, // Shipping info not available in purchase history  
-																totalSavings: purchase.totalSavings || 0
+																totalSavings: 0
 															}
 														}
 													})}
