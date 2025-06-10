@@ -35,13 +35,13 @@ public class BidPurchase {
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
     public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
-                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep, NotificationService notificationService) { 
+                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep, NotificationService notificationSer) { 
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
         storeRepository=rep;
         shipmentService=shipment;
         paymentService=payment;
         purchaseRepository=purchaseRep;
-        notificationService = notificationService;
+        notificationService = notificationSer;
         BidKey key = buildKey(storeId, productId);
         Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
