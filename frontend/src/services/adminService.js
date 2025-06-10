@@ -1,4 +1,5 @@
 import axios from 'axios';
+import userService from './userService';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -104,13 +105,13 @@ const adminService = {
    * Suspend a user for a specified duration
    * @param {string} userId - ID of the user to suspend
    * @param {number} durationHours - Duration of suspension in hours (0 = permanent)
+   * @returns {Promise<boolean>} - Whether the suspension was successful
    */
   suspendUser: async (userId, durationHours = 0) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.userName) {
-        throw new Error('User not authenticated');
-      }
+      const user = userService.getCurrentUser();
+      
+      console.log(`Attempting to suspend user ${userId} for ${durationHours} hours`);
       
       const response = await api.post('/admin/users/suspend', {
         adminId: user.userName,
@@ -118,7 +119,13 @@ const adminService = {
         durationHours: durationHours
       });
       
-      return response.data.success;
+      console.log('Suspend user response:', response.data);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to suspend user');
+      }
+      
+      return true;
     } catch (error) {
       console.error('Suspend user error:', error);
       if (error.response?.data?.error) {
@@ -131,20 +138,26 @@ const adminService = {
   /**
    * Unsuspend a previously suspended user
    * @param {string} userId - ID of the user to unsuspend
+   * @returns {Promise<boolean>} - Whether the unsuspension was successful
    */
   unsuspendUser: async (userId) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.userName) {
-        throw new Error('User not authenticated');
-      }
+      const user = userService.getCurrentUser();
+      
+      console.log(`Attempting to unsuspend user ${userId}`);
       
       const response = await api.post('/admin/users/unsuspend', {
         adminId: user.userName,
         userId: userId
       });
       
-      return response.data.success;
+      console.log('Unsuspend user response:', response.data);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to unsuspend user');
+      }
+      
+      return true;
     } catch (error) {
       console.error('Unsuspend user error:', error);
       if (error.response?.data?.error) {
@@ -160,16 +173,18 @@ const adminService = {
    */
   getSuspendedUsers: async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user?.userName) {
-        throw new Error('User not authenticated');
-      }
+      const user = userService.getCurrentUser();
+      
+      console.log('Fetching suspended users list');
       
       const response = await api.get(`/admin/users/suspended?adminId=${user.userName}`);
       
       if (response.data.success) {
-        return response.data.data;
+        console.log('Received suspended users:', response.data.data);
+        // Ensure we always return an array, even if the API returns null or undefined
+        return Array.isArray(response.data.data) ? response.data.data : [];
       } else {
+        console.error('API reported error:', response.data.error);
         throw new Error(response.data.error || 'Failed to get suspended users');
       }
     } catch (error) {
@@ -178,6 +193,23 @@ const adminService = {
         throw new Error(error.response.data.error);
       }
       throw error;
+    }
+  },
+  
+  /**
+   * Check if a user is currently suspended
+   * @param {string} userId - ID of the user to check
+   * @returns {Promise<boolean>} - Whether the user is suspended
+   */
+  isUserSuspended: async (userId) => {
+    try {
+      const suspendedUsers = await adminService.getSuspendedUsers();
+      return suspendedUsers.some(suspendedId => 
+        suspendedId.toLowerCase() === userId.toLowerCase()
+      );
+    } catch (error) {
+      console.error(`Error checking suspension status for user ${userId}:`, error);
+      return false;
     }
   }
 };

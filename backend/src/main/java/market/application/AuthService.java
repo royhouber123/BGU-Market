@@ -4,12 +4,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.Keys;
 import market.domain.user.IUserRepository;
 import market.domain.user.User;
-import utils.ApiResponse;
-
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -88,6 +85,40 @@ public class AuthService {
         return new AuthToken(token);
     }
 
+    /** Generate token for guest user (no password required) */
+    public AuthToken loginGuest(String guestUsername) {
+        logger.info("Generating token for guest user: " + guestUsername);
+        try {
+            User u = this.userRepository.findById(guestUsername);
+            // Check if this user has a password (exists in password map)
+            // If verifyPassword returns true, it means the user has a password (not a guest)
+            // If verifyPassword returns false, it could mean either:
+            // 1. User doesn't exist (will be caught by findById above)
+            // 2. User exists but has no password (guest user)
+            
+            // Try to verify with a dummy password - if it returns true, user has a password
+            if (this.userRepository.verifyPassword(guestUsername, "dummy")) {
+                // This user has a password, so it's not a guest
+                throw new IllegalArgumentException("User has password, use regular login");
+            }
+            
+            // If we reach here, verifyPassword returned false, which means:
+            // - User exists (confirmed by findById above)
+            // - User has no password (guest user)
+            String token = generateToken(u);
+            logger.info("Guest token generated successfully");
+            return new AuthToken(token);
+            
+        } catch (RuntimeException e) {
+            // If findById throws exception, user doesn't exist
+            if (e.getMessage().contains("not found")) {
+                throw new IllegalArgumentException("Guest user not found");
+            }
+            // Re-throw other runtime exceptions
+            throw e;
+        }
+    }
+
     /** Log out: revoke the user's token */
     public Void logout(String token) {
         logger.info("Logging out user");
@@ -100,9 +131,22 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid token: subject is missing");
         }
     
-        // Delete the user via the repository
-        userRepository.delete(username);
-        logger.info("User logged out successfully");
+        // Check if user is a guest (username starts with "guest-")
+        if (username.startsWith("guest-")) {
+            // For guest users, don't delete them - they should persist until checkout completion
+            logger.info("Guest user logout - preserving user data: " + username);
+        } else {
+            // For regular users, in a stateless JWT system, we typically just let the token expire
+            // However, if the business logic requires immediate user deletion on logout, 
+            // this should be handled at the application level, not authentication level
+            logger.info("Regular user logout - token will expire naturally: " + username);
+        }
+        
+        // Note: In a stateless JWT system, we don't typically need to do anything on logout
+        // except remove the token from the client side. The token will expire naturally.
+        // If we needed proper token blacklisting, we'd maintain a blacklist of invalidated tokens.
+        
+        logger.info("User logged out successfully: " + username);
         return null;
     }
 }

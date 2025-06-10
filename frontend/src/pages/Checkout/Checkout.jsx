@@ -3,7 +3,10 @@ import Header from "../../components/Header/Header";
 import AuthDialog from "../../components/AuthDialog/AuthDialog";
 import PurchaseDialog from "../../components/PurchaseDialog/PurchaseDialog";
 import purchaseService from "../../services/purchaseService";
+import guestService from "../../services/guestService";
+import { productService } from "../../services/productService";
 import { useAuth } from "../../contexts/AuthContext";
+import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
 import {
   Button,
   TextField,
@@ -18,18 +21,22 @@ import {
   Alert,
   Grid,
   Snackbar,
-  Checkbox
+  Checkbox,
+  Chip
 } from "@mui/material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SecurityIcon from "@mui/icons-material/Security";
 import { useNavigate, Link } from "react-router-dom";
+import { createPageUrl } from "../../utils";
 import './Checkout.css';
 
 export default function Checkout() {
-  const { cart, currentUser, refreshCart } = useAuth();
+  const { cart, currentUser, refreshCart, isGuest } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [cartWithPrices, setCartWithPrices] = useState([]);
+  const [loadingPrices, setLoadingPrices] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("credit");
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [purchaseDialog, setPurchaseDialog] = useState({
@@ -95,6 +102,56 @@ export default function Checkout() {
     loadInitialData();
   }, [loadInitialData]);
 
+  useEffect(() => {
+    if (cart.length > 0) {
+      fetchCartPrices();
+    } else {
+      setCartWithPrices([]);
+    }
+  }, [cart]);
+
+  const fetchCartPrices = async () => {
+    setLoadingPrices(true);
+    try {
+      const cartItemsWithPrices = await Promise.all(
+        cart.map(async (item) => {
+          // Create a product object for the price utility
+          const product = {
+            id: item.productId,
+            storeId: item.storeId,
+            price: item.price // Original stored price
+          };
+
+          // Fetch current discounted price
+          const discountedPrice = await fetchDiscountedPrice(product);
+
+          return {
+            ...item,
+            originalPrice: item.price,
+            discountedPrice,
+            effectivePrice: getEffectivePrice(product, discountedPrice),
+            hasDiscount: hasDiscount(product, discountedPrice),
+            savings: calculateSavings(product, discountedPrice)
+          };
+        })
+      );
+
+      setCartWithPrices(cartItemsWithPrices);
+    } catch (error) {
+      console.error("Error fetching cart prices:", error);
+      // Fallback to original cart items
+      setCartWithPrices(cart.map(item => ({
+        ...item,
+        originalPrice: item.price,
+        discountedPrice: null,
+        effectivePrice: item.price,
+        hasDiscount: false,
+        savings: 0
+      })));
+    }
+    setLoadingPrices(false);
+  };
+
   // Debug effect to monitor purchaseDialog changes
   useEffect(() => {
     console.log("🔍 PurchaseDialog state changed:", purchaseDialog);
@@ -138,17 +195,9 @@ export default function Checkout() {
   const placeOrder = async () => {
     console.log("=== PLACE ORDER STARTED ===");
     console.log("Current user:", currentUser);
+    console.log("Is guest:", isGuest);
     console.log("Cart contents:", cart);
-    console.log("Purchase dialog state before:", purchaseDialog);
 
-    // Check if user is authenticated
-    if (!currentUser) {
-      console.log("❌ User not authenticated, showing auth dialog");
-      setShowAuthDialog(true);
-      return;
-    }
-
-    console.log("✅ User is authenticated, proceeding with purchase");
     setProcessingPayment(true);
 
     try {
@@ -167,47 +216,58 @@ export default function Checkout() {
         paymentDetails,
         shippingAddressString,
         paymentMethod,
-        cardDetails: paymentMethod === 'credit' ? cardDetails : 'PayPal'
+        isGuest
       });
 
-      // Make API call to backend
-      console.log("🚀 Making API call to purchase service...");
-      const result = await purchaseService.executePurchase(paymentDetails, shippingAddressString);
+      let result;
 
-      console.log("✅ Purchase service returned successfully:", result);
+      if (isGuest) {
+        // Guest checkout - extract email from full name or validate it's an email
+        let guestEmail = shippingAddress.fullName;
+
+        // Simple email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(guestEmail)) {
+          throw new Error("Please provide a valid email address in the 'Full Name' field for guest checkout");
+        }
+
+        console.log("🚀 Processing guest checkout with email:", guestEmail);
+        result = await guestService.completeGuestCheckout(
+          guestEmail,
+          paymentDetails,
+          shippingAddressString
+        );
+
+        // After successful guest checkout, initialize a new guest session
+        console.log("🔄 Initializing new guest session after purchase...");
+        await guestService.registerGuest();
+      } else {
+        // Authenticated user checkout
+        console.log("🚀 Making API call to purchase service...");
+        result = await purchaseService.executePurchase(paymentDetails, shippingAddressString);
+      }
+
+      console.log("✅ Purchase completed successfully:", result);
 
       // Refresh cart to get updated state
       console.log("🔄 Refreshing cart...");
       await refreshCart();
       console.log("✅ Cart refreshed");
 
-      console.log("🎉 Setting success dialog");
       // Show success dialog
       setPurchaseDialog({
         open: true,
         success: true,
         title: 'Order Placed Successfully!',
-        message: 'Your order has been confirmed and will be processed soon.',
-        details: `Order Details: ${result}`
-      });
-
-      console.log("✅ Success dialog set:", {
-        open: true,
-        success: true,
-        title: 'Order Placed Successfully!',
-        message: 'Your order has been confirmed and will be processed soon.',
-        details: `Order Details: ${result}`
+        message: isGuest
+          ? `Your guest order has been confirmed! Your email ${shippingAddress.fullName} has been registered for this purchase.`
+          : 'Your order has been confirmed and will be processed soon.',
+        details: `Order Details: ${result.details || result}`
       });
 
     } catch (error) {
       console.error("❌ Error placing order:", error);
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
 
-      console.log("⚠️ Setting error dialog");
       // Show error dialog
       setPurchaseDialog({
         open: true,
@@ -217,17 +277,8 @@ export default function Checkout() {
         details: error.message || 'Unknown error occurred'
       });
 
-      console.log("⚠️ Error dialog set:", {
-        open: true,
-        success: false,
-        title: 'Order Failed',
-        message: 'There was a problem placing your order. Please try again.',
-        details: error.message || 'Unknown error occurred'
-      });
     } finally {
-      console.log("🏁 Purchase process completed, setting processingPayment to false");
       setProcessingPayment(false);
-      console.log("=== PLACE ORDER FINISHED ===");
     }
   };
 
@@ -236,12 +287,30 @@ export default function Checkout() {
   };
 
   const handleContinueShopping = () => {
-    // Redirect to dashboard on success
-    navigate("/dashboard");
+    // Navigate to dashboard for continue shopping
+    navigate(createPageUrl("Dashboard"));
+  };
+
+  const handleViewOrderDetails = () => {
+    // Close the dialog and let user continue shopping
+    setPurchaseDialog(prev => ({ ...prev, open: false }));
   };
 
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const displayCart = cartWithPrices.length > 0 ? cartWithPrices : cart;
+    return displayCart.reduce((total, item) => {
+      const price = Number(item.effectivePrice) || Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 0;
+      return total + (price * quantity);
+    }, 0);
+  };
+
+  const calculateTotalSavings = () => {
+    return cartWithPrices.reduce((total, item) => {
+      const savings = Number(item.savings) || 0;
+      const quantity = Number(item.quantity) || 0;
+      return total + (savings * quantity);
+    }, 0);
   };
 
   const calculateTax = () => {
@@ -280,7 +349,7 @@ export default function Checkout() {
   };
 
   const isFormComplete = () => {
-    return currentUser && isShippingComplete() && isPaymentComplete();
+    return isShippingComplete() && isPaymentComplete();
   };
 
   if (processingPayment) {
@@ -366,6 +435,8 @@ export default function Checkout() {
     );
   }
 
+  const displayCart = cartWithPrices.length > 0 ? cartWithPrices : cart;
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Header />
@@ -395,11 +466,12 @@ export default function Checkout() {
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      label="Full Name"
+                      label={isGuest ? "Email Address" : "Full Name"}
                       name="fullName"
                       value={shippingAddress.fullName}
                       onChange={handleShippingAddressChange}
                       required
+                      helperText={isGuest ? "We'll use this email to register your guest account" : ""}
                     />
                   </Grid>
 
@@ -685,18 +757,6 @@ export default function Checkout() {
 
               {/* Place Order Button */}
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                {!currentUser && (
-                  <Alert severity="warning" sx={{ mb: 2, width: '100%' }}>
-                    You must be logged in to place an order.{' '}
-                    <Button
-                      color="inherit"
-                      onClick={() => setShowAuthDialog(true)}
-                      sx={{ textDecoration: 'underline' }}
-                    >
-                      Login here
-                    </Button>
-                  </Alert>
-                )}
                 <Button
                   variant="contained"
                   color="primary"
@@ -705,7 +765,7 @@ export default function Checkout() {
                   disabled={!isFormComplete()}
                   sx={{ px: 4, py: 1.5 }}
                 >
-                  {!currentUser ? 'Login to Place Order' : `Place Order - $${calculateGrandTotal().toFixed(2)}`}
+                  {isGuest ? `Place Order as Guest - $${formatPrice(calculateGrandTotal())}` : `Place Order - $${formatPrice(calculateGrandTotal())}`}
                 </Button>
               </Box>
             </Paper>
@@ -719,7 +779,7 @@ export default function Checkout() {
                 </Typography>
 
                 <Box sx={{ mb: 3, maxHeight: 400, overflow: 'auto' }}>
-                  {cart.map(item => (
+                  {displayCart.map(item => (
                     <Box key={item.productId} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                       <Box
                         component="img"
@@ -734,9 +794,50 @@ export default function Checkout() {
                         <Typography variant="body2" color="textSecondary">
                           Qty: {item.quantity}
                         </Typography>
-                        <Typography variant="body2" fontWeight="medium">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </Typography>
+
+                        {/* Price Display with Discount Info */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                          {item.hasDiscount ? (
+                            <>
+                              <Typography variant="body2" fontWeight="medium">
+                                ${formatPrice(item.effectivePrice * item.quantity)}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
+                              >
+                                ${formatPrice(item.originalPrice * item.quantity)}
+                              </Typography>
+                              <Chip
+                                label={`Save $${formatPrice(item.savings * item.quantity)}`}
+                                color="success"
+                                size="small"
+                                sx={{ height: 18, fontSize: '0.6rem' }}
+                              />
+                            </>
+                          ) : (
+                            <Typography variant="body2" fontWeight="medium">
+                              ${formatPrice((item.effectivePrice || item.price) * item.quantity)}
+                            </Typography>
+                          )}
+                          {loadingPrices && (
+                            <Box
+                              sx={{
+                                display: 'inline-block',
+                                width: 10,
+                                height: 10,
+                                border: '1px solid currentColor',
+                                borderTop: '1px solid transparent',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                '@keyframes spin': {
+                                  '0%': { transform: 'rotate(0deg)' },
+                                  '100%': { transform: 'rotate(360deg)' }
+                                }
+                              }}
+                            />
+                          )}
+                        </Box>
                       </Box>
                     </Box>
                   ))}
@@ -750,16 +851,28 @@ export default function Checkout() {
                       Subtotal
                     </Typography>
                     <Typography variant="body1">
-                      ${calculateTotal().toFixed(2)}
+                      ${formatPrice(calculateTotal())}
                     </Typography>
                   </Box>
+
+                  {/* Show total savings if any discounts are applied */}
+                  {calculateTotalSavings() > 0 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" color="success.main">
+                        Your Savings
+                      </Typography>
+                      <Typography variant="body1" color="success.main">
+                        -${formatPrice(calculateTotalSavings())}
+                      </Typography>
+                    </Box>
+                  )}
 
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2" color="textSecondary">
                       Tax (7%)
                     </Typography>
                     <Typography variant="body1">
-                      ${calculateTax().toFixed(2)}
+                      ${formatPrice(calculateTax())}
                     </Typography>
                   </Box>
 
@@ -768,7 +881,7 @@ export default function Checkout() {
                       Shipping
                     </Typography>
                     <Typography variant="body1">
-                      {calculateShipping() === 0 ? 'Free' : `$${calculateShipping().toFixed(2)}`}
+                      {calculateShipping() === 0 ? 'Free' : `$${formatPrice(calculateShipping())}`}
                     </Typography>
                   </Box>
                 </Box>
@@ -780,7 +893,7 @@ export default function Checkout() {
                     Total
                   </Typography>
                   <Typography variant="h6" color="primary">
-                    ${calculateGrandTotal().toFixed(2)}
+                    ${formatPrice(calculateGrandTotal())}
                   </Typography>
                 </Box>
 
@@ -807,6 +920,7 @@ export default function Checkout() {
         message={purchaseDialog.message}
         details={purchaseDialog.details}
         onContinue={purchaseDialog.success ? handleContinueShopping : null}
+        onViewOrder={purchaseDialog.success ? handleViewOrderDetails : null}
       />
 
       {/* Snackbar for notifications */}

@@ -11,7 +11,6 @@ import market.domain.store.Policies.Discounts.DiscountPolicyFactory;
 import market.domain.store.Policies.Policies.PurchasePolicyFactory;
 import market.domain.user.ISuspensionRepository;
 import market.dto.PolicyDTO;
-import utils.ApiResponse;
 import utils.Logger;
 
 public class StorePoliciesService {

@@ -396,4 +396,19 @@ public class StoreController {
         ApiResponse<Map<String, Object>> response = storeService.getStoreUsers(storeID, requesterId);
         return ResponseEntity.ok(response);
     }
+
+        /**
+     * Send a message to a store (all owners will receive a notification)
+     * POST /api/stores/{storeID}/message
+     */
+    @PostMapping("/{storeID}/message")
+    public ResponseEntity<ApiResponse<Void>> sendMessageToStore(
+            @PathVariable String storeID,
+            @RequestParam String senderUserId,
+            @RequestParam String message) {
+        return ApiResponseBuilder.build(() -> {
+            storeService.sendMessageToStore(storeID, senderUserId, message);
+            return null;
+        });
+    }
 } 

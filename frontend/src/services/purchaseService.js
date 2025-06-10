@@ -39,12 +39,15 @@ const purchaseService = {
   },
 
   // Submit auction offer
-  submitAuctionOffer: async (storeId, productId, offerAmount) => {
+  submitAuctionOffer: async (storeId, productId, offerAmount, shippingAddress, paymentDetails) => {
     try {
       const response = await api.post('/purchases/auction/offer', {
-        storeId,
-        productId,
-        offerAmount
+        userId: 0, // Placeholder - server uses JWT token username instead
+        storeId: parseInt(storeId),
+        productId: String(productId),
+        offerAmount: parseFloat(offerAmount),
+        shippingAddress,
+        paymentDetails
       });
       
       if (response.data.success) {
@@ -61,13 +64,43 @@ const purchaseService = {
     }
   },
 
+  // Open auction
+  openAuction: async (storeId, productId, productName, productCategory, productDescription, startingPrice, endTimeMillis) => {
+    try {
+      const response = await api.post('/purchases/auction/open', {
+        storeId: parseInt(storeId),
+        productId,
+        productName,
+        productCategory,
+        productDescription,
+        startingPrice: parseInt(startingPrice),
+        endTimeMillis
+      });
+      
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || 'Failed to open auction');
+      }
+    } catch (error) {
+      console.error('Open auction error:', error);
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
+  },
+
   // Submit bid
-  submitBid: async (storeId, productId, bidAmount) => {
+  submitBid: async (storeId, productId, bidAmount, quantity, shippingAddress, paymentDetails) => {
     try {
       const response = await api.post('/purchases/bid/submit', {
-        storeId,
-        productId,
-        bidAmount
+        storeId: parseInt(storeId),
+        productId: String(productId),
+        bidAmount: parseFloat(bidAmount),
+        quantity: quantity || 1,
+        shippingAddress,
+        paymentDetails
       });
       
       if (response.data.success) {

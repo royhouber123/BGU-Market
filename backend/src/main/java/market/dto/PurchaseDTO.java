@@ -20,14 +20,19 @@ public class PurchaseDTO {
         int userId,
         int storeId,
         String productId,
-        double offerAmount
+        double offerAmount,
+        String shippingAddress,
+        String paymentDetails
     ) {}
     
     public record OpenAuctionRequest(
         int storeId,
         String productId,
-        double startingPrice,
-        LocalDateTime endTime
+        String productName,
+        String productCategory,
+        String productDescription,
+        int startingPrice,
+        long endTimeMillis
     ) {}
     
     public record AuctionStatusResponse(
@@ -39,11 +44,12 @@ public class PurchaseDTO {
     
     // Bid Operations
     public record BidSubmissionRequest(
-        int userId,
         int storeId,
         String productId,
         double bidAmount,
-        int quantity
+        int quantity,
+        String shippingAddress,
+        String paymentDetails
     ) {}
     
     public record BidApprovalRequest(

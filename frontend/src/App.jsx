@@ -11,6 +11,7 @@ import StoreManagement from './pages/StoreManagement/StoreManagement';
 import Checkout from './pages/Checkout/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation/OrderConfirmation';
 import { AuthProvider } from './contexts/AuthContext';
+import NotificationHistory from './pages/NotificationHistory';
 
 // Material UI Theme Provider
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -49,6 +50,7 @@ function App() {
             <Route path="/store/:storeId/manage" element={<StoreManagement />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
+            <Route path="/notifications/history" element={<NotificationHistory />} />
           </Routes>
         </div>
       </AuthProvider>

@@ -42,9 +42,6 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 		quantity: '',
 		// Auction specific
 		auctionEndTime: null,
-		// Bid specific  
-		minBidAmount: '',
-		bidIncrement: '',
 		// Raffle specific
 		raffleEndDate: null,
 		maxParticipants: '',
@@ -63,8 +60,6 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 				price: '',
 				quantity: '',
 				auctionEndTime: null,
-				minBidAmount: '',
-				bidIncrement: '',
 				raffleEndDate: null,
 				maxParticipants: '',
 				entryFee: ''
@@ -118,7 +113,8 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 			newErrors.productCategory = 'Product category is required';
 		}
 
-		if (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) <= 0) {
+		// Price validation - not required for bid products
+		if (purchaseType !== 'BID' && (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) <= 0)) {
 			newErrors.price = 'Price must be a valid positive number';
 		}
 
@@ -133,15 +129,6 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 					newErrors.auctionEndTime = 'Auction end time is required';
 				} else if (new Date(formData.auctionEndTime) <= new Date()) {
 					newErrors.auctionEndTime = 'Auction end time must be in the future';
-				}
-				break;
-
-			case 'BID':
-				if (formData.minBidAmount && (isNaN(parseFloat(formData.minBidAmount)) || parseFloat(formData.minBidAmount) < 0)) {
-					newErrors.minBidAmount = 'Minimum bid amount must be a valid non-negative number';
-				}
-				if (formData.bidIncrement && (isNaN(parseFloat(formData.bidIncrement)) || parseFloat(formData.bidIncrement) <= 0)) {
-					newErrors.bidIncrement = 'Bid increment must be a valid positive number';
 				}
 				break;
 
@@ -194,6 +181,9 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 		try {
 			const productId = generateProductId();
 
+			// For bid products, use 0 as price since they don't have fixed prices
+			const productPrice = purchaseType === 'BID' ? 0 : parseFloat(formData.price);
+
 			// Call the add listing API
 			const result = await storeService.addListing(
 				currentUser.userName,
@@ -203,7 +193,7 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 				formData.productCategory,
 				formData.productDescription,
 				parseInt(formData.quantity),
-				parseFloat(formData.price),
+				productPrice,
 				purchaseType
 			);
 
@@ -238,8 +228,6 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 			price: '',
 			quantity: '',
 			auctionEndTime: null,
-			minBidAmount: '',
-			bidIncrement: '',
 			raffleEndDate: null,
 			maxParticipants: '',
 			entryFee: ''
@@ -330,23 +318,37 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 						/>
 					</Grid>
 
-					<Grid item xs={12} sm={6}>
-						<TextField
-							fullWidth
-							label="Price"
-							type="number"
-							value={formData.price}
-							onChange={(e) => handleInputChange('price', e.target.value)}
-							error={!!errors.price}
-							helperText={errors.price}
-							required
-							InputProps={{
-								startAdornment: <InputAdornment position="start">$</InputAdornment>,
-							}}
-						/>
-					</Grid>
+					{/* Price field - only show for non-bid products */}
+					{purchaseType !== 'BID' && (
+						<Grid item xs={12} sm={6}>
+							<TextField
+								fullWidth
+								label="Price"
+								type="number"
+								value={formData.price}
+								onChange={(e) => handleInputChange('price', e.target.value)}
+								error={!!errors.price}
+								helperText={errors.price}
+								required
+								InputProps={{
+									startAdornment: <InputAdornment position="start">$</InputAdornment>,
+								}}
+							/>
+						</Grid>
+					)}
 
-					<Grid item xs={12} sm={6}>
+					{/* Alert for bid products explaining no price needed */}
+					{purchaseType === 'BID' && (
+						<Grid item xs={12}>
+							<Alert severity="info" sx={{ mt: 1 }}>
+								<Typography variant="body2">
+									<strong>Bid Product:</strong> No fixed price or bid settings required. Customers will submit their own price offers which you can review and approve.
+								</Typography>
+							</Alert>
+						</Grid>
+					)}
+
+					<Grid item xs={12} sm={purchaseType === 'BID' ? 12 : 6}>
 						<TextField
 							fullWidth
 							label="Quantity"
@@ -360,7 +362,7 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 					</Grid>
 
 					{/* Purchase Type Specific Fields */}
-					{purchaseType !== 'REGULAR' && (
+					{(purchaseType === 'AUCTION' || purchaseType === 'RAFFLE') && (
 						<>
 							<Grid item xs={12}>
 								<Divider sx={{ my: 2 }} />
@@ -396,47 +398,6 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 										<Alert severity="info" sx={{ mt: 1 }}>
 											<Typography variant="body2">
 												<strong>Note:</strong> This price will be the starting bid amount. The auction will automatically close at the specified time and the highest bidder wins.
-											</Typography>
-										</Alert>
-									</Grid>
-								</>
-							)}
-
-							{/* Bid Fields */}
-							{purchaseType === 'BID' && (
-								<>
-									<Grid item xs={12} sm={6}>
-										<TextField
-											fullWidth
-											label="Minimum Bid Amount"
-											type="number"
-											value={formData.minBidAmount}
-											onChange={(e) => handleInputChange('minBidAmount', e.target.value)}
-											error={!!errors.minBidAmount}
-											helperText={errors.minBidAmount || 'Optional: Set minimum acceptable bid'}
-											InputProps={{
-												startAdornment: <InputAdornment position="start">$</InputAdornment>,
-											}}
-										/>
-									</Grid>
-									<Grid item xs={12} sm={6}>
-										<TextField
-											fullWidth
-											label="Bid Increment"
-											type="number"
-											value={formData.bidIncrement}
-											onChange={(e) => handleInputChange('bidIncrement', e.target.value)}
-											error={!!errors.bidIncrement}
-											helperText={errors.bidIncrement || 'Optional: Minimum increase between bids'}
-											InputProps={{
-												startAdornment: <InputAdornment position="start">$</InputAdornment>,
-											}}
-										/>
-									</Grid>
-									<Grid item xs={12}>
-										<Alert severity="info">
-											<Typography variant="body2">
-												<strong>Note:</strong> The listed price serves as a starting reference. Customers can submit bids that you can approve, reject, or counter-offer.
 											</Typography>
 										</Alert>
 									</Grid>

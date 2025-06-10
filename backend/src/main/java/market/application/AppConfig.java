@@ -5,6 +5,7 @@ import market.application.External.IShipmentService;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
 import market.domain.Role.IRoleRepository;
+import market.domain.notification.INotificationRepository;
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
@@ -16,6 +17,8 @@ import market.infrastructure.RoleRepository;
 import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepositoryJpa;
 import org.springframework.beans.factory.annotation.Qualifier;
+import market.notification.INotifier; // Updated import
+import market.notification.WebSocketBroadcastNotifier; // Updated import
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -76,8 +79,9 @@ public class AppConfig {
     public StoreService storeService(IStoreRepository storeRepository, 
                                    IUserRepository userRepository, 
                                    IListingRepository listingRepository,
-                                   ISuspensionRepository suspensionRepository) {
-        return new StoreService(storeRepository, userRepository, listingRepository, suspensionRepository);
+                                   ISuspensionRepository suspensionRepository,
+                                   NotificationService notificationService) {
+        return new StoreService(storeRepository, userRepository, listingRepository, suspensionRepository, notificationService);
     }
 
     @Bean
@@ -92,9 +96,10 @@ public class AppConfig {
                                          IUserRepository userRepository,
                                          IPaymentService paymentService,
                                          IShipmentService shipmentService,
-                                         ISuspensionRepository suspensionRepository) {
+                                         ISuspensionRepository suspensionRepository,
+                                         NotificationService notificationService) {
         return new PurchaseService(storeRepository, purchaseRepository, listingRepository, 
-                                 userRepository, paymentService, shipmentService, suspensionRepository);
+                                 userRepository, paymentService, shipmentService, suspensionRepository,notificationService);
     }
 
     @Bean
@@ -109,4 +114,22 @@ public class AppConfig {
                                    ISuspensionRepository suspensionRepository) {
         return new AdminService(userRepository, storeRepository, roleRepository, suspensionRepository);
     }
-} 
+
+    @Bean
+    public INotifier notifier(org.springframework.messaging.simp.SimpMessagingTemplate simpMessagingTemplate) {
+        return new WebSocketBroadcastNotifier(simpMessagingTemplate); // Pass required SimpMessagingTemplate
+    }
+
+    @Bean
+    public NotificationService notificationService(INotificationRepository notificationRepository,
+                                              INotifier notifier) {
+        return new NotificationService(notificationRepository, notifier); // Updated parameter
+    }
+    
+    @Bean
+    public INotificationRepository notificationRepository() {
+        // Replace with your actual implementation class if different
+        return new market.infrastructure.NotificationRepository();
+    }
+
+}

@@ -27,7 +27,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import GoogleIcon from "@mui/icons-material/Google";
 
 export default function AuthDialog({ open, onOpenChange, onClose }) {
-	const { login } = useAuth();
+	const { login, registerWithCart } = useAuth();
 	const [isLogin, setIsLogin] = useState(true);
 	const [formData, setFormData] = useState({
 		username: "",
@@ -92,16 +92,15 @@ export default function AuthDialog({ open, onOpenChange, onClose }) {
 					return;
 				}
 
-				// Import authService dynamically to avoid circular dependency issues
-				const { authService } = await import('../../services/authService');
-
-				await authService.register({
+				// Use the AuthContext method which handles guest cart transfer
+				await registerWithCart({
 					username: formData.username,
 					password: formData.password,
 					email: formData.email
 				});
 
-				setSuccess("Registration successful! Please login.");
+				setSuccess("Registration successful! Your cart items have been saved. Please log in to continue.");
+
 				// Switch to login form after successful registration
 				setTimeout(() => {
 					setIsLogin(true);

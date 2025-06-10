@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/Header/Header';
 import ApiTest from '../../components/ApiTest/ApiTest';
 import './Register.css';
@@ -16,6 +16,7 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { registerWithCart } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,15 +44,15 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // The backend will handle password hashing with BCrypt
-      const response = await authService.register({
+      // Use the AuthContext method which handles guest cart transfer
+      const response = await registerWithCart({
         username: formData.username,
         password: formData.password,
         email: formData.email
       });
 
       // Registration successful, show success message
-      setSuccess(response.message || 'Registration successful!');
+      setSuccess(response.message || 'Registration successful! Your cart items have been saved. Please log in to continue.');
 
       // Clear form
       setFormData({
@@ -61,10 +62,10 @@ const Register = () => {
         email: ''
       });
 
-      // Redirect to login after 2 seconds
+      // Redirect to login page after 3 seconds
       setTimeout(() => {
-        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
-      }, 2000);
+        navigate('/login', { state: { message: 'Registration successful! Your cart items have been saved. Please log in.' } });
+      }, 3000);
 
     } catch (error) {
       setError(error.message || 'Failed to register account');

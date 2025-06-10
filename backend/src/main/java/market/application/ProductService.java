@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
-import utils.ApiResponse;
 
 /**
  * Provides product-related search services across all stores.

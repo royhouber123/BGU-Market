@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { productService } from "../../services/productService";
 import userService from "../../services/userService";
+import purchaseService from "../../services/purchaseService";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 // Import all relevant components
@@ -27,7 +28,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -45,6 +50,8 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import CasinoIcon from "@mui/icons-material/Casino";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { format } from "date-fns";
 import './ProductDetail.css';
 
@@ -71,6 +78,25 @@ export default function ProductDetail() {
   const [bidAmount, setBidAmount] = useState('');
   const [showBidDialog, setShowBidDialog] = useState(false);
   const [submittingBid, setSubmittingBid] = useState(false);
+  const [bidShippingAddress, setBidShippingAddress] = useState({
+    fullName: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: ""
+  });
+
+  // Add detailed bid form states
+  const [bidCardDetails, setBidCardDetails] = useState({
+    cardName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: ""
+  });
+
+  const [bidPaymentMethod, setBidPaymentMethod] = useState("credit");
 
   // Raffle-specific states
   const [showRaffleDialog, setShowRaffleDialog] = useState(false);
@@ -82,7 +108,70 @@ export default function ProductDetail() {
   const [submittingOffer, setSubmittingOffer] = useState(false);
   const [auctionStatus, setAuctionStatus] = useState(null);
 
-  const { refreshCart, cart } = useAuth();
+  // New auction states for real-time updates
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [auctionEnded, setAuctionEnded] = useState(false);
+  const [refreshingAuctionStatus, setRefreshingAuctionStatus] = useState(false);
+
+  // Auction offer form states (similar to bid forms)
+  const [offerShippingAddress, setOfferShippingAddress] = useState({
+    fullName: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: ""
+  });
+
+  const [offerCardDetails, setOfferCardDetails] = useState({
+    cardName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: ""
+  });
+
+  const [offerPaymentMethod, setOfferPaymentMethod] = useState("credit");
+
+  const { refreshCart, cart, addToCart: addToCartContext, isAuthenticated, isGuest, guestService } = useAuth();
+
+  // Add form handler functions
+  const handleBidShippingAddressChange = (e) => {
+    setBidShippingAddress({
+      ...bidShippingAddress,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleBidCardDetailsChange = (e) => {
+    setBidCardDetails({
+      ...bidCardDetails,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleBidPaymentMethodChange = (e) => {
+    setBidPaymentMethod(e.target.value);
+  };
+
+  // Add form handler functions for auction offers
+  const handleOfferShippingAddressChange = (e) => {
+    setOfferShippingAddress({
+      ...offerShippingAddress,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleOfferCardDetailsChange = (e) => {
+    setOfferCardDetails({
+      ...offerCardDetails,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleOfferPaymentMethodChange = (e) => {
+    setOfferPaymentMethod(e.target.value);
+  };
 
   const toast = (props) => {
     setSnackbar({
@@ -124,15 +213,68 @@ export default function ProductDetail() {
   // Fetch auction status for auction type products
   useEffect(() => {
     if (product && product.purchaseType === 'AUCTION') {
+      // Add debugging to check user state
+      if (isAuthenticated) {
+        console.log('[ProductDetail] User is authenticated, attempting to fetch auction status');
+        // Check what user data we have in context
+        const currentUser = userService.getCurrentUser();
+        console.log('[ProductDetail] Current user from service:', currentUser);
+      } else {
+        console.log('[ProductDetail] User not authenticated, skipping auction status fetch');
+      }
+
       fetchAuctionStatus();
     }
-  }, [product]);
+  }, [product, isAuthenticated]);
+
+  // Add effect for auction timer countdown
+  useEffect(() => {
+    let interval = null;
+
+    if (product?.purchaseType === 'AUCTION' && auctionStatus && !auctionEnded) {
+      interval = setInterval(() => {
+        const now = Date.now();
+        const timeLeftMs = auctionStatus.timeLeftMillis - (now - auctionStatus.fetchedAt);
+
+        if (timeLeftMs <= 0) {
+          setTimeLeft(0);
+          setAuctionEnded(true);
+          clearInterval(interval);
+        } else {
+          setTimeLeft(timeLeftMs);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [auctionStatus, auctionEnded, product]);
+
+  // Add effect for periodic auction status refresh
+  useEffect(() => {
+    let refreshInterval = null;
+
+    if (product?.purchaseType === 'AUCTION' && !auctionEnded && isAuthenticated) {
+      // Refresh auction status every 30 seconds
+      refreshInterval = setInterval(() => {
+        fetchAuctionStatus();
+      }, 30000);
+    }
+
+    return () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    };
+  }, [product, auctionEnded, isAuthenticated]);
 
   const refreshDiscountedPrice = async () => {
     if (product) {
       await fetchDiscountedPrice(product);
     }
   };
+
+  // Default image for products without images - professional product placeholder
+  const DEFAULT_IMAGE = "https://placehold.co/600x400/e2e8f0/1e293b?text=Product+Image";
 
   const fetchProduct = async () => {
     try {
@@ -142,7 +284,7 @@ export default function ProductDetail() {
         const foundProduct = await productService.getListing(productId);
         if (foundProduct) {
           setProduct(foundProduct);
-          setMainImage(foundProduct.images?.[0] || "");
+          setMainImage(foundProduct.images?.[0] || DEFAULT_IMAGE);
 
           // Fetch discounted price after setting the product
           await fetchDiscountedPrice(foundProduct);
@@ -161,7 +303,7 @@ export default function ProductDetail() {
 
       if (foundProduct) {
         setProduct(foundProduct);
-        setMainImage(foundProduct.images?.[0] || "");
+        setMainImage(foundProduct.images?.[0] || DEFAULT_IMAGE);
 
         // Fetch discounted price after setting the product
         await fetchDiscountedPrice(foundProduct);
@@ -234,11 +376,6 @@ export default function ProductDetail() {
     if (addingToCart) return; // Prevent double-clicking
 
     try {
-      if (!userService.isAuthenticated()) {
-        setShowAuthDialog(true);
-        return;
-      }
-
       if (!product) {
         toast({
           title: "Error",
@@ -259,17 +396,13 @@ export default function ProductDetail() {
 
       setAddingToCart(true);
 
-      // Use the backend API to add product to cart
-      // Note: Despite the parameter name "productName", the backend expects the listing ID
-      await userService.addProductToCart(
-        product.storeId || "1", // Use the product's store ID or default to "1"
-        product.id, // Use product ID (which is the listing ID) - this is what the backend expects
-        quantity // Use selected quantity
-      );
+      // Use the context addToCart method which handles both guest and authenticated users
+      await addToCartContext(product, quantity);
 
-      // Refresh cart state after adding
-      await refreshCart();
-      await checkUserLists();
+      // Refresh user lists check for authenticated users
+      if (isAuthenticated) {
+        await checkUserLists();
+      }
 
       setIsInCart(true);
       setShowMiniCart(true);
@@ -307,6 +440,31 @@ export default function ProductDetail() {
       return;
     }
 
+    // Validate shipping address
+    if (!bidShippingAddress.fullName || !bidShippingAddress.addressLine1 ||
+      !bidShippingAddress.city || !bidShippingAddress.state ||
+      !bidShippingAddress.postalCode || !bidShippingAddress.country) {
+      toast({
+        title: "Error",
+        description: "Please complete all required shipping address fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate payment details for credit card
+    if (bidPaymentMethod === 'credit') {
+      if (!bidCardDetails.cardName || !bidCardDetails.cardNumber ||
+        !bidCardDetails.expiryDate || !bidCardDetails.cvv) {
+        toast({
+          title: "Error",
+          description: "Please complete all credit card details",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     // Check minimum bid amount if product has one
     if (product.minBidAmount && parseFloat(bidAmount) < parseFloat(product.minBidAmount)) {
       toast({
@@ -335,42 +493,61 @@ export default function ProductDetail() {
     setSubmittingBid(true);
 
     try {
+      // Prepare payment details based on payment method
+      let paymentDetails = '';
+      if (bidPaymentMethod === 'credit') {
+        paymentDetails = `Credit Card - ${bidCardDetails.cardName} - ****${bidCardDetails.cardNumber.slice(-4)}`;
+      } else {
+        paymentDetails = 'PayPal Payment';
+      }
+
+      // Prepare shipping address string
+      const shippingAddressString = `${bidShippingAddress.fullName}, ${bidShippingAddress.addressLine1}${bidShippingAddress.addressLine2 ? ', ' + bidShippingAddress.addressLine2 : ''}, ${bidShippingAddress.city}, ${bidShippingAddress.state} ${bidShippingAddress.postalCode}, ${bidShippingAddress.country}`;
+
       // Debug logging
       console.log("Submitting bid with product data:", {
         productId: product.id,
         storeId: product.storeId,
         bidAmount: bidAmount,
+        shippingAddress: shippingAddressString,
+        paymentDetails: paymentDetails,
         productIdType: typeof product.id,
         storeIdType: typeof product.storeId
       });
 
-      const response = await fetch('http://localhost:8080/api/purchases/bid/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userService.getToken()}`
-        },
-        body: JSON.stringify({
-          storeId: parseInt(product.storeId),
-          productId: String(product.id), // Send as string instead of parseInt
-          bidAmount: parseFloat(bidAmount),
-          quantity: 1
-        })
+      const response = await purchaseService.submitBid(
+        product.storeId,
+        product.id,
+        bidAmount,
+        1, // quantity
+        shippingAddressString,
+        paymentDetails
+      );
+
+      // The purchaseService already handles the response parsing and returns the data directly
+      toast({
+        title: "Bid Submitted",
+        description: `Your bid of $${bidAmount} has been submitted successfully! The seller will review your bid.`,
+        variant: "default",
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: "Bid Submitted",
-          description: `Your bid of $${bidAmount} has been submitted successfully! The seller will review your bid.`,
-          variant: "default",
-        });
-        setShowBidDialog(false);
-        setBidAmount('');
-      } else {
-        throw new Error(result.error || result.message || 'Bid submission failed');
-      }
+      setShowBidDialog(false);
+      setBidAmount('');
+      setBidShippingAddress({
+        fullName: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: ""
+      });
+      setBidCardDetails({
+        cardName: "",
+        cardNumber: "",
+        expiryDate: "",
+        cvv: ""
+      });
+      setBidPaymentMethod("credit");
     } catch (error) {
       console.error("Error submitting bid:", error);
       toast({
@@ -380,6 +557,169 @@ export default function ProductDetail() {
       });
     } finally {
       setSubmittingBid(false);
+    }
+  };
+
+  const fetchAuctionStatus = async () => {
+    if (!product || !userService.isAuthenticated()) return;
+
+    // Validate product data
+    if (!product.id || !product.storeId) {
+      console.error("Product ID or Store ID is missing");
+      return;
+    }
+
+    setRefreshingAuctionStatus(true);
+
+    try {
+      let user;
+
+      // Try to get user profile, fallback to getCurrentUser if needed
+      try {
+        user = await userService.getProfile();
+      } catch (profileError) {
+        console.warn("Failed to get profile from API, using cached user:", profileError);
+        user = userService.getCurrentUser();
+      }
+
+      console.log('[fetchAuctionStatus] Raw user data:', user);
+
+      // The backend API expects a userId in the URL but actually uses the username from JWT token
+      // So we can use any placeholder ID (like 0) since it's ignored by the backend
+      const userIdPlaceholder = 0;
+
+      // Validate that we have at least a username for authentication
+      if (!user || !user.userName) {
+        console.error("Username not found in user data. User object structure:", JSON.stringify(user, null, 2));
+
+        toast({
+          title: "Authentication Error",
+          description: "User identification not available. Please log out and log back in.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Fetching auction status for:", {
+        userName: user.userName,
+        userIdPlaceholder: userIdPlaceholder,
+        storeId: product.storeId,
+        productId: product.id
+      });
+
+      // Debug the JWT token being sent
+      const token = userService.getToken();
+      console.log('[fetchAuctionStatus] JWT Token being sent:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
+      console.log('[fetchAuctionStatus] Token exists:', !!token);
+      console.log('[fetchAuctionStatus] Authorization header will be:', `Bearer ${token ? token.substring(0, 20) + '...' : 'NO TOKEN'}`);
+
+      // Test if authentication works with a simple endpoint first
+      console.log('[fetchAuctionStatus] Testing authentication with profile endpoint...');
+      try {
+        const profileTestResponse = await fetch('http://localhost:8080/api/users/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        console.log('[fetchAuctionStatus] Profile test response status:', profileTestResponse.status);
+        if (!profileTestResponse.ok) {
+          console.error('[fetchAuctionStatus] Authentication test failed - token may be invalid');
+          toast({
+            title: "Authentication Error",
+            description: "Your session has expired. Please log out and log back in.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (authTestError) {
+        console.error('[fetchAuctionStatus] Authentication test error:', authTestError);
+        toast({
+          title: "Connection Error",
+          description: "Cannot connect to server. Please check your connection.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8080/api/purchases/auction/status/${userIdPlaceholder}/${product.storeId}/${String(product.id)}`, {
+        headers: {
+          'Authorization': `Bearer ${userService.getToken()}`
+        }
+      });
+
+      console.log('[fetchAuctionStatus] Response status:', response.status);
+      console.log('[fetchAuctionStatus] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        if (response.status === 403) {
+          console.error("Access forbidden - check authentication");
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to view this auction status. Please verify your login.",
+            variant: "destructive",
+          });
+          return;
+        } else if (response.status === 404) {
+          console.error("Auction not found");
+          toast({
+            title: "Not Found",
+            description: "Auction information not found",
+            variant: "destructive",
+          });
+          return;
+        } else {
+          const errorText = await response.text();
+          console.error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
+
+      // Check if response has content before parsing JSON
+      const contentType = response.headers.get('content-type');
+      console.log('[fetchAuctionStatus] Response content-type:', contentType);
+
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.error("Response is not JSON:", responseText);
+        throw new Error("Server response is not valid JSON");
+      }
+
+      const result = await response.json();
+      console.log('[fetchAuctionStatus] API response:', result);
+
+      if (result.success && result.data) {
+        const statusData = {
+          ...result.data,
+          fetchedAt: Date.now() // Track when we fetched this data
+        };
+        setAuctionStatus(statusData);
+
+        // Update time left and auction ended status
+        const timeLeftMs = statusData.timeLeftMillis;
+        setTimeLeft(timeLeftMs);
+        setAuctionEnded(timeLeftMs <= 0);
+
+        console.log('[fetchAuctionStatus] Auction status updated:', statusData);
+      } else {
+        console.error("Auction status API returned error:", result);
+        if (result.error) {
+          toast({
+            title: "Error",
+            description: result.error,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching auction status:", error);
+      toast({
+        title: "Error",
+        description: "Could not load auction status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingAuctionStatus(false);
     }
   };
 
@@ -394,11 +734,46 @@ export default function ProductDetail() {
     }
 
     // Check minimum price based on current auction status or product price
-    const minimumPrice = auctionStatus?.currentHighestBid || product.price;
+    const minimumPrice = auctionStatus?.currentMaxOffer || product.price;
     if (parseFloat(offerAmount) <= minimumPrice) {
       toast({
         title: "Error",
-        description: `Offer amount must be higher than the current price of $${minimumPrice.toFixed(2)}`,
+        description: `Offer amount must be higher than the current highest bid of $${minimumPrice.toFixed(2)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate shipping address
+    if (!offerShippingAddress.fullName || !offerShippingAddress.addressLine1 ||
+      !offerShippingAddress.city || !offerShippingAddress.state ||
+      !offerShippingAddress.postalCode || !offerShippingAddress.country) {
+      toast({
+        title: "Error",
+        description: "Please complete all required shipping address fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate payment details for credit card
+    if (offerPaymentMethod === 'credit') {
+      if (!offerCardDetails.cardName || !offerCardDetails.cardNumber ||
+        !offerCardDetails.expiryDate || !offerCardDetails.cvv) {
+        toast({
+          title: "Error",
+          description: "Please complete all credit card details",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Check if auction has ended
+    if (auctionEnded || (timeLeft !== null && timeLeft <= 0)) {
+      toast({
+        title: "Error",
+        description: "This auction has already ended",
         variant: "destructive",
       });
       return;
@@ -422,34 +797,54 @@ export default function ProductDetail() {
     setSubmittingOffer(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/purchases/auction/offer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userService.getToken()}`
-        },
-        body: JSON.stringify({
-          storeId: parseInt(product.storeId),
-          productId: String(product.id), // Send as string instead of parseInt
-          offerAmount: parseFloat(offerAmount)
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: "Offer Submitted",
-          description: `Your offer of $${offerAmount} has been submitted successfully! You'll be notified if you win the auction.`,
-          variant: "default",
-        });
-        setShowOfferDialog(false);
-        setOfferAmount('');
-        // Refresh auction status after submitting offer
-        await fetchAuctionStatus();
+      // Prepare payment details based on payment method
+      let paymentDetails = '';
+      if (offerPaymentMethod === 'credit') {
+        paymentDetails = `Credit Card - ${offerCardDetails.cardName} - ****${offerCardDetails.cardNumber.slice(-4)}`;
       } else {
-        throw new Error(result.error || result.message || 'Offer submission failed');
+        paymentDetails = 'PayPal Payment';
       }
+
+      // Prepare shipping address string
+      const shippingAddressString = `${offerShippingAddress.fullName}, ${offerShippingAddress.addressLine1}${offerShippingAddress.addressLine2 ? ', ' + offerShippingAddress.addressLine2 : ''}, ${offerShippingAddress.city}, ${offerShippingAddress.state} ${offerShippingAddress.postalCode}, ${offerShippingAddress.country}`;
+
+      const response = await purchaseService.submitAuctionOffer(
+        product.storeId,
+        product.id,
+        offerAmount,
+        shippingAddressString,
+        paymentDetails
+      );
+
+      // The purchaseService already handles the response parsing and returns the data directly
+      toast({
+        title: "Offer Submitted",
+        description: `Your offer of $${offerAmount} has been submitted successfully! The current highest bid is now $${offerAmount}.`,
+        variant: "default",
+      });
+      setShowOfferDialog(false);
+      setOfferAmount('');
+
+      // Reset form data
+      setOfferShippingAddress({
+        fullName: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: ""
+      });
+      setOfferCardDetails({
+        cardName: "",
+        cardNumber: "",
+        expiryDate: "",
+        cvv: ""
+      });
+      setOfferPaymentMethod("credit");
+
+      // Immediately refresh auction status to show new price
+      await fetchAuctionStatus();
     } catch (error) {
       console.error("Error submitting offer:", error);
       toast({
@@ -459,33 +854,6 @@ export default function ProductDetail() {
       });
     } finally {
       setSubmittingOffer(false);
-    }
-  };
-
-  const fetchAuctionStatus = async () => {
-    if (!product || !userService.isAuthenticated()) return;
-
-    // Validate product data
-    if (!product.id || !product.storeId) {
-      console.error("Product ID or Store ID is missing");
-      return;
-    }
-
-    try {
-      const user = await userService.getProfile();
-      const response = await fetch(`http://localhost:8080/api/purchases/auction/status/${user.id}/${product.storeId}/${String(product.id)}`, {
-        headers: {
-          'Authorization': `Bearer ${userService.getToken()}`
-        }
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.data) {
-        setAuctionStatus(result.data);
-      }
-    } catch (error) {
-      console.error("Error fetching auction status:", error);
     }
   };
 
@@ -587,9 +955,32 @@ export default function ProductDetail() {
     return 1;
   };
 
-  const formatTimeLeft = () => {
-    // In this system, listings don't have expiration dates
-    return "Available";
+  // Helper function to format time left
+  const formatTimeLeft = (timeInMs) => {
+    if (!timeInMs || timeInMs <= 0) return "Auction Ended";
+
+    const totalSeconds = Math.floor(timeInMs / 1000);
+    const days = Math.floor(totalSeconds / (24 * 3600));
+    const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m ${seconds}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
+  // Helper function to get auction status color
+  const getAuctionStatusColor = (timeInMs) => {
+    if (!timeInMs || timeInMs <= 0) return 'error';
+    if (timeInMs < 3600000) return 'warning'; // Less than 1 hour
+    return 'success';
   };
 
   const handleTabChange = (event, newValue) => {
@@ -636,6 +1027,27 @@ export default function ProductDetail() {
 
     const purchaseType = product.purchaseType || 'REGULAR';
     const typeDisplay = getPurchaseTypeDisplay();
+
+    // Check if guest can interact with this product
+    if (isGuest && !guestService.canGuestInteract(product)) {
+      return (
+        <Box sx={{ mb: 4 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Guests can only purchase regular products. Please{' '}
+              <Button
+                color="inherit"
+                onClick={() => setShowAuthDialog(true)}
+                sx={{ textDecoration: 'underline', p: 0, minWidth: 'auto' }}
+              >
+                login or register
+              </Button>
+              {' '}to interact with {typeDisplay?.label?.toLowerCase()} products.
+            </Typography>
+          </Alert>
+        </Box>
+      );
+    }
 
     switch (purchaseType) {
       case 'BID':
@@ -692,21 +1104,34 @@ export default function ProductDetail() {
             <Button
               variant="contained"
               size="large"
-              startIcon={<TrendingUpIcon />}
+              startIcon={auctionEnded ? <AccessTimeIcon /> : <TrendingUpIcon />}
               onClick={() => setShowOfferDialog(true)}
+              disabled={auctionEnded}
               sx={{
                 flex: 1,
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
-                bgcolor: 'info.main',
+                bgcolor: auctionEnded ? 'grey.400' : 'info.main',
                 '&:hover': {
-                  bgcolor: 'info.dark',
+                  bgcolor: auctionEnded ? 'grey.400' : 'info.dark',
+                },
+                '&:disabled': {
+                  bgcolor: 'grey.400',
+                  color: 'white'
                 }
               }}
             >
-              Place Offer
+              {auctionEnded ? 'Auction Ended' : 'Place Offer'}
             </Button>
+            {auctionStatus && timeLeft !== null && !auctionEnded && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
+                <AccessTimeIcon fontSize="small" color={getAuctionStatusColor(timeLeft)} />
+                <Typography variant="body2" color={getAuctionStatusColor(timeLeft) + '.main'} fontWeight="medium">
+                  {formatTimeLeft(timeLeft)}
+                </Typography>
+              </Box>
+            )}
           </>
         );
 
@@ -780,7 +1205,7 @@ export default function ProductDetail() {
               onClick={addToCart}
               disabled={addingToCart || (product?.quantity || 0) <= 0}
               sx={{
-                flex: 1,
+                width: '220px',
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
@@ -880,545 +1305,1133 @@ export default function ProductDetail() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-          {/* Product Title at the top */}
-          <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
-            {product.title}
-          </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <main className="container px-4 py-8" style={{ maxWidth: '1600px' }}>
+          <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+            {/* Product Title at the top */}
+            <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
+              {product.title}
+            </Typography>
 
-          {/* Product Type Badge */}
-          {typeDisplay && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-              <Chip
-                icon={typeDisplay.icon}
-                label={typeDisplay.label}
-                color={typeDisplay.color}
-                variant="filled"
-                size="medium"
-                sx={{ fontSize: '1rem', py: 1, px: 2 }}
-              />
-            </Box>
-          )}
-
-          {/* Main content area with image in the center and details on the right */}
-          <Grid container spacing={4}>
-            {/* Left spacer on large screens */}
-            <Grid item xs={false} md={1} />
-
-            {/* Product Images in the middle */}
-            <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Box sx={{
-                width: '100%',
-                maxWidth: '500px',
-                aspectRatio: '1/1',
-                borderRadius: 2,
-                overflow: 'hidden',
-                mb: 2,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                bgcolor: 'background.paper'
-              }}>
-                <img
-                  src={mainImage || product.images?.[0]}
-                  alt={product.title}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain'
-                  }}
+            {/* Product Type Badge */}
+            {typeDisplay && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                <Chip
+                  icon={typeDisplay.icon}
+                  label={typeDisplay.label}
+                  color={typeDisplay.color}
+                  variant="filled"
+                  size="medium"
+                  sx={{ fontSize: '1rem', py: 1, px: 2 }}
                 />
               </Box>
+            )}
 
-              <Box sx={{
-                display: 'flex',
-                gap: 1,
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                maxWidth: '500px'
-              }}>
-                {product.images?.map((image, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      width: '70px',
-                      height: '70px',
-                      borderRadius: 1,
-                      overflow: 'hidden',
-                      border: image === mainImage ? '2px solid #1976d2' : '2px solid transparent',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+            {/* Main content area with image on the left and details on the right */}
+            <Grid container spacing={4} sx={{ display: 'flex', flexWrap: 'nowrap' }}>
+              {/* Product Images on the left */}
+              <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                <Box sx={{
+                  width: '100%',
+                  maxWidth: '500px',
+                  aspectRatio: '1/1',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  mb: 2,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                  bgcolor: 'background.paper'
+                }}>
+                  <img
+                    src={mainImage || product.images?.[0] || DEFAULT_IMAGE}
+                    alt={product.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain'
                     }}
-                    onClick={() => setMainImage(image)}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.title} view ${index + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Box>
-                ))}
-              </Box>
-            </Grid>
+                  />
+                </Box>
 
-            {/* Product Details on the right */}
-            <Grid item xs={12} md={5}>
-              <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
-                {/* Price and badges */}
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-                  {discountedPrice !== null && discountedPrice < product.price ? (
-                    <>
-                      <Typography
-                        variant="h4"
-                        component="div"
-                        sx={{ fontWeight: 'bold', color: 'blue' }}
-                      >
-                        ${discountedPrice?.toFixed(2) || "0.00"}
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        component="div"
-                        sx={{
-                          textDecoration: 'line-through',
-                          color: 'text.secondary',
-                          fontWeight: 'normal'
-                        }}
-                      >
-                        ${product.price?.toFixed(2) || "0.00"}
-                      </Typography>
-                      <Chip
-                        label={`${Math.round(((product.price - discountedPrice) / product.price) * 100)}% OFF`}
-                        color="error"
-                        size="small"
-                        sx={{ ml: 1 }}
+                <Box sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  maxWidth: '500px'
+                }}>
+                  {(product.images && product.images.length > 0) ? product.images.map((image, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        width: '70px',
+                        height: '70px',
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: image === mainImage ? '2px solid #1976d2' : '2px solid transparent',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => setMainImage(image)}
+                    >
+                      <img
+                        src={image}
+                        alt={`${product.title} view ${index + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
-                    </>
-                  ) : (
-                    <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
-                      ${product.price?.toFixed(2) || "0.00"}
-                      {loadingDiscount && (
-                        <Box
-                          component="span"
-                          sx={{
-                            ml: 1,
-                            display: 'inline-block',
-                            width: 16,
-                            height: 16,
-                            border: '2px solid currentColor',
-                            borderTop: '2px solid transparent',
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite',
-                            '@keyframes spin': {
-                              '0%': { transform: 'rotate(0deg)' },
-                              '100%': { transform: 'rotate(360deg)' }
-                            }
-                          }}
-                        />
-                      )}
-                    </Typography>
+                    </Box>
+                  )) : (
+                    <Box
+                      sx={{
+                        width: '70px',
+                        height: '70px',
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: '2px solid #1976d2',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <img
+                        src={DEFAULT_IMAGE}
+                        alt={`${product.title} default view`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </Box>
                   )}
                 </Box>
+              </Grid>
 
-                {/* Product Type Description */}
-                {typeDisplay && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {typeDisplay.description}
-                    </Typography>
-                  </Box>
-                )}
-
-                {/* Availability Info */}
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <InventoryIcon fontSize="small" color={product?.quantity > 0 ? 'success' : 'error'} />
-                    <Typography variant="body2" color={product?.quantity > 0 ? 'success.main' : 'error.main'}>
-                      {product?.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* Auction Status Info (for auction products) */}
-                {product?.purchaseType === 'AUCTION' && auctionStatus && (
-                  <Box sx={{ mb: 3 }}>
-                    <Paper variant="outlined" sx={{ p: 2, bgcolor: 'info.50', borderColor: 'info.200' }}>
-                      <Typography variant="subtitle2" color="info.main" gutterBottom>
-                        Auction Status
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" color="text.secondary">Current Highest Bid</Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            ${auctionStatus.currentHighestBid?.toFixed(2) || product.price.toFixed(2)}
+              {/* Product Details on the right */}
+              <Grid item xs={12} md={7} sx={{ pl: { xs: 0, md: 4 } }}>
+                <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 2 }}>
+                  {/* Price and badges */}
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
+                    {product?.purchaseType === 'BID' ? (
+                      <Box>
+                        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+                          Bid Product
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Submit your offer - no fixed price
+                        </Typography>
+                        {product.minBidAmount && (
+                          <Typography variant="body2" color="warning.dark" sx={{ mt: 0.5 }}>
+                            Minimum bid: ${parseFloat(product.minBidAmount).toFixed(2)}
                           </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" color="text.secondary">Status</Typography>
-                          <Chip
-                            label={auctionStatus.status || 'ACTIVE'}
-                            color={auctionStatus.isActive ? 'success' : 'error'}
-                            size="small"
+                        )}
+                      </Box>
+                    ) : discountedPrice !== null && discountedPrice < product.price ? (
+                      <>
+                        <Typography
+                          variant="h4"
+                          component="div"
+                          sx={{ fontWeight: 'bold', color: 'blue' }}
+                        >
+                          ${discountedPrice?.toFixed(2) || "0.00"}
+                        </Typography>
+                        <Typography
+                          variant="h6"
+                          component="div"
+                          sx={{
+                            textDecoration: 'line-through',
+                            color: 'text.secondary',
+                            fontWeight: 'normal'
+                          }}
+                        >
+                          ${product.price?.toFixed(2) || "0.00"}
+                        </Typography>
+                        <Chip
+                          label={`${Math.round(((product.price - discountedPrice) / product.price) * 100)}% OFF`}
+                          color="error"
+                          size="small"
+                          sx={{ ml: 1 }}
+                        />
+                      </>
+                    ) : (
+                      <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
+                        ${product.price?.toFixed(2) || "0.00"}
+                        {loadingDiscount && (
+                          <Box
+                            component="span"
+                            sx={{
+                              ml: 1,
+                              display: 'inline-block',
+                              width: 16,
+                              height: 16,
+                              border: '2px solid currentColor',
+                              borderTop: '2px solid transparent',
+                              borderRadius: '50%',
+                              animation: 'spin 1s linear infinite',
+                              '@keyframes spin': {
+                                '0%': { transform: 'rotate(0deg)' },
+                                '100%': { transform: 'rotate(360deg)' }
+                              }
+                            }}
                           />
+                        )}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  {/* Product Type Description */}
+                  {typeDisplay && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {typeDisplay.description}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Availability Info */}
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <InventoryIcon fontSize="small" color={product?.quantity > 0 ? 'success' : 'error'} />
+                      <Typography variant="body2" color={product?.quantity > 0 ? 'success.main' : 'error.main'}>
+                        {product?.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Auction Status Info (for auction products) */}
+                  {product?.purchaseType === 'AUCTION' && (
+                    <Box sx={{ mb: 3 }}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 3,
+                          bgcolor: auctionEnded ? 'grey.50' : 'info.50',
+                          borderColor: auctionEnded ? 'grey.300' : 'info.200',
+                          border: '2px solid',
+                          borderRadius: 2
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Typography variant="h6" color={auctionEnded ? 'text.secondary' : 'info.main'} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <GavelIcon />
+                            {auctionEnded ? 'Auction Ended' : 'Live Auction'}
+                          </Typography>
+                          {auctionStatus && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={fetchAuctionStatus}
+                              disabled={refreshingAuctionStatus}
+                              sx={{ minWidth: 'auto', px: 1 }}
+                            >
+                              {refreshingAuctionStatus ? (
+                                <CircularProgress size={16} />
+                              ) : (
+                                '↻'
+                              )}
+                            </Button>
+                          )}
                         </Box>
-                        {auctionStatus.endTime && (
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Typography variant="body2" color="text.secondary">Ends</Typography>
-                            <Typography variant="body2">
-                              {format(new Date(auctionStatus.endTime), "MMM d, yyyy 'at' h:mm a")}
+
+                        {auctionStatus ? (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {/* Current Highest Bid */}
+                            <Box sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              p: 2,
+                              bgcolor: 'background.paper',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'divider'
+                            }}>
+                              <Typography variant="subtitle1" fontWeight="medium">
+                                Current Highest Bid
+                              </Typography>
+                              <Typography variant="h5" fontWeight="bold" color="primary.main">
+                                ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product.price).toFixed(2)}
+                              </Typography>
+                            </Box>
+
+                            {/* Starting Price */}
+                            {auctionStatus.startingPrice && (
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Starting Price
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                  ${auctionStatus.startingPrice.toFixed(2)}
+                                </Typography>
+                              </Box>
+                            )}
+
+                            {/* Time Left */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {auctionEnded ? 'Auction Status' : 'Time Remaining'}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <AccessTimeIcon
+                                  fontSize="small"
+                                  color={getAuctionStatusColor(timeLeft)}
+                                />
+                                <Chip
+                                  label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
+                                  color={getAuctionStatusColor(timeLeft)}
+                                  size="medium"
+                                  sx={{ fontWeight: 'bold', minWidth: '120px' }}
+                                />
+                              </Box>
+                            </Box>
+
+                            {/* Additional auction info */}
+                            {auctionEnded && (
+                              <Box sx={{
+                                mt: 1,
+                                p: 2,
+                                bgcolor: 'warning.50',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'warning.200'
+                              }}>
+                                <Typography variant="body2" color="warning.dark" sx={{ textAlign: 'center' }}>
+                                  🏁 This auction has ended. No more bids can be placed.
+                                </Typography>
+                              </Box>
+                            )}
+
+                            {!auctionEnded && auctionStatus.currentMaxOffer > auctionStatus.startingPrice && (
+                              <Box sx={{
+                                mt: 1,
+                                p: 2,
+                                bgcolor: 'success.50',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'success.200'
+                              }}>
+                                <Typography variant="body2" color="success.dark" sx={{ textAlign: 'center' }}>
+                                  🔥 {((auctionStatus.currentMaxOffer - auctionStatus.startingPrice) / auctionStatus.startingPrice * 100).toFixed(1)}% above starting price!
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <CircularProgress size={20} />
+                            <Typography variant="body2" color="text.secondary">
+                              Loading auction status...
                             </Typography>
                           </Box>
                         )}
-                      </Box>
-                    </Paper>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* Minimum Bid Info (for bid products) */}
+                  {product?.purchaseType === 'BID' && product.minBidAmount && (
+                    <Box sx={{ mb: 3 }}>
+                      <Paper variant="outlined" sx={{ p: 2, bgcolor: 'warning.50', borderColor: 'warning.200' }}>
+                        <Typography variant="body2" color="warning.dark">
+                          <strong>Minimum Bid:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
+                        </Typography>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* Action Buttons - Type-specific */}
+                  <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
+                    {renderActionButtons()}
+
+                    <Button
+                      variant="outlined"
+                      size="large"
+                      onClick={toggleWatchlist}
+                      sx={{
+                        minWidth: '60px',
+                        py: 1.5,
+                        borderColor: 'primary.main',
+                        color: isInWatchlist ? 'primary.main' : 'text.secondary',
+                        '&:hover': {
+                          borderColor: 'primary.dark',
+                          bgcolor: 'primary.50',
+                        }
+                      }}
+                    >
+                      {isInWatchlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    </Button>
                   </Box>
-                )}
 
-                {/* Minimum Bid Info (for bid products) */}
-                {product?.purchaseType === 'BID' && product.minBidAmount && (
-                  <Box sx={{ mb: 3 }}>
-                    <Paper variant="outlined" sx={{ p: 2, bgcolor: 'warning.50', borderColor: 'warning.200' }}>
-                      <Typography variant="body2" color="warning.dark">
-                        <strong>Minimum Bid:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
-                      </Typography>
-                    </Paper>
-                  </Box>
-                )}
+                  <Divider sx={{ my: 4 }} />
 
-                {/* Action Buttons - Type-specific */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
-                  {renderActionButtons()}
+                  {/* Product Tabs */}
+                  <Box sx={{ width: '100%', mb: 4 }}>
+                    <Tabs
+                      value={tabValue}
+                      onChange={handleTabChange}
+                      aria-label="product details tabs"
+                      sx={{ mb: 3 }}
+                    >
+                      <Tab label="Details" />
+                      <Tab label="Shipping" />
+                      <Tab label="Returns" />
+                    </Tabs>
 
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    onClick={toggleWatchlist}
-                    sx={{
-                      minWidth: '60px',
-                      py: 1.5,
-                      borderColor: 'primary.main',
-                      color: isInWatchlist ? 'primary.main' : 'text.secondary',
-                      '&:hover': {
-                        borderColor: 'primary.dark',
-                        bgcolor: 'primary.50',
-                      }
-                    }}
-                  >
-                    {isInWatchlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                  </Button>
-                </Box>
-
-                <Divider sx={{ my: 4 }} />
-
-                {/* Product Tabs */}
-                <Box sx={{ width: '100%', mb: 4 }}>
-                  <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    aria-label="product details tabs"
-                    sx={{ mb: 3 }}
-                  >
-                    <Tab label="Details" />
-                    <Tab label="Shipping" />
-                    <Tab label="Returns" />
-                  </Tabs>
-
-                  {tabValue === 0 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Product Details
-                      </Typography>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                          <Paper variant="outlined" sx={{ p: 2 }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                              Specifications
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Type</Typography>
-                                <Typography variant="body2">{typeDisplay?.label || "Regular Product"}</Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Condition</Typography>
-                                <Typography variant="body2">{product.condition?.replace("_", " ") || "New"}</Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Category</Typography>
-                                <Typography variant="body2">{product.category || "Uncategorized"}</Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2" color="text.secondary">Brand</Typography>
-                                <Typography variant="body2">{product.brand || "Unbranded"}</Typography>
-                              </Box>
-                              {product.weight && (
+                    {tabValue === 0 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Product Details
+                        </Typography>
+                        <Grid container spacing={3}>
+                          <Grid item xs={12} md={6}>
+                            <Paper variant="outlined" sx={{ p: 2 }}>
+                              <Typography variant="subtitle2" gutterBottom>
+                                Specifications
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <Typography variant="body2" color="text.secondary">Weight</Typography>
-                                  <Typography variant="body2">{product.weight} kg</Typography>
+                                  <Typography variant="body2" color="text.secondary">Type</Typography>
+                                  <Typography variant="body2">{typeDisplay?.label || "Regular Product"}</Typography>
                                 </Box>
-                              )}
-                            </Box>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <Paper variant="outlined" sx={{ p: 2 }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                              Seller Information
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                              <StoreIcon fontSize="small" sx={{ mr: 1 }} />
-                              <Typography variant="body2">
-                                {product.seller?.name || "MarketPlace Seller"}
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Condition</Typography>
+                                  <Typography variant="body2">{product.condition?.replace("_", " ") || "New"}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Category</Typography>
+                                  <Typography variant="body2">{product.category || "Uncategorized"}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Brand</Typography>
+                                  <Typography variant="body2">{product.brand || "Unbranded"}</Typography>
+                                </Box>
+                                {product.weight && (
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <Typography variant="body2" color="text.secondary">Weight</Typography>
+                                    <Typography variant="body2">{product.weight} kg</Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Paper>
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <Paper variant="outlined" sx={{ p: 2 }}>
+                              <Typography variant="subtitle2" gutterBottom>
+                                Seller Information
                               </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Rating
-                                value={4.5}
-                                precision={0.5}
-                                readOnly
-                                size="small"
-                                sx={{ mr: 1 }}
-                              />
-                              <Typography variant="body2">
-                                4.5 (123 reviews)
-                              </Typography>
-                            </Box>
-                          </Paper>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <StoreIcon fontSize="small" sx={{ mr: 1 }} />
+                                <Typography variant="body2">
+                                  {product.seller?.name || "MarketPlace Seller"}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Rating
+                                  value={4.5}
+                                  precision={0.5}
+                                  readOnly
+                                  size="small"
+                                  sx={{ mr: 1 }}
+                                />
+                                <Typography variant="body2">
+                                  4.5 (123 reviews)
+                                </Typography>
+                              </Box>
+                            </Paper>
+                          </Grid>
                         </Grid>
-                      </Grid>
-                    </Box>
-                  )}
+                      </Box>
+                    )}
 
-                  {tabValue === 1 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Shipping Information
-                      </Typography>
-                      <Paper variant="outlined" sx={{ p: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
-                          <LocalShippingIcon sx={{ mr: 1, mt: 0.5 }} />
-                          <Box>
-                            <Typography variant="subtitle2">
-                              Standard Shipping
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Estimated delivery: 3-5 business days
-                            </Typography>
-                            <Typography variant="body2" fontWeight="medium" sx={{ mt: 0.5 }}>
-                              {product.shipping_cost === 0
-                                ? "Free"
-                                : `$${product.shipping_cost?.toFixed(2) || "0.00"}`}
-                            </Typography>
+                    {tabValue === 1 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Shipping Information
+                        </Typography>
+                        <Paper variant="outlined" sx={{ p: 2 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                            <LocalShippingIcon sx={{ mr: 1, mt: 0.5 }} />
+                            <Box>
+                              <Typography variant="subtitle2">
+                                Standard Shipping
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Estimated delivery: 3-5 business days
+                              </Typography>
+                              <Typography variant="body2" fontWeight="medium" sx={{ mt: 0.5 }}>
+                                {product.shipping_cost === 0
+                                  ? "Free"
+                                  : `$${product.shipping_cost?.toFixed(2) || "0.00"}`}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          All items are carefully packaged to ensure they arrive safely.
-                          Tracking information will be provided after your order is shipped.
-                        </Typography>
-                        <Button
-                          variant="text"
-                          endIcon={<ArrowForwardIcon />}
-                          sx={{ mt: 2 }}
-                        >
-                          View shipping policies
-                        </Button>
-                      </Paper>
-                    </Box>
-                  )}
+                          <Typography variant="body2" color="text.secondary">
+                            All items are carefully packaged to ensure they arrive safely.
+                            Tracking information will be provided after your order is shipped.
+                          </Typography>
+                          <Button
+                            variant="text"
+                            endIcon={<ArrowForwardIcon />}
+                            sx={{ mt: 2 }}
+                          >
+                            View shipping policies
+                          </Button>
+                        </Paper>
+                      </Box>
+                    )}
 
-                  {tabValue === 2 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Return Policy
-                      </Typography>
-                      <Paper variant="outlined" sx={{ p: 2 }}>
-                        <Typography variant="body2" paragraph>
-                          We want you to be completely satisfied with your purchase. If you're not
-                          happy with your order for any reason, you can return it within 30 days
-                          of delivery.
+                    {tabValue === 2 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Return Policy
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" paragraph>
-                          Items must be returned in the original packaging and in the same
-                          condition as when you received them. Please include a copy of your
-                          receipt or order confirmation.
-                        </Typography>
-                        <Typography variant="subtitle2">
-                          Return shipping:
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          The buyer is responsible for return shipping costs unless the item
-                          is defective or not as described.
-                        </Typography>
-                      </Paper>
-                    </Box>
-                  )}
-                </Box>
-              </Paper>
+                        <Paper variant="outlined" sx={{ p: 2 }}>
+                          <Typography variant="body2" paragraph>
+                            We want you to be completely satisfied with your purchase. If you're not
+                            happy with your order for any reason, you can return it within 30 days
+                            of delivery.
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            Items must be returned in the original packaging and in the same
+                            condition as when you received them. Please include a copy of your
+                            receipt or order confirmation.
+                          </Typography>
+                          <Typography variant="subtitle2">
+                            Return shipping:
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            The buyer is responsible for return shipping costs unless the item
+                            is defective or not as described.
+                          </Typography>
+                        </Paper>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+              <Grid item xs={false} md={1} />
             </Grid>
-            <Grid item xs={false} md={1} />
-          </Grid>
 
-          {/* Related Products Section */}
-          {/* <FeaturedSection 
+            {/* Related Products Section */}
+            {/* <FeaturedSection 
           title="You may also like" 
           subtitle="Similar products you might be interested in" 
           limit={4} 
         /> */}
-        </div>
+          </div>
 
-        {/* Bid Dialog */}
-        <Dialog open={showBidDialog} onClose={() => setShowBidDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Place Your Bid</DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your bid amount for "{product?.title}". Your bid will be reviewed by the seller.
-            </Typography>
-
-            {product?.minBidAmount && (
-              <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
-                <Typography variant="body2" color="warning.dark">
-                  <strong>Minimum bid required:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
-                </Typography>
-              </Box>
-            )}
-
-            <TextField
-              label="Bid Amount ($)"
-              type="number"
-              value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              fullWidth
-              inputProps={{
-                min: product?.minBidAmount || "0.01",
-                step: "0.01"
-              }}
-              sx={{ mb: 2 }}
-              helperText={
-                product?.minBidAmount
-                  ? `Must be at least $${parseFloat(product.minBidAmount).toFixed(2)}`
-                  : "Enter your bid amount"
-              }
-            />
-            <Typography variant="caption" color="text.secondary">
-              Current price: ${product?.price?.toFixed(2)}
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowBidDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleBidSubmit}
-              variant="contained"
-              disabled={submittingBid}
-              startIcon={submittingBid ? <CircularProgress size={16} /> : <GavelIcon />}
-            >
-              {submittingBid ? 'Submitting...' : 'Submit Bid'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Auction Offer Dialog */}
-        <Dialog open={showOfferDialog} onClose={() => setShowOfferDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Place Your Offer</DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your offer amount for "{product?.title}". Your offer must be higher than the current highest bid.
-            </Typography>
-
-            {auctionStatus && (
-              <Box sx={{ mb: 2, p: 2, bgcolor: 'info.50', borderRadius: 1, border: '1px solid', borderColor: 'info.200' }}>
-                <Typography variant="body2" color="info.dark">
-                  <strong>Current highest bid:</strong> ${(auctionStatus.currentHighestBid || product?.price || 0).toFixed(2)}
-                </Typography>
-                <Typography variant="body2" color="info.dark" sx={{ mt: 0.5 }}>
-                  Your offer must be higher than this amount.
-                </Typography>
-              </Box>
-            )}
-
-            <TextField
-              label="Offer Amount ($)"
-              type="number"
-              value={offerAmount}
-              onChange={(e) => setOfferAmount(e.target.value)}
-              fullWidth
-              inputProps={{
-                min: ((auctionStatus?.currentHighestBid || product?.price || 0) + 0.01).toFixed(2),
-                step: "0.01"
-              }}
-              sx={{ mb: 2 }}
-              helperText={`Must be higher than $${(auctionStatus?.currentHighestBid || product?.price || 0).toFixed(2)}`}
-            />
-
-            {auctionStatus?.endTime && (
-              <Typography variant="caption" color="text.secondary">
-                Auction ends: {format(new Date(auctionStatus.endTime), "MMM d, yyyy 'at' h:mm a")}
+          {/* Bid Dialog */}
+          <Dialog open={showBidDialog} onClose={() => setShowBidDialog(false)} maxWidth="md" fullWidth>
+            <DialogTitle>Place Your Bid</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Enter your bid details for "{product?.title}". Your bid will be reviewed by the seller.
+                If your bid is approved, we'll use the shipping and payment information provided to complete your purchase.
               </Typography>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowOfferDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleOfferSubmit}
-              variant="contained"
-              disabled={submittingOffer}
-              startIcon={submittingOffer ? <CircularProgress size={16} /> : <TrendingUpIcon />}
-            >
-              {submittingOffer ? 'Submitting...' : 'Submit Offer'}
-            </Button>
-          </DialogActions>
-        </Dialog>
 
-        {/* Raffle Dialog */}
-        <Dialog open={showRaffleDialog} onClose={() => setShowRaffleDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Join Raffle</DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Join the raffle for "{product?.title}" for a chance to win at the listed price of ${product?.price?.toFixed(2)}.
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              How it works:
-            </Typography>
-            <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 2 }}>
-              <li>Enter the raffle by clicking "Join"</li>
-              <li>Wait for the raffle period to end</li>
-              <li>Winners are selected randomly</li>
-              <li>If you win, you'll be notified and can complete the purchase</li>
-            </Typography>
-            <Typography variant="body2" color="warning.main">
-              Note: Raffle functionality is currently in development.
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowRaffleDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleRaffleJoin}
-              variant="contained"
-              disabled={joiningRaffle}
-              startIcon={joiningRaffle ? <CircularProgress size={16} /> : <CasinoIcon />}
-            >
-              {joiningRaffle ? 'Joining...' : 'Join Raffle'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+              {product?.minBidAmount && (
+                <Box sx={{ mb: 3, p: 2, bgcolor: 'warning.50', borderRadius: 1, border: '1px solid', borderColor: 'warning.200' }}>
+                  <Typography variant="body2" color="warning.dark">
+                    <strong>Minimum bid required:</strong> ${parseFloat(product.minBidAmount).toFixed(2)}
+                  </Typography>
+                </Box>
+              )}
 
-        {/* Mini Cart and Auth Dialog with conditional rendering */}
-        {showMiniCart && <MiniCart cart={cart} onClose={() => setShowMiniCart(false)} />}
-        {showAuthDialog && <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+              <Grid container spacing={2}>
+                {/* Bid Amount */}
+                <Grid item xs={12}>
+                  <TextField
+                    label="Bid Amount ($)"
+                    type="number"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    fullWidth
+                    inputProps={{
+                      min: product?.minBidAmount || "0.01",
+                      step: "0.01"
+                    }}
+                    helperText={
+                      product?.minBidAmount
+                        ? `Must be at least $${parseFloat(product.minBidAmount).toFixed(2)}`
+                        : "Enter your bid amount"
+                    }
+                    required
+                  />
+                </Grid>
 
-        {/* Snackbar for notifications */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
+                {/* Shipping Address Section */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6">
+                      Shipping Address
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Full Name"
+                    name="fullName"
+                    value={bidShippingAddress.fullName}
+                    onChange={handleBidShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 1"
+                    name="addressLine1"
+                    value={bidShippingAddress.addressLine1}
+                    onChange={handleBidShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 2 (Optional)"
+                    name="addressLine2"
+                    value={bidShippingAddress.addressLine2}
+                    onChange={handleBidShippingAddressChange}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="City"
+                    name="city"
+                    value={bidShippingAddress.city}
+                    onChange={handleBidShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="State/Province"
+                    name="state"
+                    value={bidShippingAddress.state}
+                    onChange={handleBidShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Postal Code"
+                    name="postalCode"
+                    value={bidShippingAddress.postalCode}
+                    onChange={handleBidShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Country"
+                    name="country"
+                    value={bidShippingAddress.country}
+                    onChange={handleBidShippingAddressChange}
+                    required
+                  />
+                </Grid>
+
+                {/* Payment Method Section */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <CreditCardIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6">
+                      Payment Method
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                    <FormControl component="fieldset">
+                      <RadioGroup
+                        value={bidPaymentMethod}
+                        onChange={handleBidPaymentMethodChange}
+                      >
+                        <FormControlLabel
+                          value="credit"
+                          control={<Radio />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <CreditCardIcon sx={{ mr: 1 }} />
+                              Credit Card
+                            </Box>
+                          }
+                        />
+                        <FormControlLabel
+                          value="paypal"
+                          control={<Radio />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <img
+                                src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
+                                alt="PayPal"
+                                style={{ height: 18, marginRight: 8 }}
+                              />
+                              PayPal
+                            </Box>
+                          }
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  </Paper>
+                </Grid>
+
+                {/* Credit Card Details (shown only if credit card is selected) */}
+                {bidPaymentMethod === "credit" && (
+                  <>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Name on Card"
+                        name="cardName"
+                        value={bidCardDetails.cardName}
+                        onChange={handleBidCardDetailsChange}
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Card Number"
+                        name="cardNumber"
+                        value={bidCardDetails.cardNumber}
+                        onChange={handleBidCardDetailsChange}
+                        required
+                        inputProps={{ maxLength: 19 }}
+                        placeholder="0000 0000 0000 0000"
+                      />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Expiry Date"
+                        name="expiryDate"
+                        value={bidCardDetails.expiryDate}
+                        onChange={handleBidCardDetailsChange}
+                        required
+                        placeholder="MM/YY"
+                        inputProps={{ maxLength: 5 }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="CVV"
+                        name="cvv"
+                        value={bidCardDetails.cvv}
+                        onChange={handleBidCardDetailsChange}
+                        required
+                        inputProps={{ maxLength: 4 }}
+                        type="password"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                        <SecurityIcon fontSize="small" sx={{ mr: 1 }} />
+                        <Typography variant="caption">
+                          Your payment information is secure and encrypted
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+
+              <Box sx={{ mt: 3, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="info.dark">
+                  <strong>Note:</strong> By submitting this bid, you agree to purchase this item at your bid price if approved.
+                  Your payment and shipping information will be used to complete the transaction.
+                </Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowBidDialog(false)}>Cancel</Button>
+              <Button
+                onClick={handleBidSubmit}
+                variant="contained"
+                disabled={submittingBid}
+                startIcon={submittingBid ? <CircularProgress size={16} /> : <GavelIcon />}
+              >
+                {submittingBid ? 'Submitting...' : 'Submit Bid'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Auction Offer Dialog */}
+          <Dialog open={showOfferDialog} onClose={() => setShowOfferDialog(false)} maxWidth="md" fullWidth>
+            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <TrendingUpIcon color="primary" />
+              Place Your Offer
+              {auctionEnded && (
+                <Chip label="ENDED" color="error" size="small" />
+              )}
+            </DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Enter your offer details for "{product?.title}". Your offer must be higher than the current highest bid.
+                If your offer wins the auction, we'll use the shipping and payment information provided to complete your purchase.
+              </Typography>
+
+              {/* Auction Status Summary */}
+              {auctionStatus && (
+                <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: auctionEnded ? 'grey.50' : 'success.50' }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        Current Highest Bid
+                      </Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight="bold">
+                        ${(auctionStatus.currentMaxOffer || auctionStatus.startingPrice || product?.price || 0).toFixed(2)}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Time Remaining
+                      </Typography>
+                      <Chip
+                        label={timeLeft !== null ? formatTimeLeft(timeLeft) : 'Loading...'}
+                        color={getAuctionStatusColor(timeLeft)}
+                        size="small"
+                        sx={{ fontWeight: 'bold' }}
+                      />
+                    </Box>
+
+                    {auctionStatus.startingPrice && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Starting Price
+                        </Typography>
+                        <Typography variant="body2">
+                          ${auctionStatus.startingPrice.toFixed(2)}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              )}
+
+              {auctionEnded ? (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  This auction has ended. No more offers can be placed.
+                </Alert>
+              ) : (
+                <Grid container spacing={2}>
+                  {/* Offer Amount */}
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Offer Amount ($)"
+                      type="number"
+                      value={offerAmount}
+                      onChange={(e) => setOfferAmount(e.target.value)}
+                      fullWidth
+                      inputProps={{
+                        min: ((auctionStatus?.currentMaxOffer || product?.price || 0) + 0.01).toFixed(2),
+                        step: "0.01"
+                      }}
+                      helperText={`Must be higher than $${(auctionStatus?.currentMaxOffer || product?.price || 0).toFixed(2)}`}
+                      error={parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
+                      required
+                    />
+                  </Grid>
+
+                  {/* Shipping Address Section */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
+                      <Typography variant="h6">
+                        Shipping Address
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      name="fullName"
+                      value={offerShippingAddress.fullName}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Address Line 1"
+                      name="addressLine1"
+                      value={offerShippingAddress.addressLine1}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Address Line 2 (Optional)"
+                      name="addressLine2"
+                      value={offerShippingAddress.addressLine2}
+                      onChange={handleOfferShippingAddressChange}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="City"
+                      name="city"
+                      value={offerShippingAddress.city}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="State/Province"
+                      name="state"
+                      value={offerShippingAddress.state}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Postal Code"
+                      name="postalCode"
+                      value={offerShippingAddress.postalCode}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Country"
+                      name="country"
+                      value={offerShippingAddress.country}
+                      onChange={handleOfferShippingAddressChange}
+                      required
+                    />
+                  </Grid>
+
+                  {/* Payment Method Section */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <CreditCardIcon sx={{ mr: 1, color: 'primary.main' }} />
+                      <Typography variant="h6">
+                        Payment Method
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                      <FormControl component="fieldset">
+                        <RadioGroup
+                          value={offerPaymentMethod}
+                          onChange={handleOfferPaymentMethodChange}
+                        >
+                          <FormControlLabel
+                            value="credit"
+                            control={<Radio />}
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <CreditCardIcon sx={{ mr: 1 }} />
+                                Credit Card
+                              </Box>
+                            }
+                          />
+                          <FormControlLabel
+                            value="paypal"
+                            control={<Radio />}
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <img
+                                  src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
+                                  alt="PayPal"
+                                  style={{ height: 18, marginRight: 8 }}
+                                />
+                                PayPal
+                              </Box>
+                            }
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </Paper>
+                  </Grid>
+
+                  {/* Credit Card Details (shown only if credit card is selected) */}
+                  {offerPaymentMethod === "credit" && (
+                    <>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Name on Card"
+                          name="cardName"
+                          value={offerCardDetails.cardName}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Card Number"
+                          name="cardNumber"
+                          value={offerCardDetails.cardNumber}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                          inputProps={{ maxLength: 19 }}
+                          placeholder="0000 0000 0000 0000"
+                        />
+                      </Grid>
+
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Expiry Date"
+                          name="expiryDate"
+                          value={offerCardDetails.expiryDate}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                          placeholder="MM/YY"
+                          inputProps={{ maxLength: 5 }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="CVV"
+                          name="cvv"
+                          value={offerCardDetails.cvv}
+                          onChange={handleOfferCardDetailsChange}
+                          required
+                          inputProps={{ maxLength: 4 }}
+                          type="password"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                          <SecurityIcon fontSize="small" sx={{ mr: 1 }} />
+                          <Typography variant="caption">
+                            Your payment information is secure and encrypted
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </>
+                  )}
+
+                  <Grid item xs={12}>
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+                      <Typography variant="body2" color="info.dark">
+                        <strong>Note:</strong> By submitting this offer, you agree to purchase this item at your offer price if you win the auction.
+                        Your payment and shipping information will be used to complete the transaction if you are the highest bidder when the auction ends.
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowOfferDialog(false)}>Cancel</Button>
+              {!auctionEnded && (
+                <Button
+                  onClick={handleOfferSubmit}
+                  variant="contained"
+                  disabled={submittingOffer || parseFloat(offerAmount) <= (auctionStatus?.currentMaxOffer || product?.price || 0)}
+                  startIcon={submittingOffer ? <CircularProgress size={16} /> : <TrendingUpIcon />}
+                >
+                  {submittingOffer ? 'Submitting...' : 'Submit Offer'}
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
+
+          {/* Raffle Dialog */}
+          <Dialog open={showRaffleDialog} onClose={() => setShowRaffleDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>Join Raffle</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Join the raffle for "{product?.title}" for a chance to win at the listed price of ${product?.price?.toFixed(2)}.
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                How it works:
+              </Typography>
+              <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 2 }}>
+                <li>Enter the raffle by clicking "Join"</li>
+                <li>Wait for the raffle period to end</li>
+                <li>Winners are selected randomly</li>
+                <li>If you win, you'll be notified and can complete the purchase</li>
+              </Typography>
+              <Typography variant="body2" color="warning.main">
+                Note: Raffle functionality is currently in development.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowRaffleDialog(false)}>Cancel</Button>
+              <Button
+                onClick={handleRaffleJoin}
+                variant="contained"
+                disabled={joiningRaffle}
+                startIcon={joiningRaffle ? <CircularProgress size={16} /> : <CasinoIcon />}
+              >
+                {joiningRaffle ? 'Joining...' : 'Join Raffle'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Mini Cart and Auth Dialog with conditional rendering */}
+          {showMiniCart && <MiniCart cart={cart} onClose={() => setShowMiniCart(false)} />}
+          {showAuthDialog && <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+
+          {/* Snackbar for notifications */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
             onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
-            variant="filled"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </main>
+            <Alert
+              onClose={() => setSnackbar({ ...snackbar, open: false })}
+              severity={snackbar.severity}
+              variant="filled"
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </main>
+      </Box>
     </Box>
   );
 }

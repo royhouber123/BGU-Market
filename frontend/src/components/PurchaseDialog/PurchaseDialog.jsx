@@ -13,6 +13,8 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import CloseIcon from '@mui/icons-material/Close';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
 const PurchaseDialog = ({
 	open,
@@ -21,12 +23,20 @@ const PurchaseDialog = ({
 	title,
 	message,
 	details,
-	onContinue
+	onContinue,
+	onViewOrder
 }) => {
 	const handleContinue = () => {
 		onClose();
 		if (onContinue) {
 			onContinue();
+		}
+	};
+
+	const handleViewOrder = () => {
+		onClose();
+		if (onViewOrder) {
+			onViewOrder();
 		}
 	};
 
@@ -84,19 +94,16 @@ const PurchaseDialog = ({
 
 			<DialogActions sx={{ p: 3, pt: 1 }}>
 				{success ? (
-					<>
-						<Button onClick={onClose} color="primary" variant="outlined">
-							Stay Here
-						</Button>
-						<Button
-							onClick={handleContinue}
-							color="primary"
-							variant="contained"
-							autoFocus
-						>
-							Continue Shopping
-						</Button>
-					</>
+					<Button
+						onClick={handleContinue}
+						color="primary"
+						variant="contained"
+						startIcon={<ShoppingBagIcon />}
+						autoFocus
+						fullWidth
+					>
+						Continue Shopping
+					</Button>
 				) : (
 					<Button
 						onClick={onClose}

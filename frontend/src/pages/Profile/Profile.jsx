@@ -7,6 +7,7 @@ import { productService } from "../../services/productService";
 import purchaseService from "../../services/purchaseService";
 import adminService from "../../services/adminService";
 import { useAuth } from "../../contexts/AuthContext";
+import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
 import {
 	Box,
 	Container,
@@ -56,6 +57,8 @@ export default function Profile() {
 	const [ownedStores, setOwnedStores] = useState([]);
 	const [managedStores, setManagedStores] = useState([]);
 	const [purchaseHistory, setPurchaseHistory] = useState([]);
+	const [purchaseHistoryWithPrices, setPurchaseHistoryWithPrices] = useState([]);
+	const [loadingPurchasePrices, setLoadingPurchasePrices] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedProfile, setEditedProfile] = useState({});
 	const [authOpen, setAuthOpen] = useState(false);
@@ -78,18 +81,20 @@ export default function Profile() {
 
 	const checkAdminStatus = useCallback(async () => {
 		try {
-		  const isAdminResult = await adminService.isAdmin();
-		  setIsAdmin(isAdminResult);
+			const isAdminResult = await adminService.isAdmin();
+			setIsAdmin(isAdminResult);
 		} catch (error) {
-		  console.error("Error checking admin status:", error);
-		  setIsAdmin(false);
+			console.error("Error checking admin status:", error);
+			setIsAdmin(false);
 		}
-	  }, []);
+	}, []);
 
-	// Add to existing loadProfileData function
-	if (currentUser) {
-		checkAdminStatus();
-	}
+	// Check admin status separately from regular data loading
+	useEffect(() => {
+		if (currentUser) {
+			checkAdminStatus();
+		}
+	}, [currentUser, checkAdminStatus]);
 
 	const loadUserManagedStores = useCallback(async () => {
 		try {
@@ -159,6 +164,82 @@ export default function Profile() {
 			setManagedStores([]);
 		}
 	}, [currentUser]);
+
+	const fetchPurchaseHistoryPrices = useCallback(async () => {
+		if (purchaseHistory.length === 0) {
+			setPurchaseHistoryWithPrices([]);
+			return;
+		}
+
+		setLoadingPurchasePrices(true);
+		try {
+			const historyWithPrices = await Promise.all(
+				purchaseHistory.map(async (purchase) => {
+					// Fetch real-time prices for all items in this purchase
+					const itemsWithPrices = await Promise.all(
+						purchase.items.map(async (item) => {
+							const product = {
+								id: item.productId,
+								storeId: item.storeId,
+								price: item.price // Original stored price
+							};
+
+							// Fetch current discounted price
+							const discountedPrice = await fetchDiscountedPrice(product);
+
+							return {
+								...item,
+								originalPrice: item.price,
+								discountedPrice,
+								effectivePrice: getEffectivePrice(product, discountedPrice),
+								hasDiscount: hasDiscount(product, discountedPrice),
+								savings: calculateSavings(product, discountedPrice)
+							};
+						})
+					);
+
+					// Calculate new total based on current prices
+					const newTotal = itemsWithPrices.reduce((total, item) =>
+						total + (item.effectivePrice * item.quantity), 0
+					);
+
+					const totalSavings = itemsWithPrices.reduce((total, item) =>
+						total + (item.savings * item.quantity), 0
+					);
+
+					return {
+						...purchase,
+						items: itemsWithPrices,
+						currentTotal: newTotal,
+						originalTotal: purchase.total,
+						totalSavings: totalSavings,
+						hasSavingsAvailable: totalSavings > 0
+					};
+				})
+			);
+
+			setPurchaseHistoryWithPrices(historyWithPrices);
+		} catch (error) {
+			console.error("Error fetching purchase history prices:", error);
+			// Fallback to original purchase history
+			setPurchaseHistoryWithPrices(purchaseHistory.map(purchase => ({
+				...purchase,
+				items: purchase.items.map(item => ({
+					...item,
+					originalPrice: item.price,
+					discountedPrice: null,
+					effectivePrice: item.price,
+					hasDiscount: false,
+					savings: 0
+				})),
+				currentTotal: purchase.total,
+				originalTotal: purchase.total,
+				totalSavings: 0,
+				hasSavingsAvailable: false
+			})));
+		}
+		setLoadingPurchasePrices(false);
+	}, [purchaseHistory]);
 
 	const loadPurchaseHistory = useCallback(async () => {
 		try {
@@ -255,123 +336,175 @@ export default function Profile() {
 		if (!isAdmin) return;
 		setAdminLoading(true);
 		try {
-		  const { stores } = await storeService.getAllStoresAndProducts();
-		  setAllStores(stores);
+			const { stores } = await storeService.getAllStoresAndProducts();
+			setAllStores(stores);
 		} catch (error) {
-		  console.error("Error loading all stores:", error);
-		  toast({ title: "Error", description: "Failed to load stores", variant: "destructive" });
+			console.error("Error loading all stores:", error);
+			toast({ title: "Error", description: "Failed to load stores", variant: "destructive" });
 		} finally {
-		  setAdminLoading(false);
+			setAdminLoading(false);
 		}
-	  }, [isAdmin, toast]);
-	  
-	  const loadAllUsers = useCallback(async () => {
+	}, [isAdmin, toast]);
+
+	const loadSuspendedUsers = useCallback(async () => {
+		if (!isAdmin) return;
+		try {
+			const suspendedUserIds = await adminService.getSuspendedUsers();
+			console.log("admin suspended users: ", suspendedUserIds);
+			setSuspendedUsers(suspendedUserIds);
+			console.log('Loaded suspended users:', suspendedUserIds);
+		} catch (error) {
+			console.error("Error loading suspended users:", error);
+			toast({ title: "Error", description: "Failed to load suspended users", variant: "destructive" });
+		}
+	}, [isAdmin, toast]);
+
+	const loadAllUsers = useCallback(async () => {
 		if (!isAdmin) return;
 		setAdminLoading(true);
 		try {
-		  const { users } = await adminService.getAllUsers();
-		  console.log("admin users: ", users);
-		  setAllUsers(users);
-		  console.log("all users: ", allUsers);
+			const { users } = await adminService.getAllUsers();
+			console.log("admin users: ", users);
+			setAllUsers(users);
+			console.log("all users: ", allUsers);
 		} catch (error) {
-		  console.error("Error loading all users:", error);
-		  toast({ title: "Error", description: "Failed to load users", variant: "destructive" });
+			console.error("Error loading all users:", error);
+			toast({ title: "Error", description: "Failed to load users", variant: "destructive" });
 		} finally {
-		  setAdminLoading(false);
+			setAdminLoading(false);
 		}
-	  }, [isAdmin, toast]);
-	  
-	  const loadSuspendedUsers = useCallback(async () => {
-		if (!isAdmin) return;
-		try {
-		  const suspendedUserIds = await adminService.getSuspendedUsers();
-		  console.log("admin suspended users: ", suspendedUserIds);
-		  setSuspendedUsers(suspendedUserIds);
-		  console.log('Loaded suspended users:', suspendedUserIds);
-		} catch (error) {
-		  console.error("Error loading suspended users:", error);
-		  toast({ title: "Error", description: "Failed to load suspended users", variant: "destructive" });
-		}
-	  }, [isAdmin, toast]);
+		loadSuspendedUsers();
+		loadProfileData();
+	}, [currentUser, loadProfileData, loadSuspendedUsers]);
+
+	// Load tab-specific data when a tab is selected
+	useEffect(() => {
+		if (!currentUser) return;
+
+		// Clear loading state initially
+		setLoading(true);
+		
+		// Load data specific to the selected tab
+		const loadTabData = async () => {
+			try {
+				console.log(`Loading data for tab ${activeTab}`);
+				
+				// Load different data based on active tab
+				switch(activeTab) {
+					case 0: // Personal Details tab
+						// Load user profile data only
+						const profile = await userService.getProfile();
+						setUserProfile(profile);
+						setEditedProfile(profile);
+						break;
+						
+					case 1: // My Stores tab
+						// Load only store data
+						await loadUserManagedStores();
+						break;
+						
+					case 2: // Purchase History tab
+						// Load only purchase history
+						await loadPurchaseHistory();
+						break;
+						
+					case 3: // Admin tab
+						if (isAdmin) {
+							// Load suspended users first, so we can highlight them in the users list
+							await loadSuspendedUsers().catch(error => {
+								console.error("Error loading suspended users:", error);
+							});
+							
+							// Continue with loading other data even if suspended users fails
+							await loadAllStores();
+							await loadAllUsers();
+						}
+						break;
+				}
+			} catch (error) {
+				console.error(`Error loading data for tab ${activeTab}:`, error);
+				toast({ title: "Error", description: `Failed to load data for this tab`, variant: "destructive" });
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		// Execute the data loading function
+		loadTabData();
+
+	}, [activeTab, currentUser, isAdmin, loadUserManagedStores, loadPurchaseHistory, loadSuspendedUsers, loadAllStores, loadAllUsers, toast]);
 
 	useEffect(() => {
-		if (!currentUser) {
-			setAuthOpen(true);
-			return;
+		if (purchaseHistory.length > 0) {
+			fetchPurchaseHistoryPrices();
+		} else {
+			setPurchaseHistoryWithPrices([]);
 		}
-		loadProfileData();
-	}, [currentUser, loadProfileData]);
-	
-	// Load admin data when admin tab is selected
-	useEffect(() => {
-		if (isAdmin && activeTab === 3) {
-			loadAllStores();
-			loadAllUsers();
-			loadSuspendedUsers();
-		}
-	}, [isAdmin, activeTab, loadAllStores, loadAllUsers, loadSuspendedUsers]);
+	}, [purchaseHistory, fetchPurchaseHistoryPrices]);
 
 	const handleCloseStore = async (storeId, storeName) => {
 		try {
-		  await adminService.closeStore(storeId);
-		  toast({ title: "Success", description: `Store "${storeName}" has been closed` });
-		  loadAllStores(); // Refresh the store list
+			await adminService.closeStore(storeId);
+			toast({ title: "Success", description: `Store "${storeName}" has been closed` });
+			loadAllStores(); // Refresh the store list
 		} catch (error) {
-		  console.error("Error closing store:", error);
-		  toast({ title: "Error", description: `Failed to close store: ${error.message || "Unknown error"}`, variant: "destructive" });
-		}
-	  };
-	  
-	const handleSuspendUser = async (userId, isPermanent = false) => {
-		let hours;
-		
-		if (isPermanent) {
-		// Permanent suspension (0 hours)
-		hours = 0;
-		} else {
-		// Temporary suspension - ask for duration
-		const suspensionHours = window.prompt("Enter suspension duration in hours:", "24");
-		
-		if (suspensionHours === null) return; // User cancelled
-		
-		hours = parseInt(suspensionHours, 10);
-		if (isNaN(hours) || hours < 0) {
-			setSnackbar({
-			open: true,
-			message: "Please enter a valid non-negative number for suspension hours",
-			severity: "error"
-			});
-			return;
-		}
-		
-		}
-		
-		const durationText = hours === 0 ? "permanently" : `for ${hours} hours`;
-		
-		try {
-		  await adminService.suspendUser(userId, hours);
-		  toast({ title: "Success", description: `User "${userId}" has been suspended ${durationText}` });
-		  loadAllUsers(); // Refresh the user list
-		  loadSuspendedUsers(); // Refresh the suspended users list
-		} catch (error) {
-		  console.error("Error suspending user:", error);
-		  toast({ 
-			title: "Error", 
-			description: `Failed to suspend user: ${error.message || "Unknown error"}`, 
-			variant: "destructive" 
-		  });
+			console.error("Error closing store:", error);
+			toast({ title: "Error", description: `Failed to close store: ${error.message || "Unknown error"}`, variant: "destructive" });
 		}
 	};
-	  
-	const handleUnsuspendUser = async (username) => {		
+
+	const handleSuspendUser = async (userId, isPermanent = false) => {
+		let hours;
+
+		if (isPermanent) {
+			// Permanent suspension (0 hours)
+			hours = 0;
+		} else {
+			// Temporary suspension - ask for duration
+			const suspensionHours = window.prompt("Enter suspension duration in hours:", "24");
+
+			if (suspensionHours === null) return; // User cancelled
+
+			hours = parseInt(suspensionHours, 10);
+			if (isNaN(hours) || hours < 0) {
+				setSnackbar({
+					open: true,
+					message: "Please enter a valid non-negative number for suspension hours",
+					severity: "error"
+				});
+				return;
+			}
+
+		}
+
+		const durationText = hours === 0 ? "permanently" : `for ${hours} hours`;
+
 		try {
-		  await adminService.unsuspendUser(username);
-		  toast({ title: "Success", description: `User "${username}" has been unsuspended` });
-		  loadAllUsers(); // Refresh the user list
-		  loadSuspendedUsers(); // Refresh the suspended users list
+			console.log("Suspension duration:", hours);
+			await adminService.suspendUser(userId, hours);
+			toast({ title: "Success", description: `User "${userId}" has been suspended ${durationText}` });
+			loadAllUsers(); // Refresh the user list
+			loadSuspendedUsers(); // Refresh the suspended users list
 		} catch (error) {
-		  console.error("Error unsuspending user:", error);
-		  toast({ title: "Error", description: `Failed to unsuspend user: ${error.message || "Unknown error"}`, variant: "destructive" });
+			console.error("Error suspending user:", error);
+			toast({
+				title: "Error",
+				description: `Failed to suspend user: ${error.message || "Unknown error"}`,
+				variant: "destructive"
+			});
+		}
+	};
+
+	const handleUnsuspendUser = async (username) => {
+		try {
+			console.log("Unsuspending user:", username);
+			await adminService.unsuspendUser(username);
+			toast({ title: "Success", description: `User "${username}" has been unsuspended` });
+			loadAllUsers(); // Refresh the user list
+			loadSuspendedUsers(); // Refresh the suspended users list
+		} catch (error) {
+			console.error("Error unsuspending user:", error);
+			toast({ title: "Error", description: `Failed to unsuspend user: ${error.message || "Unknown error"}`, variant: "destructive" });
 		}
 	};
 
@@ -404,8 +537,8 @@ export default function Profile() {
 		try {
 			await storeService.createStore({
 				storeName: storeName,
-				founderId: currentUser.userName,
-				description: "New store"
+				founderId: currentUser.userName
+				// description: "New store"
 			});
 			toast({ title: "Success", description: "Store created successfully" });
 			loadUserManagedStores(); // Refresh managed stores
@@ -438,7 +571,13 @@ export default function Profile() {
 			<Container maxWidth="lg" sx={{ py: 6 }}>
 				<Typography variant="h4" fontWeight={700} mb={3}>My Profile</Typography>
 
-				<Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 3 }}>
+				<Tabs 
+					value={activeTab} 
+					onChange={(_, v) => {
+						setActiveTab(v);
+						// No need to do anything else here - the useEffect will handle data loading
+					}} 
+					sx={{ mb: 3 }}>
 					<Tab
 						icon={<PersonIcon />}
 						label="Personal Details"
@@ -455,11 +594,11 @@ export default function Profile() {
 						iconPosition="start"
 					/>
 					{isAdmin && (
-					<Tab
-						icon={<AdminPanelSettingsIcon />}
-						label="Admin Management"
-						iconPosition="start"
-					/>
+						<Tab
+							icon={<AdminPanelSettingsIcon />}
+							label="Admin Management"
+							iconPosition="start"
+						/>
 					)}
 				</Tabs>
 
@@ -795,9 +934,9 @@ export default function Profile() {
 									<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
 								))}
 							</Box>
-						) : purchaseHistory.length > 0 ? (
+						) : (purchaseHistoryWithPrices.length > 0 || purchaseHistory.length > 0) ? (
 							<Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-								{purchaseHistory.map((purchase, index) => (
+								{(purchaseHistoryWithPrices.length > 0 ? purchaseHistoryWithPrices : purchaseHistory).map((purchase, index) => (
 									<Paper key={purchase.id || index} sx={{ p: 3, borderRadius: 2 }}>
 										<Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "start", mb: 2 }}>
 											<Box>
@@ -808,11 +947,21 @@ export default function Profile() {
 													{new Date(purchase.createdAt || Date.now()).toLocaleDateString()}
 												</Typography>
 											</Box>
-											<Chip
-												label={purchase.status || "Completed"}
-												color="success"
-												size="small"
-											/>
+											<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+												<Chip
+													label={purchase.status || "Completed"}
+													color="success"
+													size="small"
+												/>
+												{purchase.hasSavingsAvailable && (
+													<Chip
+														label={`Saved $${formatPrice(purchase.totalSavings)}`}
+														color="success"
+														size="small"
+														variant="outlined"
+													/>
+												)}
+											</Box>
 										</Box>
 										<Divider sx={{ mb: 2 }} />
 										<Grid container spacing={2}>
@@ -828,13 +977,60 @@ export default function Profile() {
 															alt={item.title}
 															sx={{ width: 40, height: 40, borderRadius: 1, mr: 2 }}
 														/>
-														<Box>
+														<Box sx={{ flexGrow: 1 }}>
 															<Typography variant="body2" fontWeight="medium">
 																{item.title}
 															</Typography>
-															<Typography variant="caption" color="text.secondary">
-																Qty: {item.quantity} × ${item.price}
-															</Typography>
+															<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+																<Typography variant="caption" color="text.secondary">
+																	Qty: {item.quantity}
+																</Typography>
+																{item.hasDiscount ? (
+																	<>
+																		<Typography variant="caption" color="text.secondary">
+																			×
+																		</Typography>
+																		<Typography variant="caption" fontWeight="medium">
+																			${formatPrice(item.effectivePrice)}
+																		</Typography>
+																		<Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+																			${formatPrice(item.originalPrice)}
+																		</Typography>
+																		<Chip
+																			label={`Save $${formatPrice(item.savings)}`}
+																			color="success"
+																			size="small"
+																			sx={{ height: 16, fontSize: '0.65rem' }}
+																		/>
+																	</>
+																) : (
+																	<>
+																		<Typography variant="caption" color="text.secondary">
+																			×
+																		</Typography>
+																		<Typography variant="caption" fontWeight="medium">
+																			${formatPrice(item.effectivePrice || item.price)}
+																		</Typography>
+																	</>
+																)}
+																{loadingPurchasePrices && (
+																	<Box
+																		sx={{
+																			display: 'inline-block',
+																			width: 8,
+																			height: 8,
+																			border: '1px solid currentColor',
+																			borderTop: '1px solid transparent',
+																			borderRadius: '50%',
+																			animation: 'spin 1s linear infinite',
+																			'@keyframes spin': {
+																				'0%': { transform: 'rotate(0deg)' },
+																				'100%': { transform: 'rotate(360deg)' }
+																			}
+																		}}
+																	/>
+																)}
+															</Box>
 														</Box>
 													</Box>
 												)) : (
@@ -844,14 +1040,46 @@ export default function Profile() {
 												)}
 											</Grid>
 											<Grid item xs={12} md={4} sx={{ textAlign: { md: "right" } }}>
-												<Typography variant="h6" fontWeight="bold" color="primary">
-													${purchase.total || "0.00"}
-												</Typography>
+												{purchase.currentTotal !== undefined ? (
+													<Box>
+														<Typography variant="h6" fontWeight="bold" color="primary">
+															${formatPrice(purchase.currentTotal)}
+															<Typography component="span" variant="caption" color="text.secondary">
+																{" "}(current)
+															</Typography>
+														</Typography>
+														{purchase.currentTotal !== purchase.originalTotal && (
+															<Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+																Originally: ${formatPrice(purchase.originalTotal)}
+															</Typography>
+														)}
+													</Box>
+												) : (
+													<Typography variant="h6" fontWeight="bold" color="primary">
+														${formatPrice(purchase.total || 0)}
+													</Typography>
+												)}
 												<Button
 													size="small"
 													variant="outlined"
 													sx={{ mt: 1 }}
-													onClick={() => navigate(createPageUrl("OrderConfirmation"))}
+													onClick={() => navigate(createPageUrl("OrderConfirmation"), {
+														state: {
+															orderInfo: {
+																total: purchase.currentTotal || purchase.total,
+																paymentMethod: purchase.contactInfo || "Payment processed",
+																items: purchase.items || [],
+																shippingAddress: purchase.shippingAddress || "",
+																orderDate: purchase.createdAt,
+																orderNumber: `BGU-${String(purchase.id || 'UNKNOWN').padStart(6, '0')}`,
+																isPastPurchase: true,
+																subtotal: purchase.currentTotal || purchase.total,
+																tax: 0, // Tax info not available in purchase history
+																shipping: 0, // Shipping info not available in purchase history  
+																totalSavings: purchase.totalSavings || 0
+															}
+														}
+													})}
 												>
 													View Details
 												</Button>
@@ -881,232 +1109,226 @@ export default function Profile() {
 
 				{/* Admin Management Tab */}
 				{activeTab === 3 && isAdmin && (
-				<Box>
-					<Tabs value={adminTabValue} onChange={(_, v) => setAdminTabValue(v)} sx={{ mb: 3 }}>
-					<Tab label="Manage All Stores" />
-					<Tab label="Manage All Users" />
-					<Tab label={`Suspended Users (${suspendedUsers.length})`} />
-					</Tabs>
-
-					{/* Manage All Stores */}
-					{adminTabValue === 0 && (
 					<Box>
-						<Typography variant="h6" mb={3}>All Stores</Typography>
-						{adminLoading ? (
-						<Box>
-							{[1, 2, 3].map((i) => (
-							<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
-							))}
-						</Box>
-						) : allStores.length > 0 ? (
-						<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-							<Table>
-							<TableHead>
-								<TableRow>
-								<TableCell>Store Name</TableCell>
-								<TableCell>Status</TableCell>
-								<TableCell>Actions</TableCell>
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{allStores.map((store) => (
-								<TableRow key={store.id}>
-									<TableCell>{store.name}</TableCell>
-									<TableCell>
-									<Chip
-										size="small"
-										label={store.isActive ? "Active" : "Inactive"}
-										color={store.isActive ? "success" : "default"}
-									/>
-									</TableCell>
-									<TableCell>
-									<Button
-										size="small"
-										color="error"
-										disabled={!store.isActive}
-										onClick={() => handleCloseStore(store.id, store.name)}
-									>
-										Close Store
-									</Button>
-									</TableCell>
-								</TableRow>
-								))}
-							</TableBody>
-							</Table>
-						</TableContainer>
-						) : (
-						<Box sx={{ textAlign: "center", py: 8 }}>
-							<StoreIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
-							<Typography variant="h6" mb={1}>No stores found</Typography>
-							<Typography variant="body2" color="text.secondary">
-							There are no stores in the system yet
-							</Typography>
-						</Box>
+						<Tabs value={adminTabValue} onChange={(_, v) => setAdminTabValue(v)} sx={{ mb: 3 }}>
+							<Tab label="Manage All Stores" />
+							<Tab label="Manage All Users" />
+							<Tab label={`Suspended Users (${suspendedUsers.length})`} />
+						</Tabs>
+
+						{/* Manage All Stores */}
+						{adminTabValue === 0 && (
+							<Box>
+								<Typography variant="h6" mb={3}>All Stores</Typography>
+								{adminLoading ? (
+									<Box>
+										{[1, 2, 3].map((i) => (
+											<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
+										))}
+									</Box>
+								) : allStores.length > 0 ? (
+									<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+										<Table>
+											<TableHead>
+												<TableRow>
+													<TableCell>Store Name</TableCell>
+													<TableCell>Status</TableCell>
+													<TableCell>Actions</TableCell>
+												</TableRow>
+											</TableHead>
+											<TableBody>
+												{allStores.map((store) => (
+													<TableRow key={store.id}>
+														<TableCell>{store.name}</TableCell>
+														<TableCell>
+															<Chip
+																size="small"
+																label={store.isActive ? "Active" : "Inactive"}
+																color={store.isActive ? "success" : "default"}
+															/>
+														</TableCell>
+														<TableCell>
+															<Button
+																size="small"
+																color="error"
+																disabled={!store.isActive}
+																onClick={() => handleCloseStore(store.id, store.name)}
+															>
+																Close Store
+															</Button>
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								) : (
+									<Box sx={{ textAlign: "center", py: 8 }}>
+										<StoreIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+										<Typography variant="h6" mb={1}>No stores found</Typography>
+										<Typography variant="body2" color="text.secondary">
+											There are no stores in the system yet
+										</Typography>
+									</Box>
+								)}
+							</Box>
+						)}
+
+						{/* Manage All Users */}
+						{adminTabValue === 1 && (
+							<Box>
+								<Typography variant="h6" mb={3}>All Users</Typography>
+								{adminLoading ? (
+									<Box>
+										{[1, 2, 3].map((i) => (
+											<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
+										))}
+									</Box>
+								) : Object.values(allUsers).length > 0 ? (
+									<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+										<Table>
+											<TableHead>
+												<TableRow>
+													<TableCell>Username</TableCell>
+													<TableCell>Admin</TableCell>
+													<TableCell>Status</TableCell>
+													<TableCell>Roles</TableCell>
+													<TableCell>Actions</TableCell>
+												</TableRow>
+											</TableHead>
+											<TableBody>
+												{Object.values(allUsers).map((user) => (
+													<TableRow key={user.username}>
+														<TableCell>{user.username}</TableCell>
+														<TableCell>
+															<Chip
+																size="small"
+																label={user.isAdmin ? "Admin" : "User"}
+																color={user.isAdmin ? "primary" : "default"}
+																variant={user.isAdmin ? "filled" : "outlined"}
+															/>
+														</TableCell>
+														<TableCell>
+															<Chip
+																size="small"
+																label={suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase()) ? "Suspended" : "Active"}
+																color={suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase()) ? "error" : "success"}
+															/>
+														</TableCell>
+														<TableCell>
+															{user.roles && Object.keys(user.roles).length > 0
+																? Object.entries(user.roles).map(([storeId, roles]) => `${roles.join(", ")} (Store ${storeId})`).join("; ")
+																: "No roles"}
+														</TableCell>
+														<TableCell>
+															{suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase()) ? (
+																<Button
+																	size="small"
+																	color="success"
+																	disabled={user.isAdmin || user.username === currentUser.userName}
+																	onClick={() => handleUnsuspendUser(user.username)}
+																	sx={{ mr: 1 }}
+																>
+																	Unsuspend
+																</Button>
+															) : (
+																<>
+																	<Button
+																		size="small"
+																		color="warning"
+																		disabled={user.isAdmin || user.username === currentUser.userName}
+																		onClick={() => handleSuspendUser(user.username, false)}
+																		sx={{ mr: 1 }}
+																	>
+																		Suspend
+																	</Button>
+																</>
+															)}
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								) : (
+									<Box sx={{ textAlign: "center", py: 8 }}>
+										<PersonIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+										<Typography variant="h6" mb={1}>No users found</Typography>
+										<Typography variant="body2" color="text.secondary">
+											There are no users in the system yet
+										</Typography>
+									</Box>
+								)}
+							</Box>
+						)}
+
+						{/* Suspended Users */}
+						{adminTabValue === 2 && (
+							<Box>
+								<Typography variant="h6" mb={3}>Suspended Users</Typography>
+								{adminLoading ? (
+									<Box>
+										{[1, 2, 3].map((i) => (
+											<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
+										))}
+									</Box>
+								) : suspendedUsers.length > 0 ? (
+									<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+										<Table>
+											<TableHead>
+												<TableRow>
+													<TableCell>Username</TableCell>
+													<TableCell>Admin</TableCell>
+													<TableCell>Roles</TableCell>
+													<TableCell>Actions</TableCell>
+												</TableRow>
+											</TableHead>
+											<TableBody>
+												{suspendedUsers.length > 0 && Object.values(allUsers).filter(user =>
+													suspendedUsers.some(id => id.toLowerCase() === user.username.toLowerCase())
+												).map((user) => (
+													<TableRow key={user.username}>
+														<TableCell>{user.username}</TableCell>
+														<TableCell>
+															<Chip
+																size="small"
+																label={user.isAdmin ? "Admin" : "User"}
+																color={user.isAdmin ? "primary" : "default"}
+																variant={user.isAdmin ? "filled" : "outlined"}
+															/>
+														</TableCell>
+														<TableCell>
+															{user.roles && Object.keys(user.roles).length > 0
+																? Object.entries(user.roles).map(([storeId, roles]) => `${roles.join(", ")} (Store ${storeId})`).join("; ")
+																: "No roles"}
+														</TableCell>
+														<TableCell>
+															<Button
+																size="small"
+																color="success"
+																disabled={user.isAdmin || user.username === currentUser.userName}
+																onClick={() => handleUnsuspendUser(user.username)}
+															>
+																Unsuspend User
+															</Button>
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								) : (
+									<Box sx={{ textAlign: "center", py: 8 }}>
+										<PersonIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+										<Typography variant="h6" mb={1}>No suspended users</Typography>
+										<Typography variant="body2" color="text.secondary">
+											There are no suspended users in the system at this time
+										</Typography>
+									</Box>
+								)}
+							</Box>
 						)}
 					</Box>
-					)}
-
-					{/* Manage All Users */}
-					{adminTabValue === 1 && (
-					<Box>
-						<Typography variant="h6" mb={3}>All Users</Typography>
-						{adminLoading ? (
-						<Box>
-							{[1, 2, 3].map((i) => (
-							<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
-							))}
-						</Box>
-						) : Object.values(allUsers).length > 0 ? (
-						<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-							<Table>
-							<TableHead>
-								<TableRow>
-								<TableCell>Username</TableCell>
-								<TableCell>Admin</TableCell>
-								<TableCell>Status</TableCell>
-								<TableCell>Roles</TableCell>
-								<TableCell>Actions</TableCell>
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{Object.values(allUsers).map((user) => (
-								<TableRow key={user.username}>
-									<TableCell>{user.username}</TableCell>
-									<TableCell>
-									<Chip
-										size="small"
-										label={user.isAdmin ? "Admin" : "User"}
-										color={user.isAdmin ? "primary" : "default"}
-										variant={user.isAdmin ? "filled" : "outlined"}
-									/>
-									</TableCell>
-									<TableCell>
-									<Chip
-										size="small"
-										label={suspendedUsers.includes(user.username) ? "Suspended" : "Active"}
-										color={suspendedUsers.includes(user.username) ? "error" : "success"}
-									/>
-									</TableCell>
-									<TableCell>
-									{user.roles && Object.keys(user.roles).length > 0
-										? Object.entries(user.roles).map(([storeId, roles]) => `${roles.join(", ")} (Store ${storeId})`).join("; ")
-										: "No roles"}
-									</TableCell>
-									<TableCell>
-									{suspendedUsers.includes(user.username) ? (
-										<Button
-											size="small"
-											color="success"
-											disabled={user.isAdmin || user.username === currentUser.username}
-											onClick={() => handleUnsuspendUser(user.username)}
-											sx={{ mr: 1 }}
-										>
-											Unsuspend
-										</Button>
-									) : (
-										<>
-										<Button
-											size="small"
-											color="warning"
-											disabled={user.isAdmin || user.username === currentUser.username}
-											onClick={() => handleSuspendUser(user.username, false)}
-											sx={{ mr: 1 }}
-										>
-											Suspend
-										</Button>
-										{/* <Button
-											size="small"
-											color="error"
-											disabled={user.isAdmin || user.username === currentUser.username}
-											onClick={() => handleSuspendUser(user.username, true)}
-										>
-											Suspend Perm
-										</Button> */}
-										</>
-									)}
-									</TableCell>
-								</TableRow>
-								))}
-							</TableBody>
-							</Table>
-						</TableContainer>
-						) : (
-						<Box sx={{ textAlign: "center", py: 8 }}>
-							<PersonIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
-							<Typography variant="h6" mb={1}>No users found</Typography>
-							<Typography variant="body2" color="text.secondary">
-							There are no users in the system yet
-							</Typography>
-						</Box>
-						)}
-					</Box>
-					)}
-
-					{/* Suspended Users */}
-					{adminTabValue === 2 && (
-					<Box>
-						<Typography variant="h6" mb={3}>Suspended Users</Typography>
-						{adminLoading ? (
-						<Box>
-							{[1, 2, 3].map((i) => (
-							<Skeleton key={i} variant="rectangular" height={100} sx={{ borderRadius: 2, mb: 2 }} />
-							))}
-						</Box>
-						) : suspendedUsers.length > 0 ? (
-						<TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-							<Table>
-							<TableHead>
-								<TableRow>
-								<TableCell>Username</TableCell>
-								<TableCell>Admin</TableCell>
-								<TableCell>Roles</TableCell>
-								<TableCell>Actions</TableCell>
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{suspendedUsers.length > 0 && Object.values(allUsers).filter(user => suspendedUsers.includes(user.username)).map((user) => (
-								<TableRow key={user.username}>
-									<TableCell>{user.username}</TableCell>
-									<TableCell>
-									<Chip
-										size="small"
-										label={user.isAdmin ? "Admin" : "User"}
-										color={user.isAdmin ? "primary" : "default"}
-										variant={user.isAdmin ? "filled" : "outlined"}
-									/>
-									</TableCell>
-									<TableCell>
-									{user.roles && Object.keys(user.roles).length > 0
-										? Object.entries(user.roles).map(([storeId, roles]) => `${roles.join(", ")} (Store ${storeId})`).join("; ")
-										: "No roles"}
-									</TableCell>
-									<TableCell>
-									<Button
-										size="small"
-										color="success"
-										disabled={user.isAdmin || user.username === currentUser.username}
-										onClick={() => handleUnsuspendUser(user.username)}
-									>
-										Unsuspend User
-									</Button>
-									</TableCell>
-								</TableRow>
-								))}
-							</TableBody>
-							</Table>
-						</TableContainer>
-						) : (
-						<Box sx={{ textAlign: "center", py: 8 }}>
-							<PersonIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
-							<Typography variant="h6" mb={1}>No suspended users</Typography>
-							<Typography variant="body2" color="text.secondary">
-							There are no suspended users in the system at this time
-							</Typography>
-						</Box>
-						)}
-					</Box>
-					)}
-				</Box>
 				)}
 			</Container>
 
@@ -1129,4 +1351,4 @@ export default function Profile() {
 			</Snackbar>
 		</Box>
 	);
-} 
+}

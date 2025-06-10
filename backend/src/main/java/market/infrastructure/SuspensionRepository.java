@@ -25,26 +25,37 @@ public class SuspensionRepository implements ISuspensionRepository {
 
     @Override
     public boolean suspendUser(String userName, long durationHours) {
+        System.out.println("Suspension repository suspend user lvl 1 " + userName);
         if (userRepository.findById(userName) == null) return false;
-        suspendedUsers.put(userName, new Suspension(userName, durationHours));
+        System.out.println("Suspension repository suspend user lvl 2 " + userName);
+        // Store with lowercase key for case-insensitive lookups
+        suspendedUsers.put(userName.toLowerCase(), new Suspension(userName, durationHours));
+        System.out.println("Suspension repository suspend user lvl 3 " + suspendedUsers.keySet());
         return true;
     }
 
     @Override
     public boolean unsuspendUser(String userName) {
-        return suspendedUsers.remove(userName) != null;
+        // Use lowercase key for case-insensitive lookups
+        return suspendedUsers.remove(userName.toLowerCase()) != null;
     }
 
     @Override
     public List<String> getSuspendedUsers() {
+        System.out.println("Suspension repo get all lvl 1 " + suspendedUsers.keySet());
         cleanExpiredSuspensions();
-        return new ArrayList<>(suspendedUsers.keySet());
+        System.out.println("Suspension repo get all lvl 2 " + suspendedUsers.keySet());
+        // Convert keys back to original case for return
+        return suspendedUsers.values().stream()
+                .map(Suspension::getUserName)
+                .collect(Collectors.toList());
     }
 
     @Override
     public boolean isSuspended(String userName) {
         cleanExpiredSuspensions();
-        Suspension s = suspendedUsers.get(userName);
+        // Use lowercase key for case-insensitive lookups
+        Suspension s = suspendedUsers.get(userName.toLowerCase());
         return s != null && s.isSuspended();
     }
 
