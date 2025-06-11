@@ -1,9 +1,10 @@
-package market.infrastructure;
+package market.infrastructure.PersistenceRepositories;
 
 import jakarta.transaction.Transactional;
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.purchase.Purchase;
 import market.domain.purchase.PurchasedProduct;
+import market.infrastructure.IJpaRepository.IPurchaseJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 

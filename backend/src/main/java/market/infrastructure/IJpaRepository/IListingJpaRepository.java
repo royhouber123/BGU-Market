@@ -1,5 +1,5 @@
 
-package market.infrastructure;
+package market.infrastructure.IJpaRepository;
 
 import market.domain.store.Listing;
 import org.springframework.data.jpa.repository.JpaRepository;
