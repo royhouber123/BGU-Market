@@ -11,17 +11,14 @@ import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
-import market.infrastructure.PersistenceRepositories.ListingRepositoryPersistence;
-import market.infrastructure.PersistenceRepositories.PurchaseRepositoryPersistence;
-import market.infrastructure.RoleRepository;
 import market.infrastructure.SuspensionRepository;
-import market.infrastructure.UserRepositoryJpa;
-import org.springframework.beans.factory.annotation.Qualifier;
+import market.infrastructure.RoleRepository;
+
 import market.notification.INotifier; // Updated import
 import market.notification.WebSocketBroadcastNotifier; // Updated import
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
@@ -31,27 +28,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories(basePackages = "market.infrastructure.IJpaRepository")
 public class AppConfig {
 
-
-
-    @Bean
-    @Primary
-    public IUserRepository userRepository(@Qualifier("userRepositoryJpa") UserRepositoryJpa userRepositoryJpa) {
-        return userRepositoryJpa;
-    }
-
     @Bean
     public ISuspensionRepository suspensionRepository(IUserRepository userRepository) {
         return new SuspensionRepository(userRepository);
-    }
-
-    @Bean
-    public IListingRepository listingRepository() {
-        return new ListingRepositoryPersistence();
-    }
-
-    @Bean
-    public IPurchaseRepository purchaseRepository() {
-        return new PurchaseRepositoryPersistence();
     }
 
     @Bean

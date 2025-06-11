@@ -1,6 +1,7 @@
-package market.infrastructure;
+package market.infrastructure.PersistenceRepositories;
 
 import market.domain.user.*;
+import market.infrastructure.IJpaRepository.IUserJpaRepository;
 import utils.Logger;
 import utils.PasswordUtil;
 
@@ -15,12 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository("userRepositoryJpa")
 @Transactional
-public class UserRepositoryJpa implements IUserRepository {
+public class UserRepositoryPersistance implements IUserRepository {
 
     private static final Logger logger = Logger.getInstance();
 
     @Autowired
-    private UserJpaRepository userJpaRepository;
+    private IUserJpaRepository userJpaRepository;
 
     // We still need to store passwords separately since they shouldn't be in the entity
     private final Map<String, String> passwordMap = new HashMap<>();
@@ -28,7 +29,7 @@ public class UserRepositoryJpa implements IUserRepository {
     // Guest users (not persisted to database)
     private final Map<String, User> guestMap = new HashMap<>();
 
-    public UserRepositoryJpa() {
+    public UserRepositoryPersistance() {
         // Initialize with some default users for compatibility
         logger.info("[UserRepositoryJpa] Initializing JPA-based user repository");
     }

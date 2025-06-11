@@ -1,4 +1,4 @@
-package market.infrastructure;
+package market.infrastructure.IJpaRepository;
 
 import market.domain.user.User;
 import market.domain.user.Admin;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserJpaRepository extends JpaRepository<User, String> {
+public interface IUserJpaRepository extends JpaRepository<User, String> {
     
     Optional<User> findByUserName(String userName);
     
