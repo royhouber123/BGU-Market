@@ -1,34 +1,35 @@
 package tests;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.condition.EnabledIf;
 import support.AcceptanceTestSpringBase;
 
 import java.sql.DriverManager;
-import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Simple test to verify that our test database configuration works correctly.
- * These tests will be skipped if MySQL is not available.
+ * These tests will only run if MySQL is available.
  */
+@EnabledIf("tests.DatabaseConnectionTest#isMySQLAvailable")
 public class DatabaseConnectionTest extends AcceptanceTestSpringBase {
 
-    @BeforeEach
-    void checkMySQLAvailability() {
-        // Check if MySQL is available before running tests
+    /**
+     * Check if MySQL is available before running any tests in this class
+     */
+    static boolean isMySQLAvailable() {
         try {
             DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/?useSSL=false", 
                 "bgu", 
                 "changeme"
             ).close();
-        } catch (SQLException e) {
-            Assumptions.assumeTrue(false, 
-                "MySQL is not available - skipping database integration tests. " +
+            return true;
+        } catch (Exception e) {
+            System.out.println("⚠️  MySQL is not available - skipping DatabaseConnectionTest. " +
                 "To run these tests, ensure MySQL is running with user 'bgu' and password 'changeme'");
+            return false;
         }
     }
 
