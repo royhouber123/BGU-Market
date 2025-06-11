@@ -13,11 +13,13 @@ import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
 import market.infrastructure.SuspensionRepository;
 import market.infrastructure.RoleRepository;
-
+import market.infrastructure.PersistenceRepositories.UserRepositoryPersistance;
+import market.infrastructure.StoreRepository;
 import market.notification.INotifier; // Updated import
 import market.notification.WebSocketBroadcastNotifier; // Updated import
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ComponentScan;
 
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -26,6 +28,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "market.infrastructure.IJpaRepository")
+@ComponentScan(basePackages = "market.infrastructure.PersistenceRepositories")
 public class AppConfig {
 
     @Bean
@@ -38,6 +41,20 @@ public class AppConfig {
         return new RoleRepository();
     }
 
+    @Bean
+    public IUserRepository userRepository() {
+        return new UserRepositoryPersistance();
+    }
+
+
+    // ListingRepository bean is now handled by component scanning via @Repository annotation
+    // PurchaseRepository bean is now handled by component scanning via @Repository annotation
+
+    @Bean
+    public IStoreRepository storeRepository() {
+        return new StoreRepository();
+    }
+    
     @Bean
     public IPaymentService paymentService() {
         return new PaymentService();

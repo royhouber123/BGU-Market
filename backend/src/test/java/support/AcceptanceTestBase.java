@@ -26,7 +26,6 @@ import market.infrastructure.PurchaseRepository;
 import market.infrastructure.StoreRepository;
 import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepository;
-import market.infrastructure.PersistenceRepositories.ListingRepositoryPersistence;
 import market.notification.INotifier; // Updated import
 
 
@@ -56,7 +55,7 @@ public abstract class AcceptanceTestBase {
     void setup() {
       
         IUserRepository userRepository = new UserRepository();
-        listingRepository = new ListingRepositoryPersistence(); // Use the real implementation
+        listingRepository = new ListingRepository(); // Use the in-memory implementation for tests
         ISuspensionRepository susRepo = new SuspensionRepository(userRepository);
         IRoleRepository roleRepository = mock(IRoleRepository.class); // Mock role repository
         storeRepository = new StoreRepository();

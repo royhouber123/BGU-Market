@@ -11,9 +11,7 @@ import market.domain.Role.Role;
 import market.domain.store.IStoreRepository;
 import market.domain.store.Listing;
 import market.domain.store.Store;
-import org.springframework.stereotype.Component;
 
-@Component
 public class StoreRepository implements IStoreRepository {
 
     private final HashMap<String, Store> storesByName = new HashMap<>();
