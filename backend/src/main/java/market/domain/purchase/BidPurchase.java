@@ -1,8 +1,11 @@
 package market.domain.purchase;
 import market.application.External.*;
 import market.domain.store.*;
+import market.application.NotificationService;
 
 import java.util.*;
+
+import javax.management.Notification;
 
 
 public class BidPurchase {
@@ -12,6 +15,7 @@ public class BidPurchase {
     private static IShipmentService shipmentService;
     private static IPaymentService paymentService;
     private static IPurchaseRepository purchaseRepository;
+    private static NotificationService notificationService;
     
     
     private static final Map<BidKey, List<Bid>> bids = new HashMap<>();
@@ -31,16 +35,17 @@ public class BidPurchase {
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
     public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
-                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep) {
+                                 String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep, NotificationService notifService) { 
+
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
         storeRepository=rep;
         shipmentService=shipment;
         paymentService=payment;
         purchaseRepository=purchaseRep;
+        notificationService = notifService;
         BidKey key = buildKey(storeId, productId);
         Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
-        NotificationForPurchase.notifyApprovers(approvers, "New bid submitted for product " + productId);
     }
 
 
@@ -64,8 +69,7 @@ public class BidPurchase {
                 }
                 bid.approve(approverId);
                 if (bid.approved) {
-                    //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been approved! Completing purchase automatically.");
-                    System.out.println("Bid approved for user: " + bid.userId);
+                    notificationService.sendNotification(bid.userId, "Your bid has been approved! Completing purchase automatically.");
                     // Call purchase directly with simple arguments
                     Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
                     Map<String, Integer> productMap = new HashMap<>();
@@ -108,8 +112,7 @@ public class BidPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId)) {
                 bid.reject(approverId);
-                //notifyUserWithDelayIfNeeded(bid.userId, "Your bid has been rejected.");
-                System.out.println("Bid rejected for user: " + bid.userId);
+                notificationService.sendNotification(userId, "Your bid has been rejected.");
                 return;
             }
         }
@@ -133,8 +136,7 @@ public class BidPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && !bid.isRejected()) {
                 bid.proposeCounterOffer(newAmount);
-                //notifyUserWithDelayIfNeeded(bid.userId, "Counter offer proposed: " + newAmount);
-                System.out.println("Counter offer proposed for user: " + bid.userId);
+                notificationService.sendNotification(userId, "Counter offer proposed: " + newAmount);
                 return;
             }
         }
@@ -160,8 +162,7 @@ public class BidPurchase {
                 // Mark as approved automatically (no need for all approvals again)
                 bid.approved = true;
                 bid.counterOffered = false; // No longer a counter-offer
-                //notifyUserWithDelayIfNeeded(bid.userId, "You accepted the counter-offer. Completing purchase.");
-                System.out.println("Counter offer accepted for user: " + bid.userId);
+                notificationService.sendNotification(bid.userId, "You accepted the counter-offer at price: " + bid.price + ". Completing purchase automatically.");
                 // Complete purchase immediately
                 Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
                 Map<String, Integer> productMap = new HashMap<>();
@@ -200,8 +201,7 @@ public class BidPurchase {
         for (Bid bid : productBids) {
             if (bid.userId.equals(userId) && bid.counterOffered && !bid.rejected) {
                 bid.rejected = true; // Mark bid as rejected
-                //notifyUserWithDelayIfNeeded(bid.userId, "You declined the counter-offer. The bid has been canceled.");
-                System.out.println("Bid canceled for user: " + bid.userId);
+                notificationService.sendNotification(bid.userId, "You declined the counter-offer. The bid has been canceled.");
                 return;
             }
         }
@@ -234,40 +234,6 @@ public class BidPurchase {
         }
         return "No Bid Found";
     }
-
-
-    /**
-     * Sends a notification to the user immediately if they are online.
-     * 
-     * If the user is offline, the notification is saved and delivered
-     * when the user logs in again.
-     * 
-     * Called internally by: System (BidPurchase logic)
-     */
-    // private static void notifyUserWithDelayIfNeeded(String userId, String message) {
-    //     if (NotificationForPurchase.isUserOnline(userId)) {
-    //         NotificationForPurchase.notifyUser(userId, message);
-    //     } else {
-    //         pendingNotifications.computeIfAbsent(userId, k -> new ArrayList<>()).add(message);
-    //     }
-    // }
-
-
-    /**
-     * Retrieves and clears all pending notifications for a specific user.
-     * 
-     * This is called automatically when the user logs in to ensure they receive
-     * any missed notifications.
-     * 
-     * Called by: System (during user login)
-     */
-    // public static List<String> pullPendingNotifications(String userId) {
-    //     List<String> notifications = pendingNotifications.remove(userId);
-    //     if (notifications == null) {
-    //         return new ArrayList<>();
-    //     }
-    //     return notifications;
-    // }
 
 
     /**
@@ -313,5 +279,9 @@ public class BidPurchase {
 
     public static void setPurchaseRepository(IPurchaseRepository purchaseRepository2) {
         purchaseRepository=purchaseRepository2;
+    }
+
+    public static void setNotificationService(NotificationService notificationService2) {
+        notificationService = notificationService2;
     }
 }

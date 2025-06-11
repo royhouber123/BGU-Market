@@ -11,10 +11,6 @@ import {
 	Grid,
 	InputAdornment,
 	IconButton,
-	FormControl,
-	InputLabel,
-	Select,
-	MenuItem,
 	Chip,
 	Alert,
 	Divider
@@ -24,14 +20,13 @@ import {
 	ShoppingCart as ShoppingCartIcon,
 	Gavel as GavelIcon,
 	Schedule as ScheduleIcon,
-	Casino as CasinoIcon,
-	AccessTime as AccessTimeIcon,
-	AttachMoney as AttachMoneyIcon
+	Casino as CasinoIcon
 } from '@mui/icons-material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { storeService } from '../../services/storeService';
+import purchaseService from '../../services/purchaseService';
 
 const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchaseType = 'REGULAR' }) => {
 	const [formData, setFormData] = useState({
@@ -118,7 +113,8 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 			newErrors.price = 'Price must be a valid positive number';
 		}
 
-		if (!formData.quantity || isNaN(parseInt(formData.quantity)) || parseInt(formData.quantity) <= 0) {
+		// Quantity validation - not required for auction products (always 1)
+		if (purchaseType !== 'AUCTION' && (!formData.quantity || isNaN(parseInt(formData.quantity)) || parseInt(formData.quantity) <= 0)) {
 			newErrors.quantity = 'Quantity must be a valid positive integer';
 		}
 
@@ -127,8 +123,16 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 			case 'AUCTION':
 				if (!formData.auctionEndTime) {
 					newErrors.auctionEndTime = 'Auction end time is required';
-				} else if (new Date(formData.auctionEndTime) <= new Date()) {
-					newErrors.auctionEndTime = 'Auction end time must be in the future';
+				} else {
+					const now = new Date();
+					const selectedTime = new Date(formData.auctionEndTime);
+					const timeDiff = selectedTime.getTime() - now.getTime();
+
+					if (timeDiff <= 0) {
+						newErrors.auctionEndTime = 'Auction end time must be in the future';
+					} else if (timeDiff < 60000) { // Less than 1 minute 
+						newErrors.auctionEndTime = 'Auction end time must be at least 1 minute in the future';
+					}
 				}
 				break;
 
@@ -144,6 +148,10 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 				if (formData.entryFee && (isNaN(parseFloat(formData.entryFee)) || parseFloat(formData.entryFee) < 0)) {
 					newErrors.entryFee = 'Entry fee must be a valid non-negative number';
 				}
+				break;
+
+			default:
+				// No additional validation for REGULAR and BID products
 				break;
 		}
 
@@ -181,8 +189,43 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 		try {
 			const productId = generateProductId();
 
-			// For bid products, use 0 as price since they don't have fixed prices
+			// For auction products, only call openAuction (it creates the listing internally)
+			if (purchaseType === 'AUCTION' && formData.auctionEndTime) {
+				try {
+					const productPrice = parseFloat(formData.price);
+					const endTimeMillis = formData.auctionEndTime.getTime();
+
+					// Ensure the auction has at least 30 seconds buffer to account for network delay
+					if (endTimeMillis - Date.now() < 30000) { // 30 seconds
+						throw new Error('Auction end time must be at least 30 seconds in the future to allow for processing time.');
+					}
+
+					await purchaseService.openAuction(
+						store.id,
+						productId,
+						formData.productName,
+						formData.productCategory,
+						formData.productDescription,
+						productPrice, // Use the price as starting price
+						endTimeMillis
+					);
+
+					onUpdate?.({
+						title: 'Success',
+						description: `Auction product "${formData.productName}" created and auction started successfully! Auction ends: ${formData.auctionEndTime.toLocaleString()}`,
+						variant: 'success'
+					});
+					onClose();
+					return;
+				} catch (auctionError) {
+					console.error('Error starting auction:', auctionError);
+					throw new Error(`Failed to create auction product: ${auctionError.message}`);
+				}
+			}
+
+			// For all other product types (REGULAR, BID, RAFFLE), use the normal addListing flow
 			const productPrice = purchaseType === 'BID' ? 0 : parseFloat(formData.price);
+			const productQuantity = parseInt(formData.quantity);
 
 			// Call the add listing API
 			const result = await storeService.addListing(
@@ -192,7 +235,7 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 				formData.productName,
 				formData.productCategory,
 				formData.productDescription,
-				parseInt(formData.quantity),
+				productQuantity,
 				productPrice,
 				purchaseType
 			);
@@ -348,18 +391,32 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 						</Grid>
 					)}
 
-					<Grid item xs={12} sm={purchaseType === 'BID' ? 12 : 6}>
-						<TextField
-							fullWidth
-							label="Quantity"
-							type="number"
-							value={formData.quantity}
-							onChange={(e) => handleInputChange('quantity', e.target.value)}
-							error={!!errors.quantity}
-							helperText={errors.quantity}
-							required
-						/>
-					</Grid>
+					{/* Quantity field - not shown for auction products since they're always quantity 1 */}
+					{purchaseType !== 'AUCTION' && (
+						<Grid item xs={12} sm={purchaseType === 'BID' ? 12 : 6}>
+							<TextField
+								fullWidth
+								label="Quantity"
+								type="number"
+								value={formData.quantity}
+								onChange={(e) => handleInputChange('quantity', e.target.value)}
+								error={!!errors.quantity}
+								helperText={errors.quantity}
+								required
+							/>
+						</Grid>
+					)}
+
+					{/* Alert for auction products explaining quantity is always 1 */}
+					{purchaseType === 'AUCTION' && (
+						<Grid item xs={12}>
+							<Alert severity="info" sx={{ mt: 1 }}>
+								<Typography variant="body2">
+									<strong>Auction Product:</strong> Quantity is automatically set to 1. Auctions are always for single items - the highest bidder wins one item.
+								</Typography>
+							</Alert>
+						</Grid>
+					)}
 
 					{/* Purchase Type Specific Fields */}
 					{(purchaseType === 'AUCTION' || purchaseType === 'RAFFLE') && (
@@ -387,17 +444,17 @@ const AddProductDialog = ({ open, onClose, store, currentUser, onUpdate, purchas
 														fullWidth
 														required
 														error={!!errors.auctionEndTime}
-														helperText={errors.auctionEndTime || 'Set when the auction will end'}
+														helperText={errors.auctionEndTime || 'Set when the auction will end (must be at least 1 minute in the future)'}
 													/>
 												)}
-												minDateTime={new Date()}
+												minDateTime={new Date(Date.now() + 60000)}
 											/>
 										</LocalizationProvider>
 									</Grid>
 									<Grid item xs={12}>
 										<Alert severity="info" sx={{ mt: 1 }}>
 											<Typography variant="body2">
-												<strong>Note:</strong> This price will be the starting bid amount. The auction will automatically close at the specified time and the highest bidder wins.
+												<strong>Note:</strong> This price will be the starting bid amount. The auction will start immediately when the product is created and automatically close at the specified time. The highest bidder wins.
 											</Typography>
 										</Alert>
 									</Grid>

@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
+import javax.management.Notification;
+
 import market.domain.store.*;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
+import market.application.NotificationService;
+
 
 import java.util.Timer;
 
@@ -18,6 +22,7 @@ public class AuctionPurchase {
     //to update and check stock
     private static IStoreRepository storeRepository;
     private static IPurchaseRepository purchaseRepository;
+    private static NotificationService notificationService;
 
 
     /// Map to store offers for each auction
@@ -35,19 +40,26 @@ public class AuctionPurchase {
     private static final Map<AuctionKey, Double> startingPrices = new HashMap<>();
 
 
-    /// When store opens auction
+        /// When store opens auction
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep) {
+    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep, NotificationService notifService) {
         purchaseRepository = purchaseRep;
-        long delay = endTimeMillis - System.currentTimeMillis();
-        if (delay <= 0) return;
+        notificationService = notifService;
+        long currentTime = System.currentTimeMillis();
+        long delay = endTimeMillis - currentTime;
+        
+        if (delay <= 1000) { // Allow at least 1 second
+            return;
+        }
+        
         storeRepository = rep;
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
         endTimes.put(key, endTimeMillis);
         startingPrices.put(key, startingPrice);
+        
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -81,6 +93,9 @@ public class AuctionPurchase {
         }
         offerList.add(new Offer(userId, price, shippingAddress, contactInfo));
         offers.put(key, offerList);
+        for (Offer offer : offerList) {
+            notificationService.sendNotification(offer.getUserId(), "New offer placed for auction: " + productId + " in store: " + storeId + ". Your offer: " + price + ". Current max offer: " + currentMax);
+        }
     }
 
 
@@ -90,6 +105,7 @@ public class AuctionPurchase {
     public static Map<String, Object> getAuctionStatus(String storeId, String productId) {
         AuctionKey key = new AuctionKey(storeId, productId);
         Map<String, Object> status = new HashMap<>();
+        
         double startingPrice = startingPrices.getOrDefault(key, 0.0);
         status.put("startingPrice", startingPrice);
         List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
@@ -102,6 +118,7 @@ public class AuctionPurchase {
         long end = endTimes.getOrDefault(key, now);
         long timeLeftMillis = Math.max(0, end - now);
         status.put("timeLeftMillis", timeLeftMillis);
+        
         return status;
     }
 
@@ -140,6 +157,13 @@ public class AuctionPurchase {
         if (!updatedStock) {
             throw new RuntimeException("Failed to update stock for auction purchase.");
         }
+        // Notify all users about the auction result
+        notificationService.sendNotification(winner.userId, "Congratulations! You won the auction for product: " + productId + " in store: " + storeId + ". Your winning offer: " + winner.price);
+        for(Offer offer : offerList) {
+            if (!offer.userId.equals(winner.userId)) {
+                notificationService.sendNotification(offer.userId, "You lost the auction for product: " + productId + " in store: " + storeId + ". Your offer: " + offer.price + ". Winning offer: " + winner.price);
+            }
+        }
         Purchase p = new AuctionPurchase().purchase(
                         winner.userId,
                         storeId,
@@ -150,6 +174,7 @@ public class AuctionPurchase {
                         shipmentService,
                         paymentService
                     );
+        
         return p;
     }
     
@@ -186,5 +211,9 @@ public class AuctionPurchase {
 
     public static void setPurchaseRepository(IPurchaseRepository purchaseRepository) {
         AuctionPurchase.purchaseRepository = purchaseRepository;
+    }
+    
+    public static void setNotificationService(NotificationService notificationService2) {
+        AuctionPurchase.notificationService = notificationService2;
     }
 }

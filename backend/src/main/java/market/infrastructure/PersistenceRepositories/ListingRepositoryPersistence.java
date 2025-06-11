@@ -1,4 +1,4 @@
-package market.infrastructure;
+package market.infrastructure.PersistenceRepositories;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
-import market.infrastructure.IListingJpaRepository;
+import market.infrastructure.IJpaRepository.IListingJpaRepository;
 
 
 @Repository

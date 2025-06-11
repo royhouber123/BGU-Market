@@ -1,4 +1,4 @@
-package market.infrastructure;
+package market.infrastructure.IJpaRepository;
 
 import market.domain.purchase.Purchase;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -72,9 +72,14 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 	};
 
 	const handleApproveBid = async (bidderUsername) => {
+		console.log('handleApproveBid called with bidderUsername:', bidderUsername);
+		console.log('Current bids array:', bids);
+		console.log('Bid being approved belongs to:', bidderUsername);
+
 		setProcessingBid(bidderUsername);
 		try {
 			await purchaseService.approveBid(store.id, product.id, bidderUsername);
+			console.log('Successfully approved bid for:', bidderUsername);
 			onUpdate({
 				title: "Bid Approved",
 				description: `Successfully approved bid from ${bidderUsername}`,
@@ -307,135 +312,150 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 										</TableRow>
 									</TableHead>
 									<TableBody>
-										{bids.map((bid, index) => (
-											<TableRow
-												key={index}
-												hover={canTakeAction(bid)}
-												sx={{
-													bgcolor: bid.isRejected ? 'error.light' :
-														bid.isApproved ? 'success.light' :
-															'transparent',
-													opacity: bid.isRejected ? 0.7 : 1,
-													'& .MuiTableCell-root': {
-														borderBottom: bid.isRejected ? '1px solid rgba(211, 47, 47, 0.3)' :
-															bid.isApproved ? '1px solid rgba(46, 125, 50, 0.3)' :
-																undefined
-													}
-												}}
-											>
-												<TableCell>
-													<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-														<Typography variant="body2" fontWeight="bold">
-															{bid.userId}
+										{bids.map((bid, index) => {
+											// Create a closure-safe reference to the current bid
+											const currentBidUserId = bid.userId;
+											const currentBidKey = `${bid.userId}-${index}`;
+
+											return (
+												<TableRow
+													key={currentBidKey}
+													hover={canTakeAction(bid)}
+													sx={{
+														bgcolor: bid.isRejected ? 'error.light' :
+															bid.isApproved ? 'success.light' :
+																'transparent',
+														opacity: bid.isRejected ? 0.7 : 1,
+														'& .MuiTableCell-root': {
+															borderBottom: bid.isRejected ? '1px solid rgba(211, 47, 47, 0.3)' :
+																bid.isApproved ? '1px solid rgba(46, 125, 50, 0.3)' :
+																	undefined
+														}
+													}}
+												>
+													<TableCell>
+														<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+															<Typography variant="body2" fontWeight="bold">
+																{currentBidUserId}
+															</Typography>
+															{bid.isRejected && (
+																<Tooltip title="This bid has been rejected">
+																	<Box sx={{ display: 'flex', alignItems: 'center' }}>
+																		<Typography variant="caption" color="error.main" sx={{ fontSize: '0.7rem' }}>
+																			❌ REJECTED
+																		</Typography>
+																	</Box>
+																</Tooltip>
+															)}
+															{bid.isApproved && (
+																<Tooltip title="This bid has been approved and purchase completed">
+																	<Box sx={{ display: 'flex', alignItems: 'center' }}>
+																		<Typography variant="caption" color="success.main" sx={{ fontSize: '0.7rem' }}>
+																			✅ APPROVED
+																		</Typography>
+																	</Box>
+																</Tooltip>
+															)}
+														</Box>
+													</TableCell>
+													<TableCell align="right">
+														<Typography variant="body2" fontWeight="bold" color="primary">
+															${bid.bidAmount?.toFixed(2)}
 														</Typography>
-														{bid.isRejected && (
-															<Tooltip title="This bid has been rejected">
-																<Box sx={{ display: 'flex', alignItems: 'center' }}>
-																	<Typography variant="caption" color="error.main" sx={{ fontSize: '0.7rem' }}>
-																		❌ REJECTED
-																	</Typography>
-																</Box>
-															</Tooltip>
-														)}
-														{bid.isApproved && (
-															<Tooltip title="This bid has been approved and purchase completed">
-																<Box sx={{ display: 'flex', alignItems: 'center' }}>
-																	<Typography variant="caption" color="success.main" sx={{ fontSize: '0.7rem' }}>
-																		✅ APPROVED
-																	</Typography>
-																</Box>
-															</Tooltip>
-														)}
-													</Box>
-												</TableCell>
-												<TableCell align="right">
-													<Typography variant="body2" fontWeight="bold" color="primary">
-														${bid.bidAmount?.toFixed(2)}
-													</Typography>
-												</TableCell>
-												<TableCell>
-													{getStatusChip(bid)}
-												</TableCell>
-												<TableCell>
-													<Typography variant="body2" sx={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>
-														{bid.contactInfo}
-													</Typography>
-												</TableCell>
-												<TableCell>
-													<Typography variant="body2" sx={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>
-														{bid.shippingAddress}
-													</Typography>
-												</TableCell>
-												<TableCell align="center">
-													{canTakeAction(bid) ? (
-														<Stack direction="row" spacing={1} justifyContent="center">
-															{/* Approve Button */}
-															<Tooltip title="Approve Bid">
-																<IconButton
-																	color="success"
-																	size="small"
-																	onClick={() => handleApproveBid(bid.userId)}
-																	disabled={processingBid === bid.userId}
-																>
-																	{processingBid === bid.userId ? (
-																		<CircularProgress size={16} />
-																	) : (
-																		<ApproveIcon />
-																	)}
-																</IconButton>
-															</Tooltip>
-
-															{/* Reject Button */}
-															<Tooltip title="Reject Bid">
-																<IconButton
-																	color="error"
-																	size="small"
-																	onClick={() => handleRejectBid(bid.userId)}
-																	disabled={processingBid === bid.userId}
-																>
-																	{processingBid === bid.userId ? (
-																		<CircularProgress size={16} />
-																	) : (
-																		<RejectIcon />
-																	)}
-																</IconButton>
-															</Tooltip>
-
-															{/* Counter Bid Section */}
-															<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-																<TextField
-																	size="small"
-																	type="number"
-																	placeholder="Counter amount"
-																	value={counterBidAmounts[bid.userId] || ""}
-																	onChange={(e) => handleCounterAmountChange(bid.userId, e.target.value)}
-																	sx={{ width: 120 }}
-																	inputProps={{ min: 0, step: 0.01 }}
-																/>
-																<Tooltip title="Propose Counter Bid">
+													</TableCell>
+													<TableCell>
+														{getStatusChip(bid)}
+													</TableCell>
+													<TableCell>
+														<Typography variant="body2" sx={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>
+															{bid.contactInfo}
+														</Typography>
+													</TableCell>
+													<TableCell>
+														<Typography variant="body2" sx={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>
+															{bid.shippingAddress}
+														</Typography>
+													</TableCell>
+													<TableCell align="center">
+														{canTakeAction(bid) ? (
+															<Stack direction="row" spacing={1} justifyContent="center">
+																{/* Approve Button */}
+																<Tooltip title={`Approve bid from ${currentBidUserId}`}>
 																	<IconButton
-																		color="warning"
+																		color="success"
 																		size="small"
-																		onClick={() => handleCounterBid(bid.userId)}
-																		disabled={processingBid === bid.userId || !counterBidAmounts[bid.userId]}
+																		onClick={() => {
+																			console.log('Approving bid for user:', currentBidUserId);
+																			handleApproveBid(currentBidUserId);
+																		}}
+																		disabled={processingBid === currentBidUserId}
 																	>
-																		{processingBid === bid.userId ? (
+																		{processingBid === currentBidUserId ? (
 																			<CircularProgress size={16} />
 																		) : (
-																			<CounterIcon />
+																			<ApproveIcon />
 																		)}
 																	</IconButton>
 																</Tooltip>
-															</Box>
-														</Stack>
-													) : (
-														<Typography variant="body2" color="text.disabled">
-															{getActionMessage(bid)}
-														</Typography>
-													)}
-												</TableCell>
-											</TableRow>
-										))}
+
+																{/* Reject Button */}
+																<Tooltip title={`Reject bid from ${currentBidUserId}`}>
+																	<IconButton
+																		color="error"
+																		size="small"
+																		onClick={() => {
+																			console.log('Rejecting bid for user:', currentBidUserId);
+																			handleRejectBid(currentBidUserId);
+																		}}
+																		disabled={processingBid === currentBidUserId}
+																	>
+																		{processingBid === currentBidUserId ? (
+																			<CircularProgress size={16} />
+																		) : (
+																			<RejectIcon />
+																		)}
+																	</IconButton>
+																</Tooltip>
+
+																{/* Counter Bid Section */}
+																<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+																	<TextField
+																		size="small"
+																		type="number"
+																		placeholder="Counter amount"
+																		value={counterBidAmounts[currentBidUserId] || ""}
+																		onChange={(e) => handleCounterAmountChange(currentBidUserId, e.target.value)}
+																		sx={{ width: 120 }}
+																		inputProps={{ min: 0, step: 0.01 }}
+																	/>
+																	<Tooltip title={`Propose counter bid to ${currentBidUserId}`}>
+																		<IconButton
+																			color="warning"
+																			size="small"
+																			onClick={() => {
+																				console.log('Counter bid for user:', currentBidUserId);
+																				handleCounterBid(currentBidUserId);
+																			}}
+																			disabled={processingBid === currentBidUserId || !counterBidAmounts[currentBidUserId]}
+																		>
+																			{processingBid === currentBidUserId ? (
+																				<CircularProgress size={16} />
+																			) : (
+																				<CounterIcon />
+																			)}
+																		</IconButton>
+																	</Tooltip>
+																</Box>
+															</Stack>
+														) : (
+															<Typography variant="body2" color="text.disabled">
+																{getActionMessage(bid)}
+															</Typography>
+														)}
+													</TableCell>
+												</TableRow>
+											);
+										})}
 									</TableBody>
 								</Table>
 							</TableContainer>

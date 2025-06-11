@@ -30,14 +30,15 @@ public class DatabaseConnectionTest extends AcceptanceTestSpringBase {
     void testUserServiceIntegration() throws Exception {
         // Test that we can actually use the services with the test database
         
-        // Register a test user
-        var response = userService.register("testuser", "password123");
-        assertTrue(response.isSuccess(), "User registration should succeed");
+        // Register a test user (returns Void, just check no exception is thrown)
+        assertDoesNotThrow(() -> {
+            userService.register("testuser", "password123");
+        }, "User registration should not throw exception");
         
         // Try to login
         var loginResponse = authService.login("testuser", "password123");
         assertNotNull(loginResponse, "Login should return a token");
-        assertNotNull(loginResponse.getToken(), "Token should not be null");
+        assertNotNull(loginResponse.token(), "Token should not be null");
         
         System.out.println("✅ User service integration test successful!");
     }

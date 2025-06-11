@@ -11,8 +11,8 @@ import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
-import market.infrastructure.ListingRepositoryPersistence;
-import market.infrastructure.PurchaseRepository;
+import market.infrastructure.PersistenceRepositories.ListingRepositoryPersistence;
+import market.infrastructure.PersistenceRepositories.PurchaseRepositoryPersistence;
 import market.infrastructure.RoleRepository;
 import market.infrastructure.SuspensionRepository;
 import market.infrastructure.UserRepositoryJpa;
@@ -22,12 +22,16 @@ import market.notification.WebSocketBroadcastNotifier; // Updated import
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Spring configuration class that defines all service beans.
  */
 @Configuration
+@EnableJpaRepositories(basePackages = "market.infrastructure.IJpaRepository")
 public class AppConfig {
+
+
 
     @Bean
     @Primary
@@ -47,7 +51,7 @@ public class AppConfig {
 
     @Bean
     public IPurchaseRepository purchaseRepository() {
-        return new PurchaseRepository();
+        return new PurchaseRepositoryPersistence();
     }
 
     @Bean
@@ -111,8 +115,9 @@ public class AppConfig {
     public AdminService adminService(IUserRepository userRepository,
                                    IStoreRepository storeRepository,
                                    IRoleRepository roleRepository, 
-                                   ISuspensionRepository suspensionRepository) {
-        return new AdminService(userRepository, storeRepository, roleRepository, suspensionRepository);
+                                   ISuspensionRepository suspensionRepository,
+                                   NotificationService notificationService) {
+        return new AdminService(userRepository, storeRepository, roleRepository, suspensionRepository, notificationService);
     }
 
     @Bean

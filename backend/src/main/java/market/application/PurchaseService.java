@@ -135,12 +135,19 @@ public class PurchaseService {
     public void openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
         try {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
+            
             Store store = storeRepository.getStoreByID(storeId);
-            store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
+            if (store == null) {
+                throw new IllegalArgumentException("Store not found with ID: " + storeId);
+            }
+            
+            // Get the actual product ID created by the backend
+            String actualProductId = store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
     
-            AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository);
+            // Use the actual product ID for the auction
+            AuctionPurchase.openAuction(storeRepository, storeId, actualProductId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
     
-            logger.info("Auction opened: store " + storeId + ", product " + productId + ", by user " + userId);
+            logger.info("Auction opened: store " + storeId + ", product " + actualProductId + ", by user " + userId);
     
         } catch (Exception e) {
             logger.error("Failed to open auction for store: " + storeId + ", product: " + productId + ". Reason: " + e.getMessage());
@@ -214,9 +221,10 @@ public class PurchaseService {
                 approvers,
                 shipmentService,
                 paymentService,
-                purchaseRepository
+                purchaseRepository,
+                notificationService
             );
-    
+            notifyAllApproversForBid(storeId, "New bid submitted for approval: " + userId + " has submitted a bid of $" + offerPrice + " for product " + productId + " in store " + storeId);
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
 
     }
@@ -224,7 +232,7 @@ public class PurchaseService {
     public void approveBid(String storeId, String productId, String userId, String approverId) {
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.approveBid(storeId, productId, userId, approverId);
-
+        
         logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
@@ -446,6 +454,15 @@ public class PurchaseService {
         if (store != null) {
             for (String ownerId : store.getAllOwners()) {
                 notificationService.sendNotification(ownerId, message);
+            }
+        }
+    }
+
+    private void notifyAllApproversForBid(String storeID, String message) {
+        Store store = storeRepository.getStoreByID(storeID);
+        if (store != null) {
+            for (String approver : store.getApproversForBid()) {
+                notificationService.sendNotification(approver, message);
             }
         }
     }
