@@ -1,5 +1,8 @@
 package market.domain.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,22 +12,30 @@ import java.util.Map;
  */
 public class StoreBag {
 
-    private final String storeId;
+    private String storeId;
     /** key = productName, value = (quantity, purchaseType) */
-    private final Map<String, Integer> products = new HashMap<>();
+    private Map<String, Integer> products = new HashMap<>();
+
+    public StoreBag() {}
 
     public StoreBag(String storeId) {
         this.storeId = storeId;
     }
 
-
     public String getStoreId() {
         return storeId;
     }
 
-    /** Unmodifiable view of product → (qty, type) */
+    public void setStoreId(String storeId) {
+        this.storeId = storeId;
+    }
+
     public Map<String, Integer> getProducts() {
-        return Collections.unmodifiableMap(products);
+        return products;
+    }
+
+    public void setProducts(Map<String, Integer> products) {
+        this.products = products;
     }
 
     public void addProduct(String productName, int quantity) {
@@ -54,6 +65,7 @@ public class StoreBag {
         return this.products.get(productName);
     }
 
+    @JsonIgnore
     public Map<String, Integer> getProductQuantities() {
         return Collections.unmodifiableMap(products);
     }

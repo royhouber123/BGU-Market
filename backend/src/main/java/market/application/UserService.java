@@ -5,17 +5,19 @@ import market.domain.user.User;
 import market.domain.user.ShoppingCart;
 import market.middleware.TokenUtils;
 import io.jsonwebtoken.Claims;
+import org.springframework.stereotype.Service;
 import utils.ApiResponse;
 import utils.Logger;
 import java.util.Map;
 import java.util.HashMap;
 
+@Service
 public class UserService {
 
     private static final Logger logger = Logger.getInstance();
     private final IUserRepository repo;
     private final AuthService authService;
-    private ISuspensionRepository suspentionRepository; 
+    private final ISuspensionRepository suspentionRepository; 
 
     public UserService(IUserRepository repo, AuthService authService,ISuspensionRepository suspentionRepository) {
         this.repo = repo;
@@ -85,6 +87,7 @@ public class UserService {
             User updatedUser = repo.findById(newName);
             String newToken = authService.generateToken(updatedUser);
             logger.info("[UserService] Username changed from '" + oldName + "' to '" + newName + "' and new token generated.");
+            repo.save(updatedUser);
             return newToken;
         } else {
             throw new RuntimeException("[UserService] Failed to change username from '" + oldName + "' to '" + newName + "'.");
@@ -115,6 +118,7 @@ public class UserService {
         suspentionRepository.checkNotSuspended(userName);// check if user is suspended
         User user = repo.findById(userName);
         user.addProductToCart(storeId, productName, quantity);
+        repo.save(user);
         logger.info("[UserService] Product added to cart for user: " + userName);
         return null;
     }
@@ -126,16 +130,19 @@ public class UserService {
         logger.info("[UserService] Removing product from cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
         User user = repo.findById(userName);
         user.removeProductFromCart(storeId, productName, quantity);
+        repo.save(user);
         logger.info("[UserService] Product removed from cart for user: " + userName);
         return null;
     }
 
     public Void clearCart() {
         String userName = extractUserNameFromToken();
+        User user = repo.findById(userName);
         logger.info("[UserService] Clearing cart for user: " + userName);
         ShoppingCart cart = repo.getCart(userName);
         if (cart != null) {
             cart.clear();
+            repo.save(user);
             logger.info("[UserService] Cart cleared for user: " + userName);
         }
         return null;

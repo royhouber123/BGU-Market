@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.util.UUID;
 import org.springframework.stereotype.Controller;
 import java.beans.ConstructorProperties;
+import market.infrastructure.converters.ShoppingCartConverter;
 
 
 /**
@@ -23,7 +24,8 @@ public class User {
     @Column(name = "user_name", nullable = false, unique = true)
     private String userName;                  
     
-    @Transient
+    @Convert(converter = ShoppingCartConverter.class)
+    @Column(columnDefinition = "TEXT")
     private ShoppingCart shoppingCart;
 
     /**

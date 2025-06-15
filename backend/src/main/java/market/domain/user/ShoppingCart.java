@@ -1,4 +1,7 @@
 package market.domain.user;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Collections;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,6 +16,14 @@ public class ShoppingCart {
 
     public ShoppingCart(){
         this.storeBags = new HashMap<>();
+    }
+
+    public void setStoreBags(Map<String, StoreBag> storeBags) {
+        this.storeBags = storeBags;
+    }
+    
+    public Map<String, StoreBag> getStoreBags() {
+        return storeBags;
     }
 
     /**
@@ -90,6 +101,7 @@ public class ShoppingCart {
      *
      * @return An unmodifiable collection of all StoreBags
      */
+    @JsonIgnore
     public Collection<StoreBag> getAllStoreBags() {
         return Collections.unmodifiableCollection(storeBags.values());
     }
