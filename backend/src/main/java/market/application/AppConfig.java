@@ -27,7 +27,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "market.infrastructure.IJpaRepository")
-@ComponentScan(basePackages = {"market.infrastructure.PersistenceRepositories", "market.application.External"})
+@ComponentScan(basePackages = {"market.infrastructure.PersistenceRepositories", "market.infrastructure", "market.application.External"})
 public class AppConfig {
 
     @Bean
@@ -40,15 +40,6 @@ public class AppConfig {
         return new RoleRepository();
     }
 
-    @Bean
-    public IUserRepository userRepository() {
-        return new UserRepositoryPersistance();
-    }
-
-    @Bean
-    public IStoreRepository storeRepository() {
-        return new StoreRepository();
-    }
     
     @Bean
     public RestTemplate restTemplate() {
@@ -120,10 +111,5 @@ public class AppConfig {
     public NotificationService notificationService(INotificationRepository notificationRepository,
                                               INotifier notifier) {
         return new NotificationService(notificationRepository, notifier);
-    }
-    
-    @Bean
-    public INotificationRepository notificationRepository() {
-        return new market.infrastructure.NotificationRepository();
     }
 }
