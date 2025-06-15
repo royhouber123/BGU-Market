@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import support.AcceptanceTestSpringBase;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
+import org.junit.jupiter.api.condition.EnabledIf;
+import java.sql.DriverManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,6 +18,7 @@ import market.domain.user.StoreBag;
 import java.util.Map;
 import market.dto.StoreDTO.CreateStoreResponse;
 
+@EnabledIf("market.application.UserServiceTests#isMySQLAvailable")
 public class UserServiceTests extends AcceptanceTestSpringBase {
 
     @BeforeEach
@@ -96,5 +99,15 @@ public class UserServiceTests extends AcceptanceTestSpringBase {
             userService.register("testuser", "password");
             AuthService.AuthToken loggedInUser = authService.login("testuser", "password");
         });
+    }
+
+    static boolean isMySQLAvailable() {
+        try {
+            DriverManager.getConnection("jdbc:mysql://localhost:3306/?useSSL=false", "bgu", "changeme").close();
+            return true;
+        } catch (Exception e) {
+            System.out.println("⚠️  MySQL not available – skipping UserServiceTests");
+            return false;
+        }
     }
 } 
