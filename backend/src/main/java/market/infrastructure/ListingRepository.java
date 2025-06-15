@@ -17,7 +17,6 @@ import market.domain.store.Listing;
 public class ListingRepository implements IListingRepository {
 
    private final Map<String, Listing> listingsById = new ConcurrentHashMap<>();
-;
 
     @Override
     public String addListing(Listing listing) {

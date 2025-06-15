@@ -4,7 +4,9 @@ import market.domain.notification.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class NotificationRepository implements INotificationRepository {
     // userId -> List<Notification>
     private final Map<String, List<Notification>> notifications = new ConcurrentHashMap<>();

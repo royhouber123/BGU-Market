@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+// @Repository
 public class PurchaseRepository implements IPurchaseRepository {
 
     private final List<Purchase> allPurchases = new CopyOnWriteArrayList<>();
