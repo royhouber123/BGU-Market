@@ -2,7 +2,11 @@ package market.application.External;
 
 
 import utils.ApiResponse;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 
+@Service
+@ConditionalOnProperty(name = "external.services.shipment.type", havingValue = "mock")
 public class ShipmentService implements IShipmentService {
     // This class is a placeholder for the shipment service implementation.
     // It can be used to handle shipment-related operations in the future.
@@ -22,9 +26,9 @@ public class ShipmentService implements IShipmentService {
     }
     
 
-    @Override
-    public ApiResponse<String> getShippingInfo(String trackingId) {
-        // Placeholder for getting shipping information based on tracking ID.
-        return ApiResponse.ok("Shipping info for tracking ID: " + trackingId);
-    }
+    // @Override
+    // public ApiResponse<String> getShippingInfo(String trackingId) {
+    //     // Placeholder for getting shipping information based on tracking ID.
+    //     return ApiResponse.ok("Shipping info for tracking ID: " + trackingId);
+    // }
 }

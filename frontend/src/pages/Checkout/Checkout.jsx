@@ -201,28 +201,37 @@ export default function Checkout() {
     setProcessingPayment(true);
 
     try {
-      // Prepare payment details based on payment method
+      // Prepare payment details for backend external API format
       let paymentDetails = '';
+      
       if (paymentMethod === 'credit') {
-        paymentDetails = `Credit Card - ${cardDetails.cardName} - ****${cardDetails.cardNumber.slice(-4)}`;
+        // Format: currency,amount,cardNumber,month,year,holder,cvv
+        const currency = 'USD';
+        const amount = Math.round(calculateGrandTotal() * 100) / 100;
+        
+        // Parse expiry date (MM/YY) to get month and full year
+        const [month, year] = cardDetails.expiryDate.split('/');
+        const fullYear = year ? `20${year}` : new Date().getFullYear().toString();
+        
+        // Clean card number (remove spaces and dashes)
+        const cleanCardNumber = cardDetails.cardNumber.replace(/\s|-/g, '');
+        
+        paymentDetails = `${currency},${amount},${cleanCardNumber},${month},${fullYear},${cardDetails.cardName},${cardDetails.cvv}`;
       } else {
         paymentDetails = 'PayPal Payment';
       }
 
-      // Prepare shipping address
-      const shippingAddressString = `${shippingAddress.fullName}, ${shippingAddress.addressLine1}${shippingAddress.addressLine2 ? ', ' + shippingAddress.addressLine2 : ''}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}, ${shippingAddress.country}`;
+      // Prepare shipping address for backend
+      // Keep your original format but assign to correct variable name
+      const shippingAddressForBackend = `${shippingAddress.addressLine1}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.country}, ${shippingAddress.postalCode}`;
 
-      console.log("📦 Prepared purchase data:", {
-        paymentDetails,
-        shippingAddressString,
-        paymentMethod,
-        isGuest
-      });
+      console.log("💳 Payment details:", paymentDetails);
+      console.log("📦 Shipping address:", shippingAddressForBackend);
 
       let result;
 
       if (isGuest) {
-        // Guest checkout - extract email from full name or validate it's an email
+        // Guest checkout - extract email
         let guestEmail = shippingAddress.fullName;
 
         // Simple email validation
@@ -235,40 +244,39 @@ export default function Checkout() {
         result = await guestService.completeGuestCheckout(
           guestEmail,
           paymentDetails,
-          shippingAddressString
+          shippingAddressForBackend
         );
 
-        // After successful guest checkout, initialize a new guest session
+        // Initialize new guest session after purchase
         console.log("🔄 Initializing new guest session after purchase...");
         await guestService.registerGuest();
       } else {
         // Authenticated user checkout
         console.log("🚀 Making API call to purchase service...");
-        result = await purchaseService.executePurchase(paymentDetails, shippingAddressString);
+        result = await purchaseService.executePurchase(
+          paymentDetails,
+          shippingAddressForBackend
+        );
       }
 
       console.log("✅ Purchase completed successfully:", result);
 
-      // Refresh cart to get updated state
-      console.log("🔄 Refreshing cart...");
+      // Clear cart and show success
       await refreshCart();
-      console.log("✅ Cart refreshed");
-
-      // Show success dialog
+      
       setPurchaseDialog({
         open: true,
         success: true,
         title: 'Order Placed Successfully!',
         message: isGuest
-          ? `Your guest order has been confirmed! Your email ${shippingAddress.fullName} has been registered for this purchase.`
+          ? `Your guest order has been confirmed! Your email has been registered for this purchase.`
           : 'Your order has been confirmed and will be processed soon.',
-        details: `Order Details: ${result.details || result}`
+        details: `Order Details: ${result.message || result.data || 'Purchase completed'}`
       });
 
     } catch (error) {
       console.error("❌ Error placing order:", error);
 
-      // Show error dialog
       setPurchaseDialog({
         open: true,
         success: false,

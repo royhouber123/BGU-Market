@@ -40,8 +40,9 @@ public class PurchaseService {
     }
 
     // Regular Purchase
-    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String contactInfo)  {
+    public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String paymentDetails)  {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
+            System.out.println("=====PurchaseService====\nExecuting purchase for user: " + userId);
             Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
             double totalDiscountPrice = 0.0;
             List<PurchasedProduct> purchasedItems = new ArrayList<>();
@@ -84,7 +85,7 @@ public class PurchaseService {
             RegularPurchase regularPurchase = new RegularPurchase();
             logger.info("Purchase executed successfully for user: " + userId + ", total: " + totalDiscountPrice);
             try {
-                Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, contactInfo, totalDiscountPrice, paymentService, shipmentService);
+                Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, paymentDetails, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
                 user.clearCart();
                 purchaseRepository.save(finalPurchase);

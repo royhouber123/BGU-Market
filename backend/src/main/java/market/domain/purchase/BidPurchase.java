@@ -244,16 +244,16 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)
      */
-    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String contactInfo) {
+    public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String paymentDetails) {
         PurchasedProduct product = new PurchasedProduct(
                 productId,
                 storeId,
                 1, // Always 1 in a bid purchase
                 price
         );
-        paymentService.processPayment("User: " + userId + ", Amount: " + price);
+        paymentService.processPayment(paymentDetails);
         shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
-        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, contactInfo);
+        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, paymentDetails);
         purchaseRepository.save(newP);
         return newP;
     } 
