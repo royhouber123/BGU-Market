@@ -17,6 +17,10 @@ api.interceptors.request.use(config => {
 const purchaseService = {
   // Execute a purchase
   executePurchase: async (paymentDetails, shippingAddress) => {
+    console.log("🔍 Frontend purchase service sending:", { 
+      paymentDetails, 
+      shippingAddress 
+    });
     try {
       const response = await api.post('/purchases/execute', {
         paymentDetails,

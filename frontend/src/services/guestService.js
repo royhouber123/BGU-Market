@@ -183,6 +183,11 @@ const guestService = {
         throw new Error(registerResponse.data.error || 'Failed to register guest with email');
       }
 
+      console.log('Sending purchase request with:', {
+        paymentDetails: paymentDetails,
+        shippingAddress: shippingAddress
+      });
+
       // Execute the purchase using existing cart
       const purchaseResponse = await api.post('/purchases/execute', {
         paymentDetails: paymentDetails,

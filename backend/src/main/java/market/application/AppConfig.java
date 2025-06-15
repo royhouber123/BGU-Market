@@ -2,8 +2,6 @@ package market.application;
 
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
-import market.application.External.PaymentService;
-import market.application.External.ShipmentService;
 import market.domain.Role.IRoleRepository;
 import market.domain.notification.INotificationRepository;
 import market.domain.purchase.IPurchaseRepository;
@@ -15,11 +13,12 @@ import market.infrastructure.SuspensionRepository;
 import market.infrastructure.RoleRepository;
 import market.infrastructure.PersistenceRepositories.UserRepositoryPersistance;
 import market.infrastructure.StoreRepository;
-import market.notification.INotifier; // Updated import
-import market.notification.WebSocketBroadcastNotifier; // Updated import
+import market.notification.INotifier;
+import market.notification.WebSocketBroadcastNotifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.web.client.RestTemplate;
 
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -28,7 +27,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "market.infrastructure.IJpaRepository")
-@ComponentScan(basePackages = {"market.infrastructure.PersistenceRepositories", "market.infrastructure"})
+@ComponentScan(basePackages = {"market.infrastructure.PersistenceRepositories", "market.infrastructure", "market.application.External"})
 public class AppConfig {
 
     @Bean
@@ -41,19 +40,12 @@ public class AppConfig {
         return new RoleRepository();
     }
 
-    // ListingRepository bean is now handled by component scanning via @Repository annotation
-    // PurchaseRepository bean is now handled by component scanning via @Repository annotation
-
+    
     @Bean
-    public IPaymentService paymentService() {
-        return new PaymentService();
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
-
-    @Bean
-    public IShipmentService shipmentService() {
-        return new ShipmentService();
-    }
-
+    
     @Bean
     public AuthService authService(IUserRepository userRepository) {
         return new AuthService(userRepository);
@@ -87,8 +79,13 @@ public class AppConfig {
                                          IShipmentService shipmentService,
                                          ISuspensionRepository suspensionRepository,
                                          NotificationService notificationService) {
+        // Add this debugging
+        System.out.println("🔍 PurchaseService initialized with:");
+        System.out.println("  Payment service: " + paymentService.getClass().getSimpleName());
+        System.out.println("  Shipment service: " + shipmentService.getClass().getSimpleName());
+        
         return new PurchaseService(storeRepository, purchaseRepository, listingRepository, 
-                                 userRepository, paymentService, shipmentService, suspensionRepository,notificationService);
+                                 userRepository, paymentService, shipmentService, suspensionRepository, notificationService);
     }
 
     @Bean
@@ -107,13 +104,12 @@ public class AppConfig {
 
     @Bean
     public INotifier notifier(org.springframework.messaging.simp.SimpMessagingTemplate simpMessagingTemplate) {
-        return new WebSocketBroadcastNotifier(simpMessagingTemplate); // Pass required SimpMessagingTemplate
+        return new WebSocketBroadcastNotifier(simpMessagingTemplate);
     }
 
     @Bean
     public NotificationService notificationService(INotificationRepository notificationRepository,
                                               INotifier notifier) {
-        return new NotificationService(notificationRepository, notifier); // Updated parameter
+        return new NotificationService(notificationRepository, notifier);
     }
-
 }

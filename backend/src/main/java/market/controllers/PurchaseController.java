@@ -55,7 +55,11 @@ public class PurchaseController {
      */
     @PostMapping("/execute")
     public ResponseEntity<ApiResponse<String>> executePurchase(@RequestBody ExecutePurchaseRequest request) {
+        System.out.println("Executing purchase");
         String token = TokenUtils.getToken();
+
+        System.out.println("Executing purchase with token: " + token);
+        
         if (token == null) {
             return ResponseEntity.ok(ApiResponse.fail("No authentication token provided"));
         }

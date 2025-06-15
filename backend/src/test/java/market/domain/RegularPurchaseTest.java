@@ -96,7 +96,7 @@ class RegularPurchaseTest {
 
         regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 20.0, paymentService, shipmentService);
 
-        verify(paymentService).processPayment(contains("User: " + userId));
+        verify(paymentService).processPayment(eq(contactInfo));
         verify(shipmentService).ship(eq(shippingAddress), eq(userId), anyDouble());
     }
 
