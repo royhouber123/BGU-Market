@@ -28,7 +28,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "market.infrastructure.IJpaRepository")
-@ComponentScan(basePackages = "market.infrastructure.PersistenceRepositories")
+@ComponentScan(basePackages = {"market.infrastructure.PersistenceRepositories", "market.infrastructure"})
 public class AppConfig {
 
     @Bean
@@ -41,20 +41,9 @@ public class AppConfig {
         return new RoleRepository();
     }
 
-    @Bean
-    public IUserRepository userRepository() {
-        return new UserRepositoryPersistance();
-    }
-
-
     // ListingRepository bean is now handled by component scanning via @Repository annotation
     // PurchaseRepository bean is now handled by component scanning via @Repository annotation
 
-    @Bean
-    public IStoreRepository storeRepository() {
-        return new StoreRepository();
-    }
-    
     @Bean
     public IPaymentService paymentService() {
         return new PaymentService();
@@ -125,12 +114,6 @@ public class AppConfig {
     public NotificationService notificationService(INotificationRepository notificationRepository,
                                               INotifier notifier) {
         return new NotificationService(notificationRepository, notifier); // Updated parameter
-    }
-    
-    @Bean
-    public INotificationRepository notificationRepository() {
-        // Replace with your actual implementation class if different
-        return new market.infrastructure.NotificationRepository();
     }
 
 }
