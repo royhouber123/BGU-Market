@@ -24,7 +24,11 @@ PRODUCT u2,Tech Paradise,electronics_002,MacBook Pro,Electronics,Powerful laptop
 PRODUCT u3,Fashion Hub,clothing_001,Designer Jeans,Clothing,Premium denim jeans with perfect fit,100,89.99,REGULAR
 PRODUCT u4,Book Corner,books_001,The Great Gatsby,Books,Classic American literature novel,200,12.99,REGULAR
 
-# Store Managers: storeName,managerUsername,appointerUsername
+# Store Managers: storeName,managerUsername,appointerUsername[,permission1,permission2,...]
+# permissions: 0 - view only (default)
+#              1 - edit products
+#              2 - edit policies
+#              3 - bid approval
 MANAGER Tech Paradise,u3,u2,1,2
 MANAGER Fashion Hub,u5,u3,0,1,3
 MANAGER Book Corner,u6,u4,1
