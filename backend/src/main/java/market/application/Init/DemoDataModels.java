@@ -83,24 +83,28 @@ public class DemoDataModels {
     }
     
     public static class DemoManager {
-        private final String storeId;
-        private final String managerUsername;
-        private final String appointerUsername;
+        private final String storeName;
+        private final String managerId;
+        private final String appointerId;
+        private final List<Integer> permissions; // ✅ CHANGED: Now a list of integers
 
-        public DemoManager(String storeId, String managerUsername, String appointerUsername) {
-            this.storeId = storeId;
-            this.managerUsername = managerUsername;
-            this.appointerUsername = appointerUsername;
+        public DemoManager(String storeName, String managerId, String appointerId, List<Integer> permissions) {
+            this.storeName = storeName;
+            this.managerId = managerId;
+            this.appointerId = appointerId;
+            this.permissions = permissions != null ? new ArrayList<>(permissions) : new ArrayList<>();
         }
-        
+
         // Getters
-        public String getStoreId() { return storeId; }
-        public String getManagerUsername() { return managerUsername; }
-        public String getAppointerUsername() { return appointerUsername; }
-        
+        public String getStoreName() { return storeName; }
+        public String getManagerId() { return managerId; }
+        public String getAppointerId() { return appointerId; }
+        public List<Integer> getPermissions() { return new ArrayList<>(permissions); } // ✅ NEW
+
         @Override
         public String toString() {
-            return "DemoManager{storeId='" + storeId + "', manager='" + managerUsername + "'}";
+            return "DemoManager{storeName='" + storeName + "', managerId='" + managerId + 
+                   "', appointerId='" + appointerId + "', permissions=" + permissions + "}";
         }
     }
     

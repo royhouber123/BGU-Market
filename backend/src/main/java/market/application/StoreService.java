@@ -376,6 +376,10 @@ public class StoreService {
      * @param managerID    ID of the manager receiving the new permission.
      * @param appointerID  ID of the owner who appointed the manager and is now granting the permission.
      * @param permissionID Integer code representing the permission to assign (must be valid in {Permission} enum).
+     *                     0 - view only,
+     *                     1 - edit products
+     *                     2 - edit policies
+     *                     3 - bid approval
      * @param storeID      ID of the store where the manager belongs.
      * @return "success" if the permission was successfully added, "failed" if the operation did not complete.
      * @throws RuntimeException if the store does not exist, the appointer is not authorized,
@@ -385,7 +389,6 @@ public class StoreService {
     public Void addPermissionToManager(String managerID, String appointerID, int permissionID, String storeID) {
         try {
             suspentionRepository.checkNotSuspended(managerID);// check if user is suspended
-            suspentionRepository.checkNotSuspended(appointerID);// check if user is suspended
             Store s = storeRepository.getStoreByID(storeID);
             if (s == null) {
                 logger.debug("Attempted to add permission to non-existent store: " + storeID);

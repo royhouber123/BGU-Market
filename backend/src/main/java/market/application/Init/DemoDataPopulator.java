@@ -263,37 +263,116 @@ public class DemoDataPopulator {
         }
     }
     
-    private void appointManagers(List<DemoManager> managers, Map<String, String> userTokens, Map<String, String> storeNameToIdMap) {
-        logger.info("[DemoDataPopulator] Appointing " + managers.size() + " store managers");
+    private void appointManagers(List<DemoManager> managers, Map<String, String> userTokens, Map<String, String> storeIds) {
+        if (managers.isEmpty()) {
+            logger.info("[DemoDataPopulator] No managers to appoint");
+            return;
+        }
+        
+        logger.info("[DemoDataPopulator] Appointing " + managers.size() + " managers");
         
         for (DemoManager manager : managers) {
             try {
-                String storeId = storeNameToIdMap.get(manager.getStoreId());
-                String appointerToken = userTokens.get(manager.getAppointerUsername());
+                String appointerToken = userTokens.get(manager.getAppointerId());
+                String storeId = storeIds.get(manager.getStoreName());
                 
-                if (storeId == null || appointerToken == null) {
-                    logger.warn("[DemoDataPopulator] Skipping manager " + manager.getManagerUsername() + ": invalid storeId or appointerToken");
+                if (appointerToken == null) {
+                    logger.error("[DemoDataPopulator] Token not found for appointer: " + manager.getAppointerId());
                     continue;
                 }
                 
-                // Step 1: Appoint manager
-                Map<String, String> managerRequest = new HashMap<>();
-                managerRequest.put("appointerID", manager.getAppointerUsername());
-                managerRequest.put("newManagerName", manager.getManagerUsername());
-                managerRequest.put("storeID", storeId);
+                if (storeId == null) {
+                    logger.error("[DemoDataPopulator] Store ID not found for store: " + manager.getStoreName());
+                    continue;
+                }
                 
-                HttpHeaders headers = createJsonHeaders();
-                headers.set("Authorization", "Bearer " + appointerToken);
+                // ✅ STEP 1: Appoint manager (existing logic)
+                appointManager(manager, appointerToken, storeId);
                 
-                HttpEntity<Map<String, String>> request = new HttpEntity<>(managerRequest, headers);
-                String appointUrl = BASE_URL + "/api/stores/managers/add";
+                // ✅ STEP 2: Add permissions to manager (new logic)
+                addPermissionsToManager(manager, appointerToken, storeId);
                 
-                ResponseEntity<String> managerResponse = restTemplate.postForEntity(appointUrl, request, String.class);
-                logger.info("[DemoDataPopulator] Manager appointment response: " + managerResponse.getStatusCode());
-                
-            } catch (RestClientException e) {
-                logger.error("[DemoDataPopulator] Error with manager " + manager.getManagerUsername() + ": " + e.getMessage());
+            } catch (Exception e) {
+                logger.error("[DemoDataPopulator] Failed to appoint manager " + manager.getManagerId() + ": " + e.getMessage());
             }
+        }
+    }
+    
+    private void appointManager(DemoManager manager, String appointerToken, String storeId) {
+        try {
+            String url = BASE_URL + "/api/stores/managers/add";
+            
+            // Your existing appointment logic here
+            Map<String, Object> request = new HashMap<>();
+            request.put("newManagerName", manager.getManagerId());
+            request.put("appointerID", manager.getAppointerId());
+            request.put("storeID", storeId);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(appointerToken);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+            System.out.println("[DemoDataPopulator] Appointing manager: " + manager.getManagerId() + " to store: " + manager.getStoreName());
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            System.out.println("Success!");
+
+            logger.info("[DemoDataPopulator] Manager " + manager.getManagerId() + " appointed to store " + manager.getStoreName() + " - Response: " + response.getStatusCode());
+            
+        } catch (Exception e) {
+            logger.error("[DemoDataPopulator] Failed to appoint manager " + manager.getManagerId() + ": " + e.getMessage());
+            throw e;
+        }
+    }
+    
+    /**
+     * ✅ NEW METHOD: Add permissions to manager
+     */
+    private void addPermissionsToManager(DemoManager manager, String appointerToken, String storeId) {
+        if (manager.getPermissions().isEmpty()) {
+            logger.info("[DemoDataPopulator] No permissions to add for manager: " + manager.getManagerId());
+            return;
+        }
+        
+        logger.info("[DemoDataPopulator] Adding " + manager.getPermissions().size() + " permissions to manager " + manager.getManagerId());
+        
+        for (Integer permission : manager.getPermissions()) {
+            try {
+                String url = BASE_URL + "/api/stores/managers/permissions/add";
+                
+                // ✅ API REQUEST: Based on your AddPermissionRequest DTO
+                Map<String, Object> request = new HashMap<>();
+                request.put("managerID", manager.getManagerId());
+                request.put("appointerID", manager.getAppointerId());
+                request.put("permissionID", permission);
+                request.put("storeID", storeId);
+                
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.setBearerAuth(appointerToken);
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+                
+                ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+                
+                String permissionName = getPermissionName(permission);
+                logger.info("[DemoDataPopulator] Permission '" + permissionName + "' (" + permission + ") added to manager " + manager.getManagerId() + " - Response: " + response.getStatusCode());
+
+            } catch (Exception e) {
+                logger.error("[DemoDataPopulator] Failed to add permission " + permission + " to manager " + manager.getManagerId() + ": " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * ✅ HELPER METHOD: Convert permission ID to human-readable name
+     */
+    private String getPermissionName(int permission) {
+        switch (permission) {
+            case 0: return "View Only";
+            case 1: return "Edit Products";
+            case 2: return "Edit Policies";
+            case 3: return "Bid Approval";
+            default: return "Unknown (" + permission + ")";
         }
     }
     

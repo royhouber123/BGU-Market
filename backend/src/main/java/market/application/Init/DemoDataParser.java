@@ -164,16 +164,33 @@ public class DemoDataParser {
     
     private static void parseManager(String arguments, DemoData data) {
         String[] parts = arguments.split(",");
-        if (parts.length != 3) {
-            throw new IllegalArgumentException("MANAGER requires format: storeId,managerUsername,appointerUsername");
+        
+        if (parts.length < 3) {
+            throw new IllegalArgumentException("MANAGER requires format: storeName,managerId,appointerId[,permission1,permission2,...]");
         }
         
-        String storeId = parts[0].trim();
-        String managerUsername = parts[1].trim();
-        String appointerUsername = parts[2].trim();
+        String storeName = parts[0].trim();
+        String managerId = parts[1].trim();
+        String appointerId = parts[2].trim();
         
-        data.getManagers().add(new DemoManager(storeId, managerUsername, appointerUsername));
-        logger.debug("[DemoDataParser] Parsed manager: " + managerUsername + " for store " + storeId);
+        // Parse permissions (integers from index 3 onwards)
+        List<Integer> permissions = new ArrayList<>();
+        
+        for (int i = 3; i < parts.length; i++) {
+            try {
+                String permissionStr = parts[i].trim();
+                int permission = Integer.parseInt(permissionStr);
+                permissions.add(permission);
+            } catch (NumberFormatException e) {
+                logger.warn("[DemoDataParser] Invalid permission format '" + parts[i].trim() + "' for manager " + managerId);
+            }
+        }
+        
+        
+        DemoManager manager = new DemoManager(storeName, managerId, appointerId, permissions);
+        data.getManagers().add(manager);
+        
+        logger.debug("[DemoDataParser] Parsed manager: " + managerId + " for store: " + storeName + " with permissions: " + permissions);
     }
     
     private static void parseOwner(String arguments, DemoData data) {
