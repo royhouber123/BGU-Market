@@ -1,9 +1,10 @@
-package market.application.External;
+package market.external_services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestTemplate;
 import utils.ApiResponse;
+import market.application.External.ExternalShipmentService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
