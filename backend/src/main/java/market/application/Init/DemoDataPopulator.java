@@ -1,4 +1,4 @@
-package market.application;
+package market.application.Init;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import utils.Logger;
+import market.application.StartupConfig;
+import market.application.AdminConfig; // ✅ ADD THIS
 
 import market.application.Init.DemoDataModels.*;
 import market.application.Init.DemoDataParser;
@@ -44,6 +46,12 @@ public class DemoDataPopulator {
 
     @Autowired
     private Environment env;
+    
+    @Autowired
+    private AdminConfig adminConfig;
+    
+    @Autowired
+    private StartupConfig startupConfig;
 
     /**
      * Execute after the application has fully started to ensure all controllers are initialized.
@@ -55,7 +63,7 @@ public class DemoDataPopulator {
         String dataFile = env.getProperty("bgu.market.demo-data-file", "demo-data.txt");
         
         if (populateData == null || !populateData.equalsIgnoreCase("true")) {
-            logger.info("[DemoDataPopulator] Demo data population disabled");
+            logger.info("[DemoDataPopulator] Demo data population disabled (bgu.market.populate-demo-data=" + populateData + ")");
             return;
         }
         
@@ -65,6 +73,9 @@ public class DemoDataPopulator {
             // Parse demo data from file
             DemoDataParser.DemoData demoData = DemoDataParser.parseFromFile(dataFile);
             logger.info("[DemoDataPopulator] Loaded demo data: " + demoData);
+            
+            // ✅ STEP 1: Initialize admin FIRST
+            initializeAdmin(demoData);
             
             // Execute population steps
             Map<String, String> userTokens = createUsers(demoData.getUsers());
@@ -78,6 +89,51 @@ public class DemoDataPopulator {
             logger.error("[DemoDataPopulator] Error while populating demo data: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    
+    /**
+     * ✅ INITIALIZE ADMIN: Use AdminConfig instead of direct Environment access
+     */
+    private void initializeAdmin(DemoDataParser.DemoData demoData) {
+        logger.info("[DemoDataPopulator] Initializing admin user...");
+        
+        String adminUsername;
+        String adminPassword;
+        
+        if (demoData.getAdmins().size() == 1) {
+            // Use the single admin from demo data
+            DemoAdmin demoAdmin = demoData.getAdmins().get(0);
+            adminUsername = demoAdmin.getUsername();
+            adminPassword = demoAdmin.getPassword();
+            logger.info("[DemoDataPopulator] Using ADMIN from demo data: " + adminUsername);
+            
+        } else if (demoData.getAdmins().size() == 0) {
+            // No admin in demo data - use AdminConfig
+            adminUsername = adminConfig.getAdminUsername(); // ✅ USE ADMINCONFIG
+            adminPassword = adminConfig.getAdminPassword(); // ✅ USE ADMINCONFIG
+            
+            if (adminUsername == null || adminPassword == null) {
+                throw new RuntimeException("[DemoDataPopulator] No ADMIN in demo data and no admin configuration available - cannot proceed!");
+            }
+            
+            logger.info("[DemoDataPopulator] No ADMIN in demo data, using AdminConfig: " + adminUsername);
+            
+        } else {
+            // Multiple admins in demo data - use AdminConfig as fallback
+            adminUsername = adminConfig.getAdminUsername(); // ✅ USE ADMINCONFIG
+            adminPassword = adminConfig.getAdminPassword(); // ✅ USE ADMINCONFIG
+            
+            if (adminUsername == null || adminPassword == null) {
+                throw new RuntimeException("[DemoDataPopulator] Multiple ADMINs in demo data (" + demoData.getAdmins().size() + ") and no admin configuration available - cannot proceed!");
+            }
+            
+            logger.warn("[DemoDataPopulator] Multiple ADMINs found in demo data (" + demoData.getAdmins().size() + "), using AdminConfig: " + adminUsername);
+            
+        }
+        
+        // ✅ DELEGATE TO STARTUPCONFIG (NO CHANGES TO EXISTING LOGIC)
+        startupConfig.initializeAdminWithCredentials(adminUsername, adminPassword);
+        logger.info("[DemoDataPopulator] Admin initialization completed: " + adminUsername);
     }
     
     private Map<String, String> createUsers(List<DemoUser> users) {

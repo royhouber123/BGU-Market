@@ -1,6 +1,9 @@
 # BGU Market Demo Data Configuration
 # This file defines the initial demo data for the marketplace
 
+# ADMIN: userName, password
+ADMIN u1,password123
+
 # Users: username,password
 USER u2,password123
 USER u3,password123

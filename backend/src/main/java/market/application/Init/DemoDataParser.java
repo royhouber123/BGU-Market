@@ -14,13 +14,14 @@ public class DemoDataParser {
     private static final Logger logger = Logger.getInstance();
     
     public static class DemoData {
+        private final List<DemoAdmin> admins = new ArrayList<>();
         private final List<DemoUser> users = new ArrayList<>();
         private final List<DemoStore> stores = new ArrayList<>();
         private final List<DemoProduct> products = new ArrayList<>();
         private final List<DemoManager> managers = new ArrayList<>();
         private final List<DemoOwner> owners = new ArrayList<>();
         
-        // Getters
+        public List<DemoAdmin> getAdmins() { return admins; }
         public List<DemoUser> getUsers() { return users; }
         public List<DemoStore> getStores() { return stores; }
         public List<DemoProduct> getProducts() { return products; }
@@ -29,8 +30,8 @@ public class DemoDataParser {
         
         @Override
         public String toString() {
-            return String.format("DemoData{users=%d, stores=%d, products=%d, managers=%d, owners=%d}",
-                    users.size(), stores.size(), products.size(), managers.size(), owners.size());
+            return String.format("DemoData{admins=%d, users=%d, stores=%d, products=%d, managers=%d, owners=%d}",
+                    admins.size(), users.size(), stores.size(), products.size(), managers.size(), owners.size());
         }
     }
     
@@ -76,6 +77,9 @@ public class DemoDataParser {
             String arguments = parts[1];
             
             switch (command) {
+                case "ADMIN": // ✅ ADD THIS CASE
+                    parseAdmin(arguments, data);
+                    break;
                 case "USER":
                     parseUser(arguments, data);
                     break;
@@ -97,6 +101,19 @@ public class DemoDataParser {
         } catch (Exception e) {
             logger.error("[DemoDataParser] Error parsing line " + lineNumber + ": " + line + " - " + e.getMessage());
         }
+    }
+    
+    private static void parseAdmin(String arguments, DemoData data) {
+        String[] parts = arguments.split(",");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("ADMIN requires format: username,password");
+        }
+        
+        String username = parts[0].trim();
+        String password = parts[1].trim();
+        
+        data.getAdmins().add(new DemoAdmin(username, password));
+        logger.debug("[DemoDataParser] Parsed admin: " + username);
     }
     
     private static void parseUser(String arguments, DemoData data) {
