@@ -33,6 +33,11 @@ public class StartupConfig implements CommandLineRunner {
     public void run(String... args) throws Exception {
         logger.info("[StartupConfig] Initializing system on startup...");
         
+        if(env == null) {
+            initializeAdminUser();
+            return;
+        }
+
         // ✅ CHECK YOUR ACTUAL PROPERTY NAME
         String populateData = env.getProperty("bgu.market.populate-demo-data");
         boolean isDemoMode = "true".equalsIgnoreCase(populateData);
