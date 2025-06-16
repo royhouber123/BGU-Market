@@ -1,0 +1,35 @@
+# BGU Market Demo Data Configuration
+# This file defines the initial demo data for the marketplace
+
+# ADMIN: userName, password
+# Optional! if has no admin, init it from application.properties
+ADMIN u1,password123
+
+# Users: username,password
+USER u2,password123
+USER u3,password123
+USER u4,password123
+USER u5,password123
+USER u6,password123
+
+# Stores: storeName,founderId
+STORE Tech Paradise,u2
+STORE Fashion Hub,u3
+STORE Book Corner,u4
+
+# Products: userName,storeName,productId,productName,productCategory,productDescription,quantity,price,purchaseType
+PRODUCT u2,Tech Paradise,bamba_001,Bamba,Snacks,Peanut snack,20,30.0,REGULAR
+PRODUCT u2,Tech Paradise,electronics_001,iPhone 15,Electronics,Latest Apple smartphone with advanced features,50,999.99,REGULAR
+PRODUCT u2,Tech Paradise,electronics_002,MacBook Pro,Electronics,Powerful laptop for professionals,25,2499.99,REGULAR
+PRODUCT u3,Fashion Hub,clothing_001,Designer Jeans,Clothing,Premium denim jeans with perfect fit,100,89.99,REGULAR
+PRODUCT u4,Book Corner,books_001,The Great Gatsby,Books,Classic American literature novel,200,12.99,REGULAR
+
+# Store Managers: storeName,managerUsername,appointerUsername
+MANAGER Tech Paradise,u3,u2,1,2
+MANAGER Fashion Hub,u5,u3,0,1,3
+MANAGER Book Corner,u6,u4,1
+
+# Store Owners: storeName,ownerUsername,appointerUsername
+OWNER Tech Paradise,u4,u2
+OWNER Tech Paradise,u5,u2
+OWNER Fashion Hub,u6,u3

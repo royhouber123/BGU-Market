@@ -13,10 +13,13 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 export default function ProductCard({ product }) {
 	const [isInWatchlist, setIsInWatchlist] = useState(false);
 	const [discountedPrice, setDiscountedPrice] = useState(null);
+	const [loading, setLoading] = useState(false);
+	const [fetched, setFetched] = useState(false); // ✅ ADD THIS
 	const navigate = useNavigate();
 	const [openToast, setOpenToast] = useState(false);
 	const [toastMessage, setToastMessage] = useState({ severity: "success", title: "", description: "" });
 
+	// ✅ FIXED: Stable dependencies and loading guard
 	const checkWatchlist = useCallback(async () => {
 		try {
 			if (userService.isAuthenticated()) {
@@ -27,17 +30,36 @@ export default function ProductCard({ product }) {
 		} catch (error) {
 			// User not logged in or no watchlist
 		}
-	}, [product.id]);
+	}, [product.id]); // ✅ Only product.id, not entire product
 
-	const fetchProductDiscountedPrice = useCallback(async () => {
-		const discount = await fetchDiscountedPrice(product);
-		setDiscountedPrice(discount);
-	}, [product]);
+	// ✅ FIXED: Add guards to prevent infinite calls
+	useEffect(() => {
+		if (fetched || loading || !product?.id || !product?.storeId) {
+			return; // Exit early if already fetched or loading
+		}
 
+		setLoading(true);
+		setFetched(true);
+		
+		const fetchPrice = async () => {
+			try {
+				const discount = await fetchDiscountedPrice(product);
+				setDiscountedPrice(discount);
+			} catch (error) {
+				console.error('Error fetching discounted price:', error);
+				setFetched(false); // Allow retry on error
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchPrice();
+	}, [product?.id, product?.storeId]); // ✅ Only stable properties
+
+	// ✅ FIXED: Separate useEffect for watchlist
 	useEffect(() => {
 		checkWatchlist();
-		fetchProductDiscountedPrice();
-	}, [checkWatchlist, fetchProductDiscountedPrice]);
+	}, [checkWatchlist]);
 
 	const timeLeft = product.bid_end_date
 		? new Date(product.bid_end_date) - new Date()
@@ -232,4 +254,4 @@ export default function ProductCard({ product }) {
 			</Snackbar>
 		</Box>
 	);
-} 
+}
