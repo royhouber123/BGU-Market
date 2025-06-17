@@ -20,6 +20,8 @@ import utils.ApiResponse;
 import utils.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import market.domain.store.StoreProductManager;
+
 
 @Service
 public class StoreService {
@@ -34,7 +36,7 @@ public class StoreService {
     public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository,ISuspensionRepository suspentionRepository, NotificationService notificationService) {
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
-        storeIDs = storeRepository.getNextStoreID();
+        storeIDs = storeIDs;
         this.listingRepository = listingRepository;
         this.suspentionRepository= suspentionRepository;
         this.notificationService = notificationService;
@@ -485,15 +487,19 @@ public class StoreService {
      */
     public String addNewListing(String userName, String storeID, String productId, String productName, String productCategory, String productDescription, int quantity, double price, String purchaseType) {
         try {
-
             System.out.println("Adding new listing: " + productName + " to store: " + storeID + ", by: " + userName + " with purchase type: " + purchaseType);
-            suspentionRepository.checkNotSuspended(userName);// check if user is suspended
+            suspentionRepository.checkNotSuspended(userName); // check if user is suspended
+
             Store s = storeRepository.getStoreByID(storeID);
-            if (s == null){
+            if (s == null) {
                 System.out.println("Store doesn't exist");
                 throw new IllegalArgumentException("Store doesn't exist");
-            
             }
+
+            if (s.getStoreProductsManager() == null) {
+                s.setStoreProductsManager(new StoreProductManager(storeID, listingRepository));
+            }
+
             logger.info("Added new listing 2 " + productName);
             return s.addNewListing(userName, productId, productName, productCategory, productDescription, quantity, price, purchaseType);
         } catch (Exception e) {
@@ -501,6 +507,7 @@ public class StoreService {
             throw new RuntimeException("Error adding listing: " + productName + " to store: " + storeID + ". Reason: " + e.getMessage());
         }
     }
+
 
 
 
