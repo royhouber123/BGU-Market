@@ -120,8 +120,12 @@ public class UserService {
         logger.info("[UserService] Adding product to cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
         suspensionRepository.checkNotSuspended(userName);// check if user is suspended
         User user = repo.findById(userName);
+        System.out.println("Adding product to cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
         user.addProductToCart(storeId, productName, quantity);
         repo.save(user);
+        //debug!
+        ShoppingCart cart = repo.getCart(userName);
+        System.out.println("Cart product names: " + cart.getAllStoreBags().iterator().next().getProducts().keySet());
         logger.info("[UserService] Product added to cart for user: " + userName);
         return null;
     }
