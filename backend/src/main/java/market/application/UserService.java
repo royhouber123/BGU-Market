@@ -5,11 +5,14 @@ import market.domain.user.User;
 import market.domain.user.ShoppingCart;
 import market.middleware.TokenUtils;
 import io.jsonwebtoken.Claims;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utils.ApiResponse;
 import utils.Logger;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -17,12 +20,12 @@ public class UserService {
     private static final Logger logger = Logger.getInstance();
     private final IUserRepository repo;
     private final AuthService authService;
-    private final ISuspensionRepository suspentionRepository; 
+    private final ISuspensionRepository suspensionRepository; 
 
-    public UserService(IUserRepository repo, AuthService authService,ISuspensionRepository suspentionRepository) {
+    public UserService(IUserRepository repo, AuthService authService, ISuspensionRepository suspensionRepository) {
         this.repo = repo;
         this.authService = authService;
-        this.suspentionRepository=suspentionRepository; 
+        this.suspensionRepository=suspensionRepository; 
     }
 
     /** Register a brand-new guest. */
@@ -80,7 +83,7 @@ public class UserService {
     public String changeUserName(String newName) {
         String oldName = extractUserNameFromToken();
         logger.info("[UserService] Changing username from '" + oldName + "' to '" + newName + "'.");
-        suspentionRepository.checkNotSuspended(oldName);// check if user is suspended
+        suspensionRepository.checkNotSuspended(oldName);// check if user is suspended
         boolean result = repo.changeUserName(oldName, newName);
         if (result) {
             // Generate new token with updated username
@@ -98,7 +101,7 @@ public class UserService {
     public boolean changePassword(String newPassword) {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Changing password for user: " + userName);
-        suspentionRepository.checkNotSuspended(userName);// check if user is suspended
+        suspensionRepository.checkNotSuspended(userName);// check if user is suspended
         boolean result = repo.changePassword(userName, newPassword);
         if(result) {
             logger.info("[UserService] Password changed for user: " + userName);
@@ -115,7 +118,7 @@ public class UserService {
                                  int quantity) {
         String userName = extractUserNameFromToken();
         logger.info("[UserService] Adding product to cart for user: " + userName + ", storeId: " + storeId + ", product: " + productName + ", quantity: " + quantity);
-        suspentionRepository.checkNotSuspended(userName);// check if user is suspended
+        suspensionRepository.checkNotSuspended(userName);// check if user is suspended
         User user = repo.findById(userName);
         user.addProductToCart(storeId, productName, quantity);
         repo.save(user);
@@ -171,5 +174,21 @@ public class UserService {
     public IUserRepository getUserRepository()
     {
         return this.repo;
+    }
+
+    public boolean suspendUser(String userName, long durationHours) {
+        return suspensionRepository.suspendUser(userName, durationHours);
+    }
+
+    public boolean unsuspendUser(String userName) {
+        return suspensionRepository.unsuspendUser(userName);
+    }
+
+    public List<String> getSuspendedUsers() {
+        return suspensionRepository.getSuspendedUsers();
+    }
+
+    public boolean isSuspended(String userName) {
+        return suspensionRepository.isSuspended(userName);
     }
 }
