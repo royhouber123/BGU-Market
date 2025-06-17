@@ -9,9 +9,9 @@ import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
 import market.domain.user.ISuspensionRepository;
 import market.domain.user.IUserRepository;
-import market.infrastructure.SuspensionRepository;
 import market.infrastructure.RoleRepository;
 import market.infrastructure.PersistenceRepositories.UserRepositoryPersistance;
+import market.infrastructure.PersistenceRepositories.SuspensionRepositoryPersistance;
 import market.infrastructure.StoreRepository;
 import market.notification.INotifier;
 import market.notification.WebSocketBroadcastNotifier;
@@ -30,10 +30,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = {"market.infrastructure.PersistenceRepositories", "market.infrastructure", "market.application.External"})
 public class AppConfig {
 
-    @Bean
-    public ISuspensionRepository suspensionRepository(IUserRepository userRepository) {
-        return new SuspensionRepository(userRepository);
-    }
+    // @Bean
+    // public ISuspensionRepository suspensionRepository(IUserRepository userRepository) {
+    //     return new SuspensionRepository(userRepository);
+    // }
 
     @Bean
     public IRoleRepository roleRepository() {
