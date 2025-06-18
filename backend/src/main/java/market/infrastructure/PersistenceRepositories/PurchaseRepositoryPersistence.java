@@ -23,23 +23,29 @@ public class PurchaseRepositoryPersistence implements IPurchaseRepository {
         purchaseJpaRepository.save(purchase);
     }
 
+    /**
+     * Retrieves all purchases made by a specific user.
+     * Each returned Purchase object contains all products in the transaction,
+     * regardless of which stores were involved.
+     *
+     * @param userId The ID (username) of the user to retrieve purchases for
+     * @return List of Purchase objects made by the specified user
+     */
     @Override
     public List<Purchase> getPurchasesByUser(String userId) {
         return purchaseJpaRepository.findByUserId(userId);
     }
 
+    /**
+     * Retrieves all purchases that contain at least one product from the specified store.
+     * The returned Purchase objects include all products in the transaction,
+     * regardless of which store sold them.
+     *
+     * @param storeId The ID of the store to filter purchases by
+     * @return List of Purchase objects including at least one product from the store
+     */
     @Override
     public List<Purchase> getPurchasesByStore(String storeId) {
-        List<Purchase> all = purchaseJpaRepository.findAll();
-        List<Purchase> result = new ArrayList<>();
-        for (Purchase p : all) {
-            for (PurchasedProduct product : p.getProducts()) {
-                if (product.getStoreId().equals(storeId)) {
-                    result.add(p);
-                    break;
-                }
-            }
-        }
-        return result;
+        return purchaseJpaRepository.findByStoreId(storeId);
     }
 }
