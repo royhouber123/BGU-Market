@@ -501,14 +501,14 @@ public class Store {
                 for (Manager a : ownerToAssignedManagers.get(next)) {
                     res.get(1).add(a.getID());
 
-                    // ✅ remove from assignments (manager row)
+                    // remove from assignments (manager row)
                     assignments.removeIf(row ->
                             row.getAssigner().equals(next) && row.getAssignee().equals(a.getID()));
                 }
                 ownerToAssignedManagers.remove(next);
             }
 
-            // ✅ remove from assignments (owner row)
+            // remove from assignments (owner row)
             assignments.removeIf(row ->
                     row.getAssigner().equals(OwnerAssignedBy(next)) && row.getAssignee().equals(next));
         }
