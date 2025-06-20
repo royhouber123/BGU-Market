@@ -73,6 +73,13 @@ public class Store {
     )
     private List<AssignmentRow> assignments = new ArrayList<>();
 
+    /*  Persisted policy collections  */
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<market.domain.store.Policies.PurchasePolicyEntity> purchasePolicies = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<market.domain.store.Policies.DiscountPolicyEntity> discountPolicies = new ArrayList<>();
+
 
 
 
@@ -98,6 +105,9 @@ public class Store {
         this.ownerToAssignedManagers.put(founderID, new ArrayList<>());
 
         this.policyHandler = new PolicyHandler();
+        var defaultPolicy = new market.domain.store.Policies.Policies.DefaultPurchasePolicy();
+        defaultPolicy.setStore(this);
+        this.purchasePolicies.add(defaultPolicy);
     }
 
 
@@ -728,6 +738,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.addPurchasePolicy(policy);
+        if (policy instanceof market.domain.store.Policies.PurchasePolicyEntity entity) {
+            entity.setStore(this);
+            purchasePolicies.add(entity);
+        }
         return true;
     }
 
@@ -746,6 +760,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.removePurchasePolicy(policy);
+        if (policy instanceof market.domain.store.Policies.PurchasePolicyEntity entity) {
+            purchasePolicies.remove(entity);
+            entity.setStore(null);
+        }
         return true;
     }
 
@@ -779,6 +797,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.addDiscountPolicy(discountPolicy);
+        if (discountPolicy instanceof market.domain.store.Policies.DiscountPolicyEntity entity) {
+            entity.setStore(this);
+            discountPolicies.add(entity);
+        }
         return true;
     }
 
@@ -798,6 +820,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.removeDiscountPolicy(discountPolicy);
+        if (discountPolicy instanceof market.domain.store.Policies.DiscountPolicyEntity entity) {
+            discountPolicies.remove(entity);
+            entity.setStore(null);
+        }
         return true;
     }
 

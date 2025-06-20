@@ -1,15 +1,21 @@
 package market.domain.store.Policies.Policies;
 
 import market.domain.store.IStoreProductsManager;
-import market.domain.store.Policies.PurchasePolicy;
+import market.domain.store.Policies.PurchasePolicyEntity;
 import market.dto.PolicyDTO;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class MinItemsPurchasePolicy implements PurchasePolicy {
+@Entity
+@Table(name = "policy_min_items")
+public class MinItemsPurchasePolicy extends PurchasePolicyEntity {
 
     private int minItems;
+
+    protected MinItemsPurchasePolicy() {}
 
     public MinItemsPurchasePolicy(int minItems) {
         if (minItems < 1) {

@@ -2,15 +2,21 @@ package market.domain.store.Policies.Policies;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
-import market.domain.store.Policies.PurchasePolicy;
+import market.domain.store.Policies.PurchasePolicyEntity;
 import market.dto.PolicyDTO;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class MinPricePurchasePolicy implements PurchasePolicy {
+@Entity
+@Table(name = "policy_min_price")
+public class MinPricePurchasePolicy extends PurchasePolicyEntity {
 
     int minPrice;
+
+    protected MinPricePurchasePolicy() {}
 
     public MinPricePurchasePolicy(int minPrice) {
         if (minPrice < 0) {
@@ -18,7 +24,6 @@ public class MinPricePurchasePolicy implements PurchasePolicy {
         }
         this.minPrice = minPrice;
     }
-
 
     @Override
     public boolean isPurchaseAllowed(Map<String, Integer> listings, IStoreProductsManager productManager) {

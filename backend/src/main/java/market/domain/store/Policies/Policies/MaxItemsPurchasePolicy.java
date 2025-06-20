@@ -3,13 +3,20 @@ package market.domain.store.Policies.Policies;
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.PurchasePolicy;
 import market.dto.PolicyDTO;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import market.domain.store.Policies.PurchasePolicyEntity;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class MaxItemsPurchasePolicy implements PurchasePolicy {
+@Entity
+@Table(name = "policy_max_items")
+public class MaxItemsPurchasePolicy extends PurchasePolicyEntity {
 
     private int maxItems;
+
+    protected MaxItemsPurchasePolicy() { /* for JPA */ }
 
     public MaxItemsPurchasePolicy(int maxItems) {
         if (maxItems < 1) {

@@ -99,7 +99,9 @@ public class PurchaseService {
             try {
                 Purchase finalPurchase = regularPurchase.purchase(userId, purchasedItems, shippingAddress, paymentDetails, totalDiscountPrice, paymentService, shipmentService);
                 User user = userRepository.findById(userId);
+                // Persist cart clearing so that subsequent reads reflect the empty cart
                 user.clearCart();
+                userRepository.save(user);
                 purchaseRepository.save(finalPurchase);
                 return finalPurchase;
             } catch (IllegalArgumentException e) {

@@ -2,16 +2,28 @@ package market.domain.store.Policies.Discounts;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
+import market.domain.store.Policies.DiscountPolicyEntity;
 import market.dto.PolicyDTO;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class CouponDiscountPolicy implements DiscountPolicy {
+@Entity
+@Table(name="discount_coupon")
+public class CouponDiscountPolicy extends DiscountPolicyEntity {
 
     private final String validCouponCode;
     private final double discountAmount; // in $ (fixed discount)
     private boolean couponUsed; // track if user provided a coupon (simulate)
+
+    protected CouponDiscountPolicy() {
+        // Default constructor for JPA
+        this.validCouponCode = null;
+        this.discountAmount = 0.0;
+        this.couponUsed = false;
+    }
 
     public CouponDiscountPolicy(String validCouponCode, double discountAmount) {
         if (discountAmount <= 0) {
