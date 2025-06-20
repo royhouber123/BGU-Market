@@ -21,7 +21,8 @@ public class UserService {
     private final IUserRepository repo;
     private final AuthService authService;
     private final ISuspensionRepository suspensionRepository; 
-
+    
+    @Autowired
     public UserService(IUserRepository repo, AuthService authService, ISuspensionRepository suspensionRepository) {
         this.repo = repo;
         this.authService = authService;

@@ -18,7 +18,7 @@ import market.domain.store.Listing;
  * Designed for use by end users to discover products.
  */
 
-
+@Service
 public class ProductService {
 
     private final IListingRepository listingRepository;

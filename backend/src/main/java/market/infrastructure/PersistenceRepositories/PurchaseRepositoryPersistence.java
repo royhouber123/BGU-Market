@@ -6,11 +6,14 @@ import market.domain.purchase.Purchase;
 import market.domain.purchase.PurchasedProduct;
 import market.infrastructure.IJpaRepository.IPurchaseJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Primary
 @Repository
 @Transactional
 public class PurchaseRepositoryPersistence implements IPurchaseRepository {

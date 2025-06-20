@@ -5,6 +5,7 @@ import market.domain.store.Store;
 import market.infrastructure.IJpaRepository.IStoreJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

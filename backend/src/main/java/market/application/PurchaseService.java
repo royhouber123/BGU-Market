@@ -51,6 +51,18 @@ public class PurchaseService {
             for (StoreBag bag : cart.getAllStoreBags()) {
                 String storeId = String.valueOf(bag.getStoreId());
                 Store store = storeRepository.getStoreByID(storeId);
+
+                /*
+                 * Ensure transient fields are initialized (they are not persisted via JPA).
+                 * This prevents NullPointerExceptions when the store entity is reloaded from the database.
+                 */
+                if (store.getStoreProductsManager() == null) {
+                    store.setStoreProductsManager(new StoreProductManager(storeId, listingRepository));
+                }
+                if (store.getPolicyHandler() == null) {
+                    store.setPolicyHandler(new market.domain.store.Policies.PolicyHandler());
+                }
+
                 listForUpdateStock.put(storeId, bag.getProducts());
     
                 if (!store.isPurchaseAllowed(bag.getProducts())) {

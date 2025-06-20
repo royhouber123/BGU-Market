@@ -7,6 +7,8 @@ import market.infrastructure.IJpaRepository.ISuspensionJpaRepository;
 import market.infrastructure.IJpaRepository.IUserJpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.management.RuntimeErrorException;
@@ -14,6 +16,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Primary
 @Repository("suspensionRepositoryJpa")
 @Transactional
 public class SuspensionRepositoryPersistance implements ISuspensionRepository {
