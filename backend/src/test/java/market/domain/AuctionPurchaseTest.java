@@ -5,7 +5,7 @@ import market.application.External.IShipmentService;
 import market.application.External.PaymentService;
 import market.application.External.ShipmentService;
 import market.domain.purchase.*;
-import market.domain.store.IStoreRepository;
+import market.domain.store.IListingRepository;
 import utils.ApiResponse;
 import market.application.NotificationService;
 
@@ -24,7 +24,7 @@ public class AuctionPurchaseTest {
 
     private IShipmentService shipmentService;
     private IPaymentService paymentService;
-    private IStoreRepository storeRepository;
+    private IListingRepository listingRepository;
     private IPurchaseRepository purchaseRepository;
     private NotificationService notificationService;
     private String storeId;
@@ -34,9 +34,9 @@ public class AuctionPurchaseTest {
 
     @BeforeEach
     void setUp() {
-        storeRepository = mock(IStoreRepository.class);
-        when(storeRepository.updateStockForPurchasedItems(anyMap())).thenReturn(true);
-        AuctionPurchase.setStoreRepository(storeRepository);
+        listingRepository = mock(IListingRepository.class);
+        when(listingRepository.updateOrRestoreStock(anyMap(), eq(false))).thenReturn(true);
+        AuctionPurchase.setListingRepository(listingRepository);
 
         purchaseRepository = mock(IPurchaseRepository.class);
         AuctionPurchase.setPurchaseRepository(purchaseRepository);
@@ -66,7 +66,7 @@ public class AuctionPurchaseTest {
 
     @Test
     void openAuction_validInput_shouldCreateAuction() {
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
         AuctionKey key = new AuctionKey(storeId, productId);
         assertTrue(AuctionPurchase.getOffers().containsKey(key));
     }
@@ -74,14 +74,14 @@ public class AuctionPurchaseTest {
     @Test
     void openAuction_pastEndTime_shouldNotScheduleAuction() {
         long pastEndTime = System.currentTimeMillis() - 1000;
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, pastEndTime, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, pastEndTime, shipmentService, paymentService, purchaseRepository, notificationService);
         AuctionKey key = new AuctionKey(storeId, productId);
         assertFalse(AuctionPurchase.getOffers().containsKey(key));
     }
 
     @Test
     void submitOffer_validOffer_shouldAddOffer() {
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
         AuctionPurchase.submitOffer(storeId, productId, "user1", 150.0, "addr", "contact");
         AuctionKey key = new AuctionKey(storeId, productId);
         List<Offer> offers = AuctionPurchase.getOffers().get(key);
@@ -90,7 +90,7 @@ public class AuctionPurchaseTest {
 
     @Test
     void submitOffer_lowerThanCurrentMax_shouldFail() {
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
         AuctionPurchase.submitOffer(storeId, productId, "user1", 150.0, "addr", "contact");
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
                 AuctionPurchase.submitOffer(storeId, productId, "user2", 140.0, "addr", "contact")
@@ -100,14 +100,14 @@ public class AuctionPurchaseTest {
 
     @Test
     void getAuctionStatus_noOffers_shouldReturnStartingPriceAsMax() {
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
         Map<String, Object> status = AuctionPurchase.getAuctionStatus(storeId, productId);
         assertEquals(startingPrice, status.get("currentMaxOffer"));
     }
 
     @Test
     void getAuctionStatus_withOffers_shouldReturnMaxOffer() {
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
         AuctionPurchase.submitOffer(storeId, productId, "user1", 200.0, "addr", "contact");
         Map<String, Object> status = AuctionPurchase.getAuctionStatus(storeId, productId);
         assertEquals(200.0, status.get("currentMaxOffer"));
@@ -130,7 +130,7 @@ public class AuctionPurchaseTest {
     @Test
     void auction_shouldAutoCloseAfterEndTime() throws InterruptedException {
         long shortEndTime = System.currentTimeMillis() + 1500;
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, shortEndTime, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, shortEndTime, shipmentService, paymentService, purchaseRepository, notificationService);
         AuctionPurchase.submitOffer(storeId, productId, "user1", 200.0, "addr", "contact");
         
         // Wait for auction to end plus buffer for cleanup
@@ -144,7 +144,7 @@ public class AuctionPurchaseTest {
 
     @Test
     void closeAuction_beforeEnd_shouldThrowException() {
-        AuctionPurchase.openAuction(storeRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+        AuctionPurchase.openAuction(listingRepository, storeId, productId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
                 AuctionPurchase.closeAuction(storeId, productId, shipmentService, paymentService)
         );

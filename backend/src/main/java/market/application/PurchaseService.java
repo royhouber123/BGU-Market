@@ -160,7 +160,7 @@ public class PurchaseService {
             String actualProductId = store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
     
             // Use the actual product ID for the auction
-            AuctionPurchase.openAuction(storeRepository, storeId, actualProductId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+            AuctionPurchase.openAuction(listingRepository, storeId, actualProductId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
     
             logger.info("Auction opened: store " + storeId + ", product " + actualProductId + ", by user " + userId);
     
@@ -226,7 +226,7 @@ public class PurchaseService {
             }
     
             BidPurchase.submitBid(
-                storeRepository,
+                listingRepository,
                 storeId,
                 productId,
                 userId,

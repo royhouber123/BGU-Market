@@ -137,7 +137,7 @@ class StoreRepositoryTests {
         shoppingBags.put("1", store1Bag);
         shoppingBags.put("2", store2Bag);
 
-        boolean result = storeRepository.updateStockForPurchasedItems(shoppingBags);
+        boolean result = listingRepository.updateOrRestoreStock(shoppingBags, false);
 
         assertTrue(result);
         assertEquals(8, store1.getAllListings().get(0).getQuantityAvailable());
@@ -154,8 +154,9 @@ class StoreRepositoryTests {
 
         shoppingBags.put("1", store1Bag);
 
-        boolean result = storeRepository.updateStockForPurchasedItems(shoppingBags);
-
-        assertFalse(result);
+        Exception e = assertThrows(RuntimeException.class, () -> {
+            listingRepository.updateOrRestoreStock(shoppingBags, false);
+        });
+        assertTrue(e.getMessage().contains("Not enough stock"));
     }
 }

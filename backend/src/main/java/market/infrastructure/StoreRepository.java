@@ -95,75 +95,75 @@ public class StoreRepository implements IStoreRepository {
  * @param listForUpdateStock A map where each key is a store ID, and the value is a map of listing IDs to quantities to purchase.
  * @return {@code true} if the purchase succeeded and stock was reduced; {@code false} otherwise (e.g., if some listing has insufficient stock).
  */
-public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock) {
-    List<Store> lockedStores = new ArrayList<>();
+// public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock) {
+//     List<Store> lockedStores = new ArrayList<>();
 
-    // Defensive: make sure input is not null
-    if (listForUpdateStock == null || listForUpdateStock.isEmpty()) {
-        return false;
-    }
+//     // Defensive: make sure input is not null
+//     if (listForUpdateStock == null || listForUpdateStock.isEmpty()) {
+//         return false;
+//     }
 
-    // Step 1: Acquire locks in consistent order to avoid deadlocks
-    List<String> sortedStoreIds = new ArrayList<>(listForUpdateStock.keySet());
-    Collections.sort(sortedStoreIds); // Sort alphabetically
+//     // Step 1: Acquire locks in consistent order to avoid deadlocks
+//     List<String> sortedStoreIds = new ArrayList<>(listForUpdateStock.keySet());
+//     Collections.sort(sortedStoreIds); // Sort alphabetically
 
-    try {
-        for (String storeId : sortedStoreIds) {
-            Store store = storesById.get(storeId);
-            if (store == null) {
-                return false; // Store does not exist
-            }
-            synchronized (store) {
-                lockedStores.add(store);
-            }
-        }
+//     try {
+//         for (String storeId : sortedStoreIds) {
+//             Store store = storesById.get(storeId);
+//             if (store == null) {
+//                 return false; // Store does not exist
+//             }
+//             synchronized (store) {
+//                 lockedStores.add(store);
+//             }
+//         }
 
-        // Step 2: Validate all listings have sufficient stock
-        for (String storeId : sortedStoreIds) {
-            Store store = storesById.get(storeId);
-            Map<String, Integer> listingUpdates = listForUpdateStock.get(storeId);
+//         // Step 2: Validate all listings have sufficient stock
+//         for (String storeId : sortedStoreIds) {
+//             Store store = storesById.get(storeId);
+//             Map<String, Integer> listingUpdates = listForUpdateStock.get(storeId);
 
-            if (listingUpdates == null) {
-                return false; // Defensive
-            }
+//             if (listingUpdates == null) {
+//                 return false; // Defensive
+//             }
 
-            for (Map.Entry<String, Integer> entry : listingUpdates.entrySet()) {
-                String listingId = entry.getKey();
-                int quantityRequested = entry.getValue();
+//             for (Map.Entry<String, Integer> entry : listingUpdates.entrySet()) {
+//                 String listingId = entry.getKey();
+//                 int quantityRequested = entry.getValue();
 
-                Listing listing = store.getListing(listingId);
-                if (listing == null) {
-                    return false; // Listing not found
-                }
-                if (listing.getQuantityAvailable() < quantityRequested) {
-                    return false; // Not enough stock
-                }
-            }
-        }
+//                 Listing listing = store.getListing(listingId);
+//                 if (listing == null) {
+//                     return false; // Listing not found
+//                 }
+//                 if (listing.getQuantityAvailable() < quantityRequested) {
+//                     return false; // Not enough stock
+//                 }
+//             }
+//         }
 
-        // Step 3: All checks passed, perform the purchases
-        for (String storeId : sortedStoreIds) {
-            Store store = storesById.get(storeId);
-            Map<String, Integer> listingUpdates = listForUpdateStock.get(storeId);
+//         // Step 3: All checks passed, perform the purchases
+//         for (String storeId : sortedStoreIds) {
+//             Store store = storesById.get(storeId);
+//             Map<String, Integer> listingUpdates = listForUpdateStock.get(storeId);
 
-            for (Map.Entry<String, Integer> entry : listingUpdates.entrySet()) {
-                String listingId = entry.getKey();
-                int quantityRequested = entry.getValue();
+//             for (Map.Entry<String, Integer> entry : listingUpdates.entrySet()) {
+//                 String listingId = entry.getKey();
+//                 int quantityRequested = entry.getValue();
 
-                try {
-                    store.purchaseFromListing(listingId, quantityRequested);
-                } catch (Exception e) {
-                    // Should not happen, because we checked stock already
-                    return false;
-                }
-            }
-        }
-        return true; // Success!
-    } finally {
-        // No explicit unlock needed: synchronized blocks release when leaving the block
-        // We just used locking in a safe deterministic way
-    }
-}
+//                 try {
+//                     store.purchaseFromListing(listingId, quantityRequested);
+//                 } catch (Exception e) {
+//                     // Should not happen, because we checked stock already
+//                     return false;
+//                 }
+//             }
+//         }
+//         return true; // Success!
+//     } finally {
+//         // No explicit unlock needed: synchronized blocks release when leaving the block
+//         // We just used locking in a safe deterministic way
+//     }
+// }
 
 
    @Override
