@@ -66,6 +66,20 @@ public class Store {
     private PolicyHandler policyHandler;
     @Transient
     private final Object ownershipLock = new Object();
+    @ElementCollection
+    @CollectionTable(
+            name = "store_assigners",
+            joinColumns = @JoinColumn(name = "store_id")
+    )
+    private List<AssignmentRow> assignments = new ArrayList<>();
+
+    /*  Persisted policy collections  */
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<market.domain.store.Policies.PurchasePolicyEntity> purchasePolicies = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<market.domain.store.Policies.DiscountPolicyEntity> discountPolicies = new ArrayList<>();
+
 
 
 
@@ -91,6 +105,9 @@ public class Store {
         this.ownerToAssignedManagers.put(founderID, new ArrayList<>());
 
         this.policyHandler = new PolicyHandler();
+        var defaultPolicy = new market.domain.store.Policies.Policies.DefaultPurchasePolicy();
+        defaultPolicy.setStore(this);
+        this.purchasePolicies.add(defaultPolicy);
     }
 
 
@@ -189,6 +206,7 @@ public class Store {
                 throw new Exception("the user:"+appointerID+" is already an owner of the store: "+storeID);
             storeClosedExeption();//actions are available only when open
             ownerToAssignedOwners.get(appointerID).add(newOwnerID);
+            assignments.add(new AssignmentRow(appointerID, newOwnerID));
             ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
             ownerToWhoAssignedHim.put(newOwnerID,appointerID);
             ownerToAssignedManagers.put(newOwnerID,new ArrayList<>());
@@ -215,6 +233,7 @@ public class Store {
                 throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
             storeClosedExeption();//actions are available only when open
             Manager newManager = new Manager(newManagerID, appointerID);
+            assignments.add(new AssignmentRow(appointerID, newManagerID));
             return ownerToAssignedManagers.get(appointerID).add(newManager);
     }}
 
@@ -228,24 +247,29 @@ public class Store {
     * @return true if the manager was removed successfully.
     * @throws Exception if the appointer is not the assigner or if the manager doesn't exist.
     */
-    public boolean removeManager(String appointerID, String managerID) throws Exception {
-        synchronized (ownershipLock){
-            if (!isOwner(appointerID)) {
-                throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
-            }
+   public boolean removeManager(String appointerID, String managerID) throws Exception {
+    synchronized (ownershipLock) {
+        if (!isOwner(appointerID)) {
+            throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
+        }
 
-            List<Manager> managers = ownerToAssignedManagers.get(appointerID);
-            if (managers == null || managers.isEmpty()) {
-                throw new Exception("Appointer " + appointerID + " did not assign any managers");
-            }
+        List<Manager> managers = ownerToAssignedManagers.get(appointerID);
+        if (managers == null || managers.isEmpty()) {
+            throw new Exception("Appointer " + appointerID + " did not assign any managers");
+        }
 
-            boolean removed = managers.removeIf(m -> m.id.equals(managerID));
-            if (!removed) {
-                throw new Exception("Appointer " + appointerID + " did not assign manager " + managerID);
-            }
+        boolean removed = managers.removeIf(m -> m.id.equals(managerID));
+        if (!removed) {
+            throw new Exception("Appointer " + appointerID + " did not assign manager " + managerID);
+        }
 
-            return true;
-    }}
+        assignments.removeIf(row ->
+                row.getAssigner().equals(appointerID) && row.getAssignee().equals(managerID));
+
+        return true;
+    }
+}
+
 
 
 
@@ -441,64 +465,75 @@ public class Store {
      *                   - {@code id} is not the one who assigned {@code toRemove}.
      */
     public List<List<String>> removeOwner(String id, String toRemove) throws Exception {
-        synchronized (ownershipLock) {
-            List<List<String>> res = new ArrayList<>();
-            res.add(new ArrayList<>());
-            res.add(new ArrayList<>());
-            if(founderID.equals(toRemove)){
-                throw new Exception(toRemove +" is the founder of store:"+ storeID);
-            }
-            if (!isOwner(id)){
-                throw new Exception(id +" is not a owner of store:"+ storeID);
-            }
-            if (!isOwner(toRemove)){
-                throw new Exception(toRemove +" is not a owner of store:"+ storeID);
-            }
-            if (toRemove.equals(getFounderID())){
-                throw new Exception(toRemove +" is the FOUNDER of store:"+ storeID+ " can't remove him");
-            }
-            if (!ownerToWhoAssignedHim.get(toRemove).equals(id)){
-                throw new Exception(id +" didn't assign " + toRemove + " to be owner of store:"+ storeID);
-            }
-            storeClosedExeption();//actions are available only when open
-            Queue<String> queue = new ArrayDeque<>();
-            queue.add(toRemove);
-            while(!queue.isEmpty()){
-               
+    synchronized (ownershipLock) {
+        List<List<String>> res = new ArrayList<>();
+        res.add(new ArrayList<>()); // removed owners
+        res.add(new ArrayList<>()); // removed managers
 
-                String next = queue.remove();
-                //add to remove list
-                res.get(0).add(next);
-                List<String> assigments = getOwnerAssigments(next);
+        if (founderID.equals(toRemove)) {
+            throw new Exception(toRemove + " is the founder of store:" + storeID);
+        }
+        if (!isOwner(id)) {
+            throw new Exception(id + " is not a owner of store:" + storeID);
+        }
+        if (!isOwner(toRemove)) {
+            throw new Exception(toRemove + " is not a owner of store:" + storeID);
+        }
+        if (toRemove.equals(getFounderID())) {
+            throw new Exception(toRemove + " is the FOUNDER of store:" + storeID + " can't remove him");
+        }
+        if (!ownerToWhoAssignedHim.get(toRemove).equals(id)) {
+            throw new Exception(id + " didn't assign " + toRemove + " to be owner of store:" + storeID);
+        }
 
-                //enter the owners he assigned to the queue
-                for (String a:assigments){
-                    queue.add(a);
+        storeClosedExeption(); // store must be open
+
+        Queue<String> queue = new ArrayDeque<>();
+        queue.add(toRemove);
+
+        while (!queue.isEmpty()) {
+            String next = queue.remove();
+
+            // add to removal list
+            res.get(0).add(next); // owner
+
+            List<String> assigments = getOwnerAssigments(next);
+            for (String a : assigments) {
+                queue.add(a);
+            }
+
+            // remove assignment from parent
+            ownerToAssignedOwners.get(OwnerAssignedBy(next)).remove(next);
+            ownerToWhoAssignedHim.remove(next);
+
+            // remove assigned managers
+            if (ownerToAssignedManagers.get(next) != null) {
+                for (Manager a : ownerToAssignedManagers.get(next)) {
+                    res.get(1).add(a.getID());
+
+                    // remove from assignments (manager row)
+                    assignments.removeIf(row ->
+                            row.getAssigner().equals(next) && row.getAssignee().equals(a.getID()));
                 }
-                //remove him
-
-                ownerToAssignedOwners.get(OwnerAssignedBy(next)).remove(next);
-                ownerToWhoAssignedHim.remove(next);
-
-
-                if (ownerToAssignedManagers.get(next)!= null){
-                    //remove the managers he assign
-                    for (Manager a: ownerToAssignedManagers.get(next)){
-                        res.get(1).add(a.getID());
-                    }
-                    ownerToAssignedManagers.remove(next);
-                }
-
-
+                ownerToAssignedManagers.remove(next);
             }
-            for (String o:res.get(0)){
-                if (isOwner(o)){
-                    ownerToAssignedOwners.remove(o);
-                }
+
+            // remove from assignments (owner row)
+            assignments.removeIf(row ->
+                    row.getAssigner().equals(OwnerAssignedBy(next)) && row.getAssignee().equals(next));
+        }
+
+        // clean the owner maps
+        for (String o : res.get(0)) {
+            if (isOwner(o)) {
+                ownerToAssignedOwners.remove(o);
             }
-            return res;
+        }
+
+        return res;
     }
 }
+
 
     /**
     if the user called is an owner,
@@ -703,6 +738,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.addPurchasePolicy(policy);
+        if (policy instanceof market.domain.store.Policies.PurchasePolicyEntity entity) {
+            entity.setStore(this);
+            purchasePolicies.add(entity);
+        }
         return true;
     }
 
@@ -721,6 +760,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.removePurchasePolicy(policy);
+        if (policy instanceof market.domain.store.Policies.PurchasePolicyEntity entity) {
+            purchasePolicies.remove(entity);
+            entity.setStore(null);
+        }
         return true;
     }
 
@@ -754,6 +797,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.addDiscountPolicy(discountPolicy);
+        if (discountPolicy instanceof market.domain.store.Policies.DiscountPolicyEntity entity) {
+            entity.setStore(this);
+            discountPolicies.add(entity);
+        }
         return true;
     }
 
@@ -773,6 +820,10 @@ public class Store {
         }
         storeClosedExeption();//actions are available only when open
         policyHandler.removeDiscountPolicy(discountPolicy);
+        if (discountPolicy instanceof market.domain.store.Policies.DiscountPolicyEntity entity) {
+            discountPolicies.remove(entity);
+            entity.setStore(null);
+        }
         return true;
     }
 
@@ -1017,6 +1068,22 @@ public class Store {
         }
 
     }
+
+    @Embeddable
+    public static class AssignmentRow {
+        private String assigner;
+        private String assignee;
+
+        public AssignmentRow() {}                           
+        public AssignmentRow(String assigner, String assignee) {
+            this.assigner = assigner;
+            this.assignee = assignee;
+        }
+
+        public String getAssigner() { return assigner; }
+        public String getAssignee() { return assignee; }
+    }
+
 
 
 

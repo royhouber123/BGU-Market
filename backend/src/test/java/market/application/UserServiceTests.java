@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import market.domain.user.StoreBag;
 import java.util.Map;
 import market.dto.StoreDTO.CreateStoreResponse;
+import org.junit.jupiter.api.Assertions;
 
 @EnabledIf("market.application.UserServiceTests#isMySQLAvailable")
 public class UserServiceTests extends AcceptanceTestSpringBase {
@@ -99,6 +100,76 @@ public class UserServiceTests extends AcceptanceTestSpringBase {
             userService.register("testuser", "password");
             AuthService.AuthToken loggedInUser = authService.login("testuser", "password");
         });
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void testPurchaseFromCart_ShouldCompleteAndClearCart() throws Exception {
+        // Arrange: Create a new user and log them in
+        String username = "buyer_user";
+        String password = "securePw123";
+        userService.register(username, password);
+        AuthService.AuthToken token = authService.login(username, password);
+        TokenUtils.setMockToken(token.token());
+
+        // Log out the user
+        authService.logout(token.token());
+
+        // Log in again
+        AuthService.AuthToken token2 = authService.login(username, password);
+        TokenUtils.setMockToken(token2.token());
+
+        // Create a store and add listings (capture the listing IDs that are returned)
+        CreateStoreResponse techStore = storeService.createStore("tech_store", username);
+
+        String laptopListingId = storeService.addNewListing(
+                username,
+                techStore.storeId(),
+                "laptop_prod",          // productId
+                "Laptop",               // productName
+                "electronics",
+                "High-end laptop",
+                10,
+                1200.0,
+                "REGULAR");
+
+        String mouseListingId = storeService.addNewListing(
+                username,
+                techStore.storeId(),
+                "mouse_prod",
+                "Mouse",
+                "electronics",
+                "Wireless mouse",
+                20,
+                25.0,
+                "REGULAR");
+
+        // Act: Add products to cart using the *listing IDs* so that PurchaseService can locate them
+        userService.addProductToCart(techStore.storeId(), laptopListingId, 1);  // Buy 1 laptop
+        userService.addProductToCart(techStore.storeId(), mouseListingId, 2);   // Buy 2 mice
+
+        // Verify cart populated as expected before purchase
+        User userBeforePurchase = userRepository.findById(username);
+        assertNotNull(userBeforePurchase);
+        assertEquals(1, userBeforePurchase.getShoppingCart().getStoreBags().size());
+
+        // Perform the purchase
+        String shippingAddress = "123 Market St";
+        String paymentDetails  = "VISA **** 4242";
+        purchaseService.executePurchase(username, userService.getCart(), shippingAddress, paymentDetails);
+
+        // Assert: purchase persisted
+        assertEquals(1, purchaseRepository.getPurchasesByUser(username).size(),
+                "One purchase record should exist for the user");
+
+        // Assert: cart cleared after purchase
+        User userAfterPurchase = userRepository.findById(username);
+        Assertions.assertTrue(userAfterPurchase.getShoppingCart().getStoreBags().isEmpty(),
+                "Shopping cart should be empty after successful purchase");
+
+        // Assert: stock quantities updated (10->9 for laptop, 20->18 for mouse)
+        assertEquals(9, listingRepository.getListingById(laptopListingId).getQuantityAvailable());
+        assertEquals(18, listingRepository.getListingById(mouseListingId).getQuantityAvailable());
     }
 
     static boolean isMySQLAvailable() {

@@ -1,14 +1,20 @@
 package market.domain.store.Policies.Discounts;
 
 import market.domain.store.IStoreProductsManager;
-import market.domain.store.Policies.DiscountPolicy;
+import market.domain.store.Policies.DiscountPolicyEntity;
 import market.dto.PolicyDTO;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.util.Map;
 import java.util.Objects;
 
 // The default policy: no discount
-public class DefaultDiscountPolicy implements DiscountPolicy {
+@Entity
+@Table(name="discount_default")
+public class DefaultDiscountPolicy extends DiscountPolicyEntity {
+    public DefaultDiscountPolicy() {}
+
     @Override
     public double calculateDiscount(Map<String, Integer> listings, IStoreProductsManager productManager) {
         return 0;

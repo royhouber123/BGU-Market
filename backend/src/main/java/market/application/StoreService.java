@@ -25,6 +25,7 @@ import market.domain.store.StoreProductManager;
 
 @Service
 public class StoreService {
+   
     private IStoreRepository storeRepository;
     private IUserRepository userRepository;
     private IListingRepository listingRepository;
@@ -32,7 +33,7 @@ public class StoreService {
     private String storeIDs ="1";
     private Logger logger = Logger.getInstance();
     private ISuspensionRepository suspentionRepository; 
-
+    @Autowired
     public StoreService(IStoreRepository storeRepository, IUserRepository userRepository, IListingRepository listingRepository,ISuspensionRepository suspentionRepository, NotificationService notificationService) {
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;

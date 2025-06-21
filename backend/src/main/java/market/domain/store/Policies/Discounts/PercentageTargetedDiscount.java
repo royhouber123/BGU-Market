@@ -5,19 +5,30 @@ import java.util.Objects;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Listing;
-import market.domain.store.Policies.DiscountPolicy;
+import market.domain.store.Policies.DiscountPolicyEntity;
 import market.dto.PolicyDTO;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
-public class PercentageTargetedDiscount implements DiscountPolicy {
+@Entity
+@Table(name = "discount_percentage_targeted")
+public class PercentageTargetedDiscount extends DiscountPolicyEntity {
 
-    private final DiscountTargetType targetType;
-    private final String targetId;
-    private final double percentage;
+    private DiscountTargetType targetType;
+    private String targetId;
+    private double percentage;
 
-    public PercentageTargetedDiscount(DiscountTargetType targetType, String targetId, double percentage) {
+    protected PercentageTargetedDiscount() { /* JPA */ }
+
+    public PercentageTargetedDiscount(String targetId, double percentage, DiscountTargetType targetType) {
         this.targetType = targetType;
         this.targetId = targetId;
         this.percentage = percentage;
+    }
+
+    // Legacy constructor (kept for backward compatibility)
+    public PercentageTargetedDiscount(DiscountTargetType targetType, String targetId, double percentage) {
+        this(targetId, percentage, targetType);
     }
 
     @Override

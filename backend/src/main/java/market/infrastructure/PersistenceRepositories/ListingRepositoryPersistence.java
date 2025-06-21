@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +17,7 @@ import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
 import market.infrastructure.IJpaRepository.IListingJpaRepository;
 
-
+@Primary
 @Repository
 @Transactional
 public class ListingRepositoryPersistence implements IListingRepository {

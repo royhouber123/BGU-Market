@@ -1,13 +1,19 @@
 package market.domain.store.Policies.Policies;
 
 import market.domain.store.IStoreProductsManager;
-import market.domain.store.Policies.PurchasePolicy;
+import market.domain.store.Policies.PurchasePolicyEntity;
 import market.dto.PolicyDTO;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class DefaultPurchasePolicy implements PurchasePolicy {
+@Entity
+@Table(name="policy_default")
+public class DefaultPurchasePolicy extends PurchasePolicyEntity {
+
+    public DefaultPurchasePolicy() {}
 
     @Override
     public boolean isPurchaseAllowed(Map<String, Integer> listings, IStoreProductsManager productManager) {
