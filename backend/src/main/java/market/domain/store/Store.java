@@ -182,29 +182,41 @@ public class Store {
     }
 
     public void initializeAfterLoad(IListingRepository listingRepository) {
+        /* fresh services */
         this.storeProductsManager = new StoreProductManager(this.storeID, listingRepository);
-        this.policyHandler = new PolicyHandler();
+        this.policyHandler        = new PolicyHandler();
 
-        this.ownerToAssignedOwners = new HashMap<>();
+        /* clear & rebuild the in-memory graphs */
+        this.ownerToAssignedOwners   = new HashMap<>();
         this.ownerToAssignedManagers = new HashMap<>();
-        this.ownerToWhoAssignedHim = new HashMap<>();
+        this.ownerToWhoAssignedHim   = new HashMap<>();
 
-        for (String ownerId : getAllOwners()) {
-            ownerToAssignedOwners.put(ownerId, new ArrayList<>());
-            ownerToAssignedManagers.put(ownerId, new ArrayList<>());
+        ownerToAssignedOwners.put(founderID, new ArrayList<>());
+        ownerToAssignedManagers.put(founderID, new ArrayList<>());
+
+        for (StoreRoleRow row : storeRoles) {
+            if (row.getRole() == StoreRoleRow.RoleType.OWNER) {
+                ownerToAssignedOwners.putIfAbsent(row.getUserId(),      new ArrayList<>());
+                ownerToAssignedManagers.putIfAbsent(row.getUserId(),    new ArrayList<>());
+            }
         }
 
         for (AssignmentRow row : assignments) {
-            String assigner = row.getAssigner();
-            String assignee = row.getAssignee();
+            String assigner  = row.getAssigner();
+            String assignee  = row.getAssignee();
+
+            /* make sure parent lists exist */
+            ownerToAssignedOwners  .computeIfAbsent(assigner, k -> new ArrayList<>());
+            ownerToAssignedManagers.computeIfAbsent(assigner, k -> new ArrayList<>());
 
             if (ownerToAssignedOwners.containsKey(assignee)) {
+                // assignee is an owner
                 ownerToAssignedOwners.get(assigner).add(assignee);
                 ownerToWhoAssignedHim.put(assignee, assigner);
-            }
-            else {
-                Manager m = new Manager(assignee, assigner);
-                ownerToAssignedManagers.get(assigner).add(m);
+            } else {
+                // assignee is a manager
+                ownerToAssignedManagers.get(assigner)
+                                    .add(new Manager(assignee, assigner));
             }
         }
 
@@ -212,17 +224,15 @@ public class Store {
             if (roleRow.getRole() == StoreRoleRow.RoleType.MANAGER) {
                 Manager m = getManager(roleRow.getUserId());
                 if (m != null) {
-                    for (int i = 0; i < 4; i++) {
-                        if (roleRowHasPermission(roleRow, i)) {
-                            try {
-                                m.addPermission(Store.Permission.fromCode(i), m.getApointedBy());
-                            } catch (Exception ignored) {}
-                        }
-                    }
+                    if (roleRow.isPermission0()) m.getPermissions().add(Permission.VIEW_ONLY);   // already default
+                    if (roleRow.isPermission1()) m.getPermissions().add(Permission.EDIT_PRODUCTS);
+                    if (roleRow.isPermission2()) m.getPermissions().add(Permission.EDIT_POLICIES);
+                    if (roleRow.isPermission3()) m.getPermissions().add(Permission.BID_APPROVAL);
                 }
             }
         }
     }
+
 
     private boolean roleRowHasPermission(StoreRoleRow row, int i) {
         return switch (i) {
@@ -279,55 +289,66 @@ public class Store {
         return true;
     }
 
-    /**
+   /**
      * Adds a new owner to the store, assigned by an existing owner.
-     * The new owner will be tracked in the ownership hierarchy.
      *
-     * @param appointerID  ID of the current owner assigning the new owner.
-     * @param newOwnerID   ID of the user to be added as a new owner.
+     * @param appointerID ID of the current owner assigning the new owner.
+     * @param newOwnerID  ID of the user to be added as a new owner.
      * @return {@code true} if the new owner was successfully added.
-     * @throws Exception if the appointer is not an owner, or if the new owner is already registered as an owner.
+     * @throws Exception if the appointer is not an owner, or if the new owner is already an owner.
      */
     public boolean addNewOwner(String appointerID, String newOwnerID) throws Exception {
-       synchronized (ownershipLock) {
+        synchronized (ownershipLock) {
             if (!isOwner(appointerID))
-                throw new Exception("the user:"+appointerID+" is not an owner of the store: "+storeID);
+                throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
 
             if (isOwner(newOwnerID))
-                throw new Exception("the user:"+appointerID+" is already an owner of the store: "+storeID);
-            storeClosedExeption();//actions are available only when open
-            ownerToAssignedOwners.get(appointerID).add(newOwnerID);
-            assignments.add(new AssignmentRow(appointerID, newOwnerID));
-            ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
-            ownerToWhoAssignedHim.put(newOwnerID,appointerID);
-            ownerToAssignedManagers.put(newOwnerID,new ArrayList<>());
-            return true;
-    }
-}
+                throw new Exception("User " + newOwnerID + " is already an owner of store " + storeID);
 
+            storeClosedExeption();  // store must be open
+
+            ownerToAssignedOwners
+                .computeIfAbsent(appointerID, k -> new ArrayList<>())  // make sure list exists
+                .add(newOwnerID);
+
+            ownerToAssignedOwners.put(newOwnerID,      new ArrayList<>());
+            ownerToAssignedManagers.put(newOwnerID,    new ArrayList<>());
+            ownerToWhoAssignedHim.put(newOwnerID,      appointerID);
+            assignments.add(new AssignmentRow(appointerID, newOwnerID));
+
+            return true;
+        }
+    }
 
     /**
      * Adds a new manager to the store, assigned by an existing owner.
-     * The manager will initially have no permissions until assigned explicitly.
      *
-     * @param appointerID    ID of the current owner assigning the new manager.
-     * @param newManagerID   ID of the user to be added as a new manager.
+     * @param appointerID   ID of the current owner assigning the new manager.
+     * @param newManagerID  ID of the user to be added as a new manager.
      * @return {@code true} if the manager was successfully added.
-     * @throws Exception if the appointer is not an owner, or if the new manager is already registered as a manager.
+     * @throws Exception if the appointer is not an owner, or if the new manager is already a manager.
      */
     public boolean addNewManager(String appointerID, String newManagerID) throws Exception {
-        synchronized (ownershipLock){
+        synchronized (ownershipLock) {
             if (!isOwner(appointerID))
-                throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+                throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
 
             if (isManager(newManagerID))
-                throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
-            storeClosedExeption();//actions are available only when open
-            Manager newManager = new Manager(newManagerID, appointerID);
-            assignments.add(new AssignmentRow(appointerID, newManagerID));
-            return ownerToAssignedManagers.get(appointerID).add(newManager);
-    }}
+                throw new Exception("User " + newManagerID + " is already a manager of store " + storeID);
 
+            storeClosedExeption();  // store must be open
+
+            Manager newManager = new Manager(newManagerID, appointerID);
+
+            ownerToAssignedManagers
+                .computeIfAbsent(appointerID, k -> new ArrayList<>())  // make sure list exists
+                .add(newManager);
+
+            assignments.add(new AssignmentRow(appointerID, newManagerID));
+
+            return true;
+        }
+    }
 
     /**
     * Removes a manager from the store.
