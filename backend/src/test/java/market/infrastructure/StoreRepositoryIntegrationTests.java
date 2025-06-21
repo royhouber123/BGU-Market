@@ -7,6 +7,10 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import support.AcceptanceTestSpringBase;
 import org.springframework.test.annotation.Commit;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+
 
 
 import java.sql.DriverManager;
@@ -64,6 +68,51 @@ public class StoreRepositoryIntegrationTests extends AcceptanceTestSpringBase {
             }
         }
     }
+
+    
+
+    @Test
+    void testRemoveStoreAlsoCleansAssignments() throws Exception {
+        String storeId = "888";
+        Store store = new Store(storeId, "Delete Me", "founderDel", null);
+        store.addNewManager("founderDel", "managerDel");
+
+        storeRepository.addStore(store);
+        storeRepository.removeStore("Delete Me");
+
+        try (var conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/bgu_market_test?useSSL=false", "bgu", "changeme");
+            var ps = conn.prepareStatement(
+                    "SELECT count(*) FROM store_assigners WHERE store_id = ?")
+        ) {
+            ps.setString(1, storeId);
+            try (var rs = ps.executeQuery()) {
+                rs.next();
+                int rows = rs.getInt(1);
+                assertEquals(0, rows, "All assignments should be deleted with store");
+            }
+        }
+    }
+
+    @Test
+    void testGetAllActiveStores_returnsOnlyOpenStores() throws Exception {
+        Store activeStore = new Store("701", "Active Store", "founderA", null);
+        Store closedStore = new Store("702", "Closed Store", "founderB", null);
+        closedStore.setActive(false);
+
+        storeRepository.addStore(activeStore);
+        storeRepository.addStore(closedStore);
+
+        List<Store> activeStores = storeRepository.getAllActiveStores();
+        assertTrue(activeStores.stream().anyMatch(s -> s.getStoreID().equals("701")), "Active store should be included");
+        assertTrue(activeStores.stream().noneMatch(s -> s.getStoreID().equals("702")), "Closed store should not be included");
+    }
+
+    
+
+
+
+
 
 
 }

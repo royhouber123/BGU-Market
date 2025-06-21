@@ -66,12 +66,21 @@ public class Store {
     private PolicyHandler policyHandler;
     @Transient
     private final Object ownershipLock = new Object();
+
     @ElementCollection
     @CollectionTable(
             name = "store_assigners",
             joinColumns = @JoinColumn(name = "store_id")
     )
     private List<AssignmentRow> assignments = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+        name = "store_roles",
+        joinColumns = @JoinColumn(name = "store_id")
+    )
+    private List<StoreRoleRow> storeRoles = new ArrayList<>();
+
 
     /*  Persisted policy collections  */
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -145,6 +154,88 @@ public class Store {
     public boolean isOpen() {
         return active;
     }
+
+    public void regenerateStoreRolesTable() {
+        storeRoles.clear();
+
+        // Owners
+        for (String ownerId : getAllOwners()) {
+            storeRoles.add(new StoreRoleRow(
+                    ownerId,
+                    StoreRoleRow.RoleType.OWNER,
+                    true, true, true, true
+            ));
+        }
+
+        // Managers
+        for (Manager m : getAllManagers()) {
+            boolean[] perms = new boolean[4];
+            for (Permission p : m.getPermissions()) {
+                perms[p.getCode()] = true;
+            }
+            storeRoles.add(new StoreRoleRow(
+                    m.getID(),
+                    StoreRoleRow.RoleType.MANAGER,
+                    perms[0], perms[1], perms[2], perms[3]
+            ));
+        }
+    }
+
+    public void initializeAfterLoad(IListingRepository listingRepository) {
+        this.storeProductsManager = new StoreProductManager(this.storeID, listingRepository);
+        this.policyHandler = new PolicyHandler();
+
+        this.ownerToAssignedOwners = new HashMap<>();
+        this.ownerToAssignedManagers = new HashMap<>();
+        this.ownerToWhoAssignedHim = new HashMap<>();
+
+        for (String ownerId : getAllOwners()) {
+            ownerToAssignedOwners.put(ownerId, new ArrayList<>());
+            ownerToAssignedManagers.put(ownerId, new ArrayList<>());
+        }
+
+        for (AssignmentRow row : assignments) {
+            String assigner = row.getAssigner();
+            String assignee = row.getAssignee();
+
+            if (ownerToAssignedOwners.containsKey(assignee)) {
+                ownerToAssignedOwners.get(assigner).add(assignee);
+                ownerToWhoAssignedHim.put(assignee, assigner);
+            }
+            else {
+                Manager m = new Manager(assignee, assigner);
+                ownerToAssignedManagers.get(assigner).add(m);
+            }
+        }
+
+        for (StoreRoleRow roleRow : storeRoles) {
+            if (roleRow.getRole() == StoreRoleRow.RoleType.MANAGER) {
+                Manager m = getManager(roleRow.getUserId());
+                if (m != null) {
+                    for (int i = 0; i < 4; i++) {
+                        if (roleRowHasPermission(roleRow, i)) {
+                            try {
+                                m.addPermission(Store.Permission.fromCode(i), m.getApointedBy());
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean roleRowHasPermission(StoreRoleRow row, int i) {
+        return switch (i) {
+            case 0 -> row.isPermission0();
+            case 1 -> row.isPermission1();
+            case 2 -> row.isPermission2();
+            case 3 -> row.isPermission3();
+            default -> false;
+        };
+    }
+
+
+
 
     /**
      * Throws an exception if the store is currently closed.
@@ -1083,6 +1174,62 @@ public class Store {
         public String getAssigner() { return assigner; }
         public String getAssignee() { return assignee; }
     }
+
+    @Embeddable
+    public static class StoreRoleRow {
+
+        private String userId;
+
+        @Enumerated(EnumType.STRING)
+        private RoleType role;
+
+        private boolean permission0;
+        private boolean permission1;
+        private boolean permission2;
+        private boolean permission3;
+
+        public StoreRoleRow() {}
+
+        public StoreRoleRow(String userId, RoleType role,
+                            boolean p0, boolean p1, boolean p2, boolean p3) {
+            this.userId = userId;
+            this.role = role;
+            this.permission0 = p0;
+            this.permission1 = p1;
+            this.permission2 = p2;
+            this.permission3 = p3;
+        }
+
+        public enum RoleType {
+            OWNER,
+            MANAGER
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public RoleType getRole() {
+            return role;
+        }
+
+        public boolean isPermission0() {
+            return permission0;
+        }
+
+        public boolean isPermission1() {
+            return permission1;
+        }
+
+        public boolean isPermission2() {
+            return permission2;
+        }
+
+        public boolean isPermission3() {
+            return permission3;
+        }
+    }
+
 
 
 
