@@ -85,6 +85,11 @@ public class StoreRepositoryPersistance implements IStoreRepository {
         return String.valueOf(System.currentTimeMillis());
     }
 
+    // @Override
+    // public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock) {
+    //     throw new UnsupportedOperationException();
+    // }
+
     @Override
     public Map<String, List<market.domain.Role.Role>> getUsersRoles(String userName) {
         List<Store> stores = storeJpaRepository.findStoresByUserId(userName);

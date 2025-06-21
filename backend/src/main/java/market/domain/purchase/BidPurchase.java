@@ -11,7 +11,7 @@ import javax.management.Notification;
 public class BidPurchase {
 
     //to update and check stock
-    private static IStoreRepository storeRepository;
+    private static IListingRepository listingRepository;
     private static IShipmentService shipmentService;
     private static IPaymentService paymentService;
     private static IPurchaseRepository purchaseRepository;
@@ -34,11 +34,11 @@ public class BidPurchase {
      * 
      * Called by: Subscriber (user)- from executePurchase method in the PurchaseService class.
      */
-    public static void submitBid(IStoreRepository rep, String storeId, String productId, String userId, double amount,
+    public static void submitBid(IListingRepository rep, String storeId, String productId, String userId, double amount,
                                  String shippingAddress, String contactInfo, Set<String> approvers, IShipmentService shipment, IPaymentService payment, IPurchaseRepository purchaseRep, NotificationService notifService) { 
 
         if (amount <= 0) throw new RuntimeException("Bid must be a positive value.");
-        storeRepository=rep;
+        listingRepository=rep;
         shipmentService=shipment;
         paymentService=payment;
         purchaseRepository=purchaseRep;
@@ -75,7 +75,7 @@ public class BidPurchase {
                     Map<String, Integer> productMap = new HashMap<>();
                     productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
                     listForUpdateStock.put(storeId, productMap);
-                    boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
+                    boolean updatedStock = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
                     if (!updatedStock) {
                         throw new RuntimeException("Failed to update stock for bid purchase.");
                     }
@@ -168,7 +168,7 @@ public class BidPurchase {
                 Map<String, Integer> productMap = new HashMap<>();
                 productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
                 listForUpdateStock.put(storeId, productMap);
-                boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
+                boolean updatedStock = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
                 if (!updatedStock) {
                     throw new RuntimeException("Failed to update stock for bid purchase.");
                 }
@@ -251,10 +251,19 @@ public class BidPurchase {
                 1, // Always 1 in a bid purchase
                 price
         );
-        paymentService.processPayment(paymentDetails);
-        shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
-        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, paymentDetails);
-        purchaseRepository.save(newP);
+        Purchase newP = null;
+        try {
+            paymentService.processPayment(paymentDetails);
+            shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
+            newP=new Purchase(userId, List.of(product), price, shippingAddress, paymentDetails);
+            purchaseRepository.save(newP);
+        } catch (Exception e) {
+            listingRepository.updateOrRestoreStock(Map.of(storeId, Map.of(productId, 1)), true); // Restock if purchase fails
+            notificationService.sendNotification(userId, "Purchase failed: " + e.getMessage());
+            throw new RuntimeException("Failed to complete purchase: " + e.getMessage(), e);
+        }
+
+        //update or restock in catch
         return newP;
     } 
 
@@ -263,8 +272,8 @@ public class BidPurchase {
     }
 
 
-    public static void setStoreRepository(IStoreRepository storeRepository2) {
-        storeRepository=storeRepository2;
+    public static void setListingRepository(IListingRepository listingRepository2) {
+        listingRepository=listingRepository2;
     }
 
 

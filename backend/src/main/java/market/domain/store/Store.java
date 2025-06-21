@@ -1233,5 +1233,19 @@ public class Store {
 
 
 
+    public IStoreProductsManager getStoreProductsManager() {
+        return storeProductsManager;
+    }
 
+    public void setStoreProductsManager(IStoreProductsManager storeProductsManager) {
+        this.storeProductsManager = storeProductsManager;
+    }
+
+    public PolicyHandler getPolicyHandler() {
+        return policyHandler;
+    }
+
+    public void setPolicyHandler(PolicyHandler policyHandler) {
+        this.policyHandler = policyHandler;
+    }
 }

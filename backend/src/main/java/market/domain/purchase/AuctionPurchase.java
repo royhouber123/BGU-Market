@@ -20,7 +20,7 @@ import java.util.Timer;
 public class AuctionPurchase {
 
     //to update and check stock
-    private static IStoreRepository storeRepository;
+    private static IListingRepository listingRepository;
     private static IPurchaseRepository purchaseRepository;
     private static NotificationService notificationService;
 
@@ -44,7 +44,7 @@ public class AuctionPurchase {
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(IStoreRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep, NotificationService notifService) {
+    public static void openAuction(IListingRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep, NotificationService notifService) {
         purchaseRepository = purchaseRep;
         notificationService = notifService;
         long currentTime = System.currentTimeMillis();
@@ -54,7 +54,7 @@ public class AuctionPurchase {
             return;
         }
         
-        storeRepository = rep;
+        listingRepository = rep;
         AuctionKey key = new AuctionKey(storeId, productId);
         offers.put(key, new ArrayList<>());
         endTimes.put(key, endTimeMillis);
@@ -153,7 +153,7 @@ public class AuctionPurchase {
         Map<String, Integer> productMap = new HashMap<>();
         productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
         listForUpdateStock.put(storeId, productMap);
-        boolean updatedStock = storeRepository.updateStockForPurchasedItems(listForUpdateStock);
+        boolean updatedStock = listingRepository.updateOrRestoreStock(listForUpdateStock, false); 
         if (!updatedStock) {
             throw new RuntimeException("Failed to update stock for auction purchase.");
         }
@@ -205,8 +205,8 @@ public class AuctionPurchase {
         return startingPrices;
     }
 
-    public static void setStoreRepository(IStoreRepository storeRepository) {
-        AuctionPurchase.storeRepository = storeRepository;
+    public static void setListingRepository(IListingRepository listingRepository) {
+        AuctionPurchase.listingRepository = listingRepository;
     }
 
     public static void setPurchaseRepository(IPurchaseRepository purchaseRepository) {

@@ -69,9 +69,5 @@ public class AppConfig {
         return new NotificationService(notificationRepository, notifier);
     }
     
-    @Bean
-    public INotificationRepository notificationRepository() {
-        return new NotificationRepository();
-    }
 
 }
