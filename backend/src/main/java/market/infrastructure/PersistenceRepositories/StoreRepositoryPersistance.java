@@ -8,6 +8,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import market.domain.store.IListingRepository;
+import java.util.HashMap;
+import java.util.ArrayList;
+
+
 
 import java.util.List;
 import java.util.Map;
@@ -20,13 +25,23 @@ public class StoreRepositoryPersistance implements IStoreRepository {
     @Autowired
     private IStoreJpaRepository storeJpaRepository;
 
+    @Autowired
+    private IListingRepository listingRepository;
+
+
     @Override
     public Store getStoreByID(String storeID) {
-        return storeJpaRepository.findById(storeID).orElse(null);
+        Store store = storeJpaRepository.findById(storeID).orElse(null);
+        if (store != null) {
+            store.initializeAfterLoad(listingRepository);
+        }
+        return store;
     }
+
 
     @Override
     public void save(Store store) {
+        store.regenerateStoreRolesTable();
         storeJpaRepository.save(store);
     }
 
@@ -35,20 +50,29 @@ public class StoreRepositoryPersistance implements IStoreRepository {
         if (storeJpaRepository.existsById(store.getStoreID())) {
             throw new Exception("Store with ID " + store.getStoreID() + " already exists.");
         }
+        store.regenerateStoreRolesTable();
         storeJpaRepository.save(store);
     }
 
-    // את השאר נשאיר unimplemented לעכשיו
-
     @Override
     public Store getStoreByName(String storeName) {
-        throw new UnsupportedOperationException();
+        Store store = storeJpaRepository.findByName(storeName).orElse(null);
+        if (store != null) {
+            store.initializeAfterLoad(listingRepository);
+        }
+        return store;
     }
+
 
     @Override
     public void removeStore(String storeName) throws Exception {
-        throw new UnsupportedOperationException();
+        Store store = storeJpaRepository.findByName(storeName).orElse(null);
+        if (store == null) {
+            throw new Exception("Store with name '" + storeName + "' does not exist.");
+        }
+        storeJpaRepository.delete(store);
     }
+
 
     @Override
     public boolean containsStore(String storeName) {
@@ -61,20 +85,43 @@ public class StoreRepositoryPersistance implements IStoreRepository {
         return String.valueOf(System.currentTimeMillis());
     }
 
-    @Override
-    public boolean updateStockForPurchasedItems(Map<String, Map<String, Integer>> listForUpdateStock) {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public Map<String, List<market.domain.Role.Role>> getUsersRoles(String userName) {
-        throw new UnsupportedOperationException();
+        List<Store> stores = storeJpaRepository.findStoresByUserId(userName);
+        Map<String, List<market.domain.Role.Role>> result = new HashMap<>();
+
+        for (Store store : stores) {
+            store.initializeAfterLoad(listingRepository); 
+
+            List<market.domain.Role.Role> roles = new ArrayList<>();
+
+            if (store.isOwner(userName)) {
+                roles.add(market.domain.Role.Role.OWNER);
+            }
+
+            if (store.isManager(userName)) {
+                roles.add(market.domain.Role.Role.MANAGER);
+            }
+
+            if (!roles.isEmpty()) {
+                result.put(store.getStoreID(), roles);
+            }
+        }
+
+        return result;
     }
+
 
     @Override
     public List<Store> getAllActiveStores() {
-        throw new UnsupportedOperationException();
+        List<Store> stores = storeJpaRepository.findByActiveTrue();
+        for (Store store : stores) {
+            store.initializeAfterLoad(listingRepository); 
+        }
+        return stores;
     }
+
 
     
 }

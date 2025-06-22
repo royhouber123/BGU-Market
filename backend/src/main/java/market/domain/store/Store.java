@@ -66,12 +66,21 @@ public class Store {
     private PolicyHandler policyHandler;
     @Transient
     private final Object ownershipLock = new Object();
+
     @ElementCollection
     @CollectionTable(
             name = "store_assigners",
             joinColumns = @JoinColumn(name = "store_id")
     )
     private List<AssignmentRow> assignments = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+        name = "store_roles",
+        joinColumns = @JoinColumn(name = "store_id")
+    )
+    private List<StoreRoleRow> storeRoles = new ArrayList<>();
+
 
     /*  Persisted policy collections  */
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -146,6 +155,98 @@ public class Store {
         return active;
     }
 
+    public void regenerateStoreRolesTable() {
+        storeRoles.clear();
+
+        // Owners
+        for (String ownerId : getAllOwners()) {
+            storeRoles.add(new StoreRoleRow(
+                    ownerId,
+                    StoreRoleRow.RoleType.OWNER,
+                    true, true, true, true
+            ));
+        }
+
+        // Managers
+        for (Manager m : getAllManagers()) {
+            boolean[] perms = new boolean[4];
+            for (Permission p : m.getPermissions()) {
+                perms[p.getCode()] = true;
+            }
+            storeRoles.add(new StoreRoleRow(
+                    m.getID(),
+                    StoreRoleRow.RoleType.MANAGER,
+                    perms[0], perms[1], perms[2], perms[3]
+            ));
+        }
+    }
+
+    public void initializeAfterLoad(IListingRepository listingRepository) {
+        /* fresh services */
+        this.storeProductsManager = new StoreProductManager(this.storeID, listingRepository);
+        this.policyHandler        = new PolicyHandler();
+
+        /* clear & rebuild the in-memory graphs */
+        this.ownerToAssignedOwners   = new HashMap<>();
+        this.ownerToAssignedManagers = new HashMap<>();
+        this.ownerToWhoAssignedHim   = new HashMap<>();
+
+        ownerToAssignedOwners.put(founderID, new ArrayList<>());
+        ownerToAssignedManagers.put(founderID, new ArrayList<>());
+
+        for (StoreRoleRow row : storeRoles) {
+            if (row.getRole() == StoreRoleRow.RoleType.OWNER) {
+                ownerToAssignedOwners.putIfAbsent(row.getUserId(),      new ArrayList<>());
+                ownerToAssignedManagers.putIfAbsent(row.getUserId(),    new ArrayList<>());
+            }
+        }
+
+        for (AssignmentRow row : assignments) {
+            String assigner  = row.getAssigner();
+            String assignee  = row.getAssignee();
+
+            /* make sure parent lists exist */
+            ownerToAssignedOwners  .computeIfAbsent(assigner, k -> new ArrayList<>());
+            ownerToAssignedManagers.computeIfAbsent(assigner, k -> new ArrayList<>());
+
+            if (ownerToAssignedOwners.containsKey(assignee)) {
+                // assignee is an owner
+                ownerToAssignedOwners.get(assigner).add(assignee);
+                ownerToWhoAssignedHim.put(assignee, assigner);
+            } else {
+                // assignee is a manager
+                ownerToAssignedManagers.get(assigner)
+                                    .add(new Manager(assignee, assigner));
+            }
+        }
+
+        for (StoreRoleRow roleRow : storeRoles) {
+            if (roleRow.getRole() == StoreRoleRow.RoleType.MANAGER) {
+                Manager m = getManager(roleRow.getUserId());
+                if (m != null) {
+                    if (roleRow.isPermission0()) m.getPermissions().add(Permission.VIEW_ONLY);   // already default
+                    if (roleRow.isPermission1()) m.getPermissions().add(Permission.EDIT_PRODUCTS);
+                    if (roleRow.isPermission2()) m.getPermissions().add(Permission.EDIT_POLICIES);
+                    if (roleRow.isPermission3()) m.getPermissions().add(Permission.BID_APPROVAL);
+                }
+            }
+        }
+    }
+
+
+    private boolean roleRowHasPermission(StoreRoleRow row, int i) {
+        return switch (i) {
+            case 0 -> row.isPermission0();
+            case 1 -> row.isPermission1();
+            case 2 -> row.isPermission2();
+            case 3 -> row.isPermission3();
+            default -> false;
+        };
+    }
+
+
+
+
     /**
      * Throws an exception if the store is currently closed.
      * Useful as a helper method to enforce that certain operations can only happen when the store is open.
@@ -188,55 +289,66 @@ public class Store {
         return true;
     }
 
-    /**
+   /**
      * Adds a new owner to the store, assigned by an existing owner.
-     * The new owner will be tracked in the ownership hierarchy.
      *
-     * @param appointerID  ID of the current owner assigning the new owner.
-     * @param newOwnerID   ID of the user to be added as a new owner.
+     * @param appointerID ID of the current owner assigning the new owner.
+     * @param newOwnerID  ID of the user to be added as a new owner.
      * @return {@code true} if the new owner was successfully added.
-     * @throws Exception if the appointer is not an owner, or if the new owner is already registered as an owner.
+     * @throws Exception if the appointer is not an owner, or if the new owner is already an owner.
      */
     public boolean addNewOwner(String appointerID, String newOwnerID) throws Exception {
-       synchronized (ownershipLock) {
+        synchronized (ownershipLock) {
             if (!isOwner(appointerID))
-                throw new Exception("the user:"+appointerID+" is not an owner of the store: "+storeID);
+                throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
 
             if (isOwner(newOwnerID))
-                throw new Exception("the user:"+appointerID+" is already an owner of the store: "+storeID);
-            storeClosedExeption();//actions are available only when open
-            ownerToAssignedOwners.get(appointerID).add(newOwnerID);
-            assignments.add(new AssignmentRow(appointerID, newOwnerID));
-            ownerToAssignedOwners.put(newOwnerID,new ArrayList<>());
-            ownerToWhoAssignedHim.put(newOwnerID,appointerID);
-            ownerToAssignedManagers.put(newOwnerID,new ArrayList<>());
-            return true;
-    }
-}
+                throw new Exception("User " + newOwnerID + " is already an owner of store " + storeID);
 
+            storeClosedExeption();  // store must be open
+
+            ownerToAssignedOwners
+                .computeIfAbsent(appointerID, k -> new ArrayList<>())  // make sure list exists
+                .add(newOwnerID);
+
+            ownerToAssignedOwners.put(newOwnerID,      new ArrayList<>());
+            ownerToAssignedManagers.put(newOwnerID,    new ArrayList<>());
+            ownerToWhoAssignedHim.put(newOwnerID,      appointerID);
+            assignments.add(new AssignmentRow(appointerID, newOwnerID));
+
+            return true;
+        }
+    }
 
     /**
      * Adds a new manager to the store, assigned by an existing owner.
-     * The manager will initially have no permissions until assigned explicitly.
      *
-     * @param appointerID    ID of the current owner assigning the new manager.
-     * @param newManagerID   ID of the user to be added as a new manager.
+     * @param appointerID   ID of the current owner assigning the new manager.
+     * @param newManagerID  ID of the user to be added as a new manager.
      * @return {@code true} if the manager was successfully added.
-     * @throws Exception if the appointer is not an owner, or if the new manager is already registered as a manager.
+     * @throws Exception if the appointer is not an owner, or if the new manager is already a manager.
      */
     public boolean addNewManager(String appointerID, String newManagerID) throws Exception {
-        synchronized (ownershipLock){
+        synchronized (ownershipLock) {
             if (!isOwner(appointerID))
-                throw new Exception("the user:"+appointerID+" is not a owner of the store: "+storeID);
+                throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
 
             if (isManager(newManagerID))
-                throw new Exception("the user:"+newManagerID+" is already a manager of the store: "+storeID);
-            storeClosedExeption();//actions are available only when open
-            Manager newManager = new Manager(newManagerID, appointerID);
-            assignments.add(new AssignmentRow(appointerID, newManagerID));
-            return ownerToAssignedManagers.get(appointerID).add(newManager);
-    }}
+                throw new Exception("User " + newManagerID + " is already a manager of store " + storeID);
 
+            storeClosedExeption();  // store must be open
+
+            Manager newManager = new Manager(newManagerID, appointerID);
+
+            ownerToAssignedManagers
+                .computeIfAbsent(appointerID, k -> new ArrayList<>())  // make sure list exists
+                .add(newManager);
+
+            assignments.add(new AssignmentRow(appointerID, newManagerID));
+
+            return true;
+        }
+    }
 
     /**
     * Removes a manager from the store.
@@ -1084,7 +1196,77 @@ public class Store {
         public String getAssignee() { return assignee; }
     }
 
+    @Embeddable
+    public static class StoreRoleRow {
+
+        private String userId;
+
+        @Enumerated(EnumType.STRING)
+        private RoleType role;
+
+        private boolean permission0;
+        private boolean permission1;
+        private boolean permission2;
+        private boolean permission3;
+
+        public StoreRoleRow() {}
+
+        public StoreRoleRow(String userId, RoleType role,
+                            boolean p0, boolean p1, boolean p2, boolean p3) {
+            this.userId = userId;
+            this.role = role;
+            this.permission0 = p0;
+            this.permission1 = p1;
+            this.permission2 = p2;
+            this.permission3 = p3;
+        }
+
+        public enum RoleType {
+            OWNER,
+            MANAGER
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public RoleType getRole() {
+            return role;
+        }
+
+        public boolean isPermission0() {
+            return permission0;
+        }
+
+        public boolean isPermission1() {
+            return permission1;
+        }
+
+        public boolean isPermission2() {
+            return permission2;
+        }
+
+        public boolean isPermission3() {
+            return permission3;
+        }
+    }
 
 
 
+
+    public IStoreProductsManager getStoreProductsManager() {
+        return storeProductsManager;
+    }
+
+    public void setStoreProductsManager(IStoreProductsManager storeProductsManager) {
+        this.storeProductsManager = storeProductsManager;
+    }
+
+    public PolicyHandler getPolicyHandler() {
+        return policyHandler;
+    }
+
+    public void setPolicyHandler(PolicyHandler policyHandler) {
+        this.policyHandler = policyHandler;
+    }
 }

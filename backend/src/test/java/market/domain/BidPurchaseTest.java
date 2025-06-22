@@ -4,7 +4,7 @@ import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.application.NotificationService;
 import market.domain.purchase.*;
-import market.domain.store.IStoreRepository;
+import market.domain.store.IListingRepository;
 import utils.ApiResponse;
 
 import org.junit.jupiter.api.*;
@@ -20,7 +20,7 @@ public class BidPurchaseTest {
 
     private IShipmentService shipmentService;
     private IPaymentService paymentService;
-    private IStoreRepository storeRepository;
+    private IListingRepository listingRepository;
     private IPurchaseRepository purchaseRepository;
     private NotificationService notificationService;
 
@@ -38,9 +38,9 @@ public class BidPurchaseTest {
         bidKey = new BidKey(storeId, productId);
         approvers = Set.of("owner1", "manager1");
 
-        storeRepository = mock(IStoreRepository.class);
-        when(storeRepository.updateStockForPurchasedItems(anyMap())).thenReturn(true);
-        BidPurchase.setStoreRepository(storeRepository);
+        listingRepository = mock(IListingRepository.class);
+        when(listingRepository.updateOrRestoreStock(anyMap(), eq(false))).thenReturn(true);
+        BidPurchase.setListingRepository(listingRepository);
 
         purchaseRepository = mock(IPurchaseRepository.class);
         BidPurchase.setPurchaseRepository(purchaseRepository);
@@ -76,14 +76,14 @@ public class BidPurchaseTest {
     @Test
     void submitBid_validBid_shouldAddToMap() {
         assertDoesNotThrow(() -> BidPurchase.submitBid(
-                storeRepository, storeId, productId, userId, 100.0, "addr", "contact", approvers, shipmentService, paymentService, purchaseRepository, notificationService));
+                listingRepository, storeId, productId, userId, 100.0, "addr", "contact", approvers, shipmentService, paymentService, purchaseRepository, notificationService));
         assertTrue(BidPurchase.getBids().containsKey(bidKey));
     }
 
     @Test
     void submitBid_negativeAmount_shouldThrow() {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> BidPurchase.submitBid(
-                storeRepository, storeId, productId, userId, -50.0, "addr", "contact", approvers, shipmentService, paymentService, purchaseRepository, notificationService));
+                listingRepository, storeId, productId, userId, -50.0, "addr", "contact", approvers, shipmentService, paymentService, purchaseRepository, notificationService));
         assertEquals("Bid must be a positive value.", ex.getMessage());
     }
 

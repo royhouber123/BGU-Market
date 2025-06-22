@@ -21,6 +21,8 @@ import utils.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import market.domain.store.StoreProductManager;
+import org.springframework.transaction.annotation.Transactional;
+
 
 
 @Service
@@ -293,44 +295,41 @@ public class StoreService {
      * @throws RuntimeException if the store does not exist, the appointer is not an owner,
      *                           the new manager is already assigned, or any other business rule is violated.
      */
-    public Void addNewManager(String appointerID, String newManagerName, String storeID){
-        try{
-            System.out.println("Adding new manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
-            suspentionRepository.checkNotSuspended(appointerID);// check if user is suspended
-            suspentionRepository.checkNotSuspended(newManagerName);// check if user is suspended
+    @Transactional
+    public Void addNewManager(String appointerID,
+                            String newManagerName,
+                            String storeID) {
+        try {
+            suspentionRepository.checkNotSuspended(appointerID);
+            suspentionRepository.checkNotSuspended(newManagerName);
+
             Store s = storeRepository.getStoreByID(storeID);
-            if (s == null){
-                System.out.println("Store doesn't exist manager");
-                logger.debug("Attempted to add manager to non-existent store: " + storeID);
-                throw new IllegalArgumentException("store doesn't exist");
-            }
+            if (s == null)
+                throw new IllegalArgumentException("Store doesn't exist");
 
-            // Validate that the user being added exists in the system
-            try {
-                userRepository.findById(newManagerName);
-            } catch (Exception e) {
-                logger.debug("Attempted to add non-existent user as manager: " + newManagerName + " to store: " + storeID);
-                throw new IllegalArgumentException("User '" + newManagerName + "' does not exist in the system");
-            }
+            // ensure the user exists
+            userRepository.findById(newManagerName);   // will throw if missing
 
-            if (s.addNewManager(appointerID,newManagerName)){
-                logger.info("Added new manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
+            s.addNewManager(appointerID, newManagerName);
 
-                // Notify the new manager
-                notifyUser(newManagerName, "You have been appointed as a manager of store " + s.getName() + ".");
+            storeRepository.save(s);        // <-- forces INSERT of AssignmentRow
 
-                return null;
-            }
-            else{
-                logger.error("Failed to add manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
-                throw new RuntimeException("Failed to add manager: " + newManagerName + " to store: " + storeID + ", by: " + appointerID);
-            }
+            logger.info("Added new manager: " + newManagerName +
+                        " to store: " + storeID + ", by: " + appointerID);
+
+            notifyUser(newManagerName,
+                    "You have been appointed as a manager of store " +
+                    s.getName() + ".");
+
+            return null;
 
         } catch (Exception e) {
-            logger.error("Error adding manager: " + newManagerName + " to store: " + storeID + ". Reason: " + e.getMessage());
-            throw new RuntimeException("Error adding manager: " + newManagerName + " to store: " + storeID + ". Reason: " + e.getMessage());
+            logger.error("Error adding manager: " + newManagerName +
+                        " to store: " + storeID + ". Reason: " + e.getMessage());
+            throw new RuntimeException("Error adding manager: " + e.getMessage());
         }
     }
+
 
     /**
      * Removes a manager from the store by delegating to the business logic layer.

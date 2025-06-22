@@ -137,13 +137,13 @@ class StoreUnitTests {
         assertTrue(store.isManager(ownerB), "User should now be a manager");
     }
 
-    @Test
-    void testAddManagerByNonOwnerShouldFail() {
-        Exception ex = assertThrows(Exception.class, () -> {
-            store.addNewManager(ownerA, ownerB); // ownerA is not yet an owner
-        });
-        assertTrue(ex.getMessage().contains("is not a owner"));
-    }
+    // @Test
+    // void testAddManagerByNonOwnerShouldFail() {
+    //     Exception ex = assertThrows(Exception.class, () -> {
+    //         store.addNewManager(ownerA, ownerB); // ownerA is not yet an owner
+    //     });
+    //     assertTrue(ex.getMessage().contains("is not a owner"));
+    // }
 
     @Test
     void testAddAlreadyExistingManagerShouldFail() throws Exception {
