@@ -289,12 +289,11 @@ const userService = {
       // Convert backend cart format to frontend format
       const frontendCart = [];
       
-      // The backend returns a ShoppingCart object with allStoreBags property
-      const storeBags = backendCart?.allStoreBags || [];
-      console.log('[syncCartFromBackend] Found', storeBags.length, 'store bags');
+      // The backend returns a ShoppingCart object with storeBags property (map/object)
+      const storeBagsMap = backendCart?.storeBags || {};
+      console.log('[syncCartFromBackend] Found store bags:', Object.keys(storeBagsMap).length);
       
-      for (const storeBag of storeBags) {
-        const storeId = storeBag.storeId;
+      for (const [storeId, storeBag] of Object.entries(storeBagsMap)) {
         // StoreBag has both 'products' and 'productQuantities' - they're the same
         const products = storeBag.products || storeBag.productQuantities || {};
         console.log('[syncCartFromBackend] Processing store', storeId, 'with products:', products);
