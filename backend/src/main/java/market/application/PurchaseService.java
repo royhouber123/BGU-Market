@@ -22,13 +22,15 @@ public class PurchaseService {
     private final IPurchaseRepository purchaseRepository;
     private final IListingRepository listingRepository;
     private final IUserRepository userRepository;
+    private final IAuctionRepository auctionRepository;
+    private final IBidRepository bidRepository;
     private final IPaymentService paymentService;
     private final IShipmentService shipmentService;
     private final Logger logger = Logger.getInstance();
     private ISuspensionRepository suspensionRepository; 
 
     @Autowired
-    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService, ISuspensionRepository suspentionRepository, NotificationService notificationService) {
+    public PurchaseService(IStoreRepository storeRepository, IPurchaseRepository purchaseRepository, IListingRepository listingRepository, IUserRepository userRepository, IPaymentService paymentService, IShipmentService shipmentService, ISuspensionRepository suspentionRepository, NotificationService notificationService, IAuctionRepository auctionRep, IBidRepository bidRep) {
         this.storeRepository = storeRepository;
         this.purchaseRepository = purchaseRepository;
         this.listingRepository=listingRepository;
@@ -37,6 +39,8 @@ public class PurchaseService {
         this.shipmentService = shipmentService;
         this.suspensionRepository = suspentionRepository;
         this.notificationService = notificationService;
+        this.auctionRepository = auctionRep;
+        this.bidRepository = bidRep;
     }
 
     // Regular Purchase
@@ -74,16 +78,19 @@ public class PurchaseService {
                 for (Map.Entry<String, Integer> product : bag.getProducts().entrySet()) {
                     String productId = product.getKey();
                     double unitPrice;
+                    String productName;
     
                     try {
                         unitPrice = listingRepository.ProductPrice(productId);
+                        Listing listing = listingRepository.getListingById(productId);
+                        productName = (listing != null) ? listing.getProductName() : "";
                     } catch (Exception e) {
                         logger.debug("Product not found: " + productId);
                         throw new RuntimeException("Product not found: " + productId);
                     }
     
                     Integer quantity = product.getValue();
-                    PurchasedProduct purchasedProduct = new PurchasedProduct(productId, storeId, quantity, unitPrice);
+                    PurchasedProduct purchasedProduct = new PurchasedProduct(productId, productName, storeId, quantity, unitPrice);
                     purchasedItems.add(purchasedProduct);
                 }
             }
@@ -160,7 +167,7 @@ public class PurchaseService {
             String actualProductId = store.addNewListing(userId, productId, productName, productCategory, productDescription, 1, startingPrice, "AUCTION");
     
             // Use the actual product ID for the auction
-            AuctionPurchase.openAuction(listingRepository, storeId, actualProductId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService);
+            AuctionPurchase.openAuction(listingRepository, storeId, actualProductId, startingPrice, endTimeMillis, shipmentService, paymentService, purchaseRepository, notificationService, auctionRepository);
     
             logger.info("Auction opened: store " + storeId + ", product " + actualProductId + ", by user " + userId);
     
@@ -237,7 +244,8 @@ public class PurchaseService {
                 shipmentService,
                 paymentService,
                 purchaseRepository,
-                notificationService
+                notificationService,
+                bidRepository
             );
             notifyAllApproversForBid(storeId, "New bid submitted for approval: " + userId + " has submitted a bid of $" + offerPrice + " for product " + productId + " in store " + storeId);
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);

@@ -10,12 +10,14 @@ import lombok.NoArgsConstructor;
 @Embeddable
 public class PurchasedProduct {
     private String productId;
+    private String productName;
     private String storeId;
     private int quantity;
     private double unitPrice;
 
-    public PurchasedProduct(String productId, String storeId, int quantity, double unitPrice) {
+    public PurchasedProduct(String productId, String productName, String storeId, int quantity, double unitPrice) {
         this.productId = productId;
+        this.productName = productName;
         this.storeId = storeId;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
@@ -23,6 +25,10 @@ public class PurchasedProduct {
 
     public String getProductId() {
         return productId;
+    }
+
+    public String getProductName() {
+        return productName;
     }
 
     public String getStoreId() {

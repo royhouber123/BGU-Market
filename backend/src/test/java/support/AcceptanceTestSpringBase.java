@@ -11,6 +11,8 @@ import market.application.StoreService;
 import market.application.UserService;
 import market.domain.Role.IRoleRepository;
 import market.domain.notification.INotificationRepository;
+import market.domain.purchase.IAuctionRepository;
+import market.domain.purchase.IBidRepository;
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
@@ -56,6 +58,12 @@ public abstract class AcceptanceTestSpringBase {
 
     @Autowired
     protected INotificationRepository notificationRepository;
+
+    @Autowired
+    protected IAuctionRepository auctionRepository;
+
+    @Autowired
+    protected IBidRepository bidRepository;
 
     @Autowired
     protected UserService userService;

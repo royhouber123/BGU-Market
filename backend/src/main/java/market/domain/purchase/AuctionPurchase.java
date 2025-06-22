@@ -1,4 +1,5 @@
 package market.domain.purchase;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -9,6 +10,9 @@ import java.util.TimerTask;
 import javax.management.Notification;
 
 import market.domain.store.*;
+import market.domain.purchase.IAuctionRepository; 
+import market.infrastructure.IJpaRepository.IAuctionJpaRepository;
+import market.infrastructure.PersistenceRepositories.AuctionRepositoryPersistence;
 import market.application.External.IPaymentService;
 import market.application.External.IShipmentService;
 import market.application.NotificationService;
@@ -23,6 +27,8 @@ public class AuctionPurchase {
     private static IListingRepository listingRepository;
     private static IPurchaseRepository purchaseRepository;
     private static NotificationService notificationService;
+    private static IAuctionRepository auctionRepository;
+
 
 
     /// Map to store offers for each auction
@@ -44,9 +50,10 @@ public class AuctionPurchase {
     /// This method takes storeId, productId, starting price, and end time in milliseconds
     /// It creates a new auction and schedules it to close at the end time
     /// It also initializes the offers list for that auction
-    public static void openAuction(IListingRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep, NotificationService notifService) {
+    public static void openAuction(IListingRepository rep, String storeId, String productId, double startingPrice, long endTimeMillis, IShipmentService shipmentService, IPaymentService paymentService, IPurchaseRepository purchaseRep, NotificationService notifService, IAuctionRepository auctionRepo) {
         purchaseRepository = purchaseRep;
         notificationService = notifService;
+        auctionRepository = auctionRepo;
         long currentTime = System.currentTimeMillis();
         long delay = endTimeMillis - currentTime;
         
@@ -59,6 +66,9 @@ public class AuctionPurchase {
         offers.put(key, new ArrayList<>());
         endTimes.put(key, endTimeMillis);
         startingPrices.put(key, startingPrice);
+
+        AuctionEntity auctionEntity = new AuctionEntity(storeId, productId, startingPrice, endTimeMillis);
+        auctionRepository.save(auctionEntity);
         
         new Timer().schedule(new TimerTask() {
             @Override
@@ -85,14 +95,22 @@ public class AuctionPurchase {
         }
         List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
         double currentMax = offerList.stream()
-                .mapToDouble(o -> o.price)
+                .mapToDouble(o -> o.getPrice())
                 .max()
                 .orElse(0);
         if (price <= currentMax) {
             throw new RuntimeException("Offer must be higher than current maximum.");
         }
-        offerList.add(new Offer(userId, price, shippingAddress, contactInfo));
+        Offer newOffer = new Offer(userId, price, shippingAddress, contactInfo);
+        offerList.add(newOffer);
         offers.put(key, offerList);
+
+        AuctionEntity entity = auctionRepository.findByStoreIdAndProductId(storeId, productId)
+            .orElseThrow(() -> new RuntimeException("Auction not found in DB"));
+
+        entity.getOffers().add(newOffer);
+        auctionRepository.save(entity);
+
         for (Offer offer : offerList) {
             notificationService.sendNotification(offer.getUserId(), "New offer placed for auction: " + productId + " in store: " + storeId + ". Your offer: " + price + ". Current max offer: " + currentMax);
         }
@@ -110,7 +128,7 @@ public class AuctionPurchase {
         status.put("startingPrice", startingPrice);
         List<Offer> offerList = offers.getOrDefault(key, new ArrayList<>());
         double currentMax = offerList.stream()
-                .mapToDouble(o -> o.price)
+                .mapToDouble(o -> o.getPrice())
                 .max()
                 .orElse(startingPrice); // If no offers were placed, currentMax is the starting price
         status.put("currentMaxOffer", currentMax);
@@ -130,6 +148,7 @@ public class AuctionPurchase {
     /// It also removes the auction from the maps.
     /// If no offers were placed, it indicates that the auction closed with no offers.
     public static Purchase closeAuction(String storeId, String productId, IShipmentService shipmentService, IPaymentService paymentService) {
+        System.out.println("111111111111111");
         AuctionKey key = new AuctionKey(storeId, productId);
         long now = System.currentTimeMillis();
         if (!endTimes.containsKey(key)) {
@@ -146,8 +165,9 @@ public class AuctionPurchase {
             System.out.println("Auction closed with no offers.");
             return null;
         }
+        System.out.println("22222222222222");
         Offer winner = offerList.stream()
-                .max(Comparator.comparingDouble(o -> o.price))
+                .max(Comparator.comparingDouble(o -> o.getPrice()))
                 .orElseThrow();
         Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
         Map<String, Integer> productMap = new HashMap<>();
@@ -158,38 +178,66 @@ public class AuctionPurchase {
             throw new RuntimeException("Failed to update stock for auction purchase.");
         }
         // Notify all users about the auction result
-        notificationService.sendNotification(winner.userId, "Congratulations! You won the auction for product: " + productId + " in store: " + storeId + ". Your winning offer: " + winner.price);
+        notificationService.sendNotification(winner.getUserId(), "Congratulations! You won the auction for product: " + productId + " in store: " + storeId + ". Your winning offer: " + winner.getPrice());
         for(Offer offer : offerList) {
-            if (!offer.userId.equals(winner.userId)) {
-                notificationService.sendNotification(offer.userId, "You lost the auction for product: " + productId + " in store: " + storeId + ". Your offer: " + offer.price + ". Winning offer: " + winner.price);
+            if (!offer.getUserId().equals(winner.getUserId())) {
+                notificationService.sendNotification(offer.getUserId(), "You lost the auction for product: " + productId + " in store: " + storeId + ". Your offer: " + offer.getPrice() + ". Winning offer: " + winner.getPrice());
             }
         }
+
+        System.out.println("33333333333333");
         Purchase p = new AuctionPurchase().purchase(
-                        winner.userId,
+                        winner.getUserId(),
                         storeId,
                         productId,
-                        winner.price,
-                        winner.shippingAddress,
-                        winner.contactInfo,
+                        winner.getPrice(),
+                        winner.getShippingAddress(),
+                        winner.getContactInfo(),
                         shipmentService,
                         paymentService
                     );
+
+        // === Save auction result to DB ===
+        AuctionEntity entity = auctionRepository.findByStoreIdAndProductId(storeId, productId)
+                .orElseThrow(() -> new RuntimeException("Auction not found in database"));
+
+        System.out.println("444444444444444");
+        entity.setWinningUserId(winner.getUserId());
+        entity.setWinningPrice(winner.getPrice());
+        entity.setOffers(offerList);  // optional – only if you want to persist offers too
+        auctionRepository.save(entity);
         
+        System.out.println("55555555555555");
         return p;
     }
     
     
     public Purchase purchase(String userId, String storeId, String productId, double price, String shippingAddress, String paymentDetails, IShipmentService shipmentService, IPaymentService paymentService) {
+        String productName = "";
+        Listing listing = listingRepository.getListingById(productId);
+        if (listing != null) {
+            productName = listing.getProductName();
+        }
         PurchasedProduct product = new PurchasedProduct(
                 productId,
+                productName,
                 storeId,
                 1, //always 1 for auction purchase
                 price // price is set when auction ends
         );
-        paymentService.processPayment(paymentDetails);
-        shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
-        Purchase newP=new Purchase(userId, List.of(product), price, shippingAddress, paymentDetails);
-        purchaseRepository.save(newP);
+        Purchase newP = null;
+        try {
+            paymentService.processPayment(paymentDetails);
+            shipmentService.ship(shippingAddress, userId, 1); // Assuming weight is 1 for simplicity
+            newP=new Purchase(userId, List.of(product), price, shippingAddress, paymentDetails);
+            purchaseRepository.save(newP);
+        } catch (Exception e) {
+            listingRepository.updateOrRestoreStock(Map.of(storeId, Map.of(productId, 1)), true); // Restock if purchase fails
+            notificationService.sendNotification(userId, "Purchase failed: " + e.getMessage());
+            throw new RuntimeException("Failed to complete purchase: " + e.getMessage(), e);
+        }
+
+        //update or restock in catch
         return newP;
     }
 
@@ -215,5 +263,9 @@ public class AuctionPurchase {
     
     public static void setNotificationService(NotificationService notificationService2) {
         AuctionPurchase.notificationService = notificationService2;
+    }
+
+    public static void setAuctionRepository(IAuctionRepository repo) {
+        auctionRepository = repo;
     }
 }
