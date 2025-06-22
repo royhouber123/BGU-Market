@@ -116,10 +116,11 @@ const guestService = {
         const backendCart = response.data.data;
         const cart = [];
         
-        // Handle the backend cart structure - it uses 'allStoreBags' which is an array
-        if (backendCart && backendCart.allStoreBags) {
-          for (const storeBag of backendCart.allStoreBags) {
-            const storeId = storeBag.storeId;
+        // Handle the backend cart structure - it uses 'storeBags' which is a map/object
+        if (backendCart && backendCart.storeBags) {
+          // Convert the storeBags object to an array of storeBag values
+          const storeBagsMap = backendCart.storeBags;
+          for (const [storeId, storeBag] of Object.entries(storeBagsMap)) {
             const products = storeBag.products || storeBag.productQuantities || {};
             
             for (const [productId, quantity] of Object.entries(products)) {
