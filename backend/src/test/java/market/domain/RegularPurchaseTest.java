@@ -26,6 +26,7 @@ class RegularPurchaseTest {
     private String userId;
     private String storeId;
     private String productId;
+    private String productName;
     private String shippingAddress;
     private String contactInfo;
 
@@ -34,6 +35,7 @@ class RegularPurchaseTest {
         userId = "user1";
         storeId = "store1";
         productId = "prod1";
+        productName = "nameProduct1";
         shippingAddress = "123 Main St";
         contactInfo = "555-555-5555";
 
@@ -55,7 +57,7 @@ class RegularPurchaseTest {
 
     @Test
     void purchase_validInput_shouldCreateCorrectPurchase() {
-        PurchasedProduct product = new PurchasedProduct(productId, storeId, 2, 50.0);
+        PurchasedProduct product = new PurchasedProduct(productId, productName, storeId, 2, 50.0);
         List<PurchasedProduct> products = List.of(product);
 
         Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 10.0, paymentService, shipmentService);
@@ -70,8 +72,8 @@ class RegularPurchaseTest {
 
     @Test
     void purchase_multipleProducts_shouldSumPricesAndApplyDiscount() {
-        PurchasedProduct p1 = new PurchasedProduct("p1", storeId, 1, 40.0);
-        PurchasedProduct p2 = new PurchasedProduct("p2", storeId, 1, 60.0);
+        PurchasedProduct p1 = new PurchasedProduct("p1", "name1", storeId, 1, 40.0);
+        PurchasedProduct p2 = new PurchasedProduct("p2", "name2", storeId, 1, 60.0);
         List<PurchasedProduct> products = List.of(p1, p2);
 
         Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 25.0, paymentService, shipmentService);
@@ -81,7 +83,7 @@ class RegularPurchaseTest {
 
     @Test
     void purchase_zeroDiscount_shouldReturnFullPrice() {
-        PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 100.0);
+        PurchasedProduct product = new PurchasedProduct(productId, productName, storeId, 1, 100.0);
         List<PurchasedProduct> products = List.of(product);
 
         Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 0.0, paymentService, shipmentService);
@@ -91,7 +93,7 @@ class RegularPurchaseTest {
 
     @Test
     void purchase_shouldInvokePaymentAndShipmentServices() {
-        PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 70.0);
+        PurchasedProduct product = new PurchasedProduct(productId, productName, storeId, 1, 70.0);
         List<PurchasedProduct> products = List.of(product);
 
         regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 20.0, paymentService, shipmentService);
@@ -111,7 +113,7 @@ class RegularPurchaseTest {
 
     @Test
     void purchase_discountGreaterThanTotal_shouldPayZero() {
-        PurchasedProduct product = new PurchasedProduct(productId, storeId, 1, 20.0);
+        PurchasedProduct product = new PurchasedProduct(productId, productName, storeId, 1, 20.0);
         List<PurchasedProduct> products = List.of(product);
         Purchase purchase = regularPurchase.purchase(userId, products, shippingAddress, contactInfo, 30.0, paymentService, shipmentService);
         assertEquals(0.0, purchase.getTotalPrice());

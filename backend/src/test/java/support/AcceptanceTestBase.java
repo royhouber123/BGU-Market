@@ -16,6 +16,10 @@ import market.application.StoreService;
 import market.application.UserService;
 import market.domain.Role.IRoleRepository;
 import market.domain.notification.INotificationRepository;
+import market.domain.purchase.IAuctionRepository;
+import market.domain.purchase.IBidRepository;
+import market.infrastructure.AuctionRepository;
+import market.infrastructure.BidRepository;
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
@@ -49,7 +53,8 @@ public abstract class AcceptanceTestBase {
     protected StorePoliciesService storePoliciesService;
     protected StoreRepository storeRepository;
     protected IListingRepository listingRepository;
-    
+    protected IAuctionRepository auctionRepository;
+    protected IBidRepository bidRepository; 
     
     @BeforeEach
     void setup() {
@@ -79,7 +84,9 @@ public abstract class AcceptanceTestBase {
         INotifier notifier2 = mock(INotifier.class); // Mock notifier interface
         NotificationService notificationServiceMock = new NotificationService(notificationRepo, notifier2);
 
-        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo,notificationServiceMock);
+        auctionRepository = new AuctionRepository(); // Use the in-memory implementation for tests
+        bidRepository = new BidRepository();
+        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo,notificationServiceMock, auctionRepository, bidRepository);
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
         

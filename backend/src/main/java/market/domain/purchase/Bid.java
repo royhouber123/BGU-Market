@@ -1,20 +1,58 @@
 package market.domain.purchase;
 
+
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+
 import java.util.HashSet;
 import java.util.Set;
 
+@Entity
+@Table(name = "bids")
 public class Bid {
 
-    String userId;
-    double price;
-    String shippingAddress;
-    String contactInfo;
-    Set<String> requiredApprovers;
-    Set<String> approvedBy = new HashSet<>();
-    boolean approved = false;
-    boolean rejected = false;
-    boolean counterOffered = false;
-    double counterOfferAmount = -1; //no counter offer yet
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "user_id")
+    private String userId;
+
+    @Column(name = "price")
+    private double price;
+
+    @Column(name = "shipping_address")
+    private String shippingAddress;
+
+    @Column(name = "contact_info")
+    private String contactInfo;
+
+    @ElementCollection
+    @CollectionTable(name = "required_approvers", joinColumns = @JoinColumn(name = "bid_id"))
+    @Column(name = "approver_id")
+    private Set<String> requiredApprovers = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "approved_by", joinColumns = @JoinColumn(name = "bid_id"))
+    @Column(name = "approver_id")
+    private Set<String> approvedBy = new HashSet<>();
+
+    private boolean approved = false;
+    private boolean rejected = false;
+    private boolean counterOffered = false;
+    private double counterOfferAmount = -1; //no counter offer yet
+
+    public Bid() {}  
 
     public Bid(String userId, double price, String shippingAddress, String contactInfo, Set<String> requiredApprovers) {
         this.userId = userId;
@@ -33,6 +71,10 @@ public class Bid {
         }
     }
 
+    public void setApproved(boolean app) {
+        this.approved = app;
+    }
+
     public boolean isApproved() {
         return approved;
     }
@@ -41,6 +83,10 @@ public class Bid {
         if (requiredApprovers.contains(approverId)) {
             rejected = true;
         }
+    }
+
+    public void setRejected(boolean rej) {
+        this.rejected = rej;
     }
 
     public boolean isRejected() {
@@ -76,8 +122,16 @@ public class Bid {
         return counterOffered;
     }
 
+    public void setCounterOffered(boolean counter) {
+        this.counterOffered = counter;
+    }
+
     public double getPrice() {
         return price;
+    }
+
+    public void setPrice(double pr) {
+        this.price = pr;
     }
 
     public String getShippingAddress() {
