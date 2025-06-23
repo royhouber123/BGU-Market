@@ -7,7 +7,8 @@ import market.domain.user.*;
 import market.domain.store.*;
 import io.jsonwebtoken.Claims;
 import utils.Logger;
-
+import org.springframework.transaction.annotation.Transactional;
+import java.beans.Transient;
 import java.util.*;
 
 import javax.management.RuntimeErrorException;
@@ -54,8 +55,12 @@ public class PurchaseService {
     
             for (StoreBag bag : cart.getAllStoreBags()) {
                 String storeId = String.valueOf(bag.getStoreId());
+                logger.info("Looking up store with id: " + storeId);
                 Store store = storeRepository.getStoreByID(storeId);
-
+                if (store == null) {
+                    logger.error("Store not found for id: " + storeId);
+                    throw new RuntimeException("Store not found for id: " + storeId);
+                }
                 /*
                  * Ensure transient fields are initialized (they are not persisted via JPA).
                  * This prevents NullPointerExceptions when the store entity is reloaded from the database.
@@ -81,6 +86,7 @@ public class PurchaseService {
                     String productName;
     
                     try {
+                        logger.info("Retrieving product price for productId: " + productId + " in store: " + storeId);
                         unitPrice = listingRepository.ProductPrice(productId);
                         Listing listing = listingRepository.getListingById(productId);
                         productName = (listing != null) ? listing.getProductName() : "";
@@ -252,6 +258,7 @@ public class PurchaseService {
 
     }
 
+    @Transactional
     public void approveBid(String storeId, String productId, String userId, String approverId) {
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.approveBid(storeId, productId, userId, approverId);
@@ -371,7 +378,9 @@ public class PurchaseService {
 
 
     public List<Purchase> getPurchasesByUser(String userId) {
+        logger.info("Retrieving purchases for user: " + userId);
         List<Purchase> purchases = purchaseRepository.getPurchasesByUser(userId);
+        logger.info("Found " + purchases.size() + " purchases for user: " + userId);
         return purchases;
     }
 
