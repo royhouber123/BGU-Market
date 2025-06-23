@@ -266,6 +266,7 @@ public class PurchaseService {
         logger.info("Bid approved: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
+    @Transactional
     public void rejectBid(String storeId, String productId, String userId, String approverId){
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.rejectBid(storeId, productId, userId, approverId);

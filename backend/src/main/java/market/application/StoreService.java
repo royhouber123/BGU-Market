@@ -397,6 +397,7 @@ public class StoreService {
                 throw new IllegalArgumentException("store doesn't exist");
             }
             if (s.addPermissionToManager(managerID, appointerID, permissionID)) {
+                storeRepository.save(s);
                 logger.info("Added permission: " + permissionID + " to manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
                 return null;
             } else {
@@ -458,6 +459,7 @@ public class StoreService {
                 throw new IllegalArgumentException("store doesn't exist");
             }
             if (s.removePermissionFromManager(managerID, permissionID, appointerID)) {
+                storeRepository.save(s);
                 logger.info("Removed permission: " + permissionID + " from manager: " + managerID + " in store: " + storeID + ", by: " + appointerID);
                 return null;
             } else {
