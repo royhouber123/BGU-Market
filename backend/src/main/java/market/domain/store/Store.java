@@ -186,6 +186,28 @@ public class Store {
         this.storeProductsManager = new StoreProductManager(this.storeID, listingRepository);
         this.policyHandler        = new PolicyHandler();
 
+        /* --- NEW: sync persisted policies into the in-memory handler --- */
+        // 1) Purchase policies
+        if (this.purchasePolicies != null) {
+            for (market.domain.store.Policies.PurchasePolicy pp : this.purchasePolicies) {
+                try {
+                    this.policyHandler.addPurchasePolicy(pp);
+                } catch (IllegalArgumentException ignored) {
+                    // Policy already present (e.g., default policy) – safe to ignore
+                }
+            }
+        }
+        // 2) Discount policies
+        if (this.discountPolicies != null) {
+            for (market.domain.store.Policies.DiscountPolicy dp : this.discountPolicies) {
+                try {
+                    this.policyHandler.addDiscountPolicy(dp);
+                } catch (IllegalArgumentException ignored) {
+                    // already present
+                }
+            }
+        }
+
         /* clear & rebuild the in-memory graphs */
         this.ownerToAssignedOwners   = new HashMap<>();
         this.ownerToAssignedManagers = new HashMap<>();
