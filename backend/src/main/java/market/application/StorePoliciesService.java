@@ -37,7 +37,14 @@ public class StorePoliciesService {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
-            return store.addDiscount(userId, policy);
+            boolean success = store.addDiscount(userId, policy);
+            if(success) {
+                logger.info("Discount added successfully for store: " + storeId + " by user: " + userId);
+                storeRepository.save(store); // Save the store after adding the discount
+            } else {
+                logger.info("Failed to add discount for store: " + storeId + " by user: " + userId);
+            }
+            return success;
         } catch (Exception e) {
             logger.info("Failed to add discount: " + e.getMessage());
             throw new RuntimeException("Failed to add discount: " + e.getMessage());
@@ -57,7 +64,14 @@ public class StorePoliciesService {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             DiscountPolicy policy = DiscountPolicyFactory.fromDTO(discountDTO);
-            return store.removeDiscount(userId, policy);
+            boolean success = store.removeDiscount(userId, policy);
+            if(success) {
+                logger.info("Discount removed successfully for store: " + storeId + " by user: " + userId);
+                storeRepository.save(store); // Save the store after removing the discount
+            } else {
+                logger.info("Failed to remove discount for store: " + storeId + " by user: " + userId);
+            }
+            return success;
         } catch (Exception e) {
             logger.info("Failed to remove discount: " + e.getMessage());
             throw new RuntimeException("Failed to remove discount: " + e.getMessage());
@@ -97,7 +111,14 @@ public class StorePoliciesService {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
-            return store.addPolicy(userId, policy);
+            boolean success = store.addPolicy(userId, policy);
+            if(success) {
+                logger.info("Purchase policy added successfully for store: " + storeId + " by user: " + userId);
+                storeRepository.save(store); // Save the store after adding the policy
+            } else {
+                logger.info("Failed to add purchase policy for store: " + storeId + " by user: " + userId);
+            }
+            return success;
         } catch (Exception e) {
             // Log or handle exception
             logger.info("Failed to add purchase policy: " + e.getMessage());
@@ -118,7 +139,14 @@ public class StorePoliciesService {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             Store store = storeRepository.getStoreByID(storeId);
             PurchasePolicy policy = PurchasePolicyFactory.fromDTO(dto);
-            return store.removePolicy(userId, policy);
+            boolean success = store.removePolicy(userId, policy);
+            if(success) {
+                logger.info("Purchase policy removed successfully for store: " + storeId + " by user: " + userId);
+                storeRepository.save(store); // Save the store after removing the policy
+            } else {
+                logger.info("Failed to remove purchase policy for store: " + storeId + " by user: " + userId);
+            }
+            return success;
         } catch (Exception e) {
             logger.info("Failed to remove purchase policy: " + e.getMessage());
             throw new RuntimeException("Failed to remove purchase policy: " + e.getMessage());
@@ -135,9 +163,12 @@ public class StorePoliciesService {
     public List<PolicyDTO.AddPurchasePolicyRequest> getPurchasePolicies(String storeId, String userId) {
         try {
             Store store = storeRepository.getStoreByID(storeId);
-            return store.getPolicies(userId).stream()
+            logger.info("Retrieving purchase policies for store: " + storeId + " by user: " + userId);
+            List<PolicyDTO.AddPurchasePolicyRequest> dtoList = store.getPolicies(userId).stream()
                     .map(PurchasePolicy::toDTO)
                     .collect(Collectors.toList());
+            logger.info("Policies retrieved: " + dtoList);
+            return dtoList;
         } catch (Exception e) {
             logger.info("Failed to retrieve purchase policies: " + e.getMessage());
             throw new RuntimeException("Failed to retrieve purchase policies: " + e.getMessage());

@@ -147,6 +147,7 @@ public class PurchaseService {
     }
 
     // Auction Purchase
+    @Transactional
     public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             User user = userRepository.findById(userId);
