@@ -254,8 +254,7 @@ public class PurchaseService {
                 notificationService,
                 bidRepository
             );
-            String productName = listingRepository.getListingsByProductId(productId).get(0).getProductName();
-            notifyAllApproversForBid(storeId, "New bid submitted for approval: " + userId + " has submitted a bid of $" + offerPrice + " for product " + productName + " in store " + storeId);
+            notifyAllApproversForBid(storeId, "New bid submitted for approval: " + userId + " has submitted a bid of $" + offerPrice + " for product " + productId + " in store " + storeId);
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
 
     }
