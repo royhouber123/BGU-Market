@@ -7,6 +7,7 @@ public interface ISuspensionRepository {
     public boolean suspendUser(String userName, long duration); // Duration.ZERO or null for permanent    
     public boolean unsuspendUser(String userName);
     public List<String> getSuspendedUsers();
+    public void cleanExpiredSuspensions();
     public boolean isSuspended(String userName);
     public void checkNotSuspended(String userName) throws RuntimeErrorException;
 }

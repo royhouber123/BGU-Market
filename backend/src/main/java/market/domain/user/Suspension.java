@@ -2,6 +2,7 @@ package market.domain.user;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "suspensions")
@@ -16,7 +17,7 @@ public class Suspension {
     private User user;
 
     @Column(name = "suspension_start", nullable = false)
-    private Instant suspensionStart;
+    private LocalDateTime suspensionStart;
 
     @Column(name = "suspension_duration_hours", nullable = false)
     private long suspensionDurationHours; // 0 means permanent
@@ -27,7 +28,7 @@ public class Suspension {
 
     public Suspension(String userName, long durationHours) {
         this.userName = userName;
-        this.suspensionStart = Instant.now();
+        this.suspensionStart = LocalDateTime.now(java.time.ZoneId.of("Asia/Jerusalem"));
         this.suspensionDurationHours = durationHours;
     }
 
@@ -52,11 +53,11 @@ public class Suspension {
         }
     }
 
-    public Instant getSuspensionStart() {
+    public LocalDateTime getSuspensionStart() {
         return suspensionStart;
     }
 
-    public void setSuspensionStart(Instant suspensionStart) {
+    public void setSuspensionStart(LocalDateTime suspensionStart) {
         this.suspensionStart = suspensionStart;
     }
 
@@ -70,11 +71,11 @@ public class Suspension {
 
     public boolean isSuspended() {
         if (suspensionDurationHours == 0) return true; // permanent
-        Instant end = suspensionStart.plus(java.time.Duration.ofHours(suspensionDurationHours));
-        return Instant.now().isBefore(end);
+        LocalDateTime end = suspensionStart.plus(java.time.Duration.ofHours(suspensionDurationHours));
+        return LocalDateTime.now().isBefore(end);
     }
 
-    public Instant getSuspensionEnd() {
+    public LocalDateTime getSuspensionEnd() {
         return (suspensionDurationHours == 0) ? null :
                suspensionStart.plus(java.time.Duration.ofHours(suspensionDurationHours));
     }
