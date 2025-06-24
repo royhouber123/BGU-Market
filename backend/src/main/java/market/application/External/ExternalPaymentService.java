@@ -19,6 +19,18 @@ public class ExternalPaymentService implements IPaymentService {
     public ExternalPaymentService(RestTemplate restTemplate, 
                                  @Value("${external.payment.url:https://damp-lynna-wsep-1984852e.koyeb.app/}") String paymentUrl) {
         this.restTemplate = restTemplate;
+        // Ensure we have sane timeouts so tests don\'t hang if the external service is slow or offline
+        try {
+            if (this.restTemplate.getRequestFactory() instanceof org.springframework.http.client.SimpleClientHttpRequestFactory) {
+                org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+                        (org.springframework.http.client.SimpleClientHttpRequestFactory) this.restTemplate.getRequestFactory();
+                // 2-second connect/read timeout should be enough for tests while preventing long hangs
+                factory.setConnectTimeout(2_000);
+                factory.setReadTimeout(2_000);
+            }
+        } catch (Exception ignored) {
+            // If we cannot set timeouts, continue with defaults – the fail-safe logic in performHandshake() handles errors
+        }
         this.paymentUrl = paymentUrl;
         System.out.println("ExternalPaymentService initialized with URL: " + paymentUrl);
     }

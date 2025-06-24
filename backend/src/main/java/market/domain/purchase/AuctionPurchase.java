@@ -70,7 +70,7 @@ public class AuctionPurchase {
         AuctionEntity auctionEntity = new AuctionEntity(storeId, productId, startingPrice, endTimeMillis);
         auctionRepository.save(auctionEntity);
         
-        new Timer().schedule(new TimerTask() {
+        new Timer(true).schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
@@ -152,7 +152,8 @@ public class AuctionPurchase {
         AuctionKey key = new AuctionKey(storeId, productId);
         long now = System.currentTimeMillis();
         if (!endTimes.containsKey(key)) {
-            throw new RuntimeException("Auction is not active.");
+            // Auction already closed; nothing to do
+            return null;
         }
         if (now < endTimes.get(key)) {
             throw new RuntimeException("Auction has not ended yet.");

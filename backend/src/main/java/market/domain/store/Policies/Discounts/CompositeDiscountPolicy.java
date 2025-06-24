@@ -7,30 +7,54 @@ import java.util.Objects;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
+import market.domain.store.Policies.DiscountPolicyEntity;
+import market.domain.store.Policies.Discounts.DiscountCombinationType;
 import market.dto.PolicyDTO;
+import jakarta.persistence.FetchType;
 
-import market.domain.store.IStoreProductsManager;
-import market.domain.store.Policies.DiscountPolicy;
 // import market.dto.AddDiscountDTO;
 
-public class CompositeDiscountPolicy implements DiscountPolicy {
-    private List<DiscountPolicy> policies;
+@jakarta.persistence.Entity
+@jakarta.persistence.Table(name = "discount_composite")
+public class CompositeDiscountPolicy extends DiscountPolicyEntity {
+
+    /**
+     * The child policies that compose this composite discount. We persist them in a separate
+     * join-table so that a composite can contain an arbitrary number of other policies while
+     * retaining proper cascading semantics.
+     */
+    @jakarta.persistence.OneToMany(
+        cascade = jakarta.persistence.CascadeType.ALL,
+        targetEntity = DiscountPolicyEntity.class,
+        fetch = jakarta.persistence.FetchType.EAGER
+    )
+    @jakarta.persistence.JoinTable(
+        name = "discount_composite_children",
+        joinColumns = @jakarta.persistence.JoinColumn(name = "parent_id"),
+        inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "child_id")
+    )
+    private List<DiscountPolicy> policies = new ArrayList<>();
+
+    /**
+     * How the child discounts are combined (SUM / MAXIMUM).
+     */
     private DiscountCombinationType combinationType;
 
+    protected CompositeDiscountPolicy() { /* JPA */ }
+
     public CompositeDiscountPolicy(DiscountCombinationType combinationType) {
-        this.policies = new ArrayList<>();
         this.combinationType = combinationType;
     }
 
     public void addPolicy(DiscountPolicy policy) {
-        if(policies.contains(policy)) {
+        if (policies.contains(policy)) {
             throw new IllegalArgumentException("Policy already exists");
         }
         policies.add(policy);
     }
 
     public void removePolicy(DiscountPolicy policy) {
-        if(!policies.contains(policy)) {
+        if (!policies.contains(policy)) {
             throw new IllegalArgumentException("Policy does not exist");
         }
         policies.remove(policy);
@@ -59,7 +83,6 @@ public class CompositeDiscountPolicy implements DiscountPolicy {
 
         return result;
     }
-
 
     public PolicyDTO.AddDiscountRequest toDTO() {
         List<PolicyDTO.AddDiscountRequest> subs = policies.stream()

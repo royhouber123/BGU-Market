@@ -19,6 +19,18 @@ public class ExternalShipmentService implements IShipmentService {
     public ExternalShipmentService(RestTemplate restTemplate, 
                                   @Value("${external.shipment.url:https://damp-lynna-wsep-1984852e.koyeb.app/}") String shipmentUrl) {
         this.restTemplate = restTemplate;
+        // Ensure we have sane timeouts so tests don't hang if the external service is slow or offline
+        try {
+            if (this.restTemplate.getRequestFactory() instanceof org.springframework.http.client.SimpleClientHttpRequestFactory) {
+                org.springframework.http.client.SimpleClientHttpRequestFactory factory =
+                        (org.springframework.http.client.SimpleClientHttpRequestFactory) this.restTemplate.getRequestFactory();
+                // 2-second timeouts to match ExternalPaymentService
+                factory.setConnectTimeout(2_000);
+                factory.setReadTimeout(2_000);
+            }
+        } catch (Exception ignored) {
+            // If we cannot set timeouts, continue with defaults – performHandshake() has fail-safe logic
+        }
         this.shipmentUrl = shipmentUrl;
         System.out.println("ExternalShipmentService initialized with URL: " + shipmentUrl);
     }
