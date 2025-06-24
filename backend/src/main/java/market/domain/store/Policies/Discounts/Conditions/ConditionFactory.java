@@ -9,7 +9,7 @@ public class ConditionFactory {
     public static DiscountCondition fromDTO(PolicyDTO.DiscountCondition dto) {
         return switch (dto.type().toUpperCase()) {
             case "BASKET_TOTAL_AT_LEAST" ->
-                ConditionFactory.basketTotalAtLeast((Double) dto.params().get("threshold"));
+                ConditionFactory.basketTotalAtLeast(((Number) dto.params().get("minTotal")).doubleValue());
             case "PRODUCT_QUANTITY_AT_LEAST" ->
                 ConditionFactory.productQuantityAtLeast(
                     (String) dto.params().get("productId"),
@@ -36,7 +36,7 @@ public class ConditionFactory {
     }
 
     /**
-     * Basket total is greater than or equal to the given threshold.
+     * Basket total is greater than or equal to the given minimum total.
      */
     public static DiscountCondition basketTotalAtLeast(double threshold) {
         return new BasketTotalCondition(threshold);

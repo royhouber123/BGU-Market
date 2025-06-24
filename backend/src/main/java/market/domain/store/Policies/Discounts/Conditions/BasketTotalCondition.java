@@ -5,6 +5,7 @@ import market.domain.store.Listing;
 import market.dto.PolicyDTO;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Map;
 
 public class BasketTotalCondition implements DiscountCondition {
@@ -13,6 +14,19 @@ public class BasketTotalCondition implements DiscountCondition {
 
     public BasketTotalCondition(double minTotal) {
         this.minTotal = minTotal;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        BasketTotalCondition that = (BasketTotalCondition) obj;
+        return Double.compare(that.minTotal, minTotal) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(minTotal);
     }
 
     @Override

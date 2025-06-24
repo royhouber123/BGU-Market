@@ -32,13 +32,13 @@ export const authService = {
       if (apiResponse.success) {
         return { token: apiResponse.data.token }; // Extract token from AuthToken object
       } else {
-        throw new Error(apiResponse.error || 'Login failed');
+        throw new Error('Login failed');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Login failed');
       }
-      throw new Error(error.message || 'Failed to login');
+      throw new Error('Failed to login');
     }
   },
 
@@ -48,9 +48,9 @@ export const authService = {
       await apiClient.post('/auth/logout', { token });
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Logout failed');
       }
-      throw new Error(error.message || 'Failed to logout');
+      throw new Error('Failed to logout');
     }
   },
 
@@ -63,13 +63,13 @@ export const authService = {
       if (apiResponse.success) {
         return apiResponse.data;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get user information');
+        throw new Error('Failed to get user information');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get user information');
       }
-      throw new Error(error.message || 'Failed to get user information');
+      throw new Error('Failed to get user information');
     }
   },
 
@@ -88,13 +88,13 @@ export const authService = {
       if (apiResponse.success) {
         return { success: true, message: 'Registration successful!' };
       } else {
-        throw new Error(apiResponse.error || 'Registration failed');
+        throw new Error('Registration failed');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Registration failed');
       }
-      throw new Error(error.message || 'Failed to register user');
+      throw new Error('Failed to register user');
     }
   }
 };

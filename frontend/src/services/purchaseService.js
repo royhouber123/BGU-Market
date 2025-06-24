@@ -31,12 +31,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Purchase failed');
+        throw new Error('Purchase failed');
       }
     } catch (error) {
       console.error('Purchase error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Purchase failed');
       }
       throw error;
     }
@@ -57,12 +57,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Auction offer failed');
+        throw new Error('Auction offer failed');
       }
     } catch (error) {
       console.error('Auction offer error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Auction offer failed');
       }
       throw error;
     }
@@ -84,12 +84,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to open auction');
+        throw new Error('Failed to open auction');
       }
     } catch (error) {
       console.error('Open auction error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to open auction');
       }
       throw error;
     }
@@ -110,12 +110,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Bid submission failed');
+        throw new Error('Bid submission failed');
       }
     } catch (error) {
       console.error('Bid submission error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Bid submission failed');
       }
       throw error;
     }
@@ -129,12 +129,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get purchase history');
+        throw new Error('Failed to get purchase history');
       }
     } catch (error) {
       console.error('Get purchase history error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get purchase history');
       }
       throw error;
     }
@@ -148,12 +148,31 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get purchase history');
+        throw new Error('Failed to get purchase history');
       }
     } catch (error) {
       console.error('Purchase history error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get purchase history');
+      }
+      throw error;
+    }
+  },
+
+  // Get purchase history by store
+  getStorePurchaseHistory: async (storeId) => {
+    try {
+      const response = await api.get(`/purchases/store/${storeId}`);
+      
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error('Failed to get store purchase history');
+      }
+    } catch (error) {
+      console.error('Store purchase history error:', error);
+      if (error.response?.data?.error) {
+        throw new Error('Failed to get store purchase history');
       }
       throw error;
     }
@@ -169,12 +188,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get product bids');
+        throw new Error('Failed to get product bids');
       }
     } catch (error) {
       console.error('Get product bids error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get product bids');
       }
       throw error;
     }
@@ -188,12 +207,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get my product bids');
+        throw new Error('Failed to get my product bids');
       }
     } catch (error) {
       console.error('Get my product bids error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get my product bids');
       }
       throw error;
     }
@@ -212,12 +231,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to approve bid');
+        throw new Error('Failed to approve bid');
       }
     } catch (error) {
       console.error('Approve bid error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to approve bid');
       }
       throw error;
     }
@@ -236,12 +255,12 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to reject bid');
+        throw new Error('Failed to reject bid');
       }
     } catch (error) {
       console.error('Reject bid error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to reject bid');
       }
       throw error;
     }
@@ -260,12 +279,56 @@ const purchaseService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to propose counter bid');
+        throw new Error('Failed to propose counter bid');
       }
     } catch (error) {
       console.error('Propose counter bid error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to propose counter bid');
+      }
+      throw error;
+    }
+  },
+
+  // Accept counter offer - aligns with PurchaseController.acceptCounterOffer
+  acceptCounterOffer: async (storeId, productId) => {
+    try {
+      const response = await api.post('/purchases/bid/counter/accept', {
+        storeId: parseInt(storeId),
+        productId: productId
+      });
+      
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error('Failed to accept counter offer');
+      }
+    } catch (error) {
+      console.error('Accept counter offer error:', error);
+      if (error.response?.data?.error) {
+        throw new Error('Failed to accept counter offer');
+      }
+      throw error;
+    }
+  },
+
+  // Decline counter offer - aligns with PurchaseController.declineCounterOffer
+  declineCounterOffer: async (storeId, productId) => {
+    try {
+      const response = await api.post('/purchases/bid/counter/decline', {
+        storeId: parseInt(storeId),
+        productId: productId
+      });
+      
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error('Failed to decline counter offer');
+      }
+    } catch (error) {
+      console.error('Decline counter offer error:', error);
+      if (error.response?.data?.error) {
+        throw new Error('Failed to decline counter offer');
       }
       throw error;
     }

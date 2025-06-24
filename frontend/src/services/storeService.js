@@ -97,13 +97,13 @@ export const storeService = {
         
         return { stores, products };
       } else {
-        throw new Error(apiResponse.error || 'Failed to get stores and products');
+        throw new Error('Failed to get stores and products');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get stores and products');
       }
-      throw new Error(error.message || 'Failed to get stores and products');
+      throw new Error('Failed to get stores and products');
     }
   },
 
@@ -122,13 +122,13 @@ export const storeService = {
           founderId: apiResponse.data.founderId
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to fetch store');
+        throw new Error('Failed to fetch store');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to fetch store');
       }
-      throw new Error(error.message || 'Failed to fetch store');
+      throw new Error('Failed to fetch store');
     }
   },
 
@@ -146,13 +146,13 @@ export const storeService = {
           isActive: true
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to create store');
+        throw new Error('Failed to create store');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to create store');
       }
-      throw new Error(error.message || 'Failed to create store');
+      throw new Error('Failed to create store');
     }
   },
 
@@ -179,13 +179,13 @@ export const storeService = {
           message: 'Product added successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to add product');
+        throw new Error('Failed to add product');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to add product');
       }
-      throw new Error(error.message || 'Failed to add product');
+      throw new Error('Failed to add product');
     }
   },
 
@@ -201,13 +201,13 @@ export const storeService = {
           message: 'Listing removed successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to remove listing');
+        throw new Error('Failed to remove listing');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to remove listing');
       }
-      throw new Error(error.message || 'Failed to remove listing');
+      throw new Error('Failed to remove listing');
     }
   },
 
@@ -223,13 +223,13 @@ export const storeService = {
           message: 'Listing updated successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to update listing');
+        throw new Error('Failed to update listing');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to update listing');
       }
-      throw new Error(error.message || 'Failed to update listing');
+      throw new Error('Failed to update listing');
     }
   },
 
@@ -312,13 +312,13 @@ export const storeService = {
       if (apiResponse.success) {
         return apiResponse.data;
       } else {
-        throw new Error(apiResponse.error || 'Failed to close store');
+        throw new Error('Failed to close store');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to close store');
       }
-      throw new Error(error.message || 'Failed to close store');
+      throw new Error('Failed to close store');
     }
   },
 
@@ -331,13 +331,13 @@ export const storeService = {
       if (apiResponse.success) {
         return apiResponse.data;
       } else {
-        throw new Error(apiResponse.error || 'Failed to open store');
+        throw new Error('Failed to open store');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to open store');
       }
-      throw new Error(error.message || 'Failed to open store');
+      throw new Error('Failed to open store');
     }
   },
 
@@ -358,13 +358,13 @@ export const storeService = {
           message: 'Price updated successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to update price');
+        throw new Error('Failed to update price');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to update price');
       }
-      throw new Error(error.message || 'Failed to update price');
+      throw new Error('Failed to update price');
     }
   },
 
@@ -385,13 +385,13 @@ export const storeService = {
           message: 'Product name updated successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to update product name');
+        throw new Error('Failed to update product name');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to update product name');
       }
-      throw new Error(error.message || 'Failed to update product name');
+      throw new Error('Failed to update product name');
     }
   },
 
@@ -412,13 +412,13 @@ export const storeService = {
           message: 'Description updated successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to update description');
+        throw new Error('Failed to update description');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to update description');
       }
-      throw new Error(error.message || 'Failed to update description');
+      throw new Error('Failed to update description');
     }
   },
 
@@ -439,13 +439,13 @@ export const storeService = {
           message: 'Quantity updated successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to update quantity');
+        throw new Error('Failed to update quantity');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to update quantity');
       }
-      throw new Error(error.message || 'Failed to update quantity');
+      throw new Error('Failed to update quantity');
     }
   },
 
@@ -466,13 +466,13 @@ export const storeService = {
           message: 'Category updated successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to update category');
+        throw new Error('Failed to update category');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to update category');
       }
-      throw new Error(error.message || 'Failed to update category');
+      throw new Error('Failed to update category');
     }
   },
 
@@ -493,13 +493,13 @@ export const storeService = {
           message: 'Permission added successfully'
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to add permission');
+        throw new Error('Failed to add permission');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to add permission');
       }
-      throw new Error(error.message || 'Failed to add permission');
+      throw new Error('Failed to add permission');
     }
   },
 
@@ -512,13 +512,13 @@ export const storeService = {
       if (apiResponse.success) {
         return apiResponse.data;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get permissions');
+        throw new Error('Failed to get permissions');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get permissions');
       }
-      throw new Error(error.message || 'Failed to get permissions');
+      throw new Error('Failed to get permissions');
     }
   },
 
@@ -531,13 +531,13 @@ export const storeService = {
       if (apiResponse.success) {
         return apiResponse.data;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get user permissions');
+        throw new Error('Failed to get user permissions');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get user permissions');
       }
-      throw new Error(error.message || 'Failed to get user permissions');
+      throw new Error('Failed to get user permissions');
     }
   },
 
@@ -550,13 +550,13 @@ export const storeService = {
       if (apiResponse.success) {
         return apiResponse.data;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get store users');
+        throw new Error('Failed to get store users');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get store users');
       }
-      throw new Error(error.message || 'Failed to get store users');
+      throw new Error('Failed to get store users');
     }
   },
 
@@ -573,13 +573,13 @@ export const storeService = {
       if (apiResponse.success) {
         return { success: true, message: 'Owner added successfully' };
       } else {
-        throw new Error(apiResponse.error || 'Failed to add owner');
+        throw new Error('Failed to add owner');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to add owner');
       }
-      throw new Error(error.message || 'Failed to add owner');
+      throw new Error('Failed to add owner');
     }
   },
 
@@ -596,13 +596,13 @@ export const storeService = {
       if (apiResponse.success) {
         return { success: true, message: 'Manager added successfully' };
       } else {
-        throw new Error(apiResponse.error || 'Failed to add manager');
+        throw new Error('Failed to add manager');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to add manager');
       }
-      throw new Error(error.message || 'Failed to add manager');
+      throw new Error('Failed to add manager');
     }
   },
 
@@ -619,13 +619,13 @@ export const storeService = {
           removedUsers: apiResponse.data 
         };
       } else {
-        throw new Error(apiResponse.error || 'Failed to remove owner');
+        throw new Error('Failed to remove owner');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to remove owner');
       }
-      throw new Error(error.message || 'Failed to remove owner');
+      throw new Error('Failed to remove owner');
     }
   },
 
@@ -638,13 +638,13 @@ export const storeService = {
       if (apiResponse.success) {
         return { success: true, message: 'Manager removed successfully' };
       } else {
-        throw new Error(apiResponse.error || 'Failed to remove manager');
+        throw new Error('Failed to remove manager');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to remove manager');
       }
-      throw new Error(error.message || 'Failed to remove manager');
+      throw new Error('Failed to remove manager');
     }
   },
 
@@ -657,13 +657,13 @@ export const storeService = {
       if (apiResponse.success) {
         return { success: true, message: 'Permission removed successfully' };
       } else {
-        throw new Error(apiResponse.error || 'Failed to remove permission');
+        throw new Error('Failed to remove permission');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to remove permission');
       }
-      throw new Error(error.message || 'Failed to remove permission');
+      throw new Error('Failed to remove permission');
     }
   },
 

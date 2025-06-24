@@ -25,7 +25,7 @@ const notificationService = {
     } catch (error) {
       console.error('Get notifications error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get notifications');
       }
       throw error;
     }
@@ -39,7 +39,7 @@ const notificationService = {
     } catch (error) {
       console.error('Mark notification as read error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to mark notification as read');
       }
       throw error;
     }

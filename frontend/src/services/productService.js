@@ -47,13 +47,13 @@ export const productService = {
           reviews: listing.reviews || []
         }));
       } else {
-        throw new Error(apiResponse.error || 'Failed to search products');
+        throw new Error('Failed to search products');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to search products');
       }
-      throw new Error(error.message || 'Failed to search products');
+      throw new Error('Failed to search products');
     }
   },
 
@@ -92,13 +92,13 @@ export const productService = {
         // Return the first product if any exist, otherwise null
         return products.length > 0 ? products[0] : null;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get product');
+        throw new Error('Failed to get product');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get product');
       }
-      throw new Error(error.message || 'Failed to get product');
+      throw new Error('Failed to get product');
     }
   },
 
@@ -134,13 +134,13 @@ export const productService = {
           reviews: listing.reviews || []
         }));
       } else {
-        throw new Error(apiResponse.error || 'Failed to get store products');
+        throw new Error('Failed to get store products');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get store products');
       }
-      throw new Error(error.message || 'Failed to get store products');
+      throw new Error('Failed to get store products');
     }
   },
 
@@ -176,13 +176,13 @@ export const productService = {
           reviews: listing.reviews || []
         }));
       } else {
-        throw new Error(apiResponse.error || 'Failed to search in store');
+        throw new Error('Failed to search in store');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to search in store');
       }
-      throw new Error(error.message || 'Failed to search in store');
+      throw new Error('Failed to search in store');
     }
   },
 
@@ -218,13 +218,13 @@ export const productService = {
           reviews: listing.reviews || []
         }));
       } else {
-        throw new Error(apiResponse.error || 'Failed to get sorted products');
+        throw new Error('Failed to get sorted products');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get sorted products');
       }
-      throw new Error(error.message || 'Failed to get sorted products');
+      throw new Error('Failed to get sorted products');
     }
   },
 
@@ -263,13 +263,13 @@ export const productService = {
         
         return transformedProduct;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get listing');
+        throw new Error('Failed to get listing');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get listing');
       }
-      throw new Error(error.message || 'Failed to get listing');
+      throw new Error('Failed to get listing');
     }
   },
 
@@ -317,13 +317,13 @@ export const productService = {
         
         return products;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get all products');
+        throw new Error('Failed to get all products');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get all products');
       }
-      throw new Error(error.message || 'Failed to get all products');
+      throw new Error('Failed to get all products');
     }
   },
 
@@ -386,13 +386,13 @@ export const productService = {
         
         return products;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get all products');
+        throw new Error('Failed to get all products');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get all products');
       }
-      throw new Error(error.message || 'Failed to get all products');
+      throw new Error('Failed to get all products');
     }
   },
 
@@ -448,13 +448,13 @@ export const productService = {
         
         return products;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get store products');
+        throw new Error('Failed to get store products');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get store products');
       }
-      throw new Error(error.message || 'Failed to get store products');
+      throw new Error('Failed to get store products');
     }
   },
 
@@ -578,13 +578,13 @@ export const productService = {
         
         return products;
       } else {
-        throw new Error(apiResponse.error || 'Failed to get products by category');
+        throw new Error('Failed to get products by category');
       }
     } catch (error) {
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get products by category');
       }
-      throw new Error(error.message || 'Failed to get products by category');
+      throw new Error('Failed to get products by category');
     }
   }
 };

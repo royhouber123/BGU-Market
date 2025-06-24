@@ -181,7 +181,7 @@ const guestService = {
       });
 
       if (!registerResponse.data.success) {
-        throw new Error(registerResponse.data.error || 'Failed to register guest with email');
+        throw new Error('Failed to register guest with email');
       }
 
       console.log('Sending purchase request with:', {
@@ -196,7 +196,7 @@ const guestService = {
       });
 
       if (!purchaseResponse.data.success) {
-        throw new Error(purchaseResponse.data.error || 'Purchase failed');
+        throw new Error('Purchase failed');
       }
 
       return {

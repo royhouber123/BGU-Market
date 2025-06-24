@@ -38,12 +38,12 @@ const userService = {
           return basicUser;
         }
       } else {
-        throw new Error(response.data.error || 'Login failed');
+        throw new Error('Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Login failed');
       }
       throw error;
     }
@@ -114,12 +114,12 @@ const userService = {
       if (response.data.success && response.data.data) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get user profile');
+        throw new Error('Failed to get user profile');
       }
     } catch (error) {
       console.error('Get profile error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get user profile');
       }
       throw error;
     }
@@ -250,12 +250,12 @@ const userService = {
       if (response.data.success && response.data.data) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get user cart');
+        throw new Error('Failed to get user cart');
       }
     } catch (error) {
       console.error('Get user cart error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get user cart');
       }
       throw error;
     }

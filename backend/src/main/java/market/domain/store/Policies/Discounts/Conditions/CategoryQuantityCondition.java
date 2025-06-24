@@ -18,6 +18,19 @@ public class CategoryQuantityCondition implements DiscountCondition {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        CategoryQuantityCondition that = (CategoryQuantityCondition) obj;
+        return minQuantity == that.minQuantity && category.equalsIgnoreCase(that.category);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(category.toLowerCase(), minQuantity);
+    }
+
+    @Override
     public boolean isSatisfied(Map<String, Integer> listings, IStoreProductsManager productManager) {
         int count = 0;
 

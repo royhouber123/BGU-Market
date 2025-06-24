@@ -53,7 +53,7 @@ const adminService = {
     } catch (error) {
       console.error('Close store error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to close store');
       }
       throw error;
     }
@@ -69,12 +69,12 @@ const adminService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get stores');
+        throw new Error('Failed to get stores');
       }
     } catch (error) {
       console.error('Get all stores error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get stores');
       }
       throw error;
     }
@@ -90,12 +90,12 @@ const adminService = {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error(response.data.error || 'Failed to get users');
+        throw new Error('Failed to get users');
       }
     } catch (error) {
       console.error('Get all users error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get users');
       }
       throw error;
     }
@@ -122,14 +122,14 @@ const adminService = {
       console.log('Suspend user response:', response.data);
       
       if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to suspend user');
+        throw new Error('Failed to suspend user');
       }
       
       return true;
     } catch (error) {
       console.error('Suspend user error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to suspend user');
       }
       throw error;
     }
@@ -154,14 +154,14 @@ const adminService = {
       console.log('Unsuspend user response:', response.data);
       
       if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to unsuspend user');
+        throw new Error('Failed to unsuspend user');
       }
       
       return true;
     } catch (error) {
       console.error('Unsuspend user error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to unsuspend user');
       }
       throw error;
     }
@@ -185,12 +185,12 @@ const adminService = {
         return Array.isArray(response.data.data) ? response.data.data : [];
       } else {
         console.error('API reported error:', response.data.error);
-        throw new Error(response.data.error || 'Failed to get suspended users');
+        throw new Error('Failed to get suspended users');
       }
     } catch (error) {
       console.error('Get suspended users error:', error);
       if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+        throw new Error('Failed to get suspended users');
       }
       throw error;
     }

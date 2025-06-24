@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useStorePermissions, PERMISSIONS } from "../../hooks/useStorePermissions";
 import { storeService } from "../../services/storeService";
-import { productService } from "../../services/productService";
 import purchaseService from "../../services/purchaseService";
+import { productService } from "../../services/productService";
 import userService from "../../services/userService";
 import {
 	Box,
@@ -25,6 +25,11 @@ import {
 	Tab,
 	Badge,
 	Tooltip,
+	Divider,
+	List,
+	ListItem,
+	ListItemText,
+	CircularProgress,
 	CardMedia
 } from "@mui/material";
 import {
@@ -41,7 +46,9 @@ import {
 	Timer as TimerIcon,
 	TrendingUp as TrendingUpIcon,
 	Security as SecurityIcon,
-	People as PeopleIcon
+	People as PeopleIcon,
+	Receipt as ReceiptIcon,
+	Refresh as RefreshIcon
 } from "@mui/icons-material";
 import Header from "../../components/Header/Header";
 import AuthDialog from "../../components/AuthDialog/AuthDialog";
@@ -467,6 +474,11 @@ export default function StoreManagement() {
 		total: 0
 	});
 
+	// Store purchase history state
+	const [purchaseHistory, setPurchaseHistory] = useState([]);
+	const [loadingPurchaseHistory, setLoadingPurchaseHistory] = useState(false);
+	const [purchaseHistoryError, setPurchaseHistoryError] = useState(null);
+
 	// Separate products by purchase type from actual server data
 	const regularProducts = products.filter(p => !p.purchaseType || p.purchaseType === 'REGULAR');
 	const bidProducts = products.filter(p => p.purchaseType === 'BID');
@@ -604,6 +616,32 @@ export default function StoreManagement() {
 
 		return () => clearInterval(interval);
 	}, [loadAuctionStatusCounts, auctionProducts.length]);
+
+	// Load purchase history when tab is selected
+	useEffect(() => {
+		if (activeTab === 5 && storeId) {
+			loadPurchaseHistory();
+		}
+	}, [activeTab, storeId]);
+
+	// Function to load purchase history
+	const loadPurchaseHistory = async () => {
+		if (!storeId) return;
+
+		setLoadingPurchaseHistory(true);
+		setPurchaseHistoryError(null);
+
+		try {
+			const history = await purchaseService.getStorePurchaseHistory(storeId);
+			setPurchaseHistory(history);
+		} catch (error) {
+			console.error('Error loading purchase history:', error);
+			setPurchaseHistoryError('Failed to load purchase history. ' + (error.message || ''));
+			toast('Failed to load purchase history', 'error');
+		} finally {
+			setLoadingPurchaseHistory(false);
+		}
+	};
 
 	const loadProductsWithDiscounts = useCallback(async (storeIdToUse = null) => {
 		try {
@@ -1321,6 +1359,11 @@ export default function StoreManagement() {
 								iconPosition="start"
 							/>
 						)}
+						<Tab
+							icon={<ReceiptIcon />}
+							label="Purchase History"
+							iconPosition="start"
+						/>
 					</Tabs>
 
 					{/* Regular Products Tab */}
@@ -1366,6 +1409,136 @@ export default function StoreManagement() {
 							currentUser={currentUser}
 							onUpdate={toast}
 						/>
+					)}
+
+					{/* Purchase History Tab */}
+					{activeTab === 5 && (
+						<Box sx={{ mb: 4 }}>
+							<Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+								<Typography variant="h6" sx={{ display: "flex", alignItems: "center" }}>
+									<ReceiptIcon sx={{ mr: 1, color: "primary.main" }} />
+									Store Purchase History
+								</Typography>
+								<Button
+									variant="outlined"
+									size="small"
+									startIcon={<RefreshIcon />}
+									onClick={loadPurchaseHistory}
+									disabled={loadingPurchaseHistory}
+								>
+									Refresh
+								</Button>
+							</Box>
+
+							{loadingPurchaseHistory ? (
+								<Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+									<CircularProgress />
+								</Box>
+							) : purchaseHistoryError ? (
+								<Alert severity="error" sx={{ mb: 3 }}>
+									{purchaseHistoryError}
+								</Alert>
+							) : purchaseHistory.length === 0 ? (
+								<Box sx={{ textAlign: "center", py: 6, bgcolor: "grey.50", borderRadius: 2 }}>
+									<ReceiptIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
+									<Typography variant="h6" color="text.secondary" gutterBottom>
+										No purchase history found
+									</Typography>
+									<Typography variant="body2" color="text.disabled">
+										There are no completed purchases for this store yet
+									</Typography>
+								</Box>
+							) : (
+								<>
+									<Typography variant="subtitle2" sx={{ mb: 2 }}>
+										Found {purchaseHistory.length} purchase records
+									</Typography>
+									<Grid container spacing={2}>
+										{purchaseHistory.map((purchase) => (
+											<Grid item xs={12} key={purchase.purchaseId}>
+												<Paper
+													sx={{
+														p: 2,
+														borderRadius: 2,
+														border: "1px solid",
+														borderColor: "divider"
+													}}
+													elevation={0}
+												>
+													<Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+														<Box>
+															<Typography variant="subtitle1" fontWeight="bold">
+																Purchase #{purchase.purchaseId}
+															</Typography>
+															<Typography variant="body2" color="text.secondary">
+																{new Date(purchase.timestamp).toLocaleString()}
+															</Typography>
+														</Box>
+														<Box sx={{ textAlign: "right" }}>
+															<Typography variant="h6" color="primary.main" fontWeight="bold">
+																${purchase.totalPrice.toFixed(2)}
+															</Typography>
+															<Chip
+																size="small"
+																label="Completed"
+																color="success"
+															/>
+														</Box>
+													</Box>
+
+													<Divider sx={{ my: 2 }} />
+
+													<Typography variant="subtitle2" gutterBottom>
+														Items Purchased:
+													</Typography>
+													<List dense disablePadding>
+														{purchase.products?.map((item, index) => (
+															<ListItem
+																key={index}
+																disablePadding
+																sx={{ py: 0.5 }}
+															>
+																<ListItemText
+																	primary={`Product ID: ${item.productId}`}
+																	secondary={
+																		<>
+																			Quantity: {item.quantity} × ${item.unitPrice.toFixed(2)}
+																		</>
+																	}
+																/>
+																<Typography variant="subtitle2">
+																	${(item.unitPrice * item.quantity).toFixed(2)}
+																</Typography>
+															</ListItem>
+														))}
+													</List>
+
+													<Divider sx={{ my: 2 }} />
+
+													<Box sx={{ display: "flex", justifyContent: "space-between" }}>
+														<Box>
+															<Typography variant="body2">
+																<strong>Buyer:</strong> User #{purchase.userId}
+															</Typography>
+															{purchase.contactInfo && (
+																<Typography variant="body2">
+																	<strong>Payment Method:</strong> {purchase.contactInfo}
+																</Typography>
+															)}
+														</Box>
+														{purchase.shippingAddress && (
+															<Typography variant="body2">
+																<strong>Shipping Address:</strong> {purchase.shippingAddress}
+															</Typography>
+														)}
+													</Box>
+												</Paper>
+											</Grid>
+										))}
+									</Grid>
+								</>
+							)}
+						</Box>
 					)}
 				</Box>
 			</Container>
