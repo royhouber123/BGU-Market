@@ -13,6 +13,7 @@ import utils.Logger;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -37,6 +38,7 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     /** Register a brand-new user. */
     public Void register(String userName, String password) {
         logger.info("[UserService] Registering user: " + userName);
@@ -46,6 +48,7 @@ public class UserService {
     }
 
 
+    @Transactional
     /** Delete an existing user entirely. */
     public Void deleteUser(String userName) {
         logger.info("[UserService] Deleting user: " + userName);
@@ -80,6 +83,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     /** Change the user's log-in name (throws if conflict). Returns new JWT token. */
     public String changeUserName(String newName) {
         String oldName = extractUserNameFromToken();
@@ -98,6 +102,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     /** Update the stored password (mock plaintext for now). */
     public boolean changePassword(String newPassword) {
         String userName = extractUserNameFromToken();
@@ -114,6 +119,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Void addProductToCart(String storeId,
                                  String productName,
                                  int quantity) {
@@ -131,6 +137,7 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     public Void removeProductFromCart(String storeId,
                                       String productName,
                                       int quantity) {
@@ -143,6 +150,7 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     public Void clearCart() {
         String userName = extractUserNameFromToken();
         User user = repo.findById(userName);
@@ -181,10 +189,12 @@ public class UserService {
         return this.repo;
     }
 
+    @Transactional
     public boolean suspendUser(String userName, long durationHours) {
         return suspensionRepository.suspendUser(userName, durationHours);
     }
 
+    @Transactional
     public boolean unsuspendUser(String userName) {
         return suspensionRepository.unsuspendUser(userName);
     }

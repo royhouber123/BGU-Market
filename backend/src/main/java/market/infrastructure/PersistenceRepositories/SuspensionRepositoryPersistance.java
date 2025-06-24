@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.management.RuntimeErrorException;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +37,8 @@ public class SuspensionRepositoryPersistance implements ISuspensionRepository {
         Suspension existingSuspension = suspensionJpaRepository.findByUserName(userName);
         if (existingSuspension != null) {
             // Update existing suspension
-            existingSuspension.setSuspensionStart(Instant.now());
+            LocalDateTime israelTime = LocalDateTime.now(ZoneId.of("Asia/Jerusalem"));
+            existingSuspension.setSuspensionStart(israelTime);
             existingSuspension.setSuspensionDurationHours(durationHours);
             suspensionJpaRepository.save(existingSuspension);
         } else {
@@ -59,6 +63,7 @@ public class SuspensionRepositoryPersistance implements ISuspensionRepository {
 
     @Override
     public List<String> getSuspendedUsers() {
+        cleanExpiredSuspensions();
         List<Suspension> suspensions = suspensionJpaRepository.findAll();
         return suspensions.stream()
                 .filter(Suspension::isSuspended)
@@ -68,6 +73,7 @@ public class SuspensionRepositoryPersistance implements ISuspensionRepository {
 
     @Override
     public boolean isSuspended(String userName) {
+        cleanExpiredSuspensions();
         Suspension suspension = suspensionJpaRepository.findByUserName(userName);
         return suspension != null && suspension.isSuspended();
     }
@@ -76,6 +82,16 @@ public class SuspensionRepositoryPersistance implements ISuspensionRepository {
     public void checkNotSuspended(String userName) throws RuntimeErrorException {
         if (isSuspended(userName)) {
             throw new RuntimeException("The user "+userName+ " is suspended!");
+        }
+    }
+
+    @Override
+    public void cleanExpiredSuspensions() {
+        List<Suspension> all = suspensionJpaRepository.findAll();
+        for (Suspension s : all) {
+            if (!s.isSuspended()) {
+                suspensionJpaRepository.delete(s);
+            }
         }
     }
 }

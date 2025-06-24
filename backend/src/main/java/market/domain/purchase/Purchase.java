@@ -24,7 +24,7 @@ public class Purchase {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)    
     @CollectionTable(name = "purchased_products", joinColumns = @JoinColumn(name = "purchase_id"))
     private List<PurchasedProduct> products;
 

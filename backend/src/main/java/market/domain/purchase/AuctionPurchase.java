@@ -112,7 +112,7 @@ public class AuctionPurchase {
         auctionRepository.save(entity);
 
         for (Offer offer : offerList) {
-            notificationService.sendNotification(offer.getUserId(), "New offer placed for auction: " + productId + " in store: " + storeId + ". Your offer: " + price + ". Current max offer: " + currentMax);
+            notificationService.sendNotification(offer.getUserId(), "New offer placed for an auction in store: " + storeId + ". Your offer: " + price + ". Current max offer: " + currentMax);
         }
     }
 
@@ -148,7 +148,6 @@ public class AuctionPurchase {
     /// It also removes the auction from the maps.
     /// If no offers were placed, it indicates that the auction closed with no offers.
     public static Purchase closeAuction(String storeId, String productId, IShipmentService shipmentService, IPaymentService paymentService) {
-        System.out.println("111111111111111");
         AuctionKey key = new AuctionKey(storeId, productId);
         long now = System.currentTimeMillis();
         if (!endTimes.containsKey(key)) {
@@ -166,7 +165,6 @@ public class AuctionPurchase {
             System.out.println("Auction closed with no offers.");
             return null;
         }
-        System.out.println("22222222222222");
         Offer winner = offerList.stream()
                 .max(Comparator.comparingDouble(o -> o.getPrice()))
                 .orElseThrow();
@@ -179,14 +177,13 @@ public class AuctionPurchase {
             throw new RuntimeException("Failed to update stock for auction purchase.");
         }
         // Notify all users about the auction result
-        notificationService.sendNotification(winner.getUserId(), "Congratulations! You won the auction for product: " + productId + " in store: " + storeId + ". Your winning offer: " + winner.getPrice());
+        notificationService.sendNotification(winner.getUserId(), "Congratulations! You won the auction in store: " + storeId + ". Your winning offer: " + winner.getPrice());
         for(Offer offer : offerList) {
             if (!offer.getUserId().equals(winner.getUserId())) {
-                notificationService.sendNotification(offer.getUserId(), "You lost the auction for product: " + productId + " in store: " + storeId + ". Your offer: " + offer.getPrice() + ". Winning offer: " + winner.getPrice());
+                notificationService.sendNotification(offer.getUserId(), "You lost the auction in store: " + storeId + ". Your offer: " + offer.getPrice() + ". Winning offer: " + winner.getPrice());
             }
         }
 
-        System.out.println("33333333333333");
         Purchase p = new AuctionPurchase().purchase(
                         winner.getUserId(),
                         storeId,
@@ -202,13 +199,11 @@ public class AuctionPurchase {
         AuctionEntity entity = auctionRepository.findByStoreIdAndProductId(storeId, productId)
                 .orElseThrow(() -> new RuntimeException("Auction not found in database"));
 
-        System.out.println("444444444444444");
         entity.setWinningUserId(winner.getUserId());
         entity.setWinningPrice(winner.getPrice());
         entity.setOffers(offerList);  // optional – only if you want to persist offers too
         auctionRepository.save(entity);
         
-        System.out.println("55555555555555");
         return p;
     }
     

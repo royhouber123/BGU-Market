@@ -45,6 +45,7 @@ public class PurchaseService {
     }
 
     // Regular Purchase
+    @Transactional
     public Purchase executePurchase(String userId, ShoppingCart cart, String shippingAddress, String paymentDetails)  {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             System.out.println("=====PurchaseService====\nExecuting purchase for user: " + userId);
@@ -161,6 +162,7 @@ public class PurchaseService {
 
     }
 
+    @Transactional
     public void openAuction(String userId, String storeId, String productId, String productName, String productCategory, String productDescription, int startingPrice, long endTimeMillis) {
         try {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
@@ -209,6 +211,7 @@ public class PurchaseService {
     }
     
     // Bid Purchase:
+    @Transactional
     public void submitBid(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
 
@@ -275,6 +278,7 @@ public class PurchaseService {
         logger.info("Bid rejected: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId);
     }
 
+    @Transactional
     public void proposeCounterBid(String storeId, String productId, String userId, String approverId, double newAmount) {
         validateApproverForBid(storeId, productId, userId, approverId);
         BidPurchase.proposeCounterBid(storeId, productId, userId, newAmount);
@@ -282,12 +286,13 @@ public class PurchaseService {
         logger.info("Counter bid proposed: approver " + approverId + ", user " + userId + ", store " + storeId + ", product " + productId + ", new amount " + newAmount);
     }
     
-
+    @Transactional
     public void acceptCounterOffer(String storeId, String productId, String userId) {
         BidPurchase.acceptCounterOffer(storeId, productId, userId);
         logger.info("Counter offer accepted: user " + userId + ", store " + storeId + ", product " + productId);
     }
 
+    @Transactional
     public void declineCounterOffer(String storeId, String productId, String userId) {
         BidPurchase.declineCounterOffer(storeId, productId, userId);
         logger.info("Counter offer declined: user " + userId + ", store " + storeId + ", product " + productId);

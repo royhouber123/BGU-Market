@@ -66,7 +66,10 @@ public class SuspensionRepository implements ISuspensionRepository {
         }
     }
 
-    private void cleanExpiredSuspensions() {
+    @Override
+    public void cleanExpiredSuspensions() {
         suspendedUsers.entrySet().removeIf(entry -> !entry.getValue().isSuspended());
     }
+
+
 }
