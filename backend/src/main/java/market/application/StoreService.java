@@ -49,6 +49,7 @@ public class StoreService {
     /*
     * return storeId
     */
+    @Transactional
     public market.dto.StoreDTO.CreateStoreResponse createStore(String storeName, String founderId) {
         try {
             suspentionRepository.checkNotSuspended(founderId);// check if user is suspended
@@ -62,6 +63,7 @@ public class StoreService {
             Store store = new Store(String.valueOf(storeIDs),storeName, founderId,listingRepository);
             //Who is responsable to manage the store id's????????
             storeRepository.addStore(store);
+            storeRepository.save(store); // Save the store to the repository
             logger.info("Store created: " + storeName + ", founder: " + founderId + ", id: " + storeIDs);            
             //((Subscriber)userRepository.findById(founderId)).setStoreRole(store.getStoreID(), "Founder");
             
@@ -84,6 +86,7 @@ public class StoreService {
      * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
      * @throws Exception if the store does not exist or the closure fails internally.
      */
+    @Transactional
     public String closeStore(String storeID, String userName) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -102,6 +105,7 @@ public class StoreService {
             notifyAllOwners(storeID, "The store" + s.getName() + " has been closed by " + userName + ".");
 
             logger.info("Store closed: " + storeID + ", by user: " + userName);
+            storeRepository.save(s); // Save the store after closing it
             return storeID;
 
         } catch (Exception e) {
@@ -120,6 +124,7 @@ public class StoreService {
      * @return A message indicating "success" if the operation succeeded, or an error message if it failed.
      * @throws Exception if the store does not exist or the reopening fails internally.
      */
+    @Transactional
     public String openStore(String storeID, String userName) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -134,7 +139,7 @@ public class StoreService {
 
             // Notify all owners
             notifyAllOwners(storeID, "The store " + s.getName() + " has been reopened by " + userName + ".");
-
+            storeRepository.save(s); // Save the store after reopening it
             return storeID;
 
         } catch (Exception e) {
@@ -152,6 +157,7 @@ public class StoreService {
      * @param storeName the name of the store
      * @return ApiResponse with StoreDTO if found, or error message if not
      */
+    @Transactional
     public StoreDTO getStore(String storeName) {
         try {
             Store store = storeRepository.getStoreByName(storeName);
@@ -172,6 +178,7 @@ public class StoreService {
     appoints 'newOwner' to be an owner of 'storeID' BY 'appointerID'
     assumes aggreement by 'apointerID''s appointer
     */
+    @Transactional
     public Void addAdditionalStoreOwner(String appointerID, String newOwnerID, String storeID) {
         try {
             suspentionRepository.checkNotSuspended(appointerID);// check if appointer is suspended
@@ -193,6 +200,7 @@ public class StoreService {
             }
 
             s.addNewOwner(appointerID, newOwnerID);
+            storeRepository.save(s); // Save the store after adding the new owner
             logger.info("Added new owner: " + newOwnerID + " to store: " + storeID + ", by: " + appointerID);
 
             // Notify the new owner
@@ -211,6 +219,7 @@ public class StoreService {
     if the founder requests, it does that.
     if an owner requests, so its send a notification to his appointer, to allow the appointment
     */
+    @Transactional
     public Void OwnerAppointmentRequest(String appointerID, String newOwnerId, String storeID) {
         try {
             suspentionRepository.checkNotSuspended(appointerID);// check if user is suspended
@@ -236,8 +245,7 @@ public class StoreService {
 
                 String requestTO = s.OwnerAssignedBy(appointerID);
                 logger.info("Owner appointment request: " + appointerID + " requests to appoint " + newOwnerId + " in store: " + storeID + ", request sent to: " + requestTO);
-
-                //TODO:notify 'requestTO' that his assignee want to assign new owner
+                notifyAllOwners(storeID, "Owner appointment request: " + appointerID + " requests to appoint " + newOwnerId + " in store: " + storeID + ", request sent to: " + requestTO);
             }
 
             return null;
@@ -253,6 +261,7 @@ public class StoreService {
     /*
     removes 'toRemove' and all the people he assigned
     */
+    @Transactional
     public List<List<String>> removeOwner(String id, String toRemove, String storeID) {
         List<List<String>> ret = new ArrayList<>();
         ret.add(new ArrayList<>());
@@ -276,7 +285,7 @@ public class StoreService {
                     }
                 }
             }
-
+            storeRepository.save(s); // Save the store after removing the owner and their assigned users
             return removedWorkers;
         } catch (Exception e) {
             logger.error("Error removing owner: " + toRemove + " from store: " + storeID + ". Reason: " + e.getMessage());
@@ -342,6 +351,7 @@ public class StoreService {
      * @throws RuntimeException if the store does not exist, the appointer is not authorized,
      *                          or the manager was not assigned by this appointer.
      */
+    @Transactional
     public Void removeManager(String appointerID, String managerID, String storeID) {
         try {
             suspentionRepository.checkNotSuspended(appointerID);// check if user is suspended
@@ -357,7 +367,7 @@ public class StoreService {
 
                 // Notify the removed manager
                 notifyUser(managerID, "You have been removed as a manager from store " + s.getName() + ".");
-
+                storeRepository.save(s); // Save the store after removing the manager
                 return null;
             } else {
                 logger.error("Failed to remove manager: " + managerID + " from store: " + storeID + ", by: " + appointerID);
@@ -388,6 +398,7 @@ public class StoreService {
      *                           the manager is invalid, the permission code is invalid,
      *                           or any other business rule violation occurs.
      */
+    @Transactional
     public Void addPermissionToManager(String managerID, String appointerID, int permissionID, String storeID) {
         try {
             suspentionRepository.checkNotSuspended(managerID);// check if user is suspended
@@ -421,6 +432,7 @@ public class StoreService {
      * @throws RuntimeException if the store does not exist, the requester is unauthorized,
      *                           the manager is invalid, or any other business rule violation occurs.
      */
+    @Transactional
     public Set<Integer> getManagersPermissions(String managerID, String whoIsAsking, String storeID) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
@@ -449,6 +461,7 @@ public class StoreService {
      *                           the manager ID is invalid, the permission code is invalid,
      *                           or any other business rule violation occurs.
      */
+    @Transactional
     public Void removePermissionFromManager(String managerID, int permissionID, String appointerID, String storeID) {
         try {
             suspentionRepository.checkNotSuspended(managerID);// check if user is suspended
@@ -487,6 +500,7 @@ public class StoreService {
      * @param purchaseType Purchase type (REGULAR, BID, AUCTION, RAFFLE).
      * @return "succeed" or error message.
      */
+    @Transactional
     public String addNewListing(String userName, String storeID, String productId, String productName, String productCategory, String productDescription, int quantity, double price, String purchaseType) {
         try {
             System.out.println("Adding new listing: " + productName + " to store: " + storeID + ", by: " + userName + " with purchase type: " + purchaseType);
@@ -501,7 +515,7 @@ public class StoreService {
             if (s.getStoreProductsManager() == null) {
                 s.setStoreProductsManager(new StoreProductManager(storeID, listingRepository));
             }
-
+            storeRepository.save(s); // Save the store to ensure the StoreProductManager is initialized
             logger.info("Added new listing 2 " + productName);
             return s.addNewListing(userName, productId, productName, productCategory, productDescription, quantity, price, purchaseType);
         } catch (Exception e) {
@@ -522,6 +536,7 @@ public class StoreService {
      * @param listingId ID of the listing to remove.
      * @return "succeed" or error message.
      */
+    @Transactional
     public Void removeListing(String userName, String storeID, String listingId) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -529,8 +544,10 @@ public class StoreService {
             if (s == null)
                 throw new IllegalArgumentException("Store doesn't exist");
             logger.info("Removed listing: " + listingId + " from store: " + storeID + ", by: " + userName);
-            if (s.removeListing(userName, listingId))
+            if (s.removeListing(userName, listingId)) {
+                storeRepository.save(s); // Save the store after removing the listing
                 return null;
+            }
             else {
                 logger.error("Error removing listing: " + listingId + " from store: " + storeID );
                 throw new RuntimeException("Error removing listing: " + listingId + " from store: " + storeID);
@@ -542,6 +559,7 @@ public class StoreService {
         }
     }
 
+    @Transactional
     public boolean editListingPrice(String userName, String storeID, String listingId, double newPrice) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -556,7 +574,7 @@ public class StoreService {
         }
     }
 
-
+    @Transactional
     public boolean editListingProductName(String userName, String storeID, String listingId, String newName) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -564,13 +582,17 @@ public class StoreService {
             if (s == null)
                 throw new IllegalArgumentException("Store doesn't exist");
             logger.info("User " + userName + " editing name for listing " + listingId + " in store " + storeID);
-            return s.editProductName(userName, listingId, newName);
+            boolean success = s.editProductName(userName, listingId, newName);
+            if(success) {
+                storeRepository.save(s); // Save the store after editing the product name
+            }
+            return success;
         } catch (Exception e) {
             logger.error("Error editing product name for listing: " + listingId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Error editing product name: " + e.getMessage());
         }
     }
-
+    @Transactional
     public boolean editListingDescription(String userName, String storeID, String listingId, String newDescription) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -578,13 +600,18 @@ public class StoreService {
             if (s == null)
                 throw new IllegalArgumentException("Store doesn't exist");
             logger.info("User " + userName + " editing description for listing " + listingId + " in store " + storeID);
-            return s.editProductDescription(userName, listingId, newDescription);
+            boolean success = s.editProductDescription(userName, listingId, newDescription);
+            if(success) {
+                storeRepository.save(s); // Save the store after editing the product description
+            }
+            return success;
         } catch (Exception e) {
             logger.error("Error editing description for listing: " + listingId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Error editing description: " + e.getMessage());
         }
     }
 
+    @Transactional
     public boolean editListingQuantity(String userName, String storeID, String listingId, int newQuantity) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -592,13 +619,18 @@ public class StoreService {
             if (s == null)
                 throw new IllegalArgumentException("Store doesn't exist");
             logger.info("User " + userName + " editing quantity for listing " + listingId + " in store " + storeID);
-            return s.editProductQuantity(userName, listingId, newQuantity);
+            boolean success = s.editProductQuantity(userName, listingId, newQuantity);
+            if(success) {
+                storeRepository.save(s); // Save the store after editing the product quantity
+            }
+            return success;
         } catch (Exception e) {
             logger.error("Error editing quantity for listing: " + listingId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Error editing quantity: " + e.getMessage());
         }
     }
 
+    @Transactional
     public boolean editListingCategory(String userName, String storeID, String listingId, String newCategory) {
         try {
             suspentionRepository.checkNotSuspended(userName);// check if user is suspended
@@ -606,7 +638,11 @@ public class StoreService {
             if (s == null)
                 throw new IllegalArgumentException("Store doesn't exist");
             logger.info("User " + userName + " editing category for listing " + listingId + " in store " + storeID);
-            return s.editProductCategory(userName, listingId, newCategory);
+            boolean success = s.editProductCategory(userName, listingId, newCategory);
+            if(success) {
+                storeRepository.save(s); // Save the store after editing the product category
+            }
+            return success;
         } catch (Exception e) {
             logger.error("Error editing category for listing: " + listingId + ". Reason: " + e.getMessage());
             throw new RuntimeException("Error editing category: " + e.getMessage());
@@ -629,6 +665,7 @@ public class StoreService {
      * @param quantity How many units to buy.
      * @return "succeed" or error message.
      */
+    @Transactional
     public Void purchaseFromListing( String storeID, String listingId, int quantity) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
@@ -636,6 +673,7 @@ public class StoreService {
                 throw new IllegalArgumentException("Store doesn't exist");
             logger.info("Purchased " + quantity + " units from listing: " + listingId + " in store: " + storeID);
             s.purchaseFromListing(listingId, quantity);
+            storeRepository.save(s); // Save the store after purchase
             return null;
         } catch (Exception e) {
             logger.error("Error purchasing from listing: " + listingId + " in store: " + storeID + ". Reason: " + e.getMessage());
@@ -643,6 +681,7 @@ public class StoreService {
         }
     }
 
+    @Transactional
     public double getProductPrice(String storeID, String productID) {
         Store s = storeRepository.getStoreByID(storeID);
         Map<String,Integer> prod = new HashMap<>();
@@ -651,6 +690,7 @@ public class StoreService {
         return s.calculateStoreBagWithDiscount(prod);
     }
 
+    @Transactional
     public ApiResponse<Double> getProductDiscountedPrice(String storeID, String listingID) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
@@ -669,16 +709,19 @@ public class StoreService {
         }
     }
 
+    @Transactional
     public boolean isOwner(String storeID, String userID){
         Store s = storeRepository.getStoreByID(storeID);
         return s.isOwner(userID);
     }
 
+    @Transactional
      public boolean isManager(String storeID, String userID){
         Store s = storeRepository.getStoreByID(storeID);
         return s.isManager(userID);
     }
 
+    @Transactional
     public ApiResponse<Boolean> isFounder(String storeID, String userID){
         Store s = storeRepository.getStoreByID(storeID);
         if (s == null) {
@@ -694,6 +737,7 @@ public class StoreService {
      * @param userID The user ID to check
      * @return Map containing role, permissions, and other relevant info
      */
+    @Transactional
     public ApiResponse<Map<String, Object>> getCurrentUserPermissions(String storeID, String userID) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
@@ -753,6 +797,7 @@ public class StoreService {
      * @param requesterId The ID of the user making the request (must be owner)
      * @return Map containing store users data
      */
+    @Transactional
     public ApiResponse<Map<String, Object>> getStoreUsers(String storeID, String requesterId) {
         try {
             Store s = storeRepository.getStoreByID(storeID);
@@ -826,6 +871,7 @@ public class StoreService {
         }
     }
 
+    @Transactional
     public List<Map<String, Object>> getInformationAboutStoresAndProducts(){
         List<Map<String, Object>> res = new ArrayList<>();
         for (Store s: storeRepository.getAllActiveStores()){
@@ -871,6 +917,7 @@ public class StoreService {
      * @param storeID The ID of the store.
      * @param message The notification message.
      */
+    @Transactional
     private void notifyAllOwners(String storeID, String message) {
         Store store = storeRepository.getStoreByID(storeID);
         if (store == null) {
