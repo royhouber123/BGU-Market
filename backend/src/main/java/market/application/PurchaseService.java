@@ -348,6 +348,7 @@ public class PurchaseService {
             List<Map<String, Object>> bidData = new ArrayList<>();
             for (Bid bid : bids) {
                 Map<String, Object> bidInfo = new HashMap<>();
+                bidInfo.put("id", bid.getId());
                 bidInfo.put("userId", bid.getUserId());
                 bidInfo.put("bidAmount", bid.getPrice());
                 bidInfo.put("shippingAddress", bid.getShippingAddress());
@@ -461,7 +462,8 @@ public class PurchaseService {
             for (Bid bid : bids) {
                 if (bid.getUserId().equals(requestingUser)) {
                     Map<String, Object> bidInfo = new HashMap<>();
-                    bidInfo.put("userId", bid.getUserId());
+                    bidInfo.put("id", bid.getId());
+                bidInfo.put("userId", bid.getUserId());
                     bidInfo.put("bidAmount", bid.getPrice());
                     bidInfo.put("shippingAddress", bid.getShippingAddress());
                     bidInfo.put("contactInfo", bid.getContactInfo());

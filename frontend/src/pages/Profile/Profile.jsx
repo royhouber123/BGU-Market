@@ -502,6 +502,29 @@ export default function Profile() {
 		setIsEditing(false);
 	};
 
+	const handleToggleStoreStatus = async (store) => {
+		try {
+			if (store.isActive) {
+				// Close the store
+				await storeService.closeStore(store.id, currentUser.userName);
+				toast({ title: "Success", description: `Store "${store.name}" has been closed` });
+			} else {
+				// Open the store
+				await storeService.openStore(store.id, currentUser.userName);
+				toast({ title: "Success", description: `Store "${store.name}" has been opened` });
+			}
+			// Refresh store data
+			loadUserManagedStores();
+		} catch (error) {
+			console.error("Error toggling store status:", error);
+			toast({ 
+				title: "Error", 
+				description: `Failed to ${store.isActive ? 'close' : 'open'} store: ${error.message || "Unknown error"}`, 
+				variant: "destructive" 
+			});
+		}
+	};
+
 	const handleCreateStore = () => {
 		// Navigate to store creation or show dialog
 		const storeName = prompt('Enter store name:');
@@ -751,10 +774,31 @@ export default function Profile() {
 															</Box>
 														</CardContent>
 														<CardActions sx={{ justifyContent: "flex-end" }}>
+
+															<Button
+																size="small"
+																variant="outlined"
+																color={store.isActive ? "error" : "success"}
+																onClick={() => handleToggleStoreStatus(store)}
+																sx={{ mr: 1 }}
+															>
+																{store.isActive ? 'Close Store' : 'Open Store'}
+															</Button>
+															
 															<Button
 																size="small"
 																startIcon={<InventoryIcon />}
-																onClick={() => navigate(`/store/${store.id}/manage`)}
+																onClick={() => {
+																	if (!store.isActive && store.role === 'Founder') {
+																		toast({
+																			title: 'Error',
+																			description: 'This store is currently closed. Please open it first.',
+																			variant: 'destructive'
+																		});
+																		return;
+																	}
+																	navigate(`/store/${store.id}/manage`);
+																}}
 															>
 																Manage
 															</Button>
@@ -810,7 +854,17 @@ export default function Profile() {
 															<Button
 																size="small"
 																startIcon={<InventoryIcon />}
-																onClick={() => navigate(`/store/${store.id}/manage`)}
+																onClick={() => {
+																	if (!store.isActive) {
+																		toast({
+																			title: 'Error',
+																			description: 'This store is currently closed. Please open it first.',
+																			variant: 'destructive'
+																		});
+																		return;
+																	}
+																	navigate(`/store/${store.id}/manage`);
+																}}
 															>
 																Manage
 															</Button>
@@ -866,7 +920,17 @@ export default function Profile() {
 															<Button
 																size="small"
 																startIcon={<InventoryIcon />}
-																onClick={() => navigate(`/store/${store.id}/manage`)}
+																onClick={() => {
+																	if (!store.isActive) {
+																		toast({
+																			title: 'Error',
+																			description: 'This store is currently closed. Please open it first.',
+																			variant: 'destructive'
+																		});
+																		return;
+																	}
+																	navigate(`/store/${store.id}/manage`);
+																}}
 															>
 																Manage
 															</Button>

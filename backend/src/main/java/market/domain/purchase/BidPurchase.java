@@ -169,7 +169,7 @@ public class BidPurchase {
         for (Bid bid : productBids) {
             if (bid.getUserId().equals(userId) && !bid.isRejected()) {
                 bid.proposeCounterOffer(newAmount);
-                notificationService.sendNotification(userId, "Counter offer proposed: " + newAmount);
+                notificationService.sendNotification(userId, "Counter offer proposed: " + newAmount + " for product " + productId + " at store " + storeId);
                 
                 BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
                         .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));

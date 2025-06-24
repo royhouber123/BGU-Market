@@ -106,6 +106,10 @@ public class Bid {
         return requiredApprovers;
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public double getCounterOfferAmount() {
         if (!counterOffered) {
             throw new RuntimeException("No counter offer has been made yet.");

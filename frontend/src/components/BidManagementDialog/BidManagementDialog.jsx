@@ -40,8 +40,10 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [permissionError, setPermissionError] = useState(false);
+	// Store counter amounts keyed by unique bid ID/key instead of user ID
 	const [counterBidAmounts, setCounterBidAmounts] = useState({});
-	const [processingBid, setProcessingBid] = useState("");
+	// Track the bid currently being processed (approve/reject/counter) by its unique key
+	const [processingBid, setProcessingBid] = useState(null);
 	const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
 	const [bidToReject, setBidToReject] = useState(null);
 
@@ -71,12 +73,15 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 		}
 	};
 
-	const handleApproveBid = async (bidderUsername) => {
+	// Accept a bid – takes the full bid object for a unique reference
+	const handleApproveBid = async (bid) => {
+		const { userId: bidderUsername } = bid; // existing API still expects username
+		const bidKey = bid.id;
 		console.log('handleApproveBid called with bidderUsername:', bidderUsername);
 		console.log('Current bids array:', bids);
 		console.log('Bid being approved belongs to:', bidderUsername);
 
-		setProcessingBid(bidderUsername);
+		setProcessingBid(bidKey);
 		try {
 			await purchaseService.approveBid(store.id, product.id, bidderUsername);
 			console.log('Successfully approved bid for:', bidderUsername);
@@ -94,21 +99,23 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 				variant: "destructive"
 			});
 		} finally {
-			setProcessingBid("");
+			setProcessingBid(null);
 		}
 	};
 
-	const handleRejectBid = async (bidderUsername) => {
-		setBidToReject(bidderUsername);
+	const handleRejectBid = async (bid) => {
+		setBidToReject(bid);
 		setRejectConfirmOpen(true);
 	};
 
 	const confirmRejectBid = async () => {
 		if (!bidToReject) return;
 
-		setProcessingBid(bidToReject);
+		const bidKey = bidToReject.id;
+		setProcessingBid(bidKey);
+		
 		try {
-			await purchaseService.rejectBid(store.id, product.id, bidToReject);
+			await purchaseService.rejectBid(store.id, product.id, bidToReject.userId);
 			onUpdate({
 				title: "Bid Rejected",
 				description: `Successfully rejected bid from ${bidToReject}. This bid can no longer be approved or modified.`,
@@ -123,7 +130,7 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 				variant: "destructive"
 			});
 		} finally {
-			setProcessingBid("");
+			setProcessingBid(null);
 			setRejectConfirmOpen(false);
 			setBidToReject(null);
 		}
@@ -134,8 +141,10 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 		setBidToReject(null);
 	};
 
-	const handleCounterBid = async (bidderUsername) => {
-		const counterAmount = counterBidAmounts[bidderUsername];
+	const handleCounterBid = async (bid) => {
+		const bidderUsername = bid.userId;
+		const bidKey = bid.id;
+		const counterAmount = counterBidAmounts[bidKey];
 		if (!counterAmount || parseFloat(counterAmount) <= 0) {
 			onUpdate({
 				title: "Error",
@@ -145,7 +154,7 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 			return;
 		}
 
-		setProcessingBid(bidderUsername);
+		setProcessingBid(bidKey);
 		try {
 			await purchaseService.proposeCounterBid(store.id, product.id, bidderUsername, parseFloat(counterAmount));
 			onUpdate({
@@ -153,7 +162,7 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 				description: `Successfully proposed counter bid of $${counterAmount} to ${bidderUsername}`,
 				variant: "success"
 			});
-			setCounterBidAmounts(prev => ({ ...prev, [bidderUsername]: "" })); // Clear the input
+			setCounterBidAmounts(prev => ({ ...prev, [bidKey]: "" })); // Clear the input
 			loadBids(); // Refresh bids
 		} catch (error) {
 			console.error("Error proposing counter bid:", error);
@@ -163,23 +172,24 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 				variant: "destructive"
 			});
 		} finally {
-			setProcessingBid("");
+			setProcessingBid(null);
 		}
 	};
 
-	const handleCounterAmountChange = (bidderUsername, value) => {
-		setCounterBidAmounts(prev => ({ ...prev, [bidderUsername]: value }));
+	const handleCounterAmountChange = (bidKey, value) => {
+		setCounterBidAmounts(prev => ({ ...prev, [bidKey]: value }));
 	};
 
+	// Ensure mutually exclusive status representation
 	const getStatusChip = (bid) => {
 		if (bid.isRejected) {
 			return <Chip label="Rejected" color="error" size="small" variant="filled" sx={{ fontWeight: 'bold' }} />;
 		}
-		if (bid.counterOffered) {
-			return <Chip label={`Counter: $${bid.counterOfferAmount?.toFixed(2)}`} color="warning" size="small" variant="filled" />;
-		}
 		if (bid.isApproved) {
 			return <Chip label="Approved" color="success" size="small" variant="filled" sx={{ fontWeight: 'bold' }} />;
+		}
+		if (bid.counterOffered) {
+			return <Chip label={`Counter: $${bid.counterOfferAmount?.toFixed(2)}`} color="warning" size="small" variant="filled" />;
 		}
 		return <Chip label="Pending" color="default" size="small" variant="outlined" />;
 	};
@@ -313,9 +323,9 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 									</TableHead>
 									<TableBody>
 										{bids.map((bid, index) => {
-											// Create a closure-safe reference to the current bid
+											// Unique identifiers per bid row
 											const currentBidUserId = bid.userId;
-											const currentBidKey = `${bid.userId}-${index}`;
+											const currentBidKey = bid.id;
 
 											return (
 												<TableRow
@@ -338,7 +348,7 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 															<Typography variant="body2" fontWeight="bold">
 																{currentBidUserId}
 															</Typography>
-															{bid.isRejected && (
+															{bid.isRejected && !bid.isApproved && (
 																<Tooltip title="This bid has been rejected">
 																	<Box sx={{ display: 'flex', alignItems: 'center' }}>
 																		<Typography variant="caption" color="error.main" sx={{ fontSize: '0.7rem' }}>
@@ -347,7 +357,7 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 																	</Box>
 																</Tooltip>
 															)}
-															{bid.isApproved && (
+															{bid.isApproved && !bid.isRejected && (
 																<Tooltip title="This bid has been approved and purchase completed">
 																	<Box sx={{ display: 'flex', alignItems: 'center' }}>
 																		<Typography variant="caption" color="success.main" sx={{ fontSize: '0.7rem' }}>
@@ -385,12 +395,12 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 																		color="success"
 																		size="small"
 																		onClick={() => {
-																			console.log('Approving bid for user:', currentBidUserId);
-																			handleApproveBid(currentBidUserId);
+																			console.log('Approving bid id:', currentBidKey);
+																			handleApproveBid(bid);
 																		}}
-																		disabled={processingBid === currentBidUserId}
+																		disabled={processingBid === currentBidKey}
 																	>
-																		{processingBid === currentBidUserId ? (
+																		{processingBid === currentBidKey ? (
 																			<CircularProgress size={16} />
 																		) : (
 																			<ApproveIcon />
@@ -405,11 +415,11 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 																		size="small"
 																		onClick={() => {
 																			console.log('Rejecting bid for user:', currentBidUserId);
-																			handleRejectBid(currentBidUserId);
+																			handleRejectBid(bid);
 																		}}
-																		disabled={processingBid === currentBidUserId}
+																		disabled={processingBid === currentBidKey}
 																	>
-																		{processingBid === currentBidUserId ? (
+																		{processingBid === currentBidKey ? (
 																			<CircularProgress size={16} />
 																		) : (
 																			<RejectIcon />
@@ -423,8 +433,8 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 																		size="small"
 																		type="number"
 																		placeholder="Counter amount"
-																		value={counterBidAmounts[currentBidUserId] || ""}
-																		onChange={(e) => handleCounterAmountChange(currentBidUserId, e.target.value)}
+																		value={counterBidAmounts[currentBidKey] || ""}
+																		onChange={(e) => handleCounterAmountChange(currentBidKey, e.target.value)}
 																		sx={{ width: 120 }}
 																		inputProps={{ min: 0, step: 0.01 }}
 																	/>
@@ -433,12 +443,12 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 																			color="warning"
 																			size="small"
 																			onClick={() => {
-																				console.log('Counter bid for user:', currentBidUserId);
-																				handleCounterBid(currentBidUserId);
+																				console.log('Counter bid for bid id:', currentBidKey);
+																				handleCounterBid(bid);
 																			}}
-																			disabled={processingBid === currentBidUserId || !counterBidAmounts[currentBidUserId]}
+																			disabled={processingBid === currentBidKey || !counterBidAmounts[currentBidKey]}
 																		>
-																			{processingBid === currentBidUserId ? (
+																			{processingBid === currentBidKey ? (
 																				<CircularProgress size={16} />
 																			) : (
 																				<CounterIcon />
@@ -490,7 +500,7 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 						</Typography>
 					</Alert>
 					<Typography variant="body1" sx={{ mb: 2 }}>
-						Are you sure you want to reject the bid from <strong>{bidToReject}</strong>?
+						Are you sure you want to reject the bid from <strong>{bidToReject?.userId}</strong>?
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
 						Once rejected:
@@ -515,10 +525,10 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 						onClick={confirmRejectBid}
 						variant="contained"
 						color="error"
-						disabled={processingBid === bidToReject}
-						startIcon={processingBid === bidToReject ? <CircularProgress size={16} /> : null}
+						disabled={processingBid === bidToReject?.id}
+						startIcon={processingBid === bidToReject?.id ? <CircularProgress size={16} /> : null}
 					>
-						{processingBid === bidToReject ? "Rejecting..." : "Reject Bid"}
+						{processingBid === bidToReject?.id ? "Rejecting..." : "Reject Bid"}
 					</Button>
 				</DialogActions>
 			</Dialog>

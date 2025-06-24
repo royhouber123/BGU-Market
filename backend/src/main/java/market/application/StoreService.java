@@ -104,8 +104,9 @@ public class StoreService {
             // Notify all owners
             notifyAllOwners(storeID, "The store" + s.getName() + " has been closed by " + userName + ".");
 
-            logger.info("Store closed: " + storeID + ", by user: " + userName);
+            logger.info("Store closed: " + storeID + " by user: " + userName);
             storeRepository.save(s); // Save the store after closing it
+            logger.info("Store status: " + s.isOpen());
             return storeID;
 
         } catch (Exception e) {
