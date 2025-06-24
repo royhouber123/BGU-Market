@@ -17,6 +17,7 @@ import java.sql.DriverManager;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@EnabledIf("market.infrastructure.StoreRepositoryIntegrationTests#isMySQLAvailable")
 public class StoreRepositoryIntegrationTests extends AcceptanceTestSpringBase {
 
     @Autowired
