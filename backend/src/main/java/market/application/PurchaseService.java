@@ -147,6 +147,7 @@ public class PurchaseService {
     }
 
     // Auction Purchase
+    @Transactional
     public void submitOffer(String storeId, String productId, String userId, double offerPrice, String shippingAddress, String contactInfo) {
             suspensionRepository.checkNotSuspended(userId);// check if user is suspended
             User user = userRepository.findById(userId);
@@ -253,7 +254,7 @@ public class PurchaseService {
                 notificationService,
                 bidRepository
             );
-            notifyAllApproversForBid(storeId, "New bid submitted for approval: " + userId + " has submitted a bid of $" + offerPrice + " for product " + productId + " in store " + storeId);
+            notifyAllApproversForBid(storeId, "New bid submitted for approval: " + userId + " has submitted a bid of $" + offerPrice + " in store " + storeId);
             logger.info("Bid submitted: user " + userId + ", store " + storeId + ", product " + productId + ", price " + offerPrice);
 
     }
