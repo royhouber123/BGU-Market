@@ -321,24 +321,43 @@ public class Store {
      */
     public boolean addNewOwner(String appointerID, String newOwnerID) throws Exception {
         synchronized (ownershipLock) {
-            if (!isOwner(appointerID))
-                throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
+            try{
+                System.out.println("=== DEBUG addNewOwner ===");
+                System.out.println("appointerID: " + appointerID);
+                System.out.println("newOwnerID: " + newOwnerID);
+                System.out.println("assignments size before: " + assignments.size());
+                
+                if (!isOwner(appointerID))
+                    throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
 
-            if (isOwner(newOwnerID))
-                throw new Exception("User " + newOwnerID + " is already an owner of store " + storeID);
+                if (isOwner(newOwnerID))
+                    throw new Exception("User " + newOwnerID + " is already an owner of store " + storeID);
 
-            storeClosedExeption();  // store must be open
+                storeClosedExeption();  // store must be open
 
-            ownerToAssignedOwners
-                .computeIfAbsent(appointerID, k -> new ArrayList<>())  // make sure list exists
-                .add(newOwnerID);
+                ownerToAssignedOwners
+                    .computeIfAbsent(appointerID, k -> new ArrayList<>())
+                    .add(newOwnerID);
 
-            ownerToAssignedOwners.put(newOwnerID,      new ArrayList<>());
-            ownerToAssignedManagers.put(newOwnerID,    new ArrayList<>());
-            ownerToWhoAssignedHim.put(newOwnerID,      appointerID);
-            assignments.add(new AssignmentRow(appointerID, newOwnerID));
-
-            return true;
+                ownerToAssignedOwners.put(newOwnerID, new ArrayList<>());
+                ownerToAssignedManagers.put(newOwnerID, new ArrayList<>());
+                ownerToWhoAssignedHim.put(newOwnerID, appointerID);
+                
+                // 🔧 ADD TRY-CATCH to see what's failing
+                System.out.println("About to add assignment...");
+                assignments.add(new AssignmentRow(appointerID, newOwnerID));
+                System.out.println("assignments size after: " + assignments.size());
+                System.out.println("Assignment added successfully!");
+                
+                return true;
+                
+            } catch (Exception e) {
+                System.out.println("🚨 ERROR in addNewOwner: " + e.getMessage());
+                e.printStackTrace();
+                throw e; // Re-throw to see the full error
+            } finally {
+                System.out.println("=== END DEBUG addNewOwner ===");
+            }
         }
     }
 
@@ -565,6 +584,20 @@ public class Store {
     }
 
     /**
+     * Returns the ID of the owner who appointed the specified user as a manager.
+     *
+     * @param id ID of the user whose appointer is being queried.
+     * @return The ID of the owner who assigned this user as manager, or {@code null} if the user has no recorded appointer or is not a manager.
+     */
+    public String ManagerAssignedBy(String id){
+        Manager manager = getManager(id);
+        if (manager != null) {
+            return manager.getApointedBy();
+        }
+        return null;
+    }
+
+    /**
      * Returns the ID of the founder of the store.
      * The founder is the original creator of the store and cannot be removed as an owner.
      *
@@ -613,9 +646,6 @@ public class Store {
         if (!isOwner(toRemove)) {
             throw new Exception(toRemove + " is not a owner of store:" + storeID);
         }
-        if (toRemove.equals(getFounderID())) {
-            throw new Exception(toRemove + " is the FOUNDER of store:" + storeID + " can't remove him");
-        }
         if (!ownerToWhoAssignedHim.get(toRemove).equals(id)) {
             throw new Exception(id + " didn't assign " + toRemove + " to be owner of store:" + storeID);
         }
@@ -663,6 +693,21 @@ public class Store {
                 ownerToAssignedOwners.remove(o);
             }
         }
+
+        // 🔧 FIX: Clean up persistent database tables
+        // Remove all removed owners from storeRoles table
+        storeRoles.removeIf(roleRow -> 
+            res.get(0).contains(roleRow.getUserId()) ||  // removed owners
+            res.get(1).contains(roleRow.getUserId())     // removed managers
+        );
+
+        // 🔧 FIX: Also clean up assignments table for removed users
+        assignments.removeIf(assignment ->
+            res.get(0).contains(assignment.getAssigner()) ||   // removed owner was assigner
+            res.get(0).contains(assignment.getAssignee()) ||   // removed owner was assignee
+            res.get(1).contains(assignment.getAssigner()) ||   // removed manager was assigner  
+            res.get(1).contains(assignment.getAssignee())      // removed manager was assignee
+        );
 
         return res;
     }

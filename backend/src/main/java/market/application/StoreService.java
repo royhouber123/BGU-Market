@@ -857,8 +857,9 @@ public class StoreService {
                     manager.put("permissions", List.of());
                 }
                 
-                manager.put("appointerID", requesterId); // Simplified for now
-                manager.put("canRemove", true); // Any owner can remove managers for now
+                String appointerID = s.ManagerAssignedBy(managerID);
+                manager.put("appointerID", appointerID); // Simplified for now
+                manager.put("canRemove", appointerID != null && appointerID.equals(requesterId)); // Any owner can remove managers for now
                 users.add(manager);
             }
             
