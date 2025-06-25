@@ -113,7 +113,7 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 
 		const bidKey = bidToReject.id;
 		setProcessingBid(bidKey);
-		
+
 		try {
 			await purchaseService.rejectBid(store.id, product.id, bidToReject.userId);
 			onUpdate({
@@ -189,13 +189,105 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 			return <Chip label="Approved" color="success" size="small" variant="filled" sx={{ fontWeight: 'bold' }} />;
 		}
 		if (bid.counterOffered) {
-			return <Chip label={`Counter: $${bid.counterOfferAmount?.toFixed(2)}`} color="warning" size="small" variant="filled" />;
+			return <Chip label={`Pending Counter Response: $${bid.counterOfferAmount?.toFixed(2)}`} color="warning" size="small" variant="filled" sx={{ fontWeight: 'bold' }} />;
 		}
-		return <Chip label="Pending" color="default" size="small" variant="outlined" />;
+
+		// Show approval progress for pending bids
+		const totalRequired = bid.requiredApprovers?.length || 0;
+		const currentApprovals = bid.approvedBy?.length || 0;
+
+		// Check if current user has already approved
+		const currentUserApproved = bid.approvedBy?.includes(currentUser?.userName);
+
+		// Create tooltip content showing approval details
+		const getApprovalTooltip = () => {
+			const approvedList = bid.approvedBy || [];
+			const requiredList = bid.requiredApprovers || [];
+			const pendingList = requiredList.filter(approver => !approvedList.includes(approver));
+
+			return (
+				<Box sx={{ p: 1 }}>
+					<Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+						Approval Status ({currentApprovals}/{totalRequired})
+					</Typography>
+					{approvedList.length > 0 && (
+						<Box sx={{ mb: 1 }}>
+							<Typography variant="caption" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+								✓ Approved by:
+							</Typography>
+							{approvedList.map(approver => (
+								<Typography key={approver} variant="caption" sx={{ display: 'block', ml: 1 }}>
+									• {approver} {approver === currentUser?.userName ? '(You)' : ''}
+								</Typography>
+							))}
+						</Box>
+					)}
+					{pendingList.length > 0 && (
+						<Box>
+							<Typography variant="caption" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+								⏳ Waiting for:
+							</Typography>
+							{pendingList.map(approver => (
+								<Typography key={approver} variant="caption" sx={{ display: 'block', ml: 1 }}>
+									• {approver} {approver === currentUser?.userName ? '(You)' : ''}
+								</Typography>
+							))}
+						</Box>
+					)}
+				</Box>
+			);
+		};
+
+		if (currentUserApproved && currentApprovals < totalRequired) {
+			return (
+				<Tooltip title={getApprovalTooltip()} placement="left">
+					<Chip
+						label={`Approved by you - Waiting for others (${currentApprovals}/${totalRequired})`}
+						color="info"
+						size="small"
+						variant="filled"
+						sx={{ fontWeight: 'bold', cursor: 'help' }}
+					/>
+				</Tooltip>
+			);
+		}
+
+		return (
+			<Tooltip title={getApprovalTooltip()} placement="left">
+				<Chip
+					label={`Pending Approval (${currentApprovals}/${totalRequired})`}
+					color="default"
+					size="small"
+					variant="outlined"
+					sx={{ cursor: 'help' }}
+				/>
+			</Tooltip>
+		);
+	};
+
+	// Check if current user has already approved this bid
+	const hasCurrentUserApproved = (bid) => {
+		return bid.approvedBy?.includes(currentUser?.userName) || false;
+	};
+
+	// Check if current user can approve this bid (is in required approvers list)
+	const canCurrentUserApprove = (bid) => {
+		return bid.requiredApprovers?.includes(currentUser?.userName) || false;
 	};
 
 	const canTakeAction = (bid) => {
-		return !bid.isApproved && !bid.isRejected;
+		// Disable actions if bid is approved, rejected, or has a pending counter offer
+		if (bid.isApproved || bid.isRejected || bid.counterOffered) {
+			return false;
+		}
+
+		// If current user has already approved, they can't take action anymore
+		if (hasCurrentUserApproved(bid)) {
+			return false;
+		}
+
+		// Only allow actions if user can approve this bid
+		return canCurrentUserApprove(bid);
 	};
 
 	const getActionMessage = (bid) => {
@@ -205,6 +297,24 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 		if (bid.isApproved) {
 			return "This bid has been approved and purchase is complete";
 		}
+		if (bid.counterOffered) {
+			return "Waiting for user to respond to counter offer - no actions available";
+		}
+
+		// Check if current user has already approved
+		if (hasCurrentUserApproved(bid)) {
+			const totalRequired = bid.requiredApprovers?.length || 0;
+			const currentApprovals = bid.approvedBy?.length || 0;
+			const remainingApprovals = totalRequired - currentApprovals;
+
+			return `You have approved this bid. Waiting for ${remainingApprovals} more approval${remainingApprovals > 1 ? 's' : ''}.`;
+		}
+
+		// Check if user can approve
+		if (!canCurrentUserApprove(bid)) {
+			return "You don't have permission to approve this bid";
+		}
+
 		return "Available actions";
 	};
 
@@ -224,6 +334,25 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 				{error && !permissionError && (
 					<Alert severity="error" sx={{ mb: 2 }}>
 						{error}
+					</Alert>
+				)}
+
+				{/* Bid States Information */}
+				{!permissionError && bids.length > 0 && (
+					<Alert severity="info" sx={{ mb: 2 }}>
+						<Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+							Bid Approval Process:
+						</Typography>
+						<Typography variant="body2" component="div">
+							• <strong>Pending Approval:</strong> Waiting for approvers - you can approve, reject, or counter-offer<br />
+							• <strong>Approved by you:</strong> You've approved this bid - waiting for other managers/owners to approve<br />
+							• <strong>Pending Counter Response:</strong> Waiting for bidder to accept/decline your counter offer<br />
+							• <strong>Approved:</strong> All required approvers have approved - purchase completed automatically<br />
+							• <strong>Rejected:</strong> Bid permanently declined by at least one approver
+						</Typography>
+						<Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic', color: 'text.secondary' }}>
+							Note: Once you approve a bid, you cannot change your decision. The bid will be executed automatically once all required approvers accept it.
+						</Typography>
 					</Alert>
 				)}
 
@@ -334,12 +463,14 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 													sx={{
 														bgcolor: bid.isRejected ? 'error.light' :
 															bid.isApproved ? 'success.light' :
-																'transparent',
+																bid.counterOffered ? 'warning.light' :
+																	'transparent',
 														opacity: bid.isRejected ? 0.7 : 1,
 														'& .MuiTableCell-root': {
 															borderBottom: bid.isRejected ? '1px solid rgba(211, 47, 47, 0.3)' :
 																bid.isApproved ? '1px solid rgba(46, 125, 50, 0.3)' :
-																	undefined
+																	bid.counterOffered ? '1px solid rgba(237, 108, 2, 0.3)' :
+																		undefined
 														}
 													}}
 												>
@@ -362,6 +493,25 @@ export default function BidManagementDialog({ open, onClose, product, store, onU
 																	<Box sx={{ display: 'flex', alignItems: 'center' }}>
 																		<Typography variant="caption" color="success.main" sx={{ fontSize: '0.7rem' }}>
 																			✅ APPROVED
+																		</Typography>
+																	</Box>
+																</Tooltip>
+															)}
+															{bid.counterOffered && !bid.isApproved && !bid.isRejected && (
+																<Tooltip title="Counter offer sent - waiting for user response">
+																	<Box sx={{ display: 'flex', alignItems: 'center' }}>
+																		<Typography variant="caption" color="warning.main" sx={{ fontSize: '0.7rem' }}>
+																			⏳ WAITING FOR RESPONSE
+																		</Typography>
+																	</Box>
+																</Tooltip>
+															)}
+															{/* Show if current user has approved this bid */}
+															{hasCurrentUserApproved(bid) && !bid.isApproved && !bid.isRejected && !bid.counterOffered && (
+																<Tooltip title="You have approved this bid - waiting for other approvers">
+																	<Box sx={{ display: 'flex', alignItems: 'center' }}>
+																		<Typography variant="caption" color="info.main" sx={{ fontSize: '0.7rem' }}>
+																			✓ APPROVED BY YOU
 																		</Typography>
 																	</Box>
 																</Tooltip>
