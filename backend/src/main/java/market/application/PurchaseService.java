@@ -321,6 +321,37 @@ public class PurchaseService {
         }
     }
 
+    public Map<String, Object> getBidStatusWithCurrApprovers(String storeId, String productId, String userId) {
+        try {
+            suspensionRepository.checkNotSuspended(userId);// check if user is suspended
+            BidKey key = new BidKey(storeId, productId);
+            List<Bid> bids = BidPurchase.getBids().get(key);
+
+            Map<String, Object> result = new HashMap<>();
+            if (bids == null || bids.isEmpty()) {
+                result.put("status", "No Bid Found");
+                result.put("approvedBy", List.of());
+                return result;
+            }
+
+            for (Bid bid : bids) {
+                if (bid.getUserId().equals(userId)) {
+                    result.put("status", getBidStatusString(bid));
+                    result.put("approvedBy", bid.getApprovedBy());
+                    return result;
+                }
+            }
+
+            result.put("status", "No Bid Found");
+            result.put("approvedBy", List.of());
+            return result;
+            
+        } catch (RuntimeException e) {
+            logger.error("Failed to get bid status: " + e.getMessage());
+            throw new RuntimeException("Failed to get bid status: " + e.getMessage());
+        }
+    }
+
     public List<Map<String, Object>> getProductBids(String storeId, String productId, String requestingUser) {
         try {
             
