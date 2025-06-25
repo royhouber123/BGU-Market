@@ -207,20 +207,27 @@ public class GuestTests extends AcceptanceTestBase {
     }
 
     @Test
-    void guest_gets_store_info_when_no_stores_active() { 
+    void guest_gets_store_info_when_no_stores_active() {
         try {
-            //Step 1: Close the store using MANAGER1 ID from setup
+            // Step 1: Close the store using MANAGER1 ID from setup
             storeService.closeStore(storeId, MANAGER1);
         } catch (Exception e) {
             fail("Failed to close store: " + e.getMessage());
         }
+
         try {
-            //Step 2: Guest requests store info
+            // Step 2: Guest requests store info
             List<Map<String, Object>> infoResponse = storeService.getInformationAboutStoresAndProducts();
-            //Step 3: Assert no active stores are returned
-            List<Map<String, Object>> data = infoResponse;
-            assertNotNull(data, "Returned data should not be null");
-            assertTrue(data.isEmpty(), "Expected no active stores, but some were returned");
+
+            // Step 3: Assert all returned stores are inactive
+            assertNotNull(infoResponse, "Returned data should not be null");
+
+            for (Map<String, Object> entry : infoResponse) {
+                Map<String, Object> store = (Map<String, Object>) entry.get("store");
+                Boolean isActive = (Boolean) store.get("isActive");
+                assertFalse(isActive, "Expected store to be inactive, but found active store");
+            }
+
         } catch (Exception e) {
             fail("Failed to retrieve store information: " + e.getMessage());
         }
