@@ -698,7 +698,9 @@ public class StoreService {
             if (s == null) {
                 return ApiResponse.fail("Store doesn't exist");
             }
-            
+            if(s.isActive() == false) {
+                return ApiResponse.fail("Store is not active");
+            }
             // Use the existing method that calculates discounted price
             double discountedPrice = s.ProductPriceWithDiscount(listingID);
             
@@ -875,7 +877,7 @@ public class StoreService {
     @Transactional
     public List<Map<String, Object>> getInformationAboutStoresAndProducts(){
         List<Map<String, Object>> res = new ArrayList<>();
-        for (Store s: storeRepository.getAllActiveStores()){
+        for (Store s: storeRepository.getAllStores()){
             Map<String, Object> storeInfo = new HashMap<>();
             StoreDTO storeDTO = new StoreDTO(s);
             

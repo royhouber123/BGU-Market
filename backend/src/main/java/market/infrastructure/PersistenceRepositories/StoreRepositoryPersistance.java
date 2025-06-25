@@ -121,6 +121,15 @@ public class StoreRepositoryPersistance implements IStoreRepository {
         }
         return stores;
     }
+    
+    @Override
+    public List<Store> getAllStores() {
+        List<Store> stores = storeJpaRepository.findAll();
+        for (Store store : stores) {
+            store.initializeAfterLoad(listingRepository); 
+        }
+        return stores;
+    }
 
 
     
