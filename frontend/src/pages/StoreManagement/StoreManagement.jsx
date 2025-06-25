@@ -507,7 +507,8 @@ export default function StoreManagement() {
 					try {
 						const bids = await purchaseService.getProductBids(store.id, product.id);
 						counts[product.id] = bids?.length || 0;
-						pendingCounts[product.id] = bids?.filter(bid => !bid.isApproved && !bid.isRejected)?.length || 0;
+						// Only count bids that are truly pending (not approved, not rejected, and not waiting for counter offer response)
+						pendingCounts[product.id] = bids?.filter(bid => !bid.isApproved && !bid.isRejected && !bid.counterOffered)?.length || 0;
 						rejectedCounts[product.id] = bids?.filter(bid => bid.isRejected)?.length || 0;
 					} catch (error) {
 						console.warn(`Could not fetch bids for product ${product.id}:`, error);
@@ -999,6 +1000,12 @@ export default function StoreManagement() {
 				)}
 			</Box>
 		);
+	};
+
+	// Helper function to get product name by ID
+	const getProductNameById = (productId) => {
+		const product = products.find(p => p.id === productId);
+		return product ? product.title : `Product ID: ${productId}`;
 	};
 
 	if (!currentUser) {
@@ -1499,7 +1506,7 @@ export default function StoreManagement() {
 																sx={{ py: 0.5 }}
 															>
 																<ListItemText
-																	primary={`Product ID: ${item.productId}`}
+																	primary={getProductNameById(item.productId)}
 																	secondary={
 																		<>
 																			Quantity: {item.quantity} × ${item.unitPrice.toFixed(2)}

@@ -14,6 +14,54 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+// Helper function to get active stores information
+const getActiveStoresMap = async () => {
+  try {
+    const response = await api.get('/stores/info');
+    const apiResponse = response.data;
+    
+    if (apiResponse.success) {
+      const activeStoresMap = {};
+      apiResponse.data.forEach(storeData => {
+        const store = storeData.store;
+        // Only include active stores in the map
+        if (store.isActive) {
+          activeStoresMap[store.storeID] = true;
+        }
+      });
+      return activeStoresMap;
+    }
+  } catch (error) {
+    console.warn('Could not fetch store information for filtering:', error);
+  }
+  return {};
+};
+
+// Helper function to filter products by active stores
+const filterProductsByActiveStores = async (products) => {
+  if (!products || products.length === 0) {
+    return products;
+  }
+
+  try {
+    const activeStoresMap = await getActiveStoresMap();
+    
+    // If we couldn't get store information, return all products to avoid breaking the app
+    if (Object.keys(activeStoresMap).length === 0) {
+      console.warn('No active stores found or failed to fetch store info, returning all products');
+      return products;
+    }
+
+    // Filter products to only include those from active stores
+    return products.filter(product => {
+      return activeStoresMap[product.storeId];
+    });
+  } catch (error) {
+    console.warn('Error filtering products by active stores:', error);
+    return products; // Return all products if filtering fails
+  }
+};
+
 export const productService = {
   // Search products by name
   searchProducts: async (query) => {
@@ -23,7 +71,7 @@ export const productService = {
       
       if (apiResponse.success) {
         // Transform backend listings to frontend product format
-        return apiResponse.data.map(listing => ({
+        const products = apiResponse.data.map(listing => ({
           id: listing.listingId,
           title: listing.productName,
           price: listing.price,
@@ -46,6 +94,9 @@ export const productService = {
           rating: listing.rating || 0,
           reviews: listing.reviews || []
         }));
+
+        // Filter products to only include those from active stores
+        return await filterProductsByActiveStores(products);
       } else {
         throw new Error('Failed to search products');
       }
@@ -89,8 +140,11 @@ export const productService = {
           reviews: listing.reviews || []
         }));
         
+        // Filter products to only include those from active stores
+        const filteredProducts = await filterProductsByActiveStores(products);
+        
         // Return the first product if any exist, otherwise null
-        return products.length > 0 ? products[0] : null;
+        return filteredProducts.length > 0 ? filteredProducts[0] : null;
       } else {
         throw new Error('Failed to get product');
       }
@@ -110,7 +164,7 @@ export const productService = {
       
       if (apiResponse.success) {
         // Transform backend listings to frontend product format
-        return apiResponse.data.map(listing => ({
+        const products = apiResponse.data.map(listing => ({
           id: listing.listingId,
           title: listing.productName,
           price: listing.price,
@@ -133,6 +187,9 @@ export const productService = {
           rating: listing.rating || 0,
           reviews: listing.reviews || []
         }));
+
+        // Filter products to only include those from active stores
+        return await filterProductsByActiveStores(products);
       } else {
         throw new Error('Failed to get store products');
       }
@@ -152,7 +209,7 @@ export const productService = {
       
       if (apiResponse.success) {
         // Transform backend listings to frontend product format
-        return apiResponse.data.map(listing => ({
+        const products = apiResponse.data.map(listing => ({
           id: listing.listingId,
           title: listing.productName,
           price: listing.price,
@@ -175,6 +232,9 @@ export const productService = {
           rating: listing.rating || 0,
           reviews: listing.reviews || []
         }));
+
+        // Filter products to only include those from active stores
+        return await filterProductsByActiveStores(products);
       } else {
         throw new Error('Failed to search in store');
       }
@@ -194,7 +254,7 @@ export const productService = {
       
       if (apiResponse.success) {
         // Transform backend listings to frontend product format
-        return apiResponse.data.map(listing => ({
+        const products = apiResponse.data.map(listing => ({
           id: listing.listingId,
           title: listing.productName,
           price: listing.price,
@@ -217,6 +277,9 @@ export const productService = {
           rating: listing.rating || 0,
           reviews: listing.reviews || []
         }));
+
+        // Filter products to only include those from active stores
+        return await filterProductsByActiveStores(products);
       } else {
         throw new Error('Failed to get sorted products');
       }
@@ -287,32 +350,35 @@ export const productService = {
           const store = storeData.store;
           const listings = storeData.listings;
           
-          listings.forEach(listing => {
-            products.push({
-              id: listing.listingId,
-              title: listing.productName,
-              price: listing.price,
-              status: listing.active ? 'active' : 'inactive',
-              images: listing.images || [],
-              category: listing.category,
-              shipping_cost: listing.shippingCost || 0,
-              featured: listing.active,
-              description: listing.productDescription,
-              quantity: listing.quantityAvailable,
-              storeId: store.storeID,
-              storeName: store.storeName,
-              productId: listing.productId,
-              purchaseType: listing.purchaseType,
-              seller: {
-                id: store.storeID,
-                name: store.storeName,
-                rating: store.rating || 0
-              },
-              created_date: listing.createdDate || new Date().toISOString(),
-              rating: listing.rating || 0,
-              reviews: listing.reviews || []
+          // Only include products from active stores
+          if (store.isActive) {
+            listings.forEach(listing => {
+              products.push({
+                id: listing.listingId,
+                title: listing.productName,
+                price: listing.price,
+                status: listing.active ? 'active' : 'inactive',
+                images: listing.images || [],
+                category: listing.category,
+                shipping_cost: listing.shippingCost || 0,
+                featured: listing.active,
+                description: listing.productDescription,
+                quantity: listing.quantityAvailable,
+                storeId: store.storeID,
+                storeName: store.storeName,
+                productId: listing.productId,
+                purchaseType: listing.purchaseType,
+                seller: {
+                  id: store.storeID,
+                  name: store.storeName,
+                  rating: store.rating || 0
+                },
+                created_date: listing.createdDate || new Date().toISOString(),
+                rating: listing.rating || 0,
+                reviews: listing.reviews || []
+              });
             });
-          });
+          }
         });
         
         return products;
@@ -341,46 +407,49 @@ export const productService = {
           const store = storeData.store;
           const listings = storeData.listings;
           
-          for (const listing of listings) {
-            let discountedPrice = listing.price;
-            
-            // Try to get discounted price for this product
-            try {
-              const discountResponse = await api.get(`/stores/${store.storeID}/products/${listing.listingId}/discounted-price`);
-              if (discountResponse.data.success && discountResponse.data.data !== undefined) {
-                discountedPrice = discountResponse.data.data;
+          // Only include products from active stores
+          if (store.isActive) {
+            for (const listing of listings) {
+              let discountedPrice = listing.price;
+              
+              // Try to get discounted price for this product
+              try {
+                const discountResponse = await api.get(`/stores/${store.storeID}/products/${listing.listingId}/discounted-price`);
+                if (discountResponse.data.success && discountResponse.data.data !== undefined) {
+                  discountedPrice = discountResponse.data.data;
+                }
+              } catch (discountError) {
+                // If discount API fails, use original price
+                console.warn(`Could not get discount for ${listing.listingId}:`, discountError.message);
               }
-            } catch (discountError) {
-              // If discount API fails, use original price
-              console.warn(`Could not get discount for ${listing.listingId}:`, discountError.message);
+              
+              products.push({
+                id: listing.listingId,
+                title: listing.productName,
+                price: listing.price,
+                discountedPrice: discountedPrice,
+                hasDiscount: discountedPrice < listing.price,
+                status: listing.active ? 'active' : 'inactive',
+                images: listing.images || [],
+                category: listing.category,
+                shipping_cost: listing.shippingCost || 0,
+                featured: listing.active,
+                description: listing.productDescription,
+                quantity: listing.quantityAvailable,
+                storeId: store.storeID,
+                storeName: store.storeName,
+                productId: listing.productId,
+                purchaseType: listing.purchaseType,
+                seller: {
+                  id: store.storeID,
+                  name: store.storeName,
+                  rating: store.rating || 0
+                },
+                created_date: listing.createdDate || new Date().toISOString(),
+                rating: listing.rating || 0,
+                reviews: listing.reviews || []
+              });
             }
-            
-            products.push({
-              id: listing.listingId,
-              title: listing.productName,
-              price: listing.price,
-              discountedPrice: discountedPrice,
-              hasDiscount: discountedPrice < listing.price,
-              status: listing.active ? 'active' : 'inactive',
-              images: listing.images || [],
-              category: listing.category,
-              shipping_cost: listing.shippingCost || 0,
-              featured: listing.active,
-              description: listing.productDescription,
-              quantity: listing.quantityAvailable,
-              storeId: store.storeID,
-              storeName: store.storeName,
-              productId: listing.productId,
-              purchaseType: listing.purchaseType,
-              seller: {
-                id: store.storeID,
-                name: store.storeName,
-                rating: store.rating || 0
-              },
-              created_date: listing.createdDate || new Date().toISOString(),
-              rating: listing.rating || 0,
-              reviews: listing.reviews || []
-            });
           }
         }
         
@@ -530,48 +599,51 @@ export const productService = {
           const store = storeData.store;
           const listings = storeData.listings;
           
-          for (const listing of listings) {
-            // Filter by category (case-insensitive)
-            if (listing.category && listing.category.toLowerCase() === category.toLowerCase()) {
-              let discountedPrice = listing.price;
-              
-              // Try to get discounted price for this product
-              try {
-                const discountResponse = await api.get(`/stores/${store.storeID}/products/${listing.listingId}/discounted-price`);
-                if (discountResponse.data.success && discountResponse.data.data !== undefined) {
-                  discountedPrice = discountResponse.data.data;
+          // Only include products from active stores
+          if (store.isActive) {
+            for (const listing of listings) {
+              // Filter by category (case-insensitive)
+              if (listing.category && listing.category.toLowerCase() === category.toLowerCase()) {
+                let discountedPrice = listing.price;
+                
+                // Try to get discounted price for this product
+                try {
+                  const discountResponse = await api.get(`/stores/${store.storeID}/products/${listing.listingId}/discounted-price`);
+                  if (discountResponse.data.success && discountResponse.data.data !== undefined) {
+                    discountedPrice = discountResponse.data.data;
+                  }
+                } catch (discountError) {
+                  // If discount API fails, use original price
+                  console.warn(`Could not get discount for ${listing.listingId}:`, discountError.message);
                 }
-              } catch (discountError) {
-                // If discount API fails, use original price
-                console.warn(`Could not get discount for ${listing.listingId}:`, discountError.message);
+                
+                products.push({
+                  id: listing.listingId,
+                  title: listing.productName,
+                  price: listing.price,
+                  discountedPrice: discountedPrice,
+                  hasDiscount: discountedPrice < listing.price,
+                  status: listing.active ? 'active' : 'inactive',
+                  images: listing.images || [],
+                  category: listing.category,
+                  shipping_cost: listing.shippingCost || 0,
+                  featured: listing.active,
+                  description: listing.productDescription,
+                  quantity: listing.quantityAvailable,
+                  storeId: store.storeID,
+                  storeName: store.storeName,
+                  productId: listing.productId,
+                  purchaseType: listing.purchaseType,
+                  seller: {
+                    id: store.storeID,
+                    name: store.storeName,
+                    rating: store.rating || 0
+                  },
+                  created_date: listing.createdDate || new Date().toISOString(),
+                  rating: listing.rating || 0,
+                  reviews: listing.reviews || []
+                });
               }
-              
-              products.push({
-                id: listing.listingId,
-                title: listing.productName,
-                price: listing.price,
-                discountedPrice: discountedPrice,
-                hasDiscount: discountedPrice < listing.price,
-                status: listing.active ? 'active' : 'inactive',
-                images: listing.images || [],
-                category: listing.category,
-                shipping_cost: listing.shippingCost || 0,
-                featured: listing.active,
-                description: listing.productDescription,
-                quantity: listing.quantityAvailable,
-                storeId: store.storeID,
-                storeName: store.storeName,
-                productId: listing.productId,
-                purchaseType: listing.purchaseType,
-                seller: {
-                  id: store.storeID,
-                  name: store.storeName,
-                  rating: store.rating || 0
-                },
-                created_date: listing.createdDate || new Date().toISOString(),
-                rating: listing.rating || 0,
-                reviews: listing.reviews || []
-              });
             }
           }
         }

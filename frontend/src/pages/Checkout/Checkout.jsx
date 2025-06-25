@@ -203,19 +203,19 @@ export default function Checkout() {
     try {
       // Prepare payment details for backend external API format
       let paymentDetails = '';
-      
+
       if (paymentMethod === 'credit') {
         // Format: currency,amount,cardNumber,month,year,holder,cvv
         const currency = 'USD';
         const amount = Math.round(calculateGrandTotal() * 100) / 100;
-        
+
         // Parse expiry date (MM/YY) to get month and full year
         const [month, year] = cardDetails.expiryDate.split('/');
         const fullYear = year ? `20${year}` : new Date().getFullYear().toString();
-        
+
         // Clean card number (remove spaces and dashes)
         const cleanCardNumber = cardDetails.cardNumber.replace(/\s|-/g, '');
-        
+
         paymentDetails = `${currency},${amount},${cleanCardNumber},${month},${fullYear},${cardDetails.cardName},${cardDetails.cvv}`;
       } else {
         paymentDetails = 'PayPal Payment';
@@ -263,7 +263,7 @@ export default function Checkout() {
 
       // Clear cart and show success
       await refreshCart();
-      
+
       setPurchaseDialog({
         open: true,
         success: true,
@@ -331,7 +331,7 @@ export default function Checkout() {
   };
 
   const calculateGrandTotal = () => {
-    return calculateTotal() + calculateTax() + calculateShipping();
+    return calculateTotal() + calculateShipping();
   };
 
   // Form validation
@@ -874,15 +874,6 @@ export default function Checkout() {
                       </Typography>
                     </Box>
                   )}
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="textSecondary">
-                      Tax (7%)
-                    </Typography>
-                    <Typography variant="body1">
-                      ${formatPrice(calculateTax())}
-                    </Typography>
-                  </Box>
 
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2" color="textSecondary">
