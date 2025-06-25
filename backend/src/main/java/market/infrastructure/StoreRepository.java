@@ -202,9 +202,15 @@ public class StoreRepository implements IStoreRepository {
 
     @Override
     public List<Store> getAllActiveStores() {
-    return storesById.values().stream()
-            .filter(Store::isActive)
-            .collect(Collectors.toList());
-}
+        return storesById.values().stream()
+                .filter(Store::isActive)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Store> getAllStores() {
+        return storesById.values().stream()
+                .collect(Collectors.toList());
+    }
 
 }

@@ -20,6 +20,7 @@ public interface IStoreRepository {
 
     public Map<String,List<Role>> getUsersRoles(String userName);
     List<Store> getAllActiveStores();
+    List<Store> getAllStores();
 
 
 }
