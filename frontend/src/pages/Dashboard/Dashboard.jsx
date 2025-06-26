@@ -69,13 +69,13 @@ const Dashboard = () => {
     return imageMap[categoryName] || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80";
   };
 
-  // More efficient version of discount fetching - batches products by store
+  // More efficient batch discount fetching in Dashboard.jsx
   const fetchDiscountedPrices = useCallback(async (products) => {
     if (!products || products.length === 0) {
       return products;
     }
 
-    // Group products by storeId for more efficient API calls
+    // Group products by storeId for batch processing
     const productsByStore = {};
     products.forEach(product => {
       if (product && product.storeId && product.id) {
@@ -86,57 +86,12 @@ const Dashboard = () => {
       }
     });
 
-    // Updated products array that will contain products with discounts
-    const updatedProducts = [...products];
-    const productMap = {};
-    
-    // Create a map for easy lookup when updating
-    products.forEach((product, index) => {
-      if (product.id) {
-        productMap[product.id] = index;
-      }
-    });
-
     try {
-      // Process each store's products in parallel
-      const storePromises = Object.entries(productsByStore).map(async ([storeId, storeProducts]) => {
-        try {
-          // Batch fetch discounted prices - ideally the backend would support this
-          // This is a fallback to individual fetches
-          await Promise.all(storeProducts.map(async (product) => {
-            try {
-              const response = await fetch(`http://localhost:8080/api/stores/${product.storeId}/products/${product.id}/discounted-price`);
-              const apiResponse = await response.json();
-              
-              if (apiResponse.success && apiResponse.data !== undefined) {
-                const discountPrice = apiResponse.data;
-                // Only set discounted price if it's actually different from the original price
-                if (discountPrice < product.price) {
-                  const index = productMap[product.id];
-                  if (index !== undefined) {
-                    updatedProducts[index] = {
-                      ...product,
-                      hasDiscount: true,
-                      discountedPrice: discountPrice
-                    };
-                  }
-                }
-              }
-            } catch (error) {
-              console.warn(`Could not fetch discounted price for product ${product.id}:`, error);
-            }
-          }));
-        } catch (error) {
-          console.error(`Error processing store ${storeId} discounts:`, error);
-        }
-      });
-
-      await Promise.all(storePromises);
-      return updatedProducts;
-      
+      // Use the new batch discount method
+      return await productService.fetchBatchDiscounts(productsByStore);
     } catch (error) {
-      console.error('Error fetching discounted prices:', error);
-      return products;
+      console.error('Error fetching batch discounts:', error);
+      return products; // Return original products if batch fails
     }
   }, []);
 

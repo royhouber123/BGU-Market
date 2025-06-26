@@ -267,8 +267,6 @@ public class Store {
     }
 
 
-
-
     /**
      * Throws an exception if the store is currently closed.
      * Useful as a helper method to enforce that certain operations can only happen when the store is open.
@@ -422,9 +420,6 @@ public class Store {
         return true;
     }
 }
-
-
-
 
 
     /**
@@ -736,9 +731,6 @@ public class Store {
         }
         return workerToPermission;
     }
-
-
-
 
 
     /**

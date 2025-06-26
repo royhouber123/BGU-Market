@@ -393,67 +393,51 @@ export const productService = {
     }
   },
 
-  // Get all products with discounted prices applied
+  // Get all products with discounted prices applied - UPDATED VERSION
   getAllProductsWithDiscounts: async () => {
     try {
       const response = await api.get('/stores/info');
       const apiResponse = response.data;
       
       if (apiResponse.success) {
-        const products = [];
+        const productsByStore = {};
         
-        // Handle new API response format: List of {store, listings}
-        for (const storeData of apiResponse.data) {
+        // Group products by store first
+        apiResponse.data.forEach(storeData => {
           const store = storeData.store;
           const listings = storeData.listings;
           
           // Only include products from active stores
           if (store.isActive) {
-            for (const listing of listings) {
-              let discountedPrice = listing.price;
-              
-              // Try to get discounted price for this product
-              try {
-                const discountResponse = await api.get(`/stores/${store.storeID}/products/${listing.listingId}/discounted-price`);
-                if (discountResponse.data.success && discountResponse.data.data !== undefined) {
-                  discountedPrice = discountResponse.data.data;
-                }
-              } catch (discountError) {
-                // If discount API fails, use original price
-                console.warn(`Could not get discount for ${listing.listingId}:`, discountError.message);
-              }
-              
-              products.push({
-                id: listing.listingId,
-                title: listing.productName,
-                price: listing.price,
-                discountedPrice: discountedPrice,
-                hasDiscount: discountedPrice < listing.price,
-                status: listing.active ? 'active' : 'inactive',
-                images: listing.images || [],
-                category: listing.category,
-                shipping_cost: listing.shippingCost || 0,
-                featured: listing.active,
-                description: listing.productDescription,
-                quantity: listing.quantityAvailable,
-                storeId: store.storeID,
-                storeName: store.storeName,
-                productId: listing.productId,
-                purchaseType: listing.purchaseType,
-                seller: {
-                  id: store.storeID,
-                  name: store.storeName,
-                  rating: store.rating || 0
-                },
-                created_date: listing.createdDate || new Date().toISOString(),
-                rating: listing.rating || 0,
-                reviews: listing.reviews || []
-              });
-            }
+            productsByStore[store.storeID] = listings.map(listing => ({
+              id: listing.listingId,
+              title: listing.productName,
+              price: listing.price,
+              status: listing.active ? 'active' : 'inactive',
+              images: listing.images || [],
+              category: listing.category,
+              shipping_cost: listing.shippingCost || 0,
+              featured: listing.active,
+              description: listing.productDescription,
+              quantity: listing.quantityAvailable,
+              storeId: store.storeID,
+              storeName: store.storeName,
+              productId: listing.productId,
+              purchaseType: listing.purchaseType,
+              seller: {
+                id: store.storeID,
+                name: store.storeName,
+                rating: store.rating || 0
+              },
+              created_date: listing.createdDate || new Date().toISOString(),
+              rating: listing.rating || 0,
+              reviews: listing.reviews || []
+            }));
           }
-        }
+        });
         
-        return products;
+        // Use batch discount fetching
+        return await productService.fetchBatchDiscounts(productsByStore);
       } else {
         throw new Error('Failed to get all products');
       }
@@ -657,6 +641,76 @@ export const productService = {
         throw new Error('Failed to get products by category');
       }
       throw new Error('Failed to get products by category');
+    }
+  },
+
+  // Get bag price without discounts
+  getBagPrice: async (storeId, productsToQuantity) => {
+    try {
+      const response = await api.post(`/stores/${storeId}/bag/price`, productsToQuantity);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      throw new Error('Failed to get bag price');
+    } catch (error) {
+      console.error('Error getting bag price:', error);
+      throw error;
+    }
+  },
+
+  // Get bag price with discounts
+  getBagDiscountPrice: async (storeId, productsToQuantity) => {
+    try {
+      const response = await api.post(`/stores/${storeId}/bag/discounted-price`, productsToQuantity);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      throw new Error('Failed to get bag discount price');
+    } catch (error) {
+      console.error('Error getting bag discount price:', error);
+      throw error;
+    }
+  },
+
+  // Batch fetch discounts for multiple products by store
+  fetchBatchDiscounts: async (productsByStore) => {
+    try {
+      const discountPromises = Object.entries(productsByStore).map(async ([storeId, products]) => {
+        try {
+          // Create quantity map for this store's products
+          const productsToQuantity = {};
+          products.forEach(product => {
+            productsToQuantity[product.id] = 1; // Default quantity of 1 for discount calculation
+          });
+
+          // Get both original and discounted prices
+          const [originalPrice, discountedPrice] = await Promise.all([
+            productService.getBagPrice(storeId, productsToQuantity),
+            productService.getBagDiscountPrice(storeId, productsToQuantity)
+          ]);
+
+          // Calculate per-product discount ratios
+          const totalOriginal = originalPrice;
+          const totalDiscounted = discountedPrice;
+          const discountRatio = totalOriginal > 0 ? totalDiscounted / totalOriginal : 1;
+
+          // Apply discount ratio to individual products
+          return products.map(product => ({
+            ...product,
+            discountedPrice: discountRatio < 1 ? product.price * discountRatio : product.price,
+            hasDiscount: discountRatio < 1
+          }));
+        } catch (error) {
+          console.warn(`Failed to get batch discounts for store ${storeId}:`, error);
+          return products; // Return original products if batch fails
+        }
+      });
+
+      const results = await Promise.all(discountPromises);
+      return results.flat();
+    } catch (error) {
+      console.error('Error in batch discount fetch:', error);
+      throw error;
     }
   }
 };
