@@ -46,6 +46,10 @@ public class BidPurchase {
         bidRepository = bidRep;
         notificationService = notifService;
         BidKey key = buildKey(storeId, productId);
+        List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
+        if (getLatestPendingBid(productBids, userId) != null) {
+            throw new RuntimeException("You already have an open bid for this product.");
+        }
         Bid bid = new Bid(userId, amount, shippingAddress, contactInfo, approvers);
         bids.computeIfAbsent(key, k -> new ArrayList<>()).add(bid);
         
@@ -70,50 +74,42 @@ public class BidPurchase {
     public static void approveBid(String storeId, String productId, String userId, String approverId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
-        for (Bid bid : productBids) {
-            if (bid.getUserId().equals(userId) && !bid.isRejected()) {
-                if (!bid.getRequiredApprovers().contains(approverId)) {
-                    throw new RuntimeException("Approver is not authorized.");
-                }
-                bid.approve(approverId);
-
-                BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
-                        .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
-
-                for (Bid b : entity.getBids()) {
-                    if (b.getUserId().equals(userId)) {
-                        b.approve(approverId);
-                        break;
-                    }
-                }
-
-                bidRepository.save(entity);
-
-                if (bid.isApproved()) {
-                    notificationService.sendNotification(bid.getUserId(), "Your bid has been approved! Completing purchase automatically.");
-                    // Call purchase directly with simple arguments
-                    Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
-                    Map<String, Integer> productMap = new HashMap<>();
-                    productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
-                    listForUpdateStock.put(storeId, productMap);
-                    boolean updatedStock = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
-                    if (!updatedStock) {
-                        throw new RuntimeException("Failed to update stock for bid purchase.");
-                    }
-                    Purchase purchase = new BidPurchase().purchase(
-                            bid.getUserId(),
-                            storeId,
-                            productId,
-                            bid.getPrice(),
-                            bid.getShippingAddress(),
-                            bid.getContactInfo()
-                    );
-                    System.out.println("Purchase completed for user: " + purchase.getUserId());
-                }
-            return;
-            }
+        Bid latestPendingBid = getLatestPendingBid(productBids, userId);
+        if (latestPendingBid == null) {
+            throw new RuntimeException("No pending bid found for user.");
         }
-        throw new RuntimeException("Bid not found for user.");
+        if (!latestPendingBid.getRequiredApprovers().contains(approverId)) {
+            throw new RuntimeException("Approver is not authorized.");
+        }
+        latestPendingBid.approve(approverId);
+        BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
+            .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
+        Bid entityBid = getLatestPendingBid(entity.getBids(), userId);
+        if (entityBid != null) {
+            entityBid.approve(approverId);
+            bidRepository.save(entity);
+        }
+        if (latestPendingBid.isApproved()) {
+            notificationService.sendNotification(latestPendingBid.getUserId(), "Your bid has been approved! Completing purchase automatically.");
+            // Call purchase directly with simple arguments
+            Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
+            Map<String, Integer> productMap = new HashMap<>();
+            productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
+            listForUpdateStock.put(storeId, productMap);
+            boolean updatedStock = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
+            if (!updatedStock) {
+                throw new RuntimeException("Failed to update stock for bid purchase.");
+            }
+            Purchase purchase = new BidPurchase().purchase(
+                    latestPendingBid.getUserId(),
+                    storeId,
+                    productId,
+                    latestPendingBid.getPrice(),
+                    latestPendingBid.getShippingAddress(),
+                    latestPendingBid.getContactInfo()
+            );
+            System.out.println("Purchase completed for user: " + purchase.getUserId());
+        }
     }
 
 
@@ -130,26 +126,19 @@ public class BidPurchase {
     public static void rejectBid(String storeId, String productId, String userId, String approverId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
-        for (Bid bid : productBids) {
-            if (bid.getUserId().equals(userId)) {
-                bid.reject(approverId);
-                notificationService.sendNotification(userId, "Your bid has been rejected.");
-                BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
-                        .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
-
-                for (Bid b : entity.getBids()) {
-                    if (b.getUserId().equals(userId)) {
-                        b.reject(approverId);
-                        break;
-                    }
-                }
-
-                bidRepository.save(entity);
-                
-                return;
-            }
+        Bid latestPendingBid = getLatestPendingBid(productBids, userId);
+        if (latestPendingBid == null) {
+            throw new RuntimeException("No pending bid found for user.");
         }
-        throw new RuntimeException("Bid not found for user.");
+        latestPendingBid.reject(approverId);
+        notificationService.sendNotification(userId, "Your bid has been rejected.");
+        BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
+                .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
+        Bid entityBid = getLatestPendingBid(entity.getBids(), userId);
+        if (entityBid != null) {
+            entityBid.reject(approverId);
+            bidRepository.save(entity);
+        }
     }
 
 
@@ -166,25 +155,20 @@ public class BidPurchase {
         if (newAmount <= 0) throw new RuntimeException("Counter offer must be a positive value.");
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
-        for (Bid bid : productBids) {
-            if (bid.getUserId().equals(userId) && !bid.isRejected()) {
-                bid.proposeCounterOffer(newAmount);
-                notificationService.sendNotification(userId, "Counter offer proposed: " + newAmount + " for product " + productId + " at store " + storeId);
-                
-                BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
-                        .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
-                for (Bid b : entity.getBids()) {
-                    if (b.getUserId().equals(userId)) {
-                        b.proposeCounterOffer(newAmount); 
-                        break;
-                    }
-                }
-                bidRepository.save(entity); 
-
-                return;
-            }
+        Bid latestPendingBid = getLatestPendingBid(productBids, userId);
+        if (latestPendingBid == null) {
+            throw new RuntimeException("No pending bid found for user.");
         }
-        throw new RuntimeException("Bid not found for user.");
+        latestPendingBid.proposeCounterOffer(newAmount);
+        notificationService.sendNotification(userId, "Counter offer proposed: " + newAmount + " at store " + storeId);
+
+        BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
+                .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
+        Bid entityBid = getLatestPendingBid(entity.getBids(), userId);
+        if (entityBid != null) {
+            entityBid.proposeCounterOffer(newAmount);
+            bidRepository.save(entity);
+        }
     }
 
 
@@ -199,50 +183,50 @@ public class BidPurchase {
     public static void acceptCounterOffer(String storeId, String productId, String userId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
-        for (Bid bid : productBids) {
-            if (bid.getUserId().equals(userId) && bid.isCounterOffered() && !bid.isRejected()) {
-                // Update price to the counter-offer
-                double newPrice = bid.getCounterOfferAmount(); 
-                bid.setPrice(newPrice);
-                // Mark as approved automatically (no need for all approvals again)
-                bid.setApproved(true);
-                bid.setCounterOffered(false); // No longer a counter-offer
-                
-                BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
-                        .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
-                for (Bid b : entity.getBids()) {
-                    if (b.getUserId().equals(userId)) {
-                        b.setPrice(newPrice);
-                        b.setApproved(true);
-                        b.setCounterOffered(false);
-                        break;
-                    }
-                }
-                bidRepository.save(entity);
-                
-                notificationService.sendNotification(bid.getUserId(), "You accepted the counter-offer at price: " + bid.getPrice() + ". Completing purchase automatically.");
-                // Complete purchase immediately
-                Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
-                Map<String, Integer> productMap = new HashMap<>();
-                productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
-                listForUpdateStock.put(storeId, productMap);
-                boolean updatedStock = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
-                if (!updatedStock) {
-                    throw new RuntimeException("Failed to update stock for bid purchase.");
-                }
-                Purchase purchase = new BidPurchase().purchase(
-                        bid.getUserId(),
-                        storeId,
-                        productId,
-                        bid.getPrice(),
-                        bid.getShippingAddress(),
-                        bid.getContactInfo()
-                );
-                System.out.println("Purchase completed for user: " + purchase.getUserId());
-                return;
-            }
+        Bid latestPendingBid = productBids.stream()
+            .filter(b -> b.getUserId().equals(userId) && b.isCounterOffered() && !b.isRejected())
+            .reduce((first, second) -> second)
+            .orElse(null);
+
+        if (latestPendingBid == null) {
+            throw new RuntimeException("No counter-offer found for user.");
         }
-        throw new RuntimeException("No counter-offer found for user.");
+        double newPrice = latestPendingBid.getCounterOfferAmount();
+        latestPendingBid.setPrice(newPrice);
+        latestPendingBid.setApproved(true);
+        latestPendingBid.setCounterOffered(false);
+
+        BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
+                .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
+        Bid entityBid = entity.getBids().stream()
+            .filter(b -> b.getUserId().equals(userId) && b.isCounterOffered() && !b.isRejected())
+            .reduce((first, second) -> second)
+            .orElse(null);
+        if (entityBid != null) {
+            entityBid.setPrice(newPrice);
+            entityBid.setApproved(true);
+            entityBid.setCounterOffered(false);
+            bidRepository.save(entity);
+        }
+        notificationService.sendNotification(latestPendingBid.getUserId(), "You accepted the counter-offer at price: " + latestPendingBid.getPrice() + ". Completing purchase automatically.");
+        // Complete purchase immediately
+        Map<String, Map<String, Integer>> listForUpdateStock = new HashMap<>();
+        Map<String, Integer> productMap = new HashMap<>();
+        productMap.put(productId, 1); // Assuming quantity is 1 for auction purchase
+        listForUpdateStock.put(storeId, productMap);
+        boolean updatedStock = listingRepository.updateOrRestoreStock(listForUpdateStock, false);
+        if (!updatedStock) {
+            throw new RuntimeException("Failed to update stock for bid purchase.");
+        }
+        Purchase purchase = new BidPurchase().purchase(
+                latestPendingBid.getUserId(),
+                storeId,
+                productId,
+                latestPendingBid.getPrice(),
+                latestPendingBid.getShippingAddress(),
+                latestPendingBid.getContactInfo()
+        );
+        System.out.println("Purchase completed for user: " + purchase.getUserId());
     }
 
 
@@ -256,27 +240,27 @@ public class BidPurchase {
     public static void declineCounterOffer(String storeId, String productId, String userId) {
         BidKey key = buildKey(storeId, productId);
         List<Bid> productBids = bids.getOrDefault(key, new ArrayList<>());
-        for (Bid bid : productBids) {
-            if (bid.getUserId().equals(userId) && bid.isCounterOffered() && !bid.isRejected()) {
-                bid.setRejected(true);; // Mark bid as rejected
-                
-                BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
-                        .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
+        Bid latestPendingBid = productBids.stream()
+            .filter(b -> b.getUserId().equals(userId) && b.isCounterOffered() && !b.isRejected())
+            .reduce((first, second) -> second)
+            .orElse(null);
 
-                for (Bid b : entity.getBids()) {
-                    if (b.getUserId().equals(userId)) {
-                        b.setRejected(true);
-                        break;
-                    }
-                }
-
-                bidRepository.save(entity);
-                
-                notificationService.sendNotification(bid.getUserId(), "You declined the counter-offer. The bid has been canceled.");
-                return;
-            }
+        if (latestPendingBid == null) {
+            throw new RuntimeException("No counter-offer found for user.");
         }
-        throw new RuntimeException("No counter-offer found for user.");
+        latestPendingBid.setRejected(true);
+
+        BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
+                .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));
+        Bid entityBid = entity.getBids().stream()
+            .filter(b -> b.getUserId().equals(userId) && b.isCounterOffered() && !b.isRejected())
+            .reduce((first, second) -> second)
+            .orElse(null);
+        if (entityBid != null) {
+            entityBid.setRejected(true);
+            bidRepository.save(entity);
+        }
+        notificationService.sendNotification(latestPendingBid.getUserId(), "You declined the counter-offer. The bid has been canceled.");
     }
 
 
@@ -343,6 +327,13 @@ public class BidPurchase {
         //update or restock in catch
         return newP;
     } 
+
+    private static Bid getLatestPendingBid(List<Bid> bids, String userId) {
+        return bids.stream()
+            .filter(b -> b.getUserId().equals(userId) && !b.isApproved() && !b.isRejected())
+            .reduce((first, second) -> second) // Get the last bid in the list
+            .orElse(null);
+    }
 
     public static Map<BidKey, List<Bid>> getBids() {
         return bids;
