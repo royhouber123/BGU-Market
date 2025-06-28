@@ -97,67 +97,68 @@ public class ListingRepositoryPersistence implements IListingRepository {
     }
 
 
-
     @Override
     public boolean updateOrRestoreStock(Map<String, Map<String, Integer>> stockMap, boolean isRestore) {
         if (stockMap == null || stockMap.isEmpty()) {
             return false;
         }
-    
-        // Collect listings and sort by ID to avoid deadlocks
-        List<Listing> toLock = new ArrayList<>();
+
+        // Collect and validate all listings
+        List<Listing> toProcess = new ArrayList<>();
         for (String storeId : stockMap.keySet()) {
             Map<String, Integer> listingUpdates = stockMap.get(storeId);
-            if (listingUpdates == null) throw new IllegalArgumentException("Missing listings for store " + storeId);
-    
+            if (listingUpdates == null) {
+                throw new IllegalArgumentException("Missing listings for store " + storeId);
+            }
+
             for (String listingId : listingUpdates.keySet()) {
                 Listing l = getListingById(listingId);
-                if (l == null || !l.getStoreId().equals(storeId))
+                if (l == null || !l.getStoreId().equals(storeId)) {
                     throw new IllegalArgumentException("Invalid listing: " + listingId + " for store: " + storeId);
-                toLock.add(l);
+                }
+                toProcess.add(l);
             }
         }
-    
-        toLock.sort(Comparator.comparing(Listing::getListingId));
-    
-        // Lock all listings in sorted order
-        List<Object> locks = toLock.stream().map(l -> (Object) l).distinct().toList();
-        synchronizedLocks(locks, () -> {
-            if(!isRestore) {
-                // Check stock availability for purchase
-                for (Listing listing : toLock) {
-                    int requestedQuantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
-    
-                    if (listing.getQuantityAvailable() < requestedQuantity)
-                        throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+
+        // Sort to have a consistent order (not strictly needed anymore, but harmless)
+        toProcess.sort(Comparator.comparing(Listing::getListingId));
+
+        // Execute business logic
+        for (Listing listing : toProcess) {
+            int quantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
+
+            if (!isRestore) {
+                // Check stock availability first
+                if (listing.getQuantityAvailable() < quantity) {
+                    throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+                }
+                try {
+                    listing.purchase(quantity);
+                } catch (Exception e) {
+                    throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
+                }
+            } else {
+                try {
+                    listing.restore(quantity);
+                } catch (Exception e) {
+                    throw new RuntimeException("Unexpected error during restore of " + listing.getListingId(), e);
                 }
             }
-            // Check stock availability and perform the appropriate action (update or restore)
-            for (Listing listing : toLock) {
-                int quantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
-                if (!isRestore) {
-                    // Perform purchase
-                    try {
-                        listing.purchase(quantity);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
-                    }
-                } else {
-                    // For restoring stock, just restore the stock
-                    try {
-                        listing.restore(quantity);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unexpected error during restore of " + listing.getListingId(), e);
-                    }
-                }
-            }
-        });
-        // Save all listings after the operation
-        for (Listing listing : toLock) {
-            listingJpaRepository.save(listing);
         }
+
+        // Attempt to save all listings — this is where optimistic locking takes effect
+        try {
+            for (Listing listing : toProcess) {
+                listingJpaRepository.save(listing);
+            }
+        } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+            throw new RuntimeException("One or more products were updated during. Please refresh your cart and try again.", e);
+
+        }
+
         return true;
     }
+
 
 
      // Utility method to synchronize on multiple objects
@@ -249,10 +250,7 @@ public class ListingRepositoryPersistence implements IListingRepository {
         Listing l = getListingById(listingId);
         if (l == null || !Boolean.TRUE.equals(l.isActive()))
             throw new Exception("Listing " + listingId + " not found or inactive.");
-        synchronized (l) {
-            l.setProductName(newName);
-            listingJpaRepository.save(l);
-        }
+        listingJpaRepository.updateNameWithoutVersion(listingId, newName); 
     }
 
     @Override
@@ -260,10 +258,8 @@ public class ListingRepositoryPersistence implements IListingRepository {
         Listing l = getListingById(listingId);
         if (l == null || !Boolean.TRUE.equals(l.isActive()))
             throw new Exception("Listing " + listingId + " not found or inactive.");
-        synchronized (l) {
-            l.setProductDescription(newDescription);
-            listingJpaRepository.save(l);
-        }
+        listingJpaRepository.updateDescriptionWithoutVersion(listingId, newDescription);
+        
     }
 
     @Override
@@ -282,11 +278,9 @@ public class ListingRepositoryPersistence implements IListingRepository {
         Listing l = getListingById(listingId);
         if (l == null || !Boolean.TRUE.equals(l.isActive()))
             throw new Exception("Listing " + listingId + " not found or inactive.");
-        synchronized (l) {
-            l.setCategory(newCategory);
-            listingJpaRepository.save(l);
+        listingJpaRepository.updateCategoryWithoutVersion(listingId, newCategory);
         }
     }
 
 
-}
+
