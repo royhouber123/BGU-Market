@@ -207,42 +207,46 @@ export default function OrderConfirmation() {
               <span className="font-medium">{orderDetails.orderDate}</span>
             </div>
 
-            {/* Show detailed pricing breakdown if available */}
-            {orderDetails && orderDetails.subtotal !== undefined && (
-              <>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-500">Subtotal</span>
-                  <span className="font-medium">${formatPrice(orderDetails.subtotal)}</span>
-                </div>
-                {orderDetails.totalSavings > 0 && (
+            {/* Calculate original total from items if available */}
+            {orderDetails.items && orderDetails.items.length > 0 && (() => {
+              const originalTotal = orderDetails.items.reduce((sum, item) => {
+                const originalPrice = item.originalPrice || item.unitPrice || item.price || 0;
+                return sum + (originalPrice * item.quantity);
+              }, 0);
+              
+              const finalTotal = orderDetails.total;
+              const totalDiscount = originalTotal - finalTotal;
+              
+              return totalDiscount > 0 ? (
+                <>
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-500 text-green-600">Total Savings</span>
-                    <span className="font-medium text-green-600">-${formatPrice(orderDetails.totalSavings)}</span>
+                    <span className="text-gray-500">Original Price</span>
+                    <span className="font-medium">${formatPrice(originalTotal)}</span>
                   </div>
-                )}
-                {orderDetails.tax !== undefined && (
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-500">Tax</span>
-                    <span className="font-medium">${formatPrice(orderDetails.tax)}</span>
+                    <span className="text-green-600">Discount</span>
+                    <span className="font-medium text-green-600">-${formatPrice(totalDiscount)}</span>
                   </div>
-                )}
-                {orderDetails.shipping !== undefined && (
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-500">Shipping</span>
-                    <span className="font-medium">
-                      {orderDetails.shipping === 0 ? 'Free' : `$${formatPrice(orderDetails.shipping)}`}
-                    </span>
-                  </div>
-                )}
-              </>
-            )}
+                </>
+              ) : null;
+            })()}
 
+            {/* Shipping */}
             <div className="flex justify-between items-center py-2">
-              <span className="text-gray-500">Total Amount</span>
-              <span className="font-medium text-green-600">
+              <span className="text-gray-500">Shipping</span>
+              <span className="font-medium">
+                {orderDetails.shipping === 0 ? 'Free' : `$${formatPrice(orderDetails.shipping || 0)}`}
+              </span>
+            </div>
+
+            {/* Final Total */}
+            <div className="flex justify-between items-center py-2 border-t pt-2 mt-2">
+              <span className="text-lg font-semibold text-gray-900">Total Amount</span>
+              <span className="text-lg font-semibold text-green-600">
                 ${formatPrice(orderDetails.total)}
               </span>
             </div>
+
             <div className="flex justify-between items-center py-2">
               <span className="text-gray-500">Payment Method</span>
               <span className="font-medium">

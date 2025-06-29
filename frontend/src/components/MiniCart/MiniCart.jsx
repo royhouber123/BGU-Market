@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "../../utils";
 import { fetchDiscountedPrice, getEffectivePrice, hasDiscount, calculateSavings, formatPrice } from "../../utils/priceUtils";
+import { productService } from "../../services/productService";
 import "./MiniCart.css";
 
 // Material-UI imports
@@ -42,29 +43,81 @@ export default function MiniCart({ cart = [], onClose }) {
   const fetchCartPrices = async () => {
     setLoadingPrices(true);
     try {
-      const cartItemsWithPrices = await Promise.all(
-        cart.map(async (item) => {
-          // Create a product object for the price utility
-          const product = {
-            id: item.productId,
-            storeId: item.storeId,
-            price: item.price // Original stored price
-          };
+      // Group cart items by store for batch processing
+      const itemsByStore = {};
+      cart.forEach(item => {
+        if (!itemsByStore[item.storeId]) {
+          itemsByStore[item.storeId] = [];
+        }
+        itemsByStore[item.storeId].push(item);
+      });
 
-          // Fetch current discounted price
-          const discountedPrice = await fetchDiscountedPrice(product);
+      console.log("🔍 MiniCart grouped by store:", itemsByStore);
 
-          return {
+      // Process each store's items in batch
+      const storePromises = Object.entries(itemsByStore).map(async ([storeId, items]) => {
+        try {
+          // Create quantity map for batch API call
+          const productsToQuantity = {};
+          items.forEach(item => {
+            productsToQuantity[item.productId] = item.quantity;
+          });
+
+          console.log(`💰 MiniCart Store ${storeId} - Products to quantity:`, productsToQuantity);
+
+          // Get both original and discounted prices for the entire bag
+          const [originalBagPrice, discount] = await Promise.all([
+            productService.getBagPrice(storeId, productsToQuantity),
+            productService.getBagDiscountPrice(storeId, productsToQuantity)
+          ]);
+
+          let discountedBagPrice = originalBagPrice - discount;
+
+          console.log(`💰 MiniCart Store ${storeId} - Original: $${originalBagPrice}, Discounted: $${discountedBagPrice}`);
+
+          // Calculate discount ratio
+          const discountRatio = originalBagPrice > 0 ? discountedBagPrice / originalBagPrice : 1;
+          const hasStoreDiscount = discountRatio < 1;
+
+          console.log(`💸 MiniCart Store ${storeId} - Discount Ratio: ${discountRatio}, Has Discount: ${hasStoreDiscount}`);
+
+          // Apply proportional discount to each item
+          return items.map(item => {
+            // Calculate discounted price for this item
+            const itemDiscountedPrice = item.price * discountRatio;
+            const itemSavingsPerUnit = item.price - itemDiscountedPrice;
+            
+            const result = {
+              ...item,
+              originalPrice: item.price,
+              discountedPrice: hasStoreDiscount ? itemDiscountedPrice : null,
+              effectivePrice: hasStoreDiscount ? itemDiscountedPrice : item.price,
+              hasDiscount: hasStoreDiscount,
+              savings: hasStoreDiscount ? itemSavingsPerUnit : 0 // Savings per unit
+            };
+
+            console.log(`🛍️ MiniCart Item ${item.title}: $${item.price} → $${result.effectivePrice} (Savings: $${result.savings} per unit)`);
+            return result;
+          });
+        } catch (error) {
+          console.warn(`Failed to get batch discounts for store ${storeId}:`, error);
+          // Fallback to original prices if batch fails
+          return items.map(item => ({
             ...item,
             originalPrice: item.price,
-            discountedPrice,
-            effectivePrice: getEffectivePrice(product, discountedPrice),
-            hasDiscount: hasDiscount(product, discountedPrice),
-            savings: calculateSavings(product, discountedPrice)
-          };
-        })
-      );
+            discountedPrice: null,
+            effectivePrice: item.price,
+            hasDiscount: false,
+            savings: 0
+          }));
+        }
+      });
 
+      // Wait for all stores to complete and flatten results
+      const results = await Promise.all(storePromises);
+      const cartItemsWithPrices = results.flat();
+
+      console.log("✅ MiniCart final cart with prices:", cartItemsWithPrices);
       setCartWithPrices(cartItemsWithPrices);
     } catch (error) {
       console.error("Error fetching cart prices:", error);

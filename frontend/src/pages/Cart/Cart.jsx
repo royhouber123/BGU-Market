@@ -3,6 +3,7 @@ import Header from "../../components/Header/Header";
 import AuthDialog from "../../components/AuthDialog/AuthDialog";
 import { Button, IconButton, Typography, Box, Container, Grid, Paper, Divider, Chip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { productService } from "../../services/productService";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -45,29 +46,88 @@ export default function Cart() {
   const fetchCartPrices = async () => {
     setLoadingPrices(true);
     try {
-      const cartItemsWithPrices = await Promise.all(
-        cart.map(async (item) => {
-          // Create a product object for the price utility
-          const product = {
-            id: item.productId,
-            storeId: item.storeId,
-            price: item.price // Original stored price
-          };
+      // Group cart items by store for batch processing
+      const itemsByStore = {};
+      cart.forEach(item => {
+        if (!itemsByStore[item.storeId]) {
+          itemsByStore[item.storeId] = [];
+        }
+        itemsByStore[item.storeId].push(item);
+      });
 
-          // Fetch current discounted price
-          const discountedPrice = await fetchDiscountedPrice(product);
+      console.log("🔍 Cart grouped by store:", itemsByStore);
 
-          return {
+      // Process each store's items in batch
+      const storePromises = Object.entries(itemsByStore).map(async ([storeId, items]) => {
+        try {
+          // Create quantity map for batch API call
+          const productsToQuantity = {};
+          items.forEach(item => {
+            productsToQuantity[item.productId] = item.quantity;
+          });
+
+          console.log(`💰 Store ${storeId} - Products to quantity:`, productsToQuantity);
+
+          // Get both original and discounted prices for the entire bag
+          const [originalBagPrice, discount] = await Promise.all([
+            productService.getBagPrice(storeId, productsToQuantity),
+            productService.getBagDiscountPrice(storeId, productsToQuantity)
+          ]);
+
+          let discountedBagPrice = originalBagPrice - discount;
+
+          console.log(`💰 Store ${storeId} - Original: $${originalBagPrice}, Discounted: $${discountedBagPrice}`);
+
+          // Calculate the actual discount amount (not ratio)
+          const totalSavingsForStore = originalBagPrice - discountedBagPrice;
+          const hasStoreDiscount = totalSavingsForStore > 0;
+
+          console.log(`💸 Store ${storeId} - Total Savings: $${totalSavingsForStore}, Has Discount: ${hasStoreDiscount}`);
+
+          // Calculate how much each item contributed to the original total
+          const storeOriginalTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+          // Apply proportional discount to each item
+          return items.map(item => {
+            const itemOriginalTotal = item.price * item.quantity;
+            
+            // Calculate this item's share of the total discount
+            const itemProportion = storeOriginalTotal > 0 ? itemOriginalTotal / storeOriginalTotal : 0;
+            const itemSavings = totalSavingsForStore * itemProportion;
+            const itemDiscountedTotal = itemOriginalTotal - itemSavings;
+            const itemDiscountedPrice = itemDiscountedTotal / item.quantity;
+            
+            const result = {
+              ...item,
+              originalPrice: item.price,
+              discountedPrice: hasStoreDiscount ? itemDiscountedPrice : null,
+              effectivePrice: hasStoreDiscount ? itemDiscountedPrice : item.price,
+              hasDiscount: hasStoreDiscount,
+              savings: hasStoreDiscount ? (itemSavings / item.quantity) : 0 // Savings per unit
+            };
+
+            console.log(`🛍️ Item ${item.title}: $${item.price} → $${result.effectivePrice} (Savings: $${result.savings} per unit)`);
+            return result;
+          });
+        } catch (error) {
+          console.warn(`Failed to get batch discounts for store ${storeId}:`, error);
+          // Fallback to original prices if batch fails
+          return items.map(item => ({
             ...item,
             originalPrice: item.price,
-            discountedPrice,
-            effectivePrice: getEffectivePrice(product, discountedPrice),
-            hasDiscount: hasDiscount(product, discountedPrice),
-            savings: calculateSavings(product, discountedPrice)
-          };
-        })
-      );
+            discountedPrice: null,
+            effectivePrice: item.price,
+            hasDiscount: false,
+            savings: 0
+          }));
+        }
+      });
 
+      // Wait for all stores to complete and flatten results
+      const results = await Promise.all(storePromises);
+      const cartItemsWithPrices = results.flat();
+
+      console.log("✅ Final cart with prices:", cartItemsWithPrices);
       setCartWithPrices(cartItemsWithPrices);
     } catch (error) {
       console.error("Error fetching cart prices:", error);
@@ -278,20 +338,22 @@ export default function Cart() {
                   <Typography variant="h6" component="h2" fontWeight="medium" color="text.primary" gutterBottom>
                     Order Summary
                   </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  
+                  {/* Original Price */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                      Subtotal
+                      Original Price
                     </Typography>
-                    <Typography variant="body1" fontWeight="medium" color="primary">
-                      ${formatPrice(calculateTotal())}
+                    <Typography variant="body1" color="text.secondary">
+                      ${formatPrice(calculateTotal() + calculateTotalSavings())}
                     </Typography>
                   </Box>
 
-                  {/* Show total savings if any discounts are applied */}
+                  {/* Discount (if any) */}
                   {calculateTotalSavings() > 0 && (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2" color="success.main">
-                        Your Savings
+                        Discount
                       </Typography>
                       <Typography variant="body1" fontWeight="medium" color="success.main">
                         -${formatPrice(calculateTotalSavings())}
@@ -299,6 +361,7 @@ export default function Cart() {
                     </Box>
                   )}
 
+                  {/* Shipping */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                       Shipping
@@ -307,7 +370,10 @@ export default function Cart() {
                       Free
                     </Typography>
                   </Box>
+
                   <Divider sx={{ mb: 2 }} />
+
+                  {/* Final Total */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="h6" component="h2" fontWeight="medium" color="text.primary">
                       Total
@@ -316,6 +382,7 @@ export default function Cart() {
                       ${formatPrice(calculateTotal())}
                     </Typography>
                   </Box>
+
                   <Button
                     variant="contained"
                     color="primary"
