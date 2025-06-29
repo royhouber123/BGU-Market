@@ -113,29 +113,88 @@ export default function Checkout() {
   const fetchCartPrices = async () => {
     setLoadingPrices(true);
     try {
-      const cartItemsWithPrices = await Promise.all(
-        cart.map(async (item) => {
-          // Create a product object for the price utility
-          const product = {
-            id: item.productId,
-            storeId: item.storeId,
-            price: item.price // Original stored price
-          };
+      // Group cart items by store for batch processing
+      const itemsByStore = {};
+      cart.forEach(item => {
+        if (!itemsByStore[item.storeId]) {
+          itemsByStore[item.storeId] = [];
+        }
+        itemsByStore[item.storeId].push(item);
+      });
 
-          // Fetch current discounted price
-          const discountedPrice = await fetchDiscountedPrice(product);
+      console.log("🔍 Checkout cart grouped by store:", itemsByStore);
 
-          return {
+      // Process each store's items in batch
+      const storePromises = Object.entries(itemsByStore).map(async ([storeId, items]) => {
+        try {
+          // Create quantity map for batch API call
+          const productsToQuantity = {};
+          items.forEach(item => {
+            productsToQuantity[item.productId] = item.quantity;
+          });
+
+          console.log(`💰 Checkout Store ${storeId} - Products to quantity:`, productsToQuantity);
+
+          // Get both original and discounted prices for the entire bag
+          const [originalBagPrice, discount] = await Promise.all([
+            productService.getBagPrice(storeId, productsToQuantity),
+            productService.getBagDiscountPrice(storeId, productsToQuantity)
+          ]);
+
+          let discountedBagPrice = originalBagPrice - discount;
+
+          console.log(`💰 Checkout Store ${storeId} - Original: $${originalBagPrice}, Discounted: $${discountedBagPrice}`);
+
+          // Calculate the actual discount amount (not ratio)
+          const totalSavingsForStore = originalBagPrice - discountedBagPrice;
+          const hasStoreDiscount = totalSavingsForStore > 0;
+
+          console.log(`💸 Checkout Store ${storeId} - Total Savings: $${totalSavingsForStore}, Has Discount: ${hasStoreDiscount}`);
+
+          // Calculate how much each item contributed to the original total
+          const storeOriginalTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+          // Apply proportional discount to each item
+          return items.map(item => {
+            const itemOriginalTotal = item.price * item.quantity;
+            
+            // Calculate this item's share of the total discount
+            const itemProportion = storeOriginalTotal > 0 ? itemOriginalTotal / storeOriginalTotal : 0;
+            const itemSavings = totalSavingsForStore * itemProportion;
+            const itemDiscountedTotal = itemOriginalTotal - itemSavings;
+            const itemDiscountedPrice = itemDiscountedTotal / item.quantity;
+            
+            const result = {
+              ...item,
+              originalPrice: item.price,
+              discountedPrice: hasStoreDiscount ? itemDiscountedPrice : null,
+              effectivePrice: hasStoreDiscount ? itemDiscountedPrice : item.price,
+              hasDiscount: hasStoreDiscount,
+              savings: hasStoreDiscount ? (itemSavings / item.quantity) : 0 // Savings per unit
+            };
+
+            console.log(`🛍️ Checkout Item ${item.title}: $${item.price} → $${result.effectivePrice} (Savings: $${result.savings} per unit)`);
+            return result;
+          });
+        } catch (error) {
+          console.warn(`Failed to get batch discounts for store ${storeId}:`, error);
+          // Fallback to original prices if batch fails
+          return items.map(item => ({
             ...item,
             originalPrice: item.price,
-            discountedPrice,
-            effectivePrice: getEffectivePrice(product, discountedPrice),
-            hasDiscount: hasDiscount(product, discountedPrice),
-            savings: calculateSavings(product, discountedPrice)
-          };
-        })
-      );
+            discountedPrice: null,
+            effectivePrice: item.price,
+            hasDiscount: false,
+            savings: 0
+          }));
+        }
+      });
 
+      // Wait for all stores to complete and flatten results
+      const results = await Promise.all(storePromises);
+      const cartItemsWithPrices = results.flat();
+
+      console.log("✅ Final checkout cart with prices:", cartItemsWithPrices);
       setCartWithPrices(cartItemsWithPrices);
     } catch (error) {
       console.error("Error fetching cart prices:", error);
