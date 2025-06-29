@@ -300,6 +300,30 @@ public class StoreController {
     }
 
     /**
+     * Get store bag total price (without discounts)
+     * POST /api/stores/{storeID}/bag/price
+     */
+    @PostMapping("/{storeID}/bag/price")
+    public ResponseEntity<ApiResponse<Double>> getStoreBagPrice(
+            @PathVariable String storeID,
+            @RequestBody Map<String, Integer> productsToQuantity) {
+        ApiResponse<Double> response = storeService.getStoreBagPrice(storeID, productsToQuantity);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get store bag price with discounts applied
+     * POST /api/stores/{storeID}/bag/discounted-price
+     */
+    @PostMapping("/{storeID}/bag/discounted-price")
+    public ResponseEntity<ApiResponse<Double>> getStoreBagDiscountPrice(
+            @PathVariable String storeID,
+            @RequestBody Map<String, Integer> productsToQuantity) {
+        ApiResponse<Double> response = storeService.getStoreBagDiscountPrice(storeID, productsToQuantity);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Check if user is owner
      * GET /api/stores/{storeID}/owners/{userID}/check
      */

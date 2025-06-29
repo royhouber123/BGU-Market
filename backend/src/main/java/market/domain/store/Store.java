@@ -267,8 +267,6 @@ public class Store {
     }
 
 
-
-
     /**
      * Throws an exception if the store is currently closed.
      * Useful as a helper method to enforce that certain operations can only happen when the store is open.
@@ -322,10 +320,10 @@ public class Store {
     public boolean addNewOwner(String appointerID, String newOwnerID) throws Exception {
         synchronized (ownershipLock) {
             try{
-                System.out.println("=== DEBUG addNewOwner ===");
-                System.out.println("appointerID: " + appointerID);
-                System.out.println("newOwnerID: " + newOwnerID);
-                System.out.println("assignments size before: " + assignments.size());
+                // System.out.println("=== DEBUG addNewOwner ===");
+                // System.out.println("appointerID: " + appointerID);
+                // System.out.println("newOwnerID: " + newOwnerID);
+                // System.out.println("assignments size before: " + assignments.size());
                 
                 if (!isOwner(appointerID))
                     throw new Exception("User " + appointerID + " is not an owner of store " + storeID);
@@ -344,10 +342,10 @@ public class Store {
                 ownerToWhoAssignedHim.put(newOwnerID, appointerID);
                 
                 // 🔧 ADD TRY-CATCH to see what's failing
-                System.out.println("About to add assignment...");
+                // System.out.println("About to add assignment...");
                 assignments.add(new AssignmentRow(appointerID, newOwnerID));
-                System.out.println("assignments size after: " + assignments.size());
-                System.out.println("Assignment added successfully!");
+                // System.out.println("assignments size after: " + assignments.size());
+                // System.out.println("Assignment added successfully!");
                 
                 return true;
                 
@@ -422,9 +420,6 @@ public class Store {
         return true;
     }
 }
-
-
-
 
 
     /**
@@ -737,8 +732,6 @@ public class Store {
         return workerToPermission;
     }
 
-
-
     /**
      * Adds a new listing to the store.
      * The user must have permission to edit products.
@@ -843,7 +836,7 @@ public class Store {
         throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
     storeClosedExeption();
     return storeProductsManager.editProductName(listingId, newName);
-}
+    }
 
     public boolean editProductDescription(String userID, String listingId, String newDescription) throws Exception {
         if (!checkProductsPermission(userID))

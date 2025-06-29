@@ -526,9 +526,6 @@ public class StoreService {
     }
 
 
-
-
-
     /**
      * Removes a listing from the specified store.
      *
@@ -688,7 +685,13 @@ public class StoreService {
         Map<String,Integer> prod = new HashMap<>();
         prod.put(productID,1);
         logger.info("Retrieved price for product: " + productID + " in store: " + storeID);
-        return s.calculateStoreBagWithDiscount(prod);
+        try{
+            return s.calculateStoreBagWithoutDiscount(prod);
+        }
+        catch (Exception e) {
+            logger.error("Error getting price for product: " + productID + " in store: " + storeID + ". Reason: " + e.getMessage());
+            throw new RuntimeException("Error getting price for product: " + productID + " in store: " + storeID + ". Reason: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -709,6 +712,50 @@ public class StoreService {
         } catch (Exception e) {
             logger.error("Error getting discounted price for listing: " + listingID + " in store: " + storeID + ". Reason: " + e.getMessage());
             return ApiResponse.fail("Error getting discounted price: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ApiResponse<Double> getStoreBagPrice(String storeID, Map<String, Integer> productsToQuantity) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                return ApiResponse.fail("Store " + storeID + " doesn't exist");
+            }
+            if (!s.isActive()) {
+                return ApiResponse.fail("Store " + storeID + " is not active");
+            }
+            
+            // Use the existing method that calculates bag price without discount
+            double bagPrice = s.calculateStoreBagWithoutDiscount(productsToQuantity);
+            
+            logger.info("Retrieved bag price for store: " + storeID + " - Total price: " + bagPrice);
+            return ApiResponse.ok(bagPrice);
+        } catch (Exception e) {
+            logger.error("Error getting bag price for store: " + storeID + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error getting bag price: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ApiResponse<Double> getStoreBagDiscountPrice(String storeID, Map<String, Integer> productsToQuantity) {
+        try {
+            Store s = storeRepository.getStoreByID(storeID);
+            if (s == null) {
+                return ApiResponse.fail("Store " + storeID + " doesn't exist");
+            }
+            if (!s.isActive()) {
+                return ApiResponse.fail("Store " + storeID + " is not active");
+            }
+            
+            // Use the existing method that calculates discounted bag price
+            double discountedBagPrice = s.calculateStoreBagWithDiscount(productsToQuantity);
+            
+            logger.info("Retrieved discounted bag price for store: " + storeID + " - Final price: " + discountedBagPrice);
+            return ApiResponse.ok(discountedBagPrice);
+        } catch (Exception e) {
+            logger.error("Error getting discounted bag price for store: " + storeID + ". Reason: " + e.getMessage());
+            return ApiResponse.fail("Error getting discounted bag price: " + e.getMessage());
         }
     }
 
