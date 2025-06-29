@@ -81,6 +81,10 @@ public class CompositeDiscountPolicy extends DiscountPolicyEntity {
             }
         }
 
+        if (result < 0.0) {
+            result = 0.0; // Ensure non-negative discount
+        }
+
         return result;
     }
 

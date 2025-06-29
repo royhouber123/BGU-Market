@@ -732,7 +732,6 @@ public class Store {
         return workerToPermission;
     }
 
-
     /**
      * Adds a new listing to the store.
      * The user must have permission to edit products.
@@ -837,7 +836,7 @@ public class Store {
         throw new Exception("User " + userID + " doesn't have permission to EDIT listing!");
     storeClosedExeption();
     return storeProductsManager.editProductName(listingId, newName);
-}
+    }
 
     public boolean editProductDescription(String userID, String listingId, String newDescription) throws Exception {
         if (!checkProductsPermission(userID))
