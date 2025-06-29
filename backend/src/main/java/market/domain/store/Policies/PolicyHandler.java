@@ -68,7 +68,23 @@ public class PolicyHandler {
 
     // Calculate total discount
     public double calculateDiscount(Map<String, Integer> listings, IStoreProductsManager productManager) {
-        return discountPolicy.calculateDiscount(listings, productManager);
+        // Calculate the total price of all items in the cart
+        double totalPrice = 0.0;
+        for (Map.Entry<String, Integer> entry : listings.entrySet()) {
+            var listing = productManager.getListingById(entry.getKey());
+            if (listing != null) {
+                totalPrice += listing.getPrice() * entry.getValue();
+            }
+        }
+        
+        // Calculate the discount from all policies
+        double discount = discountPolicy.calculateDiscount(listings, productManager);
+        
+        // Ensure discount is non-negative and doesn't exceed total price
+        discount = Math.max(0.0, discount); // No negative discounts
+        discount = Math.min(discount, totalPrice); // Don't exceed total price
+        
+        return discount;
     }
 
     public List<PurchasePolicy> getPolicies() {

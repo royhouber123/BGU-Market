@@ -17,6 +17,12 @@ public class DiscountPolicyFactory {
                 DiscountTargetType targetType = DiscountTargetType.valueOf(dto.scope().toUpperCase());
                 yield new PercentageTargetedDiscount(targetType, dto.scopeId(), dto.value());
             }
+
+            case "FIXED" -> {
+                DiscountTargetType targetType = DiscountTargetType.valueOf(dto.scope().toUpperCase());
+                yield new FixedDiscountPolicy(targetType, dto.scopeId(), dto.value());
+            }
+
             case "COUPON" -> new CouponDiscountPolicy(dto.couponCode(), dto.value());
 
             case "CONDITIONAL" -> {
@@ -86,5 +92,19 @@ public class DiscountPolicyFactory {
             double amount
     ) {
         return new CouponDiscountPolicy(couponCode, amount);
+    }
+
+    /**
+     * Creates a fixed amount discount for a specific target:
+     * - STORE: applies fixed amount once to entire order
+     * - PRODUCT: applies fixed amount per quantity of specific productId
+     * - CATEGORY: applies fixed amount per quantity of items from that category
+     */
+    public static DiscountPolicy createFixedDiscount(
+            DiscountTargetType targetType,
+            String targetId,
+            double fixedAmount
+    ) {
+        return new FixedDiscountPolicy(targetType, targetId, fixedAmount);
     }
 }

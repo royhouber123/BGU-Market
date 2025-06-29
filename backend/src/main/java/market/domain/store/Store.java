@@ -739,8 +739,6 @@ public class Store {
 
 
 
-
-
     /**
      * Adds a new listing to the store.
      * The user must have permission to edit products.
