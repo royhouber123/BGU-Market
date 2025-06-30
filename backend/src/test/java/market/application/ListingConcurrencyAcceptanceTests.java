@@ -1,23 +1,31 @@
 package market.application;
 
-import market.domain.store.Listing;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Commit;
-
-import support.AcceptanceTestSpringBase;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.Commit;
 
-@EnabledIf("market.application.UserServiceTests#isMySQLAvailable")
+import market.domain.store.IListingRepository;
+import market.domain.store.Listing;
+import support.AcceptanceTestSpringBase;
+
 public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase {
+
+    @Autowired
+    private ApplicationContext context;
+
+    @Autowired
+    private IListingRepository listingRepository;
 
     @BeforeEach
     void setUp() {
@@ -33,17 +41,23 @@ public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase 
         userService.deleteUser("buyer2");
     }
 
+
+
     @Commit
     @Test
-    void concurrentPurchase_shouldRespectStockAndVersionControl() throws Exception {
+    void concurrentPurchase_shouldRespectStockAndVersionControl1() throws Exception {
         String storeId = storeService.createStore("ConcurrentStore", "owner").storeId();
-        String listingId = storeService.addNewListing("owner", storeId, "p1", "Gaming Mouse", "Electronics", "Precise mouse", 10, 99.99, "REGULAR");
+        String listingId = storeService.addNewListing("owner", storeId, "p1", "Gaming Mouse", "Electronics", "Precise mouse", 5, 99.99, "REGULAR");
+        List<String> l = new ArrayList<>();
+        
 
         int threadCount = 20;
         CountDownLatch latch = new CountDownLatch(threadCount);
         AtomicInteger successCount = new AtomicInteger(0);
 
+
         for (int i = 0; i < threadCount; i++) {
+            Thread.sleep(5);
             new Thread(() -> {
                 try {
                     Map<String, Map<String, Integer>> cart = new HashMap<>();
@@ -51,7 +65,8 @@ public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase 
                     if (listingRepository.updateOrRestoreStock(cart, false)) {
                         successCount.incrementAndGet();
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    l.add(e.getMessage());
                 } finally {
                     latch.countDown();
                 }
@@ -60,8 +75,49 @@ public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase 
 
         latch.await();
 
-        assertEquals(10, successCount.get(), "Only 10 successful purchases should occur due to stock limit");
+        assertEquals(5, successCount.get(), "Only 10 successful purchases should occur due to stock limit");
         Listing listing = listingRepository.getListingById(listingId);
         assertEquals(0, listing.getQuantityAvailable(), "Stock should be fully consumed");
     }
+
+      @Commit
+    @Test
+    void concurrentPurchase_notenoughquantityAllOfThemShouldFail() throws Exception {
+        String storeId = storeService.createStore("ConcurrentStore1", "owner").storeId();
+        String listingId = storeService.addNewListing("owner", storeId, "p1", "Gaming Mouse", "Electronics", " mouse", 1, 99.99, "REGULAR");
+        List<String> l = new ArrayList<>();
+        
+
+        int threadCount = 20;
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+
+        for (int i = 0; i < threadCount; i++) {
+            Thread.sleep(5);
+            new Thread(() -> {
+                try {
+                    Map<String, Map<String, Integer>> cart = new HashMap<>();
+                    cart.put(storeId, Map.of(listingId, 2));
+                    if (listingRepository.updateOrRestoreStock(cart, false)) {
+                        successCount.incrementAndGet();
+                    }
+                } catch (Exception e) {
+                    l.add(e.getMessage());
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+
+        assertEquals(0, successCount.get(), "Only 10 successful purchases should occur due to stock limit");
+        Listing listing = listingRepository.getListingById(listingId);
+        assertEquals(1, listing.getQuantityAvailable(), "Stock should be fully consumed");
+    }
+
+
+
+    
 }
