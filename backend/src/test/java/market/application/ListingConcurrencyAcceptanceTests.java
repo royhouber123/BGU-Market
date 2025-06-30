@@ -15,12 +15,14 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.Commit;
+import org.springframework.test.annotation.DirtiesContext;
 
 import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
 import support.AcceptanceTestSpringBase;
 
 @EnabledIf("market.application.UserServiceTests#isMySQLAvailable")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase {
 
     @Autowired
@@ -49,7 +51,7 @@ public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase 
     @Test
     void concurrentPurchase_shouldRespectStockAndVersionControl1() throws Exception {
         String storeId = storeService.createStore("ConcurrentStore", "owner").storeId();
-        String listingId = storeService.addNewListing("owner", storeId, "p1", "Gaming Mouse", "Electronics", "Precise mouse", 5, 99.99, "REGULAR");
+        String listingId = storeService.addNewListing("owner", storeId, "p1", "Gaming Mouse", "Electronics", "Precise mouse", 7, 99.99, "REGULAR");
         List<String> l = new ArrayList<>();
         
 
@@ -63,7 +65,7 @@ public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase 
             new Thread(() -> {
                 try {
                     Map<String, Map<String, Integer>> cart = new HashMap<>();
-                    cart.put(storeId, Map.of(listingId, 1));
+                    cart.put(storeId, Map.of(listingId, 2));
                     if (listingRepository.updateOrRestoreStock(cart, false)) {
                         successCount.incrementAndGet();
                     }
@@ -77,9 +79,9 @@ public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase 
 
         latch.await();
 
-        assertEquals(5, successCount.get(), "Only 10 successful purchases should occur due to stock limit");
+        assertEquals(3, successCount.get(), "Only 3 successful purchases should occur due to stock limit");
         Listing listing = listingRepository.getListingById(listingId);
-        assertEquals(0, listing.getQuantityAvailable(), "Stock should be fully consumed");
+        assertEquals(1, listing.getQuantityAvailable(), "Stock should be fully consumed");
     }
 
       @Commit

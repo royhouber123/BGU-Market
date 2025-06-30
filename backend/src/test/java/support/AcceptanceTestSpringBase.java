@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @SpringBootTest(classes = market.BguMarketApplication.class)
 @TestPropertySource(locations = "classpath:application-test.properties")
-@Transactional
+//@Transactional
 public abstract class AcceptanceTestSpringBase {
 
     // All the services you need, injected from Spring context
