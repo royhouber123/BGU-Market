@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,67 +96,211 @@ public class ListingRepositoryPersistence implements IListingRepository {
     }
 
 
+    // @Override
+    // public boolean updateOrRestoreStock(Map<String, Map<String, Integer>> stockMap, boolean isRestore) {
+    //     if (stockMap == null || stockMap.isEmpty()) {
+    //         return false;
+    //     }
+
+    //     // Collect and validate all listings
+    //     List<Listing> toProcess = new ArrayList<>();
+    //     for (String storeId : stockMap.keySet()) {
+    //         Map<String, Integer> listingUpdates = stockMap.get(storeId);
+    //         if (listingUpdates == null) {
+    //             throw new IllegalArgumentException("Missing listings for store " + storeId);
+    //         }
+
+    //         for (String listingId : listingUpdates.keySet()) {
+    //             Listing l = getListingById(listingId);
+    //             if (l == null || !l.getStoreId().equals(storeId)) {
+    //                 throw new IllegalArgumentException("Invalid listing: " + listingId + " for store: " + storeId);
+    //             }
+    //             toProcess.add(l);
+    //         }
+    //     }
+
+    //     // Sort to have a consistent order (not strictly needed anymore, but harmless)
+    //     toProcess.sort(Comparator.comparing(Listing::getListingId));
+
+    //     // Execute business logic
+    //     for (Listing listing : toProcess) {
+    //         int quantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
+
+    //         if (!isRestore) {
+    //             // Check stock availability first
+    //             if (listing.getQuantityAvailable() < quantity) {
+    //                 throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+    //             }
+    //             try {
+    //                 listing.purchase(quantity);
+    //             } catch (Exception e) {
+    //                 throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
+    //             }
+    //         } else {
+    //             try {
+    //                 listing.restore(quantity);
+    //             } catch (Exception e) {
+    //                 throw new RuntimeException("Unexpected error during restore of " + listing.getListingId(), e);
+    //             }
+    //         }
+    //     }
+
+    //     // Attempt to save all listings — this is where optimistic locking takes effect
+    //     try {
+    //         for (Listing listing : toProcess) {
+    //             listingJpaRepository.save(listing);
+    //         }
+    //     } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+    //         throw new RuntimeException("One or more products were updated during. Please refresh your cart and try again.", e);
+
+    //     }
+
+    //     return true;
+    // }
+
+    // @Override
+    // public boolean updateOrRestoreStock(Map<String, Map<String, Integer>> stockMap, boolean isRestore) {
+    //     if (stockMap == null || stockMap.isEmpty()) {
+    //         return false;
+    //     }
+
+    //     int maxRetries = 100;
+    //     for (int attempt = 1; attempt <= maxRetries; attempt++) {
+    //         try {
+    //             performStockUpdate(stockMap, isRestore);
+    //             return true;
+    //         } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+    //             if (attempt == maxRetries) {
+    //                 throw new RuntimeException("Purchase failed after multiple attempts due to concurrent modifications. Please refresh your cart and try again.", e);
+    //             }
+    //             try {
+    //                 Thread.sleep(50L * attempt); // Optional backoff
+    //             } catch (InterruptedException ignored) {}
+    //         } catch (RuntimeException e) {
+    //             // Don't retry for real issues like not enough stock
+    //             throw e;
+    //         }
+    //     }
+
+    //     return false; // Should never reach here
+    // }
+
+
+    // private void performStockUpdate(Map<String, Map<String, Integer>> stockMap, boolean isRestore) {
+    //     List<Listing> toProcess = new ArrayList<>();
+    //     for (String storeId : stockMap.keySet()) {
+    //         Map<String, Integer> listingUpdates = stockMap.get(storeId);
+    //         if (listingUpdates == null) {
+    //             throw new IllegalArgumentException("Missing listings for store " + storeId);
+    //         }
+
+    //         for (String listingId : listingUpdates.keySet()) {
+    //             Listing l = getListingById(listingId);
+    //             if (l == null || !l.getStoreId().equals(storeId)) {
+    //                 throw new IllegalArgumentException("Invalid listing: " + listingId + " for store: " + storeId);
+    //             }
+    //             toProcess.add(l);
+    //         }
+    //     }
+
+    //     toProcess.sort(Comparator.comparing(Listing::getListingId));
+
+    //     for (Listing listing : toProcess) {
+    //         int quantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
+
+    //         if (!isRestore) {
+    //             if (listing.getQuantityAvailable() < quantity) {
+    //                 throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+    //             }
+    //             try {
+    //                 listing.purchase(quantity);
+    //             } catch (Exception e) {
+    //                 throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
+    //             }
+    //         } else {
+    //             try {
+    //                 listing.restore(quantity);
+    //             } catch (Exception e) {
+    //                 throw new RuntimeException("Unexpected error during restore of " + listing.getListingId(), e);
+    //             }
+    //         }
+    //     }
+
+    //     for (Listing listing : toProcess) {
+    //         listingJpaRepository.save(listing);  // optimistic locking kicks in here
+    //     }
+    // }
 
     @Override
     public boolean updateOrRestoreStock(Map<String, Map<String, Integer>> stockMap, boolean isRestore) {
         if (stockMap == null || stockMap.isEmpty()) {
             return false;
         }
-    
-        // Collect listings and sort by ID to avoid deadlocks
-        List<Listing> toLock = new ArrayList<>();
-        for (String storeId : stockMap.keySet()) {
-            Map<String, Integer> listingUpdates = stockMap.get(storeId);
-            if (listingUpdates == null) throw new IllegalArgumentException("Missing listings for store " + storeId);
-    
-            for (String listingId : listingUpdates.keySet()) {
-                Listing l = getListingById(listingId);
-                if (l == null || !l.getStoreId().equals(storeId))
-                    throw new IllegalArgumentException("Invalid listing: " + listingId + " for store: " + storeId);
-                toLock.add(l);
-            }
-        }
-    
-        toLock.sort(Comparator.comparing(Listing::getListingId));
-    
-        // Lock all listings in sorted order
-        List<Object> locks = toLock.stream().map(l -> (Object) l).distinct().toList();
-        synchronizedLocks(locks, () -> {
-            if(!isRestore) {
-                // Check stock availability for purchase
-                for (Listing listing : toLock) {
-                    int requestedQuantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
-    
-                    if (listing.getQuantityAvailable() < requestedQuantity)
-                        throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+
+        int maxRetries = 5;
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            
+            try {
+                List<Listing> toProcess = new ArrayList<>();
+
+                // Reload listings fresh every attempt
+                for (String storeId : stockMap.keySet()) {
+                    Map<String, Integer> listingUpdates = stockMap.get(storeId);
+                    if (listingUpdates == null) {
+                        throw new IllegalArgumentException("Missing listings for store " + storeId);
+                    }
+
+                    for (String listingId : listingUpdates.keySet()) {
+                        Listing l = getListingById(listingId);
+                        if (l == null || !l.getStoreId().equals(storeId)) {
+                            throw new IllegalArgumentException("Invalid listing: " + listingId + " for store: " + storeId);
+                        }
+                        toProcess.add(l);
+                    }
                 }
-            }
-            // Check stock availability and perform the appropriate action (update or restore)
-            for (Listing listing : toLock) {
-                int quantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
-                if (!isRestore) {
-                    // Perform purchase
-                    try {
+
+                toProcess.sort(Comparator.comparing(Listing::getListingId));
+
+                // Perform the purchase/restore
+                for (Listing listing : toProcess) {
+                    int quantity = stockMap.get(listing.getStoreId()).get(listing.getListingId());
+
+                    if (!isRestore) {
+                        if (listing.getQuantityAvailable() < quantity) {
+                            throw new RuntimeException("Not enough stock for listing: " + listing.getListingId());
+                        }
                         listing.purchase(quantity);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unexpected error during purchase of " + listing.getListingId(), e);
-                    }
-                } else {
-                    // For restoring stock, just restore the stock
-                    try {
+                    } else {
                         listing.restore(quantity);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unexpected error during restore of " + listing.getListingId(), e);
                     }
                 }
+
+                // Try to persist
+                for (Listing listing : toProcess) {
+                    listingJpaRepository.save(listing);  // triggers optimistic locking
+                }
+
+                return true;
+
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                // Retry if version conflict
+                if (attempt == maxRetries) {
+                    throw new RuntimeException("Purchase failed after multiple attempts due to concurrent modifications. Please refresh your cart and try again.", e);
+                }
+                try {
+                    Thread.sleep(20L * attempt + (long)(Math.random() * 30));  // short exponential backoff
+                } catch (InterruptedException ignored) {}
+            } catch (Exception e) {
+                // Any other error (e.g., not enough stock): fail immediately
+                throw new RuntimeException("Purchase failed, please try again later");
             }
-        });
-        // Save all listings after the operation
-        for (Listing listing : toLock) {
-            listingJpaRepository.save(listing);
         }
-        return true;
+
+        return false; // should never reach here
     }
+
 
 
      // Utility method to synchronize on multiple objects
@@ -249,10 +392,7 @@ public class ListingRepositoryPersistence implements IListingRepository {
         Listing l = getListingById(listingId);
         if (l == null || !Boolean.TRUE.equals(l.isActive()))
             throw new Exception("Listing " + listingId + " not found or inactive.");
-        synchronized (l) {
-            l.setProductName(newName);
-            listingJpaRepository.save(l);
-        }
+        listingJpaRepository.updateNameWithoutVersion(listingId, newName); 
     }
 
     @Override
@@ -260,10 +400,8 @@ public class ListingRepositoryPersistence implements IListingRepository {
         Listing l = getListingById(listingId);
         if (l == null || !Boolean.TRUE.equals(l.isActive()))
             throw new Exception("Listing " + listingId + " not found or inactive.");
-        synchronized (l) {
-            l.setProductDescription(newDescription);
-            listingJpaRepository.save(l);
-        }
+        listingJpaRepository.updateDescriptionWithoutVersion(listingId, newDescription);
+        
     }
 
     @Override
@@ -282,11 +420,9 @@ public class ListingRepositoryPersistence implements IListingRepository {
         Listing l = getListingById(listingId);
         if (l == null || !Boolean.TRUE.equals(l.isActive()))
             throw new Exception("Listing " + listingId + " not found or inactive.");
-        synchronized (l) {
-            l.setCategory(newCategory);
-            listingJpaRepository.save(l);
+        listingJpaRepository.updateCategoryWithoutVersion(listingId, newCategory);
         }
     }
 
 
-}
+

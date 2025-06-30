@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Modifying;
+
 
 import java.util.List;
 
@@ -24,6 +26,17 @@ public interface IListingJpaRepository extends JpaRepository<Listing, String> {
     @Query("SELECT l FROM Listing l WHERE l.category = :category AND l.storeId = :storeId")
     List<Listing> getListingsByCategoryAndStore(String category, @Param("storeId") String storeId);
 
+    @Modifying
+    @Query("UPDATE Listing l SET l.productDescription = :desc WHERE l.listingId = :id")
+    void updateDescriptionWithoutVersion(@Param("id") String listingId, @Param("desc") String description);
 
-    
+    @Modifying
+    @Query("UPDATE Listing l SET l.productName = :name WHERE l.listingId = :id")
+    void updateNameWithoutVersion(@Param("id") String listingId, @Param("name") String name);
+
+    @Modifying
+    @Query("UPDATE Listing l SET l.category = :cat WHERE l.listingId = :id")
+    void updateCategoryWithoutVersion(@Param("id") String listingId, @Param("cat") String category);
 }
+
+

@@ -52,6 +52,10 @@ public class Listing {
     @Column(name = "active", nullable = false)
     private Boolean active;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
 
     /**
      * Constructs a new Listing with an auto-generated listing ID.
@@ -191,8 +195,5 @@ public class Listing {
         this.category = (newCategory != null) ? newCategory : "";
     }
 
-
-    
-    
 
 }

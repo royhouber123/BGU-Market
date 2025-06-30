@@ -26,9 +26,11 @@ import support.AcceptanceTestSpringBase;
 import java.sql.DriverManager;
 import java.util.List;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIf("market.application.UserServiceTests#isMySQLAvailable")
+@Transactional
 public class PurchaseServiceTests extends AcceptanceTestSpringBase {
 
 
