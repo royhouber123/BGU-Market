@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.Commit;
@@ -19,6 +20,7 @@ import market.domain.store.IListingRepository;
 import market.domain.store.Listing;
 import support.AcceptanceTestSpringBase;
 
+@EnabledIf("market.application.UserServiceTests#isMySQLAvailable")
 public class ListingConcurrencyAcceptanceTests extends AcceptanceTestSpringBase {
 
     @Autowired
