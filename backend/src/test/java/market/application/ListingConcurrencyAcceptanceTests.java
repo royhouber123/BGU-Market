@@ -84,7 +84,7 @@
 //         assertEquals(1, listing.getQuantityAvailable(), "Stock should be fully consumed");
 //     }
 
-//       @Commit
+//     @Commit
 //     @Test
 //     void concurrentPurchase_notenoughquantityAllOfThemShouldFail() throws Exception {
 //         String storeId = storeService.createStore("ConcurrentStore1", "owner").storeId();
@@ -98,7 +98,7 @@
 
 
 //         for (int i = 0; i < threadCount; i++) {
-//             Thread.sleep(5);
+//             Thread.sleep(10);
 //             new Thread(() -> {
 //                 try {
 //                     Map<String, Map<String, Integer>> cart = new HashMap<>();
