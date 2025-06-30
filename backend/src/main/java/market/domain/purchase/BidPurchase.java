@@ -160,7 +160,7 @@ public class BidPurchase {
             throw new RuntimeException("No pending bid found for user.");
         }
         latestPendingBid.proposeCounterOffer(newAmount);
-        notificationService.sendNotification(userId, "Counter offer proposed: " + newAmount + " at store " + storeId);
+        notificationService.sendNotification(userId, "Counter offer proposed: " + newAmount + " for product " + productId + " at store " + storeId);
 
         BidEntity entity = bidRepository.findByStoreIdAndProductId(storeId, productId)
                 .orElseThrow(() -> new RuntimeException("BidEntity not found in database."));

@@ -11,7 +11,7 @@ import StoreManagement from './pages/StoreManagement/StoreManagement';
 import Checkout from './pages/Checkout/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation/OrderConfirmation';
 import { AuthProvider } from './contexts/AuthContext';
-import NotificationHistory from './pages/NotificationHistory';
+import NotificationHistory from './pages/NotificationHistory/NotificationHistory';
 
 // Material UI Theme Provider
 import { ThemeProvider, createTheme } from '@mui/material/styles';

@@ -45,7 +45,6 @@ import {
 	ExpandMore as ExpandMoreIcon,
 	LocalOffer as DiscountIcon,
 	ShoppingCart as PurchaseIcon,
-	ConfirmationNumber as CouponIcon,
 	RuleFolder as ConditionIcon,
 	MergeType as CompositeIcon,
 	Percent as PercentIcon,
@@ -53,6 +52,7 @@ import {
 	Info as InfoIcon
 } from '@mui/icons-material';
 import { policyService } from '../../services/policyService';
+import SubDiscountCreator from './SubDiscountCreator';
 
 const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 	const [purchasePolicies, setPurchasePolicies] = useState([]);
@@ -70,7 +70,7 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 
 	// Form states
 	const [newPurchasePolicy, setNewPurchasePolicy] = useState({ type: '', value: '' });
-	
+
 	// For backward compatibility
 	const [newDiscountPolicy, setNewDiscountPolicy] = useState({
 		type: 'PERCENTAGE',
@@ -95,51 +95,61 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 		conditionTarget: 'STORE'
 	});
 
-	// Composite discount state
+	// Enhanced Composite discount state
 	const [compositeDiscount, setCompositeDiscount] = useState({
 		subDiscounts: [],
-		combinationType: 'SUM' // SUM or MAXIMUM
+		combinationType: 'SUM', // SUM or MAXIMUM
+		showSubDiscountCreator: false
 	});
-	
+
 	// Temporary discount for composites
 	const [tempDiscount, setTempDiscount] = useState(null);
 	const [tempDiscountType, setTempDiscountType] = useState('BASIC');
 
 	const loadPolicies = useCallback(async () => {
-		if (!store || !currentUser) return;
+		if (!store?.id || !currentUser || !currentUser.userName) {
+			console.warn('Missing required data for loading policies:', {
+				storeId: store?.id,
+				currentUser: !!currentUser,
+				userName: currentUser?.userName
+			});
+			return;
+		}
 
 		setLoading(true);
 		try {
-			const [purchasePoliciesData, discountPoliciesData] = await Promise.all([
-				policyService.getPurchasePolicies(store.id, currentUser.userName),
-				policyService.getDiscountPolicies(store.id, currentUser.userName)
-			]);
-
+			// Load purchase policies
+			const purchasePoliciesData = await policyService.getPurchasePolicies(store.id, currentUser.userName);
 			setPurchasePolicies(purchasePoliciesData);
+
+			// Load discount policies
+			const discountPoliciesData = await policyService.getDiscountPolicies(store.id, currentUser.userName);
 			setDiscountPolicies(discountPoliciesData);
-			setError('');
+
 		} catch (error) {
 			console.error('Error loading policies:', error);
 			setError('Failed to load policies: ' + error.message);
 		} finally {
 			setLoading(false);
 		}
-	}, [store, currentUser]);
+	}, [store?.id, currentUser]);
 
 	useEffect(() => {
 		loadPolicies();
 	}, [loadPolicies]);
 
 	const handleAddPurchasePolicy = async () => {
-		try {
-			const policyData = policyService.createPurchasePolicy(newPurchasePolicy.type, newPurchasePolicy.value);
-			await policyService.addPurchasePolicy(store.id, currentUser.userName, policyData);
+		if (!currentUser?.userName) {
+			onUpdate?.({ title: 'Error', description: 'User authentication required', variant: 'destructive' });
+			return;
+		}
 
+		try {
+			await policyService.addPurchasePolicy(store.id, currentUser.userName, newPurchasePolicy);
 			setPurchasePolicyDialog(false);
 			setNewPurchasePolicy({ type: '', value: '' });
 			loadPolicies();
 			onUpdate?.({ title: 'Success', description: 'Purchase policy added successfully', variant: 'success' });
-			onPolicyUpdate?.(); // Trigger product price refresh
 		} catch (error) {
 			console.error('Error adding purchase policy:', error);
 			onUpdate?.({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -147,28 +157,49 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 	};
 
 	const handleRemovePurchasePolicy = async (policy) => {
+		if (!currentUser?.userName) {
+			onUpdate?.({ title: 'Error', description: 'User authentication required', variant: 'destructive' });
+			return;
+		}
+
 		try {
-			console.log('Attempting to remove purchase policy:', policy);
-			console.log('Store ID:', store.id, 'User:', currentUser.userName);
-
 			await policyService.removePurchasePolicy(store.id, currentUser.userName, policy);
-
-			console.log('Purchase policy removed successfully');
 			loadPolicies();
 			onUpdate?.({ title: 'Success', description: 'Purchase policy removed successfully', variant: 'success' });
-			onPolicyUpdate?.(); // Trigger product price refresh
 		} catch (error) {
 			console.error('Error removing purchase policy:', error);
-			console.error('Error details:', {
-				message: error.message,
-				response: error.response?.data,
-				status: error.response?.status
-			});
 			onUpdate?.({ title: 'Error', description: error.message, variant: 'destructive' });
 		}
 	};
 
+	const handleAddSubDiscount = (subDiscount) => {
+		setCompositeDiscount(prev => ({
+			...prev,
+			subDiscounts: [...prev.subDiscounts, subDiscount]
+		}));
+	};
+
+	const handleRemoveSubDiscount = (index) => {
+		setCompositeDiscount(prev => ({
+			...prev,
+			subDiscounts: prev.subDiscounts.filter((_, i) => i !== index)
+		}));
+	};
+
+	const handleToggleSubDiscountCreator = () => {
+		setCompositeDiscount(prev => ({
+			...prev,
+			showSubDiscountCreator: !prev.showSubDiscountCreator
+		}));
+	};
+
+	// Enhanced discount policy addition
 	const handleAddDiscountPolicyByType = async () => {
+		if (!currentUser?.userName) {
+			onUpdate?.({ title: 'Error', description: 'User authentication required', variant: 'destructive' });
+			return;
+		}
+
 		try {
 			let policyData;
 
@@ -184,13 +215,13 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 						processedValue
 					);
 					break;
-				
+
 				case 'CONDITIONAL':
 					// First create the base discount
 					if (!conditionalDiscount.baseDiscount) {
 						throw new Error('Base discount is required for conditional discount');
 					}
-					
+
 					// Create the conditional discount with the condition
 					policyData = policyService.createConditionalDiscountPolicy(
 						conditionalDiscount.baseDiscount,
@@ -199,49 +230,146 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 						conditionalDiscount.conditionTarget
 					);
 					break;
-				
+
 				case 'COMPOSITE':
 					// Validate that we have sub-discounts
 					if (compositeDiscount.subDiscounts.length < 2) {
 						throw new Error('Composite discount requires at least 2 sub-discounts');
 					}
-					
-					// Create the composite discount
-					policyData = policyService.createCompositeDiscountPolicy(
+
+					// Validate each sub-discount
+					compositeDiscount.subDiscounts.forEach((subDiscount, index) => {
+						try {
+							policyService.validateDiscountPolicy(subDiscount);
+						} catch (error) {
+							throw new Error(`Sub-discount ${index + 1}: ${error.message}`);
+						}
+					});
+
+					console.log('Creating composite discount with sub-discounts:', compositeDiscount.subDiscounts);
+
+					// Create the enhanced composite discount
+					policyData = policyService.createEnhancedCompositeDiscount(
 						compositeDiscount.subDiscounts,
-						compositeDiscount.combinationType
+						compositeDiscount.combinationType,
 					);
+
+					console.log('Generated composite policy data:', JSON.stringify(policyData, null, 2));
 					break;
-					
+
 				default:
-					throw new Error('Unknown discount type');
+					throw new Error('Invalid discount type selected');
 			}
 
 			// Add the policy to the store
 			await policyService.addDiscountPolicy(store.id, currentUser.userName, policyData);
 
-			// Reset state and close dialog
+			// Success - reset form and reload policies
 			setDiscountPolicyDialog(false);
 			setDiscountType('BASIC');
 			setActiveStep(0);
-			
-			// Reset all form states
 			setBasicDiscount({ type: 'PERCENTAGE', scope: 'STORE', scopeId: '', value: '' });
-			setConditionalDiscount({ baseDiscount: null, conditionType: 'BASKET_TOTAL_AT_LEAST', conditionValue: '', conditionTarget: null });
-			setCompositeDiscount({ subDiscounts: [], combinationType: 'SUM' });
-			setTempDiscount(null);
-			setTempDiscountType('BASIC');
-			
-			// Reload policies and notify user
+			setConditionalDiscount({
+				baseDiscount: null,
+				conditionType: 'BASKET_TOTAL_AT_LEAST',
+				conditionValue: '',
+				conditionTarget: 'STORE'
+			});
+			setCompositeDiscount({
+				subDiscounts: [],
+				combinationType: 'SUM',
+				showSubDiscountCreator: false
+			});
+
 			loadPolicies();
 			onUpdate?.({ title: 'Success', description: 'Discount policy added successfully', variant: 'success' });
 			onPolicyUpdate?.(); // Trigger product price refresh
 		} catch (error) {
 			console.error('Error adding discount policy:', error);
-			onUpdate?.({ title: 'Error', description: error.message, variant: 'destructive' });
+
+			// Provide more specific error messages
+			let errorMessage = error.message;
+			let errorTitle = 'Error';
+
+			if (error.message.includes('Policy already exists') || error.message.includes('already exists')) {
+				errorTitle = 'Duplicate Policy';
+				errorMessage = 'A similar discount policy already exists for this store. Please remove the existing policy first or modify your discount parameters.';
+			} else if (error.message.includes('Failed to add discount: Policy already exists')) {
+				errorTitle = 'Duplicate Policy';
+				errorMessage = 'This exact discount policy already exists. Please check the existing policies below or create a different discount.';
+			} else if (error.message.includes('Sub-discount')) {
+				errorTitle = 'Invalid Sub-Discount';
+				errorMessage = `Composite discount creation failed: ${error.message}`;
+			} else if (error.message.includes('Composite discount requires')) {
+				errorTitle = 'Insufficient Sub-Discounts';
+				errorMessage = error.message + '. Please add at least 2 sub-discounts before creating the composite discount.';
+			} else if (error.message.includes('condition') || error.message.includes('Conditional')) {
+				errorTitle = 'Condition Error';
+				errorMessage = `Conditional discount error: ${error.message}`;
+			}
+
+			onUpdate?.({
+				title: errorTitle,
+				description: errorMessage,
+				variant: 'destructive'
+			});
 		}
 	};
-	
+
+	// Enhanced format discount text function
+	const formatDiscountText = (discount) => {
+		// Handle different discount types
+		if (discount.policyType === 'CONDITIONAL') {
+			// Extract condition info
+			let conditionText = '';
+			if (discount.condition) {
+				switch (discount.condition.type) {
+					case 'BASKET_TOTAL_AT_LEAST':
+						conditionText = `minimum purchase of $${discount.condition.params?.minTotal || discount.condition.value}`;
+						break;
+					case 'PRODUCT_QUANTITY_AT_LEAST':
+						conditionText = `minimum ${discount.condition.params?.minQuantity || discount.condition.value} of product ${discount.condition.params?.productId || discount.condition.targetId}`;
+						break;
+					case 'PRODUCT_CATEGORY_CONTAINS':
+						conditionText = `minimum ${discount.condition.params?.minQuantity || discount.condition.value} items from ${discount.condition.params?.category || discount.condition.targetId}`;
+						break;
+					default:
+						conditionText = `${discount.condition.type}: ${discount.condition.value || JSON.stringify(discount.condition.params)}`;
+				}
+			}
+
+			// Format the base discount part
+			const baseDiscountText = discount.baseDiscount ? formatDiscountText(discount.baseDiscount) :
+				`${discount.value}${discount.type === 'PERCENTAGE' ? '%' : '$'} discount`;
+			return `${baseDiscountText} if ${conditionText}`;
+		} else if (discount.policyType === 'COMPOSITE' || discount.type === 'COMPOSITE') {
+			// Enhanced composite discount formatting
+			const subCount = discount.subDiscounts?.length || 0;
+			const combType = discount.combinationType === 'SUM' ? 'Sum' : 'Maximum';
+
+			if (subCount === 0) {
+				return `${combType} of composite discounts (empty)`;
+			} else if (subCount <= 2) {
+				// Show details for small composites
+				const subTexts = discount.subDiscounts?.map(sub => {
+					const value = sub.type === 'PERCENTAGE' ? `${sub.value}%` : `$${sub.value}`;
+					return `${value} ${sub.scope?.toLowerCase() || 'discount'}`;
+				}).join(' and ') || 'multiple discounts';
+				return `${combType} of (${subTexts})`;
+			} else {
+				// Summarize for large composites
+				return `${combType} of ${subCount} sub-discounts`;
+			}
+		} else {
+			// Handle standard percentage or fixed discount
+			const valueText = discount.type === 'PERCENTAGE' ? `${discount.value}%` : `$${discount.value}`;
+			const scopeText = discount.scope === 'STORE' ? 'store-wide' :
+				discount.scope === 'PRODUCT' ? `product ${discount.scopeId}` :
+					discount.scope === 'CATEGORY' ? `category ${discount.scopeId}` : discount.scope;
+			return `${valueText} ${discount.type?.toLowerCase() || 'discount'} on ${scopeText}`;
+		}
+	};
+
 	// Keep backward compatibility with the old function
 	const handleAddDiscountPolicy = async () => {
 		try {
@@ -268,6 +396,11 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 	};
 
 	const handleRemoveDiscountPolicy = async (policy) => {
+		if (!currentUser?.userName) {
+			onUpdate?.({ title: 'Error', description: 'User authentication required', variant: 'destructive' });
+			return;
+		}
+
 		try {
 			console.log('Attempting to remove discount policy:', policy);
 			console.log('Store ID:', store.id, 'User:', currentUser.userName);
@@ -295,47 +428,6 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 		if (policy.type === 'MINPRICE') return `Minimum total price: $${policy.value}`;
 		if (policy.type === 'DEFAULT') return 'Default purchase policy (no restrictions)';
 		return `${policy.type}: ${policy.value}`;
-	};
-
-	const formatDiscountText = (discount) => {
-		// Handle different discount types
-		if (discount.policyType === 'CONDITIONAL') {
-			// Extract condition info
-			let conditionText = '';
-			if (discount.condition) {
-				switch(discount.condition.type) {
-					case 'MIN_PRICE':
-						conditionText = `minimum purchase of $${discount.condition.value}`;
-						break;
-					case 'MIN_ITEMS':
-						conditionText = `minimum ${discount.condition.value} items`;
-						break;
-					case 'MAX_PRICE':
-						conditionText = `maximum purchase of $${discount.condition.value}`;
-						break;
-					case 'MAX_ITEMS':
-						conditionText = `maximum ${discount.condition.value} items`;
-						break;
-					default:
-						conditionText = `${discount.condition.type}: ${discount.condition.value}`;
-				}
-			}
-			
-			// Format the base discount part
-			const baseDiscountText = discount.baseDiscount ? formatDiscountText(discount.baseDiscount) : 'discount';
-			return `${baseDiscountText} if ${conditionText}`;
-		} else if (discount.policyType === 'COMPOSITE') {
-			// Format each sub-discount
-			const subDiscountsText = discount.subDiscounts?.map(formatDiscountText).join(' and ') || 'multiple discounts';
-			return `${discount.combinationType === 'SUM' ? 'Sum' : 'Maximum'} of (${subDiscountsText})`;
-		} else {
-			// Handle standard percentage or fixed discount
-			const valueText = discount.type === 'PERCENTAGE' ? `${discount.value}%` : `$${discount.value}`;
-			const scopeText = discount.scope === 'STORE' ? 'store-wide' :
-				discount.scope === 'PRODUCT' ? `product ${discount.scopeId}` :
-					discount.scope === 'CATEGORY' ? `category ${discount.scopeId}` : discount.scope;
-			return `${valueText} ${discount.type.toLowerCase()} discount on ${scopeText}`;
-		}
 	};
 
 	if (loading) {
@@ -525,9 +617,20 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 				</DialogActions>
 			</Dialog>
 
-			{/* Add Discount Policy Dialog */}
-			<Dialog open={discountPolicyDialog} onClose={() => setDiscountPolicyDialog(false)} maxWidth="sm" fullWidth>
-				<DialogTitle>Add Discount Policy</DialogTitle>
+			{/* Enhanced Add Discount Policy Dialog */}
+			<Dialog
+				open={discountPolicyDialog}
+				onClose={() => setDiscountPolicyDialog(false)}
+				maxWidth="md"
+				fullWidth
+				PaperProps={{ sx: { minHeight: '600px' } }}
+			>
+				<DialogTitle>
+					<Box sx={{ display: 'flex', alignItems: 'center' }}>
+						<DiscountIcon sx={{ mr: 1 }} />
+						Add Discount Policy
+					</Box>
+				</DialogTitle>
 				<DialogContent>
 					<Box sx={{ pt: 1 }}>
 						{/* Discount Type Selector */}
@@ -535,43 +638,84 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 							<InputLabel>Discount Type</InputLabel>
 							<Select
 								value={discountType}
-								onChange={(e) => setDiscountType(e.target.value)}
+								onChange={(e) => {
+									setDiscountType(e.target.value);
+									setActiveStep(0);
+									// Reset states when changing type
+									if (e.target.value === 'COMPOSITE') {
+										setCompositeDiscount(prev => ({ ...prev, showSubDiscountCreator: false }));
+									}
+								}}
 								label="Discount Type"
 							>
-								<MenuItem value="BASIC">Basic Discount</MenuItem>
-								<MenuItem value="CONDITIONAL">Conditional Discount</MenuItem>
-								<MenuItem value="COMPOSITE">Composite Discount</MenuItem>
+								<MenuItem value="BASIC">
+									<Box sx={{ display: 'flex', alignItems: 'center' }}>
+										<PercentIcon sx={{ mr: 1 }} />
+										<Box>
+											<Typography variant="body2">Basic Discount</Typography>
+											<Typography variant="caption" color="text.secondary">
+												Simple percentage or fixed amount discount
+											</Typography>
+										</Box>
+									</Box>
+								</MenuItem>
+								<MenuItem value="CONDITIONAL">
+									<Box sx={{ display: 'flex', alignItems: 'center' }}>
+										<ConditionIcon sx={{ mr: 1 }} />
+										<Box>
+											<Typography variant="body2">Conditional Discount</Typography>
+											<Typography variant="caption" color="text.secondary">
+												Discount that applies when conditions are met
+											</Typography>
+										</Box>
+									</Box>
+								</MenuItem>
+								<MenuItem value="COMPOSITE">
+									<Box sx={{ display: 'flex', alignItems: 'center' }}>
+										<CompositeIcon sx={{ mr: 1 }} />
+										<Box>
+											<Typography variant="body2">Composite Discount</Typography>
+											<Typography variant="caption" color="text.secondary">
+												Combine multiple discounts with sum or maximum logic
+											</Typography>
+										</Box>
+									</Box>
+								</MenuItem>
 							</Select>
 						</FormControl>
 
-						{/* Stepper for complex discount types */}
+						{/* Progress indicator for multi-step processes */}
 						{(discountType === 'CONDITIONAL' || discountType === 'COMPOSITE') && (
-							<Stepper activeStep={activeStep} sx={{ mb: 3 }}>
+							<Box sx={{ mb: 3 }}>
 								{discountType === 'CONDITIONAL' ? (
-									<>
+									<Stepper activeStep={activeStep} sx={{ mb: 3 }}>
 										<Step>
 											<StepLabel>Base Discount</StepLabel>
 										</Step>
 										<Step>
 											<StepLabel>Condition</StepLabel>
 										</Step>
-									</>
+									</Stepper>
 								) : (
-									<>
-										<Step>
-											<StepLabel>Add Sub-Discounts</StepLabel>
-										</Step>
-										<Step>
-											<StepLabel>Set Combination Type</StepLabel>
-										</Step>
-									</>
+									<Box sx={{ mb: 2 }}>
+										<Typography variant="subtitle2" color="primary">
+											Composite Discount Builder
+										</Typography>
+										<Typography variant="body2" color="text.secondary">
+											Add multiple sub-discounts and choose how to combine them
+										</Typography>
+									</Box>
 								)}
-							</Stepper>
+							</Box>
 						)}
 
 						{/* Basic Discount Form */}
 						{(discountType === 'BASIC' || (discountType === 'CONDITIONAL' && activeStep === 0)) && (
-							<>
+							<Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
+								<Typography variant="subtitle2" gutterBottom>
+									{discountType === 'BASIC' ? 'Configure Discount' : 'Configure Base Discount'}
+								</Typography>
+
 								<FormControl fullWidth sx={{ mb: 3 }}>
 									<InputLabel>Discount Type</InputLabel>
 									<Select
@@ -585,8 +729,18 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 										}}
 										label="Discount Type"
 									>
-										<MenuItem value="PERCENTAGE">Percentage</MenuItem>
-										<MenuItem value="FIXED">Fixed Amount</MenuItem>
+										<MenuItem value="PERCENTAGE">
+											<Box sx={{ display: 'flex', alignItems: 'center' }}>
+												<PercentIcon sx={{ mr: 1 }} />
+												Percentage Discount
+											</Box>
+										</MenuItem>
+										<MenuItem value="FIXED">
+											<Box sx={{ display: 'flex', alignItems: 'center' }}>
+												<FixedIcon sx={{ mr: 1 }} />
+												Fixed Amount Discount
+											</Box>
+										</MenuItem>
 									</Select>
 								</FormControl>
 
@@ -609,27 +763,27 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 									</Select>
 								</FormControl>
 
-								{((discountType === 'BASIC' && (basicDiscount.scope === 'PRODUCT' || basicDiscount.scope === 'CATEGORY')) || 
-								 (discountType === 'CONDITIONAL' && tempDiscount && (tempDiscount.scope === 'PRODUCT' || tempDiscount.scope === 'CATEGORY'))) && (
-									<TextField
-										fullWidth
-										label={discountType === 'BASIC' ? 
+								{((discountType === 'BASIC' && (basicDiscount.scope === 'PRODUCT' || basicDiscount.scope === 'CATEGORY')) ||
+									(discountType === 'CONDITIONAL' && tempDiscount && (tempDiscount.scope === 'PRODUCT' || tempDiscount.scope === 'CATEGORY'))) && (
+										<TextField
+											fullWidth
+											label={discountType === 'BASIC' ?
 												(basicDiscount.scope === 'PRODUCT' ? 'Product ID' : 'Category Name') :
 												(tempDiscount.scope === 'PRODUCT' ? 'Product ID' : 'Category Name')}
-										value={discountType === 'BASIC' ? basicDiscount.scopeId : tempDiscount?.scopeId || ''}
-										onChange={(e) => {
-											if (discountType === 'BASIC') {
-												setBasicDiscount(prev => ({ ...prev, scopeId: e.target.value }));
-											} else if (tempDiscount) {
-												setTempDiscount(prev => ({ ...prev, scopeId: e.target.value }));
-											}
-										}}
-										sx={{ mb: 3 }}
-										helperText={discountType === 'BASIC' ?
-											(basicDiscount.scope === 'PRODUCT' ? 'Enter the specific product ID' : 'Enter the category name') :
-											(tempDiscount?.scope === 'PRODUCT' ? 'Enter the specific product ID' : 'Enter the category name')}
-									/>
-								)}
+											value={discountType === 'BASIC' ? basicDiscount.scopeId : tempDiscount?.scopeId || ''}
+											onChange={(e) => {
+												if (discountType === 'BASIC') {
+													setBasicDiscount(prev => ({ ...prev, scopeId: e.target.value }));
+												} else if (tempDiscount) {
+													setTempDiscount(prev => ({ ...prev, scopeId: e.target.value }));
+												}
+											}}
+											sx={{ mb: 3 }}
+											helperText={discountType === 'BASIC' ?
+												(basicDiscount.scope === 'PRODUCT' ? 'Enter the specific product ID' : 'Enter the category name') :
+												(tempDiscount?.scope === 'PRODUCT' ? 'Enter the specific product ID' : 'Enter the category name')}
+										/>
+									)}
 
 								<TextField
 									fullWidth
@@ -651,166 +805,240 @@ const PolicyManagement = ({ store, currentUser, onUpdate, onPolicyUpdate }) => {
 											});
 										}
 									}}
-									helperText={(discountType === 'BASIC' ? basicDiscount.type : tempDiscountType) === 'PERCENTAGE' ? 
+									helperText={(discountType === 'BASIC' ? basicDiscount.type : tempDiscountType) === 'PERCENTAGE' ?
 										'Enter percentage (e.g., 15 for 15%)' : 'Enter discount amount in dollars'}
-									inputProps={(discountType === 'BASIC' ? basicDiscount.type : tempDiscountType) === 'PERCENTAGE' ? 
+									inputProps={(discountType === 'BASIC' ? basicDiscount.type : tempDiscountType) === 'PERCENTAGE' ?
 										{ min: 0, max: 100, step: 1 } :
-									{ min: 0, step: 0.01 }
-							}
-						/>
-					</>
-				)}
+										{ min: 0, step: 0.01 }
+									}
+								/>
 
-
-				{discountType === 'CONDITIONAL' && activeStep === 0 && (
-					<Box sx={{ mt: 2 }}>
-						<Button
-							variant="contained"
-							disabled={!tempDiscount || !tempDiscount.value}
-							onClick={() => {
-								const baseDto = policyService.createBasicDiscountPolicy(
-									tempDiscount.type || 'PERCENTAGE',
-									tempDiscount.scope || 'STORE',
-									tempDiscount.scopeId || null,
-									parseFloat(tempDiscount.value)
-								);
-								setConditionalDiscount(prev => ({ ...prev, baseDiscount: baseDto }));
-								setActiveStep(1);
-							}}
-						>
-							Next
-						</Button>
-					</Box>
-				)}
-
-				{/* Condition Form */}
-				{discountType === 'CONDITIONAL' && activeStep === 1 && (
-					<>
-						<FormControl fullWidth sx={{ mb: 3 }}>
-							<InputLabel>Condition Type</InputLabel>
-							<Select
-								value={conditionalDiscount.conditionType}
-								onChange={(e)=> setConditionalDiscount(prev=>({...prev, conditionType: e.target.value }))}
-								label="Condition Type"
-							>
-								<MenuItem value="BASKET_TOTAL_AT_LEAST">Basket total at least ($)</MenuItem>
-								<MenuItem value="PRODUCT_QUANTITY_AT_LEAST">Product quantity at least</MenuItem>
-								<MenuItem value="CATEGORY_QUANTITY_AT_LEAST">Category quantity at least</MenuItem>
-							</Select>
-						</FormControl>
-
-						<TextField
-							fullWidth
-							label={conditionalDiscount.conditionType === 'BASKET_TOTAL_AT_LEAST' ? 'Minimum Basket Total ($)' : 'Minimum Quantity'}
-							type="number"
-							value={conditionalDiscount.conditionValue}
-							onChange={(e)=> setConditionalDiscount(prev=>({...prev, conditionValue: e.target.value }))}
-							sx={{ mb: 3 }}
-						/>
-
-						{(conditionalDiscount.conditionType === 'PRODUCT_QUANTITY_AT_LEAST' || conditionalDiscount.conditionType === 'CATEGORY_QUANTITY_AT_LEAST') && (
-							<TextField
-								fullWidth
-								label={conditionalDiscount.conditionType === 'PRODUCT_QUANTITY_AT_LEAST' ? 'Product ID' : 'Category'}
-								value={conditionalDiscount.conditionTarget}
-								onChange={(e)=> setConditionalDiscount(prev=>({...prev, conditionTarget: e.target.value }))}
-								sx={{ mb: 3 }}
-							/>
+								{discountType === 'CONDITIONAL' && activeStep === 0 && (
+									<Box sx={{ mt: 2 }}>
+										<Button
+											variant="contained"
+											disabled={!tempDiscount || !tempDiscount.value}
+											onClick={() => {
+												const baseDto = policyService.createBasicDiscountPolicy(
+													tempDiscount.type || 'PERCENTAGE',
+													tempDiscount.scope || 'STORE',
+													tempDiscount.scopeId || null,
+													parseFloat(tempDiscount.value)
+												);
+												setConditionalDiscount(prev => ({ ...prev, baseDiscount: baseDto }));
+												setActiveStep(1);
+											}}
+										>
+											Next: Add Condition
+										</Button>
+									</Box>
+								)}
+							</Paper>
 						)}
 
-						<Box sx={{ mt: 2 }}>
-							<Button variant="outlined" onClick={()=> setActiveStep(0)}>Back</Button>
-						</Box>
-					</>
-				)}
+						{/* Condition Form for Conditional Discounts */}
+						{discountType === 'CONDITIONAL' && activeStep === 1 && (
+							<Paper sx={{ p: 3, mb: 3, bgcolor: 'warning.light', bgcolor: 'rgba(255, 243, 224, 0.5)' }}>
+								<Typography variant="subtitle2" gutterBottom>
+									Configure Discount Condition
+								</Typography>
 
-				{/* Composite Discount Form */}
-				{discountType === 'COMPOSITE' && (
-					<>
-						{activeStep === 0 && (
-							<>
-								<Typography variant="subtitle1" sx={{ mb: 1 }}>Create Sub-Discount</Typography>
+								<FormControl fullWidth sx={{ mb: 3 }}>
+									<InputLabel>Condition Type</InputLabel>
+									<Select
+										value={conditionalDiscount.conditionType}
+										onChange={(e) => setConditionalDiscount(prev => ({ ...prev, conditionType: e.target.value }))}
+										label="Condition Type"
+									>
+										<MenuItem value="BASKET_TOTAL_AT_LEAST">Basket total at least ($)</MenuItem>
+										<MenuItem value="PRODUCT_QUANTITY_AT_LEAST">Product quantity at least</MenuItem>
+										<MenuItem value="CATEGORY_QUANTITY_AT_LEAST">Category quantity at least</MenuItem>
+									</Select>
+								</FormControl>
+
 								<TextField
 									fullWidth
-									label="Sub-Discount Percentage"
+									label={conditionalDiscount.conditionType === 'BASKET_TOTAL_AT_LEAST' ? 'Minimum Basket Total ($)' : 'Minimum Quantity'}
 									type="number"
-									value={tempDiscount?.value || ''}
-									onChange={(e) => setTempDiscount({ type: 'PERCENTAGE', scope: 'STORE', scopeId: '', value: e.target.value })}
-									helperText="Enter percentage (e.g., 10 for 10%)"
-									sx={{ mb: 2 }}
+									value={conditionalDiscount.conditionValue}
+									onChange={(e) => setConditionalDiscount(prev => ({ ...prev, conditionValue: e.target.value }))}
+									sx={{ mb: 3 }}
 								/>
-								<Button
-									variant="outlined"
-									disabled={!tempDiscount?.value}
-									onClick={() => {
-										const sub = policyService.createBasicDiscountPolicy('PERCENTAGE','STORE',null,parseFloat(tempDiscount.value));
-										setCompositeDiscount(prev => ({ ...prev, subDiscounts: [...prev.subDiscounts, sub] }));
-										setTempDiscount(null);
-									}}
-								>
-									Add Sub-Discount
-								</Button>
 
-								{compositeDiscount.subDiscounts.length > 0 && (
-									<List dense sx={{ mt: 2 }}>
-										{compositeDiscount.subDiscounts.map((sd, idx) => (
-											<ListItem key={idx} secondaryAction={
-												<IconButton edge="end" color="error" onClick={() => {
-													setCompositeDiscount(prev => ({ ...prev, subDiscounts: prev.subDiscounts.filter((_, i) => i !== idx) }));
-												}}>
-													<DeleteIcon />
-												</IconButton> }>
-												<ListItemText primary={`Sub-Discount ${idx+1}: ${sd.value}%`} />
-											</ListItem>
-										))}
-									</List>
+								{(conditionalDiscount.conditionType === 'PRODUCT_QUANTITY_AT_LEAST' || conditionalDiscount.conditionType === 'CATEGORY_QUANTITY_AT_LEAST') && (
+									<TextField
+										fullWidth
+										label={conditionalDiscount.conditionType === 'PRODUCT_QUANTITY_AT_LEAST' ? 'Product ID' : 'Category'}
+										value={conditionalDiscount.conditionTarget}
+										onChange={(e) => setConditionalDiscount(prev => ({ ...prev, conditionTarget: e.target.value }))}
+										sx={{ mb: 3 }}
+									/>
 								)}
-							</>
+
+								<Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+									<Button variant="outlined" onClick={() => setActiveStep(0)}>Back</Button>
+								</Box>
+							</Paper>
 						)}
 
-						{activeStep === 1 && (
-							<FormControl component="fieldset" sx={{ mb: 3 }}>
-								<FormLabel>Combination Type</FormLabel>
-								<RadioGroup row value={compositeDiscount.combinationType} onChange={(e)=> setCompositeDiscount(prev=>({...prev, combinationType: e.target.value }))}>
-									<FormControlLabel value="SUM" control={<Radio />} label="Sum" />
-									<FormControlLabel value="MAXIMUM" control={<Radio />} label="Maximum" />
-								</RadioGroup>
-							</FormControl>
-						)}
+						{/* Enhanced Composite Discount Form */}
+						{discountType === 'COMPOSITE' && (
+							<Box>
+								{/* Combination Type Selector */}
+								<Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.light', bgcolor: 'rgba(224, 247, 255, 0.5)' }}>
+									<Typography variant="subtitle2" gutterBottom>
+										Combination Method
+									</Typography>
+									<FormControl component="fieldset" sx={{ mb: 2 }}>
+										<FormLabel>How should sub-discounts be combined?</FormLabel>
+										<RadioGroup
+											row
+											value={compositeDiscount.combinationType}
+											onChange={(e) => setCompositeDiscount(prev => ({ ...prev, combinationType: e.target.value }))}
+											sx={{ mt: 1 }}
+										>
+											<FormControlLabel
+												value="SUM"
+												control={<Radio />}
+												label={
+													<Box>
+														<Typography variant="body2">Sum All</Typography>
+														<Typography variant="caption" color="text.secondary">
+															Add all discounts together
+														</Typography>
+													</Box>
+												}
+											/>
+											<FormControlLabel
+												value="MAXIMUM"
+												control={<Radio />}
+												label={
+													<Box>
+														<Typography variant="body2">Maximum Only</Typography>
+														<Typography variant="caption" color="text.secondary">
+															Apply only the largest discount
+														</Typography>
+													</Box>
+												}
+											/>
+										</RadioGroup>
+									</FormControl>
+								</Paper>
 
-						{/* Step Navigation */}
-						<Box sx={{ mt: 2 }}>
-							{activeStep === 0 && (
-								<Button variant="contained" disabled={compositeDiscount.subDiscounts.length < 2} onClick={() => setActiveStep(1)}>
-									Next
-								</Button>
-							)}
-							{activeStep === 1 && (
-								<Button variant="outlined" onClick={() => setActiveStep(0)}>
-									Back
-								</Button>
-							)}
-						</Box>
-					</>
-				)}
-			</Box>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={() => setDiscountPolicyDialog(false)}>Cancel</Button>
-				<Button
-					onClick={handleAddDiscountPolicyByType}
-					variant="contained"
-					disabled={
-	(discountType==='COMPOSITE' && (activeStep!==1 || compositeDiscount.subDiscounts.length<2)) ||
-	(discountType==='CONDITIONAL' && (activeStep!==1 || !conditionalDiscount.conditionValue))
-}
-				>
-					Add Discount
-				</Button>
-			</DialogActions>
-		</Dialog>
-	</Card>
-);
+								{/* Sub-Discounts Management */}
+								<Paper sx={{ p: 3, mb: 3 }}>
+									<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+										<Typography variant="subtitle2">
+											Sub-Discounts ({compositeDiscount.subDiscounts.length})
+										</Typography>
+										<Button
+											variant="outlined"
+											startIcon={<AddIcon />}
+											onClick={handleToggleSubDiscountCreator}
+											size="small"
+										>
+											{compositeDiscount.showSubDiscountCreator ? 'Hide Creator' : 'Add Sub-Discount'}
+										</Button>
+									</Box>
+
+									{compositeDiscount.subDiscounts.length === 0 && !compositeDiscount.showSubDiscountCreator && (
+										<Alert severity="info" sx={{ mb: 2 }}>
+											<Typography variant="body2">
+												Add at least 2 sub-discounts to create a composite discount.
+											</Typography>
+										</Alert>
+									)}
+
+									{/* Existing Sub-Discounts List */}
+									{compositeDiscount.subDiscounts.length > 0 && (
+										<List dense sx={{ mb: 2 }}>
+											{compositeDiscount.subDiscounts.map((subDiscount, index) => (
+												<ListItem
+													key={index}
+													sx={{
+														border: '1px solid',
+														borderColor: 'divider',
+														borderRadius: 1,
+														mb: 1,
+														bgcolor: 'background.paper'
+													}}
+												>
+													<ListItemText
+														primary={subDiscount.metadata?.displayName || `Sub-discount ${index + 1}`}
+														secondary={
+															<span style={{ marginTop: '0.5rem', display: 'inline-block' }}>
+																<Chip
+																	size="small"
+																	label={subDiscount.type}
+																	color="primary"
+																	variant="outlined"
+																	sx={{ mr: 1 }}
+																/>
+																{subDiscount.scope && (
+																	<Chip
+																		size="small"
+																		label={subDiscount.scope}
+																		color="secondary"
+																		variant="outlined"
+																	/>
+																)}
+															</span>
+														}
+													/>
+													<ListItemSecondaryAction>
+														<IconButton
+															edge="end"
+															color="error"
+															onClick={() => handleRemoveSubDiscount(index)}
+															size="small"
+														>
+															<DeleteIcon />
+														</IconButton>
+													</ListItemSecondaryAction>
+												</ListItem>
+											))}
+										</List>
+									)}
+
+									{/* Sub-Discount Creator */}
+									{compositeDiscount.showSubDiscountCreator && (
+										<SubDiscountCreator
+											onAddSubDiscount={handleAddSubDiscount}
+											existingSubDiscounts={compositeDiscount.subDiscounts}
+											onClose={handleToggleSubDiscountCreator}
+										/>
+									)}
+
+									{/* Composite Preview */}
+									{compositeDiscount.subDiscounts.length >= 2 && (
+										<Alert severity="success" sx={{ mt: 2 }}>
+											<Typography variant="body2">
+												<strong>Preview:</strong> This composite discount will {compositeDiscount.combinationType === 'SUM' ? 'sum' : 'apply the maximum of'} {compositeDiscount.subDiscounts.length} sub-discounts.
+											</Typography>
+										</Alert>
+									)}
+								</Paper>
+							</Box>
+						)}
+					</Box>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setDiscountPolicyDialog(false)}>Cancel</Button>
+					<Button
+						onClick={handleAddDiscountPolicyByType}
+						variant="contained"
+						disabled={
+							(discountType === 'BASIC' && (!basicDiscount.value)) ||
+							(discountType === 'COMPOSITE' && compositeDiscount.subDiscounts.length < 2) ||
+							(discountType === 'CONDITIONAL' && (activeStep !== 1 || !conditionalDiscount.conditionValue))
+						}
+					>
+						Add {discountType} Discount
+					</Button>
+				</DialogActions>
+			</Dialog>
+		</Card>
+	);
 };
 
 export default PolicyManagement; 

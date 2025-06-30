@@ -2,6 +2,7 @@ package market.domain.store.Policies.Discounts;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.List;
 
 import market.domain.store.IStoreProductsManager;
 import market.domain.store.Policies.DiscountPolicy;
@@ -60,7 +61,7 @@ public class ConditionalDiscountPolicy extends DiscountPolicyEntity {
             innerDto.value(),      // discount value
             innerDto.couponCode(), // coupon code (if any)
             condition.toDTO(),     // the condition DTO for this conditional discount
-            null,                  // subDiscounts — not applicable for conditional
+            List.of(innerDto),     // subDiscounts — include the inner discount
             null                   // combinationType — not applicable for conditional
         );
     }

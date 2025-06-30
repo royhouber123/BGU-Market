@@ -26,8 +26,16 @@ public class DiscountPolicyFactory {
             case "COUPON" -> new CouponDiscountPolicy(dto.couponCode(), dto.value());
 
             case "CONDITIONAL" -> {
-                DiscountTargetType targetType = DiscountTargetType.valueOf(dto.scope().toUpperCase());
-                DiscountPolicy inner = new PercentageTargetedDiscount(targetType, dto.scopeId(), dto.value());
+                // Create the inner discount based on the first sub-discount or infer from type
+                DiscountPolicy inner;
+                if (dto.subDiscounts() != null && !dto.subDiscounts().isEmpty()) {
+                    // Use the first sub-discount as the base discount
+                    inner = fromDTO(dto.subDiscounts().get(0));
+                } else {
+                    // Fallback: infer from the main type (this maintains backward compatibility)
+                    DiscountTargetType targetType = DiscountTargetType.valueOf(dto.scope().toUpperCase());
+                    inner = new PercentageTargetedDiscount(targetType, dto.scopeId(), dto.value());
+                }
                 DiscountCondition condition = ConditionFactory.fromDTO(dto.condition());
                 yield new ConditionalDiscountPolicy(condition, inner);
             }
