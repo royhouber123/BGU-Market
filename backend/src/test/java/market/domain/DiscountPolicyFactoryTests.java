@@ -142,4 +142,16 @@ public class DiscountPolicyFactoryTests {
         double maxResult = maxComposite.calculateDiscount(listings, productManager);
         assertEquals(Math.max(expectedDairy, expectedBakery), maxResult, 0.001);
     }
+
+    @Test
+    void testFromDTOFixedDiscount() {
+        PolicyDTO.AddDiscountRequest dto = new PolicyDTO.AddDiscountRequest(
+            "FIXED", "PRODUCT", "milk-id", 5.0, null, null, null, null
+        );
+
+        DiscountPolicy policy = DiscountPolicyFactory.fromDTO(dto);
+        double discount = policy.calculateDiscount(Map.of(milk.getListingId(), 2), productManager);
+
+        assertEquals(10.0, discount); // $5 per item × 2 items
+    }
 }

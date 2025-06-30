@@ -20,6 +20,7 @@ import market.domain.purchase.IAuctionRepository;
 import market.domain.purchase.IBidRepository;
 import market.infrastructure.AuctionRepository;
 import market.infrastructure.BidRepository;
+import market.infrastructure.NotificationRepository; // Add this import
 import market.domain.purchase.IPurchaseRepository;
 import market.domain.store.IListingRepository;
 import market.domain.store.IStoreRepository;
@@ -54,7 +55,12 @@ public abstract class AcceptanceTestBase {
     protected StoreRepository storeRepository;
     protected IListingRepository listingRepository;
     protected IAuctionRepository auctionRepository;
-    protected IBidRepository bidRepository; 
+    protected IBidRepository bidRepository;
+    
+    // ✅ Add these as protected fields
+    protected NotificationService notificationService;
+    protected INotificationRepository notificationRepository;
+    protected INotifier notifier;
     
     @BeforeEach
     void setup() {
@@ -69,9 +75,10 @@ public abstract class AcceptanceTestBase {
         userService = new UserService(userRepository, authService, susRepo);
         IStoreRepository storerepo = new StoreRepository(); // Use the real implementation
 
-        INotificationRepository notificationRepository = mock(INotificationRepository.class); // Mock notification repository
-        INotifier notifier = mock(INotifier.class);   // Mock notifier interface
-        NotificationService notificationService = new NotificationService(notificationRepository, notifier);
+        // ✅ Replace mocked notification components with real ones
+        notificationRepository = new NotificationRepository(); // Real implementation
+        notifier = mock(INotifier.class);   // Keep notifier mocked
+        notificationService = new NotificationService(notificationRepository, notifier);
 
         storeService = new StoreService(storerepo, userRepository, listingRepository, susRepo, notificationService); // Use the real implementation
         storePoliciesService = new StorePoliciesService(storerepo,susRepo);
@@ -80,13 +87,10 @@ public abstract class AcceptanceTestBase {
         shipmentService = mock(IShipmentService.class); // Mock external service
         IPurchaseRepository prep = new PurchaseRepository();
 
-        INotificationRepository notificationRepo = mock(INotificationRepository.class); // Mock notification repository
-        INotifier notifier2 = mock(INotifier.class); // Mock notifier interface
-        NotificationService notificationServiceMock = new NotificationService(notificationRepo, notifier2);
-
+        // ✅ Remove duplicate notification service creation - use the same one
         auctionRepository = new AuctionRepository(); // Use the in-memory implementation for tests
         bidRepository = new BidRepository();
-        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo,notificationServiceMock, auctionRepository, bidRepository);
+        purchaseService = new PurchaseService(storerepo, prep , listingRepository, userRepository,paymentService,shipmentService,susRepo,notificationService, auctionRepository, bidRepository);
         // Initialize the bridge with the mocked services
         // This allows the bridge to interact with the mocked services during tests.
         
