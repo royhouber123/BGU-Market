@@ -136,4 +136,15 @@ public class DiscountPolicyDTOConversionTests {
         assertEquals("SUM", dto.combinationType());
         assertEquals(2, dto.subDiscounts().size());
     }
+
+    @Test
+    void testFixedDiscountPolicyDTO() {
+        FixedDiscountPolicy policy = new FixedDiscountPolicy("product-1", 10.0, DiscountTargetType.PRODUCT);
+        PolicyDTO.AddDiscountRequest dto = policy.toDTO();
+
+        assertEquals("FIXED", dto.type());
+        assertEquals("PRODUCT", dto.scope());
+        assertEquals("product-1", dto.scopeId());
+        assertEquals(10.0, dto.value());
+    }
 }

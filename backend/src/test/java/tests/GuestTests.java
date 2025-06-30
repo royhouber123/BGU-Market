@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import market.application.AuthService.AuthToken;
+import market.domain.store.Store;
 import market.domain.purchase.Purchase;
 import market.domain.store.Listing;
 import market.domain.store.Policies.DiscountPolicy;
@@ -623,4 +624,170 @@ public class GuestTests extends AcceptanceTestBase {
         TokenUtils.clearMockToken();
     }
 
-}  
+    @Test
+    void guest_cart_applies_fixed_product_discount_correctly() {
+        // 1. Add a product to the store
+        String productId = "fixed-test-product";
+        String listingId = storeService.addNewListing(
+            MANAGER1, storeId, productId, "Fixed Test Product", "Test", "Test product description", 100, 12.0, "REGULAR"
+        );
+        assertTrue(listingId != null && !listingId.isEmpty());
+
+        // 2. Add fixed discount: $4 off per item
+        PolicyDTO.AddDiscountRequest fixedRequest = new PolicyDTO.AddDiscountRequest(
+            "FIXED", "PRODUCT", productId, 4.0, null, null, null, null
+        );
+        
+        boolean addDiscountResponse = storePoliciesService.addDiscount(storeId, MANAGER1, fixedRequest);
+        assertTrue(addDiscountResponse, "Failed to add fixed discount policy");
+        
+        // 3. Calculate prices using StoreService
+        Map<String, Integer> basket = Map.of(listingId, 3); // 3 items at $12 each = $36 total
+    
+        // Get original price
+        ApiResponse<Double> originalResponse = storeService.getStoreBagPrice(storeId, basket);
+        assertTrue(originalResponse.isSuccess(), "Should successfully get original price");
+        double originalPrice = originalResponse.getData();
+    
+        // Get discounted price
+        ApiResponse<Double> discountedResponse = storeService.getStoreBagDiscountPrice(storeId, basket);
+        assertTrue(discountedResponse.isSuccess(), "Should successfully get discounted price");
+        double discountedPrice = discountedResponse.getData();
+    
+        // Calculate discount
+        double discount = originalPrice - discountedPrice;
+    
+        // 4. Verify: $4 per item × 3 items = $12 total discount
+        assertEquals(36.0, originalPrice, 0.01, "Original price should be $36");
+        assertEquals(12.0, discountedPrice, 0.01, "Discount should be $12");
+        assertEquals(24.0, discount, 0.01, "Final price should be $24");
+    }
+
+    @Test
+    void guest_cart_applies_fixed_store_discount_correctly() {
+        // 1. Add products to the store
+        String listingId1 = storeService.addNewListing(
+            MANAGER1, storeId, "product1", "Product 1", "Test", "Product 1 description", 100, 15.0, "REGULAR"
+        );
+        String listingId2 = storeService.addNewListing(
+            MANAGER1, storeId, "product2", "Product 2", "Test", "Product 2 description", 100, 10.0, "REGULAR"
+        );
+
+        // 2. Add store-wide fixed discount: $8 off entire order
+        PolicyDTO.AddDiscountRequest storeDiscountRequest = new PolicyDTO.AddDiscountRequest(
+            "FIXED", "STORE", null, 8.0, null, null, null, null
+        );
+        
+        boolean addDiscountResponse = storePoliciesService.addDiscount(storeId, MANAGER1, storeDiscountRequest);
+        assertTrue(addDiscountResponse);
+        
+        // 3. Calculate prices using StoreService
+        Map<String, Integer> basket = Map.of(
+            listingId1, 1,  // $15
+            listingId2, 2   // $20
+        ); // Total: $35
+        
+        // Get original price
+        ApiResponse<Double> originalResponse = storeService.getStoreBagPrice(storeId, basket);
+        assertTrue(originalResponse.isSuccess());
+        double originalPrice = originalResponse.getData();
+        
+        // Get discounted price
+        ApiResponse<Double> discountedResponse = storeService.getStoreBagDiscountPrice(storeId, basket);
+        assertTrue(discountedResponse.isSuccess());
+        double discountedPrice = discountedResponse.getData();
+        
+        // Calculate discount
+        double discount = originalPrice - discountedPrice;
+        
+        // 4. Verify: $8 store discount applied once
+        assertEquals(35.0, originalPrice, 0.01, "Original price should be $35");
+        assertEquals(8.0, discountedPrice, 0.01, "Discount should be $8");
+        assertEquals(27.0, discount, 0.01, "Final price should be $27");
+    }
+
+    @Test
+    void guest_cart_fixed_discount_prevents_negative_price() {
+        // 1. Add a cheap product
+        String listingId = storeService.addNewListing(
+            MANAGER1, storeId, "cheap-product", "Cheap Product", "Test", "Cheap product description", 100, 3.0, "REGULAR"
+        );
+
+        // 2. Add large fixed discount that exceeds product price
+        PolicyDTO.AddDiscountRequest largeDiscountRequest = new PolicyDTO.AddDiscountRequest(
+            "FIXED", "PRODUCT", "cheap-product", 10.0, null, null, null, null
+        );
+        
+        boolean addDiscountResponse = storePoliciesService.addDiscount(storeId, MANAGER1, largeDiscountRequest);
+        assertTrue(addDiscountResponse);
+        
+        // 3. Calculate prices using StoreService
+        Map<String, Integer> basket = Map.of(listingId, 1); // 1 item at $3
+        
+        // Get original price
+        ApiResponse<Double> originalResponse = storeService.getStoreBagPrice(storeId, basket);
+        assertTrue(originalResponse.isSuccess());
+        double originalPrice = originalResponse.getData();
+        
+        // Get discounted price
+        ApiResponse<Double> discountedResponse = storeService.getStoreBagDiscountPrice(storeId, basket);
+        assertTrue(discountedResponse.isSuccess());
+        double discountedPrice = discountedResponse.getData();
+        
+        // Calculate discount
+        double discount = originalPrice - discountedPrice;
+        
+        // 4. Verify discount is capped at item price and final price is not negative
+        assertEquals(3.0, originalPrice, 0.01, "Original price should be $3");
+        assertEquals(3.0, discountedPrice, 0.01, "Discount should be capped at item price ($3)");
+        assertEquals(0.0, discount, 0.01, "Final price should be $0, not negative");
+    }
+
+    @Test
+    void guest_cart_multiple_fixed_discounts_composite() {
+        // Test multiple fixed discounts combined
+        String listingId = storeService.addNewListing(
+            MANAGER1, storeId, "combo-product", "Combo Product", "electronics", "Combo product description", 100, 20.0, "REGULAR"
+        );
+
+        // Add product-specific discount: $5 off per item
+        PolicyDTO.AddDiscountRequest productDiscount = new PolicyDTO.AddDiscountRequest(
+            "FIXED", "PRODUCT", "combo-product", 5.0, null, null, null, null
+        );
+        
+        // Add category discount: $3 off per electronics item
+        PolicyDTO.AddDiscountRequest categoryDiscount = new PolicyDTO.AddDiscountRequest(
+            "FIXED", "CATEGORY", "electronics", 3.0, null, null, null, null
+        );
+        
+        // Create composite discount with SUM combination
+        PolicyDTO.AddDiscountRequest compositeDiscount = new PolicyDTO.AddDiscountRequest(
+            "COMPOSITE", null, null, 0.0, null, null, 
+            List.of(productDiscount, categoryDiscount), "SUM"
+        );
+        
+        boolean addDiscountResponse = storePoliciesService.addDiscount(storeId, MANAGER1, compositeDiscount);
+        assertTrue(addDiscountResponse);
+        
+        // Calculate prices using StoreService
+        Map<String, Integer> basket = Map.of(listingId, 2); // 2 items at $20 each = $40 total
+        
+        // Get original price
+        ApiResponse<Double> originalResponse = storeService.getStoreBagPrice(storeId, basket);
+        assertTrue(originalResponse.isSuccess());
+        double originalPrice = originalResponse.getData();
+        
+        // Get discounted price
+        ApiResponse<Double> discountedResponse = storeService.getStoreBagDiscountPrice(storeId, basket);
+        assertTrue(discountedResponse.isSuccess());
+        double discountedPrice = discountedResponse.getData();
+        
+        // Calculate discount
+        double discount = originalPrice - discountedPrice;
+        
+        // Verify: ($5 + $3) × 2 items = $16 total discount
+        assertEquals(40.0, originalPrice, 0.01, "Original price should be $40");
+        assertEquals(16.0, discountedPrice, 0.01, "Should apply both discounts: ($5 + $3) × 2 = $16");
+        assertEquals(24.0, discount, 0.01, "Final price should be $24");
+    }
+}
