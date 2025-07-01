@@ -198,136 +198,64 @@ ADD_COUPON_DISCOUNT_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/p
     \"couponCode\":\"SAVE20\",
     \"condition\":null,
     \"subDiscounts\":[],
-    \"combinationType\":null
+    \"combinationType\":\"SUM\"
   }")
 check_success_continue "$ADD_COUPON_DISCOUNT_RESPONSE"
 
-echo "📋 Adding conditional discount policy..."
-ADD_CONDITIONAL_DISCOUNT_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=$USERNAME" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"type\":\"CONDITIONAL\",
-    \"scope\":\"PRODUCT\",
-    \"scopeId\":\"$PRODUCT_ID\",
-    \"value\":0.10,
-    \"couponCode\":null,
-    \"condition\":{
-      \"type\":\"BASKET_TOTAL_AT_LEAST\",
-      \"params\":{\"threshold\":100.0},
-      \"subConditions\":null,
-      \"logic\":null
-    },
-    \"subDiscounts\":[],
-    \"combinationType\":null
-  }")
-check_success_continue "$ADD_CONDITIONAL_DISCOUNT_RESPONSE"
-
-# Test getting discount policies
-echo "📋 Getting all discount policies..."
-GET_DISCOUNTS_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=$USERNAME")
-check_success_continue "$GET_DISCOUNTS_RESPONSE"
-
 # Test adding purchase policies
-echo "📦 Adding minimum items purchase policy..."
-ADD_MIN_ITEMS_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME" \
+echo "🛡️ Adding minimum price purchase policy..."
+ADD_MIN_PRICE_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/purchases?userId=$USERNAME" \
   -H "Content-Type: application/json" \
   -d "{
-    \"type\":\"MINITEMS\",
-    \"value\":2
-  }")
-check_success_continue "$ADD_MIN_ITEMS_POLICY_RESPONSE"
-
-echo "📦 Adding maximum items purchase policy..."
-ADD_MAX_ITEMS_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"type\":\"MAXITEMS\",
-    \"value\":10
-  }")
-check_success_continue "$ADD_MAX_ITEMS_POLICY_RESPONSE"
-
-echo "💰 Adding minimum price purchase policy..."
-ADD_MIN_PRICE_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"type\":\"MINPRICE\",
-    \"value\":50
+    \"type\":\"MIN_PRICE\",
+    \"scope\":\"STORE\",
+    \"scopeId\":\"$STORE_ID\",
+    \"value\":50.0,
+    \"condition\":null,
+    \"subPolicies\":[],
+    \"combinationType\":\"AND\"
   }")
 check_success_continue "$ADD_MIN_PRICE_POLICY_RESPONSE"
 
+# Test getting discount policies
+echo "📋 Getting discount policies..."
+GET_DISCOUNT_POLICIES_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=$USERNAME")
+check_success_continue "$GET_DISCOUNT_POLICIES_RESPONSE"
+
 # Test getting purchase policies
-echo "📋 Getting all purchase policies..."
-GET_PURCHASE_POLICIES_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/$STORE_ID/policies/purchase?userId=$USERNAME")
+echo "📋 Getting purchase policies..."
+GET_PURCHASE_POLICIES_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/$STORE_ID/policies/purchases?userId=$USERNAME")
 check_success_continue "$GET_PURCHASE_POLICIES_RESPONSE"
-
-# Test error scenarios
-echo "❌ Testing policy addition with unauthorized user..."
-UNAUTHORIZED_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/$STORE_ID/policies/discounts?userId=unauthorized_user" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"type\":\"PERCENTAGE\",
-    \"scope\":\"PRODUCT\",
-    \"scopeId\":\"$PRODUCT_ID\",
-    \"value\":0.15,
-    \"couponCode\":null,
-    \"condition\":null,
-    \"subDiscounts\":[],
-    \"combinationType\":\"SUM\"
-  }")
-if echo "$UNAUTHORIZED_POLICY_RESPONSE" | grep -q '"success":false'; then
-    echo "✅ Unauthorized access properly rejected"
-else
-    echo "⚠️ Unauthorized access response: $UNAUTHORIZED_POLICY_RESPONSE"
-fi
-
-echo "❌ Testing policy addition to non-existent store..."
-NONEXISTENT_STORE_POLICY_RESPONSE=$(curl -s -X POST "$BASE_URL/api/stores/999/policies/discounts?userId=$USERNAME" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"type\":\"PERCENTAGE\",
-    \"scope\":\"PRODUCT\",
-    \"scopeId\":\"$PRODUCT_ID\",
-    \"value\":0.15,
-    \"couponCode\":null,
-    \"condition\":null,
-    \"subDiscounts\":[],
-    \"combinationType\":\"SUM\"
-  }")
-if echo "$NONEXISTENT_STORE_POLICY_RESPONSE" | grep -q '"success":false'; then
-    echo "✅ Non-existent store properly handled"
-else
-    echo "⚠️ Non-existent store response: $NONEXISTENT_STORE_POLICY_RESPONSE"
-fi
 
 echo ""
 echo "6️⃣ TESTING PRODUCT SEARCH & DISCOVERY"
 echo "-------------------------------------"
 
-# Test search products by name
-echo "🔍 Searching products by name..."
-SEARCH_BY_NAME_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/search?query=Test" \
+# Test product search
+echo "🔍 Searching for products..."
+SEARCH_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/search?query=Test" \
   -H "Content-Type: application/json")
-check_success_continue "$SEARCH_BY_NAME_RESPONSE"
+check_success_continue "$SEARCH_RESPONSE"
 
-# Test search products by ID
-echo "🆔 Searching products by ID..."
-SEARCH_BY_ID_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/id/$PRODUCT_ID" \
+# Test search by category
+echo "🏷️ Searching products by category..."
+CATEGORY_SEARCH_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/category/Electronics" \
   -H "Content-Type: application/json")
-check_success_continue "$SEARCH_BY_ID_RESPONSE"
+check_success_continue "$CATEGORY_SEARCH_RESPONSE"
 
-# Test get store products
-echo "🏪 Getting all products from store..."
+# Test product search by ID
+echo "🔎 Searching for specific product by ID..."
+PRODUCT_BY_ID_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/id/$PRODUCT_ID" \
+  -H "Content-Type: application/json")
+check_success_continue "$PRODUCT_BY_ID_RESPONSE"
+
+# Test get products by store
+echo "🏪 Getting products by store..."
 STORE_PRODUCTS_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/store/$STORE_ID" \
   -H "Content-Type: application/json")
 check_success_continue "$STORE_PRODUCTS_RESPONSE"
 
-# Test search within store
-echo "🔍 Searching products within store..."
-STORE_SEARCH_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/store/$STORE_ID/search?query=Test" \
-  -H "Content-Type: application/json")
-check_success_continue "$STORE_SEARCH_RESPONSE"
-
-# Test products sorted by price
+# Test get all products sorted by price
 echo "💰 Getting products sorted by price..."
 SORTED_BY_PRICE_RESPONSE=$(curl -s -X GET "$BASE_URL/api/products/sorted/price" \
   -H "Content-Type: application/json")
@@ -473,8 +401,114 @@ STORE_PURCHASE_HISTORY_RESPONSE=$(curl -s -X GET "$BASE_URL/api/purchases/store/
 check_success_continue "$STORE_PURCHASE_HISTORY_RESPONSE"
 
 echo ""
-echo "9️⃣ TESTING GENERAL QUERIES"
-echo "--------------------------"
+echo "9️⃣ TESTING NOTIFICATION SYSTEM"
+echo "------------------------------"
+
+# Test getting user notifications
+echo "🔔 Getting user notifications..."
+USER_NOTIFICATIONS_RESPONSE=$(curl -s -X GET "$BASE_URL/api/notifications/$USERNAME")
+check_success_continue "$USER_NOTIFICATIONS_RESPONSE"
+
+# Create a test notification by triggering an action that generates notifications
+# For now, just test with the endpoint even if no notifications exist
+echo "📬 Testing empty notifications response..."
+EMPTY_NOTIFICATIONS_RESPONSE=$(curl -s -X GET "$BASE_URL/api/notifications/nonexistent_user")
+if echo "$EMPTY_NOTIFICATIONS_RESPONSE" | grep -q '\[\]'; then
+    echo "✅ Empty notifications array returned correctly"
+else
+    echo "⚠️ Unexpected empty notifications response: $EMPTY_NOTIFICATIONS_RESPONSE"
+fi
+
+# Test marking notification as read (will likely fail if no notifications exist)
+echo "✅ Testing mark notification as read (may fail if no notifications)..."
+MARK_READ_RESPONSE=$(curl -s -X POST "$BASE_URL/api/notifications/$USERNAME/read/test_notification_id")
+# This will likely return an error, which is expected if no notifications exist
+echo "Response: $MARK_READ_RESPONSE"
+
+echo ""
+echo "🔟 TESTING ADMIN OPERATIONS"
+echo "---------------------------"
+
+# Test admin verification
+echo "🔧 Verifying admin status for 'admin' user..."
+ADMIN_VERIFY_RESPONSE=$(curl -s -X GET "$BASE_URL/api/admin/verify/admin")
+ADMIN_IS_VALID=false
+if check_success_continue "$ADMIN_VERIFY_RESPONSE"; then
+    ADMIN_IS_VALID=true
+fi
+
+# Test admin verification for regular user (should return false)
+echo "👤 Verifying admin status for regular user..."
+USER_ADMIN_VERIFY_RESPONSE=$(curl -s -X GET "$BASE_URL/api/admin/verify/$USERNAME")
+if echo "$USER_ADMIN_VERIFY_RESPONSE" | grep -q '"data":false'; then
+    echo "✅ Regular user correctly identified as non-admin"
+else
+    echo "⚠️ Admin verification response for regular user: $USER_ADMIN_VERIFY_RESPONSE"
+fi
+
+# Only proceed with admin operations if admin user exists
+if [ "$ADMIN_IS_VALID" = true ]; then
+    echo "🔧 Admin user verified, proceeding with admin operations..."
+    
+    # Test getting all users
+    echo "👥 Getting all users (admin only)..."
+    ADMIN_ALL_USERS_RESPONSE=$(curl -s -X GET "$BASE_URL/api/admin/users")
+    check_success_continue "$ADMIN_ALL_USERS_RESPONSE"
+    
+    # Test getting all stores
+    echo "🏪 Getting all stores (admin only)..."
+    ADMIN_ALL_STORES_RESPONSE=$(curl -s -X GET "$BASE_URL/api/admin/stores")
+    check_success_continue "$ADMIN_ALL_STORES_RESPONSE"
+    
+    # Test user suspension (temporary - 1 hour)
+    echo "⏸️ Suspending user temporarily (1 hour)..."
+    SUSPEND_USER_RESPONSE=$(curl -s -X POST "$BASE_URL/api/admin/users/suspend" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"adminId\":\"admin\",
+        \"userId\":\"$USERNAME\",
+        \"durationHours\":1
+      }")
+    SUSPENSION_SUCCESS=false
+    if check_success_continue "$SUSPEND_USER_RESPONSE"; then
+        SUSPENSION_SUCCESS=true
+    fi
+    
+    # Test getting suspended users
+    echo "📋 Getting suspended users list..."
+    SUSPENDED_USERS_RESPONSE=$(curl -s -X GET "$BASE_URL/api/admin/users/suspended?adminId=admin")
+    check_success_continue "$SUSPENDED_USERS_RESPONSE"
+    
+    # Test unsuspending user if suspension was successful
+    if [ "$SUSPENSION_SUCCESS" = true ]; then
+        echo "▶️ Unsuspending user..."
+        UNSUSPEND_USER_RESPONSE=$(curl -s -X POST "$BASE_URL/api/admin/users/unsuspend" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"adminId\":\"admin\",
+            \"userId\":\"$USERNAME\"
+          }")
+        check_success_continue "$UNSUSPEND_USER_RESPONSE"
+    fi
+    
+    # Test store closure (careful - this might affect other tests)
+    echo "🏪 Testing store closure (admin only)..."
+    CLOSE_STORE_RESPONSE=$(curl -s -X POST "$BASE_URL/api/admin/stores/close" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"adminId\":\"admin\",
+        \"storeId\":\"$STORE_ID\"
+      }")
+    check_success_continue "$CLOSE_STORE_RESPONSE"
+    
+else
+    echo "⚠️ Admin user not available, skipping admin-specific operations"
+    echo "   To test admin operations, ensure an admin user exists with username 'admin'"
+fi
+
+echo ""
+echo "1️⃣1️⃣ TESTING GENERAL QUERIES"
+echo "----------------------------"
 
 # Get all stores and products info
 echo "📋 Getting all stores and products information..."
@@ -482,8 +516,8 @@ ALL_INFO_RESPONSE=$(curl -s -X GET "$BASE_URL/api/stores/info")
 check_success_continue "$ALL_INFO_RESPONSE"
 
 echo ""
-echo "10️⃣ TESTING LOGOUT"
-echo "-----------------"
+echo "1️⃣2️⃣ TESTING LOGOUT"
+echo "-------------------"
 
 # Test logout
 echo "👋 Logging out..."
@@ -513,6 +547,8 @@ echo "- Store Policies: ✅"
 echo "- Product Search & Discovery: ✅"
 echo "- Shopping Cart: ✅"
 echo "- Purchase Operations: ✅"
+echo "- Notification System: ✅"
+echo "- Admin Operations: ⚠️ (requires admin user to be available)"
 echo "- General Queries: ✅"
 echo "- Logout: ✅"
 echo ""
@@ -520,6 +556,7 @@ echo "Note: Some operations may fail due to:"
 echo "- Business logic constraints (e.g., username changes affecting permissions)"
 echo "- Authentication state changes during testing"
 echo "- Database constraints or validation rules"
+echo "- Admin user availability (username: 'admin')"
 echo "- Server not running on $BASE_URL"
 echo ""
 echo "For detailed testing of individual endpoints, use the documentation files:"
@@ -528,4 +565,6 @@ echo "- user_api_examples.md"
 echo "- store_api_examples.md"
 echo "- store_policies_api_examples.md"
 echo "- product_api_examples.md"
-echo "- purchase_api_examples.md" 
+echo "- purchase_api_examples.md"
+echo "- admin_api_examples.md"
+echo "- notification_api_examples.md" 

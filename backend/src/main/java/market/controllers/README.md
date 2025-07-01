@@ -12,6 +12,8 @@ Welcome to the BGU Market API documentation! This directory contains all the RES
 - **[🏷️ Store Policies API Examples](docs/store_policies_api_examples.md)** - Store discount and purchase policies
 - **[🛒 Purchase API Examples](docs/purchase_api_examples.md)** - Purchases, auctions, bids, history
 - **[📦 Product API Examples](docs/product_api_examples.md)** - Product search, listings, information
+- **[🔧 Admin API Examples](docs/admin_api_examples.md)** - Admin management, user suspension, store closure
+- **[🔔 Notification API Examples](docs/notification_api_examples.md)** - User notifications, read status
 
 ### 🧪 Testing Tools
 - **[🔧 Test Script](docs/test_all_apis.sh)** - Automated API testing script
@@ -105,17 +107,37 @@ Welcome to the BGU Market API documentation! This directory contains all the RES
 
 **[📖 View Documentation](docs/product_api_examples.md)**
 
+### 🔧 AdminController.java
+**Endpoints**: `/api/admin/*`
+- Administrative user management
+- Store closure and management
+- User suspension and account control
+- System-wide oversight operations
+
+**[📖 View Documentation](docs/admin_api_examples.md)**
+
+### 🔔 NotificationController.java
+**Endpoints**: `/api/notifications/*`
+- User notification retrieval
+- Notification read status management
+- Real-time notification system
+- Event-based notification delivery
+
+**[📖 View Documentation](docs/notification_api_examples.md)**
+
 ## 📁 File Structure
 
 ```
 backend/src/main/java/market/controllers/
-├── API_DOCUMENTATION.md         # This file - Controllers overview & quick navigation
+├── README.md                    # This file - Controllers overview & quick navigation
 ├── AuthController.java          # Authentication endpoints
 ├── UserController.java          # User management endpoints  
 ├── StoreController.java         # Store management endpoints
 ├── StorePoliciesController.java # Store policy management endpoints
 ├── PurchaseController.java      # Purchase and transaction endpoints
 ├── ProductController.java       # Product search and information endpoints
+├── AdminController.java         # Administrative management endpoints
+├── NotificationController.java  # Notification system endpoints
 └── docs/                        # Detailed API documentation
     ├── README.md                # Main documentation hub
     ├── auth_api_examples.md     # Auth API curl examples
@@ -124,6 +146,8 @@ backend/src/main/java/market/controllers/
     ├── store_policies_api_examples.md  # Store policies API curl examples
     ├── purchase_api_examples.md # Purchase API curl examples
     ├── product_api_examples.md  # Product API curl examples
+    ├── admin_api_examples.md    # Admin API curl examples
+    ├── notification_api_examples.md  # Notification API curl examples
     └── test_all_apis.sh         # Automated test script
 ```
 

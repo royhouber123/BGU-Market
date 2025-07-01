@@ -1,226 +1,283 @@
-# BGU Market API Documentation
+# 📚 BGU Market API Documentation
 
-This directory contains comprehensive curl examples for all API endpoints in the BGU Market application.
+Welcome to the comprehensive API documentation for the BGU Market system. This documentation provides detailed examples, testing instructions, and complete API reference for all available endpoints.
 
-## Available API Documentation
+## 🚀 Quick Navigation
 
-### 📁 Controller APIs
+### 📖 API Documentation by Controller
 
-- **[Auth API Examples](auth_api_examples.md)** - Authentication endpoints
-  - User login/logout
-  - Token validation
-  - Authentication workflows
+| Controller | Endpoints | Documentation |
+|------------|-----------|---------------|
+| 🔐 **Authentication** | `/api/auth/*` | **[Auth API Examples](auth_api_examples.md)** |
+| 👤 **User Management** | `/api/users/*` | **[User API Examples](user_api_examples.md)** |
+| 🏪 **Store Management** | `/api/stores/*` | **[Store API Examples](store_api_examples.md)** |
+| 🏷️ **Store Policies** | `/api/stores/{storeId}/policies/*` | **[Store Policies API Examples](store_policies_api_examples.md)** |
+| 🛒 **Purchase System** | `/api/purchases/*` | **[Purchase API Examples](purchase_api_examples.md)** |
+| 📦 **Product Catalog** | `/api/products/*` | **[Product API Examples](product_api_examples.md)** |
+| 🔧 **Admin Management** | `/api/admin/*` | **[Admin API Examples](admin_api_examples.md)** |
+| 🔔 **Notifications** | `/api/notifications/*` | **[Notification API Examples](notification_api_examples.md)** |
 
-- **[User API Examples](user_api_examples.md)** - User management endpoints
-  - User registration (guest and regular)
-  - Profile management (username, password changes)
-  - Shopping cart operations
+### 🧪 Testing Resources
+- **[🔧 Complete Test Script](test_all_apis.sh)** - Automated testing for all APIs
 
-- **[Store API Examples](store_api_examples.md)** - Store management endpoints
-  - Store creation and management
-  - Owner and manager operations
-  - Product listing management
+---
 
-- **[Store Policies API Examples](store_policies_api_examples.md)** - Store policy management endpoints
-  - Discount policy management (percentage, fixed, conditional, composite)
-  - Purchase policy management (min/max items, min price)
-  - Policy retrieval and removal
+## 🎯 Getting Started
 
-- **[Purchase API Examples](purchase_api_examples.md)** - Purchase and transaction endpoints
-  - Regular purchase execution
-  - Auction operations and offers
-  - Bid submission and management
-  - Purchase history retrieval
+### Prerequisites
+1. Backend server running on `http://localhost:8080`
+2. `curl` command available for testing
+3. Optional: `jq` for JSON formatting
 
-- **[Product API Examples](product_api_examples.md)** - Product search and information endpoints
-  - Product search across all stores
-  - Store-specific product listings
-  - Product information retrieval
-  - Price-sorted product views
-
-## Quick Start Guide
-
-### 1. Authentication Flow
+### Quick Test
 ```bash
-# Register a new user
+# Test server connectivity
+curl -X GET "http://localhost:8080/api/stores/info"
+
+# Complete authentication flow
 curl -X POST "http://localhost:8080/api/users/register" \
   -H "Content-Type: application/json" \
   -d '{"username": "testuser", "password": "password123"}'
-
-# Login to get token
-curl -X POST "http://localhost:8080/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"username": "testuser", "password": "password123"}'
-
-# Use token for authenticated requests
-curl -X GET "http://localhost:8080/api/users/me" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
 ```
 
-### 2. Basic Store Operations
+---
+
+## 📋 API Overview
+
+### Core Functionality
+
+#### 🔐 Authentication & Authorization
+- User registration (regular and guest users)
+- JWT-based authentication
+- Token validation and refresh
+- Session management
+
+#### 👤 User Management
+- User profile management
+- Shopping cart operations
+- User preferences and settings
+- Account status and history
+
+#### 🏪 Store Operations
+- Store creation and management
+- Product catalog management
+- Store permissions and roles
+- Owner and manager operations
+
+#### 🛒 Commerce Features
+- Purchase execution and processing
+- Auction system with bidding
+- Counter-offer negotiations
+- Purchase history and tracking
+
+#### 🔧 Administrative Controls
+- System-wide user management
+- Store oversight and closure
+- User suspension and account control
+- Administrative reporting and analytics
+
+#### 🔔 Communication System
+- Real-time notifications
+- Event-based messaging
+- Notification status management
+- User preference controls
+
+---
+
+## 🛠️ API Testing
+
+### Automated Testing
+Run the comprehensive test suite to validate all endpoints:
+
 ```bash
-# Create a store (requires authentication)
-curl -X POST "http://localhost:8080/api/stores/create" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE" \
-  -d '{"storeName": "MyStore", "founderId": "testuser"}'
+# Make script executable
+chmod +x test_all_apis.sh
 
-# Add a product to the store
-curl -X POST "http://localhost:8080/api/stores/listings/add" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE" \
-  -d '{
-    "userName": "testuser",
-    "storeID": "1",
-    "productId": "PROD001",
-    "productName": "Test Product",
-    "productCategory": "Electronics",
-    "productDescription": "A test product",
-    "quantity": 10,
-    "price": 99.99
-  }'
+# Run all tests
+./test_all_apis.sh
 ```
 
-### 3. Shopping Cart Operations
-```bash
-# Add product to cart
-curl -X POST "http://localhost:8080/api/users/cart/add" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE" \
-  -d '{
-    "storeId": "1",
-    "productName": "Test Product",
-    "quantity": 2
-  }'
+### Manual Testing
+Each API documentation file includes:
+- ✅ Complete endpoint examples
+- ✅ Request/response samples
+- ✅ Error handling examples
+- ✅ Integration scenarios
 
-# View cart contents
-curl -X GET "http://localhost:8080/api/users/cart" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
-```
+### Testing Workflow
+1. **Start with Authentication**: Register and login to get JWT tokens
+2. **Setup Test Data**: Create users, stores, and products
+3. **Test Core Features**: Execute purchases, manage stores, handle notifications
+4. **Test Admin Features**: User management, store oversight
+5. **Error Testing**: Validate error handling and edge cases
 
-## API Response Format
+---
 
-All APIs return responses in the following standardized format:
+## 📊 Response Format
 
+All API responses follow a consistent format:
+
+### Success Response
 ```json
 {
   "success": true,
-  "message": "Operation completed successfully",
-  "data": {
-    // Response data (can be null, object, array, etc.)
-  }
+  "data": { /* response data */ },
+  "message": "Operation completed successfully"
 }
 ```
 
-### Success Response Example
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": null
-}
-```
-
-### Error Response Example
+### Error Response
 ```json
 {
   "success": false,
-  "message": "Username already exists",
-  "data": null
+  "error": "Error type",
+  "message": "Detailed error message"
 }
 ```
 
-## Authentication
+---
 
-Most endpoints require authentication using JWT tokens:
+## 🔗 Integration Examples
 
-1. **Register** a user using `/api/users/register`
-2. **Login** using `/api/auth/login` to get a JWT token
-3. **Include** the token in subsequent requests using the `Authorization` header:
-   ```bash
-   -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
-   ```
-
-## Base URLs
-
-- **Development**: `http://localhost:8080`
-- **Production**: Update with your actual server URL
-
-## Common HTTP Status Codes
-
-- `200 OK` - Request successful
-- `400 Bad Request` - Invalid request data
-- `401 Unauthorized` - Authentication required or invalid
-- `403 Forbidden` - Access denied
-- `404 Not Found` - Resource not found
-- `500 Internal Server Error` - Server error
-
-## Testing Tools
-
-### Using curl (Command Line)
-All examples in this documentation use curl commands that can be run directly from the terminal.
-
-### Using Postman
-You can import these curl commands into Postman:
-1. Open Postman
-2. Click "Import" 
-3. Select "Raw text"
-4. Paste any curl command from the documentation
-5. Postman will automatically parse it
-
-### Using Browser Dev Tools
-For GET requests, you can also test directly in browser console:
+### Frontend Integration (JavaScript)
 ```javascript
-fetch('http://localhost:8080/api/stores/info')
-  .then(response => response.json())
-  .then(data => console.log(data));
+// API base URL
+const API_BASE = 'http://localhost:8080/api';
+
+// Generic API call function
+async function apiCall(endpoint, method = 'GET', data = null) {
+  const token = localStorage.getItem('jwt_token');
+  const config = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    }
+  };
+  
+  if (data) {
+    config.body = JSON.stringify(data);
+  }
+  
+  const response = await fetch(`${API_BASE}${endpoint}`, config);
+  return response.json();
+}
+
+// Usage examples
+const user = await apiCall('/users/me');
+const stores = await apiCall('/stores');
+const purchase = await apiCall('/purchases/execute', 'POST', purchaseData);
 ```
 
-## Environment Variables
-
-For easier testing, you can set environment variables:
-
-```bash
-# Set base URL
-export API_BASE_URL="http://localhost:8080"
-
-# Set token after login
-export JWT_TOKEN="your_jwt_token_here"
-
-# Use in curl commands
-curl -X GET "$API_BASE_URL/api/users/me" \
-  -H "Authorization: Bearer $JWT_TOKEN"
+### Backend Integration (Java)
+```java
+// Service integration example
+@Service
+public class MarketService {
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private StoreService storeService;
+    
+    @Autowired
+    private PurchaseService purchaseService;
+    
+    public void processUserPurchase(String userId, PurchaseRequest request) {
+        // Validate user
+        userService.validateUser(userId);
+        
+        // Process purchase
+        Purchase purchase = purchaseService.executePurchase(request);
+        
+        // Send notification
+        notificationService.sendPurchaseConfirmation(userId, purchase);
+    }
+}
 ```
 
-## File Structure
+---
 
-```
-backend/src/main/java/market/controllers/docs/
-├── README.md                 # This file - overview and navigation
-├── auth_api_examples.md      # Authentication API examples
-├── user_api_examples.md      # User management API examples
-├── store_api_examples.md     # Store management API examples
-├── store_policies_api_examples.md  # Store policy management API examples
-├── purchase_api_examples.md  # Purchase and transaction API examples
-└── product_api_examples.md   # Product search and information API examples
-```
+## 🎯 Common Use Cases
 
-## Contributing
+### E-commerce Workflow
+1. **User Registration**: Create account or continue as guest
+2. **Store Discovery**: Browse available stores and products
+3. **Shopping Cart**: Add/remove items, manage quantities
+4. **Purchase Process**: Execute purchase with payment processing
+5. **Order Tracking**: Monitor purchase status and history
 
-When adding new API endpoints:
+### Store Management Workflow
+1. **Store Creation**: Register as store owner
+2. **Product Management**: Add/update/remove products
+3. **Policy Configuration**: Set discount and purchase policies
+4. **Order Fulfillment**: Process customer orders
+5. **Analytics**: Track sales and performance
 
-1. Update the corresponding controller documentation file
-2. Follow the existing format with:
-   - Clear endpoint descriptions
-   - Complete curl examples
-   - Request/response examples
-   - Error scenarios
-3. Update this README if new API categories are added
+### Administrative Workflow
+1. **User Oversight**: Monitor user activity and compliance
+2. **Store Management**: Oversee store operations and policies
+3. **Dispute Resolution**: Handle conflicts and issues
+4. **System Maintenance**: Perform administrative tasks
 
-## Support
+---
 
-For issues or questions about the APIs:
-1. Check the relevant documentation file first
-2. Review error responses and status codes
-3. Ensure authentication tokens are valid and included
-4. Verify request payload structure matches the examples 
+## 📝 Development Notes
+
+### Rate Limiting
+- API calls are rate-limited to prevent abuse
+- Limits vary by endpoint and user type
+- See individual endpoint documentation for details
+
+### Caching
+- Frequently accessed data is cached for performance
+- Cache invalidation occurs automatically on updates
+- Some endpoints support conditional requests
+
+### Security
+- All sensitive operations require authentication
+- Admin operations require elevated privileges
+- Input validation and sanitization applied
+- HTTPS recommended for production use
+
+---
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**Connection Refused**
+- Ensure backend server is running on port 8080
+- Check firewall settings and network connectivity
+
+**Authentication Failures**
+- Verify JWT token format and expiration
+- Check user credentials and account status
+
+**Permission Denied**
+- Confirm user has required permissions
+- Verify admin status for administrative operations
+
+**Data Not Found**
+- Check entity IDs and references
+- Verify data existence in database
+
+### Getting Help
+- Check individual API documentation files
+- Review error messages and response codes
+- Test with provided example commands
+- Validate request format and parameters
+
+---
+
+## 📖 Additional Resources
+
+- **[Main Project README](../../../../../../../README.md)** - Project setup and configuration
+- **[Controller Source Code](../)** - Implementation details
+- **[Demo Data Setup](../../../../../../../DEMO_DATA_README.md)** - Test data population
+
+---
+
+*Last updated: 2024-01-15*
+*For the most current information, see individual API documentation files.* 

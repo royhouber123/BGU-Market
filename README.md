@@ -1,597 +1,552 @@
-# BGU Market
+# BGU Market 🛒
 
-A full-stack e-commerce application built with Spring Boot backend and React frontend.
+**A modern, full-stack e-commerce marketplace built with Spring Boot backend and React frontend**
+
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://adoptium.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## 🚀 Quick Start (Get Running in 5 Minutes!)
+
+### 📊 **IMPORTANT: Get Startup Data First!**
+
+**Don't start with an empty marketplace!** Run our demo data script to get a fully functional marketplace with users, stores, and products:
+
+```bash
+# 1. Clone the repository
+git clone <your-repo-url>
+cd BGU-Market
+
+# 2. Start the backend
+cd backend
+mvn clean install
+mvn spring-boot:run &  # Runs in background
+cd ..
+
+# Wait for backend to start (watch for "Started BguMarketApplication")
+
+# 3. Populate with demo data
+chmod +x populate_demo_data.sh
+./populate_demo_data.sh
+
+# 4. Frontend setup and start
+cd frontend
+npm install
+npm start
+```
+
+**🎉 That's it!** Visit `http://localhost:3000` and you have a fully functional marketplace with:
+- **5 demo users** you can login with
+- **5 different stores** (Electronics, Books, Clothing, Home, Sports)
+- **20 realistic products** with proper pricing
+- **Ready-to-test** shopping cart and purchase functionality
+
+---
+
+## 🎯 Demo Login Credentials (After Running Startup Data)
+
+| Username | Password | Store | Category |
+|----------|----------|-------|----------|
+| `alice` | `password123` | TechHub | Electronics |
+| `bob` | `password123` | BookWorld | Books & Literature |
+| `charlie` | `password123` | FashionForward | Clothing & Fashion |
+| `diana` | `password123` | HomeEssentials | Home & Garden |
+| `eve` | `password123` | SportsZone | Sports & Fitness |
+
+**Admin Access:**
+- Username: `admin` | Password: `admin`
+
+---
 
 ## 📋 Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Project Structure](#project-structure)
-- [Backend Setup](#backend-setup)
-- [Frontend Setup](#frontend-setup)
-- [Running the Application](#running-the-application)
-- [Demo Data Population](#demo-data-population)
-- [Configuration](#configuration)
-- [API Documentation](#api-documentation)
-- [Testing](#testing)
-- [Default Admin Credentials](#default-admin-credentials)
+- [Why Use Startup Data?](#-why-use-startup-data)
+- [Prerequisites](#-prerequisites)
+- [Detailed Setup Guide](#-detailed-setup-guide)
+- [Project Structure](#-project-structure)
+- [Core Features](#-core-features)
+- [API Documentation](#-api-documentation)
+- [Testing](#-testing)
+- [Configuration](#-configuration)
+- [Troubleshooting](#-troubleshooting)
+
+---
+
+## 🌟 Why Use Startup Data?
+
+**Skip the tedious setup!** Instead of manually creating users, stores, and products one by one, our startup data script gives you:
+
+### ✅ **What You Get Instantly:**
+- **5 Ready-to-Use Accounts**: Test different user roles and store ownership
+- **Realistic Product Catalog**: 20 products across 5 categories with proper pricing
+- **Functional Marketplace**: Immediately test shopping, purchasing, and store management
+- **Demo Scenarios**: Perfect for presentations, testing, and development
+
+### 🎮 **Immediate Testing Capabilities:**
+- Login and browse different stores
+- Add products to cart and make purchases
+- Test auction and bidding features
+- Explore admin management functions
+- Test store owner/manager workflows
+
+### ⚡ **Perfect For:**
+- **Developers**: Quickly test features without manual data entry
+- **Demos**: Showcase the full marketplace functionality
+- **Testing**: Comprehensive testing scenarios out of the box
+- **Learning**: Understand the system with realistic data
+
+---
 
 ## 🔧 Prerequisites
 
-Before running the application, make sure you have the following installed:
+Ensure you have these installed before starting:
 
-- **Java 17 or higher** - [Download here](https://adoptium.net/)
-- **Maven 3.6+** - [Download here](https://maven.apache.org/download.cgi)
-- **Node.js 16+ and npm** - [Download here](https://nodejs.org/)
-- **Git** - [Download here](https://git-scm.com/)
+| Tool | Version | Download Link |
+|------|---------|---------------|
+| **Java** | 17+ | [Download Java](https://adoptium.net/) |
+| **Maven** | 3.6+ | [Download Maven](https://maven.apache.org/download.cgi) |
+| **Node.js** | 16+ | [Download Node.js](https://nodejs.org/) |
+| **Git** | Latest | [Download Git](https://git-scm.com/) |
+
+**Quick Version Check:**
+```bash
+java -version    # Should show 17+
+mvn -version     # Should show 3.6+
+node -version    # Should show 16+
+npm -version     # Should show 8+
+```
+
+---
+
+## 🛠️ Detailed Setup Guide
+
+### 🔥 Method 1: Quick Start with Demo Data (Recommended)
+
+This gets you a fully functional marketplace in minutes:
+
+```bash
+# 1. Clone and enter directory
+git clone <repository-url>
+cd BGU-Market
+
+# 2. Backend setup and start
+cd backend
+mvn clean install
+mvn spring-boot:run &  # Runs in background
+cd ..
+
+# Wait for backend to start (watch for "Started BguMarketApplication")
+
+# 3. Populate with demo data
+chmod +x populate_demo_data.sh
+./populate_demo_data.sh
+
+# 4. Frontend setup and start
+cd frontend
+npm install
+npm start
+```
+
+### 🔧 Method 2: Manual Setup (Empty Database)
+
+If you prefer to start with a clean slate:
+
+#### Backend Setup:
+```bash
+cd backend
+mvn clean install
+mvn spring-boot:run
+```
+
+#### Frontend Setup (New Terminal):
+```bash
+cd frontend
+npm install
+npm start
+```
+
+**Access Points:**
+- **Frontend**: `http://localhost:3000`
+- **Backend API**: `http://localhost:8080`
+- **Database Console**: `http://localhost:8080/h2-console`
+
+---
 
 ## 📁 Project Structure
 
 ```
 BGU-Market/
-├── backend/          # Spring Boot application
+├── 🚀 Quick Start Files
+│   ├── populate_demo_data.sh      # ⭐ STARTUP DATA SCRIPT
+│   ├── DEMO_DATA_README.md        # Demo data documentation
+│   └── README.md                  # This file
+│
+├── 🎨 Frontend (React App)
 │   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/         # Java source code
-│   │   │   └── resources/    # Configuration files
-│   │   └── test/             # Test files
-│   ├── pom.xml              # Maven dependencies
-│   └── README_CONFIGURATION.md
-├── frontend/         # React application
-│   ├── src/
-│   ├── public/
-│   ├── package.json         # npm dependencies
+│   │   ├── components/            # React components
+│   │   ├── pages/                 # Page components
+│   │   ├── services/              # API service calls
+│   │   └── styles/                # CSS and styling
+│   ├── public/                    # Static assets
+│   ├── package.json               # Dependencies & scripts
 │   └── package-lock.json
-├── populate_demo_data.sh    # Demo data population script
-├── DEMO_DATA_README.md      # Demo data documentation
-├── test_api.sh              # API testing script
-└── README.md                # This file
+│
+├── ⚙️ Backend (Spring Boot)
+│   ├── src/main/java/market/
+│   │   ├── controllers/           # REST API endpoints
+│   │   ├── services/              # Business logic
+│   │   ├── models/                # Data models
+│   │   ├── repositories/          # Data access layer
+│   │   └── config/                # Configuration
+│   ├── src/main/resources/
+│   │   ├── application.properties # Main configuration
+│   │   └── config.properties.example
+│   ├── pom.xml                    # Maven dependencies
+│   └── README_CONFIGURATION.md
+│
+└── 🧪 Testing & Scripts
+    ├── test_api.sh                # Basic API testing
+    ├── test_purchase_endpoints.sh # Purchase API tests
+    └── test_purchase_realistic.sh # Realistic scenarios
 ```
 
-## 🚀 Backend Setup
+---
 
-### 1. Navigate to Backend Directory
-```bash
-cd backend
-```
+## 🌟 Core Features
 
-### 2. Install Dependencies
-```bash
-mvn clean install
-```
+### 🛒 **E-commerce Functionality**
+- **Multi-User System**: Guests, registered users, store owners, admins
+- **Shopping Cart**: Add/remove items, quantity management, persistent cart
+- **Advanced Purchase System**: Direct purchases, auction system, bidding
+- **Order Management**: Purchase history, order tracking, status updates
+- **Payment Processing**: Integrated payment workflow
 
-### 3. Configuration File
-The backend uses `application.properties` for configuration. The file is already configured with default settings:
+### 🏪 **Store Management**
+- **Multi-Store Support**: Users can own multiple stores
+- **Product Management**: Add/edit/remove products with categories
+- **Inventory Control**: Real-time stock management
+- **Store Policies**: Custom discount and purchase rules
+- **Permission System**: Store owners, managers, and staff roles
 
-- **Location**: `backend/src/main/resources/application.properties`
-- **Default Port**: 8080
-- **Database**: H2 in-memory database
-- **H2 Console**: Available at `http://localhost:8080/h2-console`
+### 🔧 **Administrative Features**
+- **User Management**: Account oversight, user statistics
+- **Store Oversight**: Monitor all stores, performance metrics
+- **Suspension System**: Temporary or permanent user/store suspension
+- **System Analytics**: Usage tracking, sales reporting
+- **Content Moderation**: Product and store approval workflows
 
-**Important Configuration Values:**
-```properties
-# Server runs on port 8080
-server.port=8080
+### 💬 **Communication System**
+- **Real-time Notifications**: Purchase confirmations, bid updates
+- **Event-driven Messaging**: Automated notifications for key events
+- **Notification Management**: Mark as read, notification history
+- **User Communication**: Messages between buyers and sellers
 
-# H2 Database (in-memory)
-spring.datasource.url=jdbc:h2:mem:bgumarket
-spring.datasource.username=sa
-spring.datasource.password=
+### 🔍 **Search & Discovery**
+- **Advanced Product Search**: Filter by category, price, store
+- **Product Recommendations**: Based on user behavior
+- **Store Discovery**: Browse stores by category and rating
+- **Sorting Options**: Price, popularity, rating, newest
 
-# Admin user credentials (created automatically)
-admin.username=admin
-admin.password=admin
-
-# JWT configuration
-jwt.secret=bguMarketSecretKey
-jwt.expiration=86400000
-```
-
-### 4. Run the Backend Server
-```bash
-mvn spring-boot:run
-```
-
-**Alternative way to run:**
-```bash
-# Build the jar file first
-mvn clean package
-
-# Run the jar file
-java -jar target/bgu-market-1.0-SNAPSHOT.jar
-```
-
-The backend server will start on `http://localhost:8080`
-
-### ✅ Verify Backend is Running
-- Visit `http://localhost:8080/h2-console` - H2 Database Console
-- The server logs should show "Started BguMarketApplication"
-
-## 🎨 Frontend Setup
-
-### 1. Navigate to Frontend Directory
-```bash
-cd frontend
-```
-
-### 2. Install Dependencies
-```bash
-npm install
-```
-
-### 3. Run the Frontend Application
-```bash
-npm start
-```
-
-The frontend will start on `http://localhost:3000` and automatically open in your browser.
-
-### ✅ Verify Frontend is Running
-- Visit `http://localhost:3000` - React application
-- The page should load the BGU Market interface
-
-## 🏃‍♂️ Running the Application
-
-### Quick Start (Both Services)
-
-1. **Terminal 1 - Backend:**
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
-
-2. **Terminal 2 - Frontend:**
-   ```bash
-   cd frontend
-   npm start
-   ```
-
-3. **Access the application:**
-   - Frontend: `http://localhost:3000`
-   - Backend API: `http://localhost:8080`
-   - H2 Database Console: `http://localhost:8080/h2-console`
-
-## 📋 Demo Data Population
-
-To quickly get started with a fully populated marketplace for testing and development, use the provided demo data population script.
-
-### 🎯 What You Get
-
-The demo data script creates a complete marketplace environment with:
-- **5 demo users** with login credentials
-- **5 stores** across different categories (Electronics, Books, Clothing, Home, Sports)
-- **20 products** with realistic prices and descriptions
-- **3 guest users** for testing guest functionality
-
-### 📋 Prerequisites
-
-1. **Backend server must be running** on `http://localhost:8080`
-2. **Clean database state** (restart backend for fresh start)
-3. **curl command** available (pre-installed on most systems)
-
-### 🚀 How to Run
-
-1. **Start the backend server** (if not already running):
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
-   
-   Wait for the server to fully start (look for "Started BguMarketApplication" in logs).
-
-2. **Make the script executable and run it**:
-   ```bash
-   chmod +x populate_demo_data.sh
-   ./populate_demo_data.sh
-   ```
-
-### 📊 Created Demo Data
-
-**Demo Users** (username:password):
-- `alice:password123` - Owner of TechHub (Electronics)
-- `bob:password123` - Owner of BookWorld (Books)
-- `charlie:password123` - Owner of FashionForward (Clothing)
-- `diana:password123` - Owner of HomeEssentials (Home)
-- `eve:password123` - Owner of SportsZone (Sports)
-
-**Demo Stores & Products**:
-- **TechHub**: iPhone 15, MacBook Pro, AirPods Pro, iPad Air
-- **BookWorld**: The Great Gatsby, Programming Pearls, Dune, Clean Code
-- **FashionForward**: Designer Jeans, Silk Blouse, Leather Jacket, Summer Dress
-- **HomeEssentials**: Coffee Maker, Vacuum Cleaner, Bed Sheets Set, Kitchen Knife Set
-- **SportsZone**: Running Shoes, Yoga Mat, Basketball, Fitness Tracker
-
-### ✅ Verification
-
-The script automatically verifies the created data by:
-- Checking all stores and products were created successfully
-- Testing product search functionality
-- Testing product sorting by price
-
-### 🎮 Testing the Frontend
-
-After running the script, you can immediately test the frontend with:
-
-1. **Login** with any demo user (e.g., `alice:password123`)
-2. **Browse stores** and view products across different categories
-3. **Search for products** (try "iPhone", "Book", "Shoes")
-4. **Add products to cart** and test shopping functionality
-5. **Execute purchases** with the populated data
-6. **Manage stores** if logged in as a store owner
-
-### 🔧 Troubleshooting
-
-**Script fails with connection errors**:
-- Ensure backend server is running on `http://localhost:8080`
-- Check server logs for "Started BguMarketApplication"
-
-**Some operations fail**:
-- This is normal due to business logic constraints
-- Script continues to populate as much data as possible
-
-**Want to reset data**:
-- Restart the backend server to reset to clean state
-- Run the script again for fresh demo data
-
-### 📖 Additional Information
-
-For detailed information about the demo data structure and customization options, see [`DEMO_DATA_README.md`](DEMO_DATA_README.md).
-
-## ⚙️ Configuration
-
-### Backend Configuration
-
-The main configuration file is `backend/src/main/resources/application.properties`. Key settings:
-
-- **Database**: Uses H2 in-memory database (data is lost on restart)
-- **Security**: JWT-based authentication
-- **CORS**: Configured to accept requests from frontend
-- **Admin User**: Automatically created on startup
-
-### Frontend Configuration
-
-The frontend is configured to proxy API requests to the backend:
-
-- **Proxy**: `http://localhost:8080` (defined in `package.json`)
-- **Dependencies**: React 18, Material-UI, Axios for API calls
-- **Routing**: React Router for navigation
-
-### Custom Configuration (Optional)
-
-You can create a `config.properties` file based on the example:
-
-```bash
-cp backend/src/main/resources/config.properties.example backend/src/main/resources/config.properties
-```
-
-Then modify the values as needed.
+---
 
 ## 📚 API Documentation
 
-The BGU Market backend provides comprehensive REST APIs for all market operations. Below are the main API controllers and their endpoints:
+Our API is organized into 8 comprehensive controllers:
 
-### 🛒 Purchase API (`/api/purchases`)
+| 🎯 **Controller** | **Endpoints** | **Description** |
+|-------------------|---------------|-----------------|
+| 🔐 **Authentication** | `/api/auth/*` | Login, logout, JWT token management |
+| 👤 **User Management** | `/api/users/*` | Registration, profiles, shopping cart |
+| 🏪 **Store Management** | `/api/stores/*` | Store CRUD, products, permissions |
+| 🏷️ **Store Policies** | `/api/stores/{id}/policies/*` | Discount & purchase policies |
+| 🛒 **Purchase System** | `/api/purchases/*` | Purchases, auctions, bidding |
+| 📦 **Product Catalog** | `/api/products/*` | Product search, listings |
+| 🔧 **Admin Management** | `/api/admin/*` | User suspension, store management |
+| 🔔 **Notifications** | `/api/notifications/*` | User notifications, read status |
 
-The Purchase Controller handles all purchase-related operations including regular purchases, auctions, and bid-based negotiations.
+### 🚀 **Quick API Examples**
 
-#### Regular Purchase Operations
-
-**Execute Purchase**
+**Authentication:**
 ```bash
-POST /api/purchases/execute
-Content-Type: application/json
+# Register new user
+curl -X POST "http://localhost:8080/api/users/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "newuser", "password": "password123"}'
 
-{
-  "userId": "string",
-  "shippingAddress": "string",
-  "contactInfo": "string"
-}
+# Login and get JWT token
+curl -X POST "http://localhost:8080/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "alice", "password": "password123"}'
 ```
 
-#### Auction Operations
-
-**Submit Auction Offer**
+**Store Operations:**
 ```bash
-POST /api/purchases/auction/offer
-Content-Type: application/json
+# Get all stores
+curl -X GET "http://localhost:8080/api/stores/all"
 
-{
-  "storeId": "string",
-  "productId": "string", 
-  "userId": "string",
-  "offerPrice": number,
-  "shippingAddress": "string",
-  "contactInfo": "string"
-}
+# Create new store
+curl -X POST "http://localhost:8080/api/stores/create" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{"storeName": "MyStore", "founderId": "alice"}'
 ```
 
-**Open New Auction**
+**Product Search:**
 ```bash
-POST /api/purchases/auction/open
-Content-Type: application/json
+# Search products
+curl -X GET "http://localhost:8080/api/products/search?query=iPhone"
 
-{
-  "userId": "string",
-  "storeId": "string",
-  "productId": "string",
-  "productName": "string",
-  "productCategory": "string",
-  "productDescription": "string",
-  "startingPrice": number,
-  "endTimeMillis": number
-}
+# Get products by category
+curl -X GET "http://localhost:8080/api/products/category/Electronics"
 ```
 
-**Get Auction Status**
-```bash
-GET /api/purchases/auction/status/{userId}/{storeId}/{productId}
-```
+### 📖 **Complete API Documentation**
 
-#### Bid Operations
+For detailed API documentation with all endpoints, examples, and testing:
+- **[📁 Complete API Docs](backend/src/main/java/market/controllers/docs/README.md)**
+- **[🔧 Automated API Tests](backend/src/main/java/market/controllers/docs/test_all_apis.sh)**
 
-**Submit Bid**
-```bash
-POST /api/purchases/bid/submit
-Content-Type: application/json
-
-{
-  "storeId": "string",
-  "productId": "string",
-  "userId": "string", 
-  "offerPrice": number,
-  "shippingAddress": "string",
-  "contactInfo": "string"
-}
-```
-
-**Approve/Reject Bid**
-```bash
-POST /api/purchases/bid/approve
-POST /api/purchases/bid/reject
-Content-Type: application/json
-
-{
-  "storeId": "string",
-  "productId": "string",
-  "userId": "string",
-  "approverId": "string"
-}
-```
-
-**Counter Bid Operations**
-```bash
-POST /api/purchases/bid/counter
-POST /api/purchases/bid/counter/accept
-POST /api/purchases/bid/counter/decline
-```
-
-**Get Bid Status**
-```bash
-GET /api/purchases/bid/status/{storeId}/{productId}/{userId}
-```
-
-#### Purchase History
-
-**Get User Purchases**
-```bash
-GET /api/purchases/user/{userId}
-```
-
-**Get Store Purchases**
-```bash
-GET /api/purchases/store/{storeId}
-```
-
-### 👤 User API (`/api/users`)
-
-**User Registration**
-```bash
-POST /api/users/register/guest
-POST /api/users/register
-Content-Type: application/json
-
-{
-  "username": "string",
-  "password": "string"  // Optional for guest
-}
-```
-
-**Shopping Cart Operations**
-```bash
-POST /api/users/cart/add
-POST /api/users/cart/remove
-GET /api/users/cart
-DELETE /api/users/cart
-```
-
-### 🏪 Store API (`/api/stores`)
-
-**Store Management**
-```bash
-POST /api/stores/create
-GET /api/stores/{storeId}
-POST /api/stores/{storeId}/products
-```
-
-### 🔐 Authentication API (`/api/auth`)
-
-**Login**
-```bash
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "string",
-  "password": "string"
-}
-```
-
-### 📖 API Documentation
-- **[📁 Complete Documentation](docs/README.md)** - Main documentation hub
-- **[🔐 Auth API Examples](docs/auth_api_examples.md)** - Login, logout, token validation
-- **[👤 User API Examples](docs/user_api_examples.md)** - Registration, profile, shopping cart
-- **[🏪 Store API Examples](docs/store_api_examples.md)** - Store management, products, permissions
-- **[🛒 Purchase API Examples](docs/purchase_api_examples.md)** - Purchases, auctions, bids, history
-
-### 📋 Complete API Documentation
-
-For detailed API documentation with all endpoints, request/response examples, and error codes, see:
-
-- **Purchase API**: `backend/src/main/java/market/controllers/docs/purchase_api_documentation.md`
-- **Controller Source**: `backend/src/main/java/market/controllers/`
+---
 
 ## 🧪 Testing
 
-### API Testing
+### 🚀 **Quick Testing Scripts**
 
-**General API Testing:**
-Use the provided script to test basic API endpoints:
-
+**Basic API Testing:**
 ```bash
-chmod +x test_api.sh
-./test_api.sh
+# Test core functionality
+chmod +x test_api.sh && ./test_api.sh
 ```
 
-This script tests:
-- Login endpoint
-- User registration
-- Guest registration
-
-**Purchase API Testing:**
-Use the specialized Purchase API test scripts:
-
+**Comprehensive Purchase API Testing:**
 ```bash
-# Comprehensive endpoint testing (all 13 endpoints)
-chmod +x test_purchase_endpoints.sh
-./test_purchase_endpoints.sh
+# Test all purchase endpoints (13 endpoints)
+chmod +x test_purchase_endpoints.sh && ./test_purchase_endpoints.sh
 
-# Realistic scenario testing with data setup
-chmod +x test_purchase_realistic.sh
-./test_purchase_realistic.sh
+# Test realistic purchase scenarios
+chmod +x test_purchase_realistic.sh && ./test_purchase_realistic.sh
 ```
 
-The Purchase API tests cover:
-- ✅ Regular purchase execution
-- ✅ Auction operations (submit offers, open auctions, get status)
-- ✅ Bid operations (submit, approve, reject, counter-offers)
-- ✅ Purchase history retrieval
+### 🧪 **Testing Coverage**
+
+Our test scripts validate:
+- ✅ User registration and authentication
+- ✅ Store creation and management
+- ✅ Product listing and search
+- ✅ Shopping cart functionality
+- ✅ Purchase execution (direct and auction)
+- ✅ Bidding system operations
+- ✅ Admin management features
+- ✅ Notification system
 - ✅ Error handling and validation
 
-### Manual Testing
-- **Frontend**: Use the web interface at `http://localhost:3000`
-- **Backend APIs**: Use tools like Postman, curl, or the provided test scripts
-- **Database**: Check data via H2 console at `http://localhost:8080/h2-console`
+### 🎯 **Manual Testing with Demo Data**
 
-### API Testing Examples
+After running the startup data script, test these scenarios:
 
-**Test Purchase Execution:**
-```bash
-curl -X POST "http://localhost:8080/api/purchases/execute" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": "testuser1",
-    "shippingAddress": "123 Main Street, City, State",
-    "contactInfo": "user@example.com"
-  }'
-```
+1. **User Experience Testing:**
+   - Login as `alice` and browse her TechHub store
+   - Login as `bob` and add books to cart
+   - Test guest user functionality
 
-**Test User Registration:**
-```bash
-curl -X POST "http://localhost:8080/api/users/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "newuser",
-    "password": "password123"
-  }'
-```
+2. **Store Owner Testing:**
+   - Login as any demo user
+   - Add new products to their store
+   - Manage inventory and pricing
 
-**Test Purchase History:**
-```bash
-curl -X GET "http://localhost:8080/api/purchases/user/testuser1"
-```
+3. **Admin Testing:**
+   - Login as `admin`
+   - View all users and stores
+   - Test suspension functionality
 
-### H2 Database Console Access
+4. **Purchase Flow Testing:**
+   - Add products to cart
+   - Execute purchases
+   - Test auction/bidding features
+
+### 🗄️ **Database Access**
+
+**H2 Database Console:**
 - **URL**: `http://localhost:8080/h2-console`
 - **JDBC URL**: `jdbc:h2:mem:bgumarket`
 - **Username**: `sa`
 - **Password**: (leave empty)
 
-## 🔐 Default Admin Credentials
+---
 
-The system automatically creates an admin user on startup:
+## ⚙️ Configuration
 
-- **Username**: `admin`
-- **Password**: `admin`
+### 🔧 **Backend Configuration**
 
-You can use these credentials to:
-- Log into the application
-- Access admin features
-- Test the authentication system
+**Key Settings in `backend/src/main/resources/application.properties`:**
 
-## 🛠️ Troubleshooting
+```properties
+# Server Configuration
+server.port=8080
 
-### Common Issues
+# Database (H2 In-Memory)
+spring.datasource.url=jdbc:h2:mem:bgumarket
+spring.datasource.username=sa
+spring.datasource.password=
 
-1. **Port 8080 already in use**
-   - Change `server.port` in `application.properties`
-   - Kill the process using port 8080: `lsof -ti:8080 | xargs kill -9`
+# JWT Security
+jwt.secret=bguMarketSecretKey
+jwt.expiration=86400000
 
-2. **Maven build fails**
-   - Ensure Java 17+ is installed: `java -version`
-   - Clear Maven cache: `mvn clean`
+# Admin User (Auto-created)
+admin.username=admin
+admin.password=admin
 
-3. **npm install fails**
-   - Clear npm cache: `npm cache clean --force`
-   - Delete `node_modules` and `package-lock.json`, then run `npm install`
+# CORS Configuration
+cors.allowed-origins=http://localhost:3000
+```
 
-4. **Frontend can't connect to backend**
-   - Ensure backend is running on port 8080
-   - Check proxy configuration in `frontend/package.json`
+### 🎨 **Frontend Configuration**
 
-### Development Tips
+**API Proxy (in `frontend/package.json`):**
+```json
+{
+  "proxy": "http://localhost:8080",
+  "dependencies": {
+    "react": "^18.x",
+    "@mui/material": "^5.x",
+    "axios": "^1.x"
+  }
+}
+```
 
-- **Hot Reload**: Both frontend and backend support hot reload during development
-- **Database Reset**: Restart the backend to reset the H2 database
-- **Logs**: Check console output for error messages
-- **CORS Issues**: Backend is configured to accept requests from `localhost:3000`
+### 🔧 **Custom Configuration**
 
-## 📝 Additional Resources
+For advanced configuration:
+```bash
+# Copy example configuration
+cp backend/src/main/resources/config.properties.example \
+   backend/src/main/resources/config.properties
 
-- **Backend Documentation**: See `backend/README_CONFIGURATION.md` for detailed configuration options
-- **Spring Boot Docs**: [https://spring.io/projects/spring-boot](https://spring.io/projects/spring-boot)
-- **React Docs**: [https://reactjs.org/docs](https://reactjs.org/docs)
+# Edit as needed
+nano backend/src/main/resources/config.properties
+```
 
 ---
 
-## 🚀 Quick Commands Summary
+## 🛠️ Troubleshooting
 
+### 🚨 **Common Issues & Solutions**
+
+#### **"Port 8080 already in use"**
 ```bash
-# Clone and setup
-git clone <repository-url>
-cd BGU-Market
+# Kill process using port 8080
+lsof -ti:8080 | xargs kill -9
 
-# Backend
-cd backend
-mvn clean install
-mvn spring-boot:run
-
-# Frontend (in new terminal)
-cd frontend
-npm install
-npm start
-
-# Demo Data Population (optional - makes testing easier)
-chmod +x populate_demo_data.sh && ./populate_demo_data.sh    # Populate with demo users, stores, and products
-
-# Testing
-chmod +x test_api.sh && ./test_api.sh                    # Basic API tests
-chmod +x test_purchase_endpoints.sh && ./test_purchase_endpoints.sh    # Purchase API tests
-chmod +x test_purchase_realistic.sh && ./test_purchase_realistic.sh    # Realistic purchase tests
-
-# Access
-# Frontend: http://localhost:3000
-# Backend: http://localhost:8080
-# Database: http://localhost:8080/h2-console
-# Purchase API: http://localhost:8080/api/purchases
+# Or change port in application.properties
+echo "server.port=8081" >> backend/src/main/resources/application.properties
 ```
 
-**Happy coding! 🎉**
+#### **"Maven build fails"**
+```bash
+# Check Java version
+java -version  # Must be 17+
+
+# Clean and rebuild
+cd backend
+mvn clean
+mvn clean install
+```
+
+#### **"npm install fails"**
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Remove and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+#### **"Frontend can't connect to backend"**
+```bash
+# Verify backend is running
+curl http://localhost:8080/api/admin/verify/admin
+
+# Check proxy in package.json
+grep -A 2 "proxy" frontend/package.json
+```
+
+#### **"Demo data script fails"**
+```bash
+# Ensure backend is fully started
+# Look for "Started BguMarketApplication" in logs
+
+# Check backend connection
+curl -f http://localhost:8080/h2-console || echo "Backend not ready"
+
+# Restart backend and try again
+```
+
+### 💡 **Development Tips**
+
+- **Hot Reload**: Both frontend and backend support hot reload
+- **Database Reset**: Restart backend to reset H2 database
+- **Logs**: Check console output for detailed error messages
+- **CORS**: Backend configured for `localhost:3000`
+- **JWT Tokens**: Check browser dev tools for authentication issues
+
+---
+
+## 🎯 **Quick Commands Cheat Sheet**
+
+```bash
+# 🚀 COMPLETE SETUP (with demo data)
+git clone <repo> && cd BGU-Market
+cd backend && mvn spring-boot:run &
+cd .. && chmod +x populate_demo_data.sh && ./populate_demo_data.sh
+cd frontend && npm install && npm start
+
+# 🔄 RESTART EVERYTHING
+# Terminal 1: Backend
+cd backend && mvn spring-boot:run
+
+# Terminal 2: Frontend  
+cd frontend && npm start
+
+# Terminal 3: Repopulate demo data
+./populate_demo_data.sh
+
+# 🧪 QUICK TESTING
+./test_api.sh                          # Basic tests
+./test_purchase_endpoints.sh           # Purchase API tests
+./test_purchase_realistic.sh           # Realistic scenarios
+
+# 🌐 ACCESS POINTS
+# Frontend:  http://localhost:3000
+# Backend:   http://localhost:8080
+# Database:  http://localhost:8080/h2-console
+```
+
+---
+
+## 📝 Additional Resources
+
+- **[📖 Detailed Backend Configuration](backend/README_CONFIGURATION.md)**
+- **[📊 Demo Data Details](DEMO_DATA_README.md)**
+- **[🔧 Complete API Documentation](backend/src/main/java/market/controllers/docs/README.md)**
+- **[📚 Spring Boot Documentation](https://spring.io/projects/spring-boot)**
+- **[⚛️ React Documentation](https://reactjs.org/docs)**
+
+---
+
+## 🚀 **Ready to Start?**
+
+1. **📥 Clone the repository**
+2. **⚡ Run the quick start commands above**
+3. **🎮 Use demo login credentials to explore**
+4. **🛒 Start building your marketplace features!**
+
+**🎉 Happy coding and welcome to BGU Market!**
+
+---
+
+*Last updated: $(date +%Y-%m-%d)*
