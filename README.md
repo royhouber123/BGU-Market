@@ -5,32 +5,42 @@
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://adoptium.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)](https://mysql.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
 ## 🚀 Quick Start (Get Running in 5 Minutes!)
 
-### 📊 **IMPORTANT: Get Startup Data First!**
+### 📊 **IMPORTANT: Auto Demo Data Loading!**
 
-**Don't start with an empty marketplace!** Run our demo data script to get a fully functional marketplace with users, stores, and products:
+**Start with a fully functional marketplace!** The system automatically loads demo data from `demo-data.txt` on startup, giving you:
+- **6 demo users** (including admin) ready to login
+- **3 different stores** with varied categories 
+- **5 realistic products** with proper pricing
+- **Store management** with owners and managers
+- **Ready-to-test** shopping cart and purchase functionality
+
+### ⚡ **Quick Setup:**
 
 ```bash
 # 1. Clone the repository
 git clone <your-repo-url>
 cd BGU-Market
 
-# 2. Start the backend
+# 2. Setup MySQL Database
+mysql -u root -p
+CREATE DATABASE bgu_market;
+CREATE USER 'bgu'@'localhost' IDENTIFIED BY 'changeme';
+GRANT ALL PRIVILEGES ON bgu_market.* TO 'bgu'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+# 3. Start the backend (demo data loads automatically)
 cd backend
 mvn clean install
 mvn spring-boot:run &  # Runs in background
 cd ..
-
-# Wait for backend to start (watch for "Started BguMarketApplication")
-
-# 3. Populate with demo data
-chmod +x populate_demo_data.sh
-./populate_demo_data.sh
 
 # 4. Frontend setup and start
 cd frontend
@@ -38,65 +48,36 @@ npm install
 npm start
 ```
 
-**🎉 That's it!** Visit `http://localhost:3000` and you have a fully functional marketplace with:
-- **5 demo users** you can login with
-- **5 different stores** (Electronics, Books, Clothing, Home, Sports)
-- **20 realistic products** with proper pricing
-- **Ready-to-test** shopping cart and purchase functionality
+**🎉 That's it!** Visit `http://localhost:3000` and you have a fully functional marketplace!
 
 ---
 
-## 🎯 Demo Login Credentials (After Running Startup Data)
+## 🎯 Demo Login Credentials (Auto-Loaded)
 
-| Username | Password | Store | Category |
-|----------|----------|-------|----------|
-| `alice` | `password123` | TechHub | Electronics |
-| `bob` | `password123` | BookWorld | Books & Literature |
-| `charlie` | `password123` | FashionForward | Clothing & Fashion |
-| `diana` | `password123` | HomeEssentials | Home & Garden |
-| `eve` | `password123` | SportsZone | Sports & Fitness |
+The system automatically creates these users from `demo-data.txt`:
 
-**Admin Access:**
-- Username: `admin` | Password: `admin`
+| Username | Password | Role | Store Owned | Category |
+|----------|----------|------|-------------|----------|
+| `u1` | `password123` | **Admin** | - | System Admin |
+| `u2` | `password123` | Store Owner | Tech Paradise | Electronics |
+| `u3` | `password123` | Store Owner | Fashion Hub | Clothing |
+| `u4` | `password123` | Store Owner | Book Corner | Books |
+| `u5` | `password123` | User/Manager | - | Regular User |
+| `u6` | `password123` | User/Manager | - | Regular User |
 
 ---
 
 ## 📋 Table of Contents
 
-- [Why Use Startup Data?](#-why-use-startup-data)
 - [Prerequisites](#-prerequisites)
 - [Detailed Setup Guide](#-detailed-setup-guide)
+- [Demo Data System](#-demo-data-system)
 - [Project Structure](#-project-structure)
 - [Core Features](#-core-features)
 - [API Documentation](#-api-documentation)
+- [Database Configuration](#-database-configuration)
 - [Testing](#-testing)
-- [Configuration](#-configuration)
 - [Troubleshooting](#-troubleshooting)
-
----
-
-## 🌟 Why Use Startup Data?
-
-**Skip the tedious setup!** Instead of manually creating users, stores, and products one by one, our startup data script gives you:
-
-### ✅ **What You Get Instantly:**
-- **5 Ready-to-Use Accounts**: Test different user roles and store ownership
-- **Realistic Product Catalog**: 20 products across 5 categories with proper pricing
-- **Functional Marketplace**: Immediately test shopping, purchasing, and store management
-- **Demo Scenarios**: Perfect for presentations, testing, and development
-
-### 🎮 **Immediate Testing Capabilities:**
-- Login and browse different stores
-- Add products to cart and make purchases
-- Test auction and bidding features
-- Explore admin management functions
-- Test store owner/manager workflows
-
-### ⚡ **Perfect For:**
-- **Developers**: Quickly test features without manual data entry
-- **Demos**: Showcase the full marketplace functionality
-- **Testing**: Comprehensive testing scenarios out of the box
-- **Learning**: Understand the system with realistic data
 
 ---
 
@@ -108,6 +89,7 @@ Ensure you have these installed before starting:
 |------|---------|---------------|
 | **Java** | 17+ | [Download Java](https://adoptium.net/) |
 | **Maven** | 3.6+ | [Download Maven](https://maven.apache.org/download.cgi) |
+| **MySQL** | 8.0+ | [Download MySQL](https://dev.mysql.com/downloads/) |
 | **Node.js** | 16+ | [Download Node.js](https://nodejs.org/) |
 | **Git** | Latest | [Download Git](https://git-scm.com/) |
 
@@ -115,6 +97,7 @@ Ensure you have these installed before starting:
 ```bash
 java -version    # Should show 17+
 mvn -version     # Should show 3.6+
+mysql --version  # Should show 8.0+
 node -version    # Should show 16+
 npm -version     # Should show 8+
 ```
@@ -123,55 +106,101 @@ npm -version     # Should show 8+
 
 ## 🛠️ Detailed Setup Guide
 
-### 🔥 Method 1: Quick Start with Demo Data (Recommended)
-
-This gets you a fully functional marketplace in minutes:
+### 🗄️ **Step 1: MySQL Database Setup**
 
 ```bash
-# 1. Clone and enter directory
-git clone <repository-url>
-cd BGU-Market
+# Start MySQL service
+sudo systemctl start mysql  # Linux
+brew services start mysql   # macOS
+# Or start via MySQL Workbench/XAMPP
 
-# 2. Backend setup and start
-cd backend
-mvn clean install
-mvn spring-boot:run &  # Runs in background
-cd ..
+# Connect and create database
+mysql -u root -p
 
-# Wait for backend to start (watch for "Started BguMarketApplication")
-
-# 3. Populate with demo data
-chmod +x populate_demo_data.sh
-./populate_demo_data.sh
-
-# 4. Frontend setup and start
-cd frontend
-npm install
-npm start
+# Run these SQL commands:
+CREATE DATABASE bgu_market;
+CREATE USER 'bgu'@'localhost' IDENTIFIED BY 'changeme';
+GRANT ALL PRIVILEGES ON bgu_market.* TO 'bgu'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
 ```
 
-### 🔧 Method 2: Manual Setup (Empty Database)
+### ⚙️ **Step 2: Backend Setup**
 
-If you prefer to start with a clean slate:
-
-#### Backend Setup:
 ```bash
 cd backend
+
+# Install dependencies and compile
 mvn clean install
+
+# Start the Spring Boot application
 mvn spring-boot:run
 ```
 
-#### Frontend Setup (New Terminal):
+**🔄 Auto Demo Data Loading:**
+- The system reads `backend/src/main/resources/demo-data.txt` on startup
+- Creates users, stores, products, and relationships automatically  
+- No manual data entry needed!
+
+### 🎨 **Step 3: Frontend Setup**
+
 ```bash
+# Open new terminal
 cd frontend
+
+# Install Node.js dependencies
 npm install
+
+# Start React development server
 npm start
 ```
 
 **Access Points:**
 - **Frontend**: `http://localhost:3000`
-- **Backend API**: `http://localhost:8080`
-- **Database Console**: `http://localhost:8080/h2-console`
+- **Backend API**: `http://localhost:8080` 
+- **MySQL Database**: `localhost:3306/bgu_market`
+
+---
+
+## 📊 Demo Data System
+
+### 🔄 **Automatic Loading Process**
+
+The demo data system works automatically:
+
+1. **Startup Detection**: Backend detects `bgu.market.populate-demo-data=true`
+2. **File Parsing**: Reads `demo-data.txt` using `DemoDataParser.java`
+3. **Data Creation**: Creates users, stores, products, managers, and owners
+4. **Ready to Use**: Full marketplace functionality available immediately
+
+### 📝 **Demo Data Format**
+
+The `demo-data.txt` file uses simple commands:
+
+```bash
+# Users: username,password
+USER u2,password123
+
+# Stores: storeName,founderId  
+STORE Tech Paradise,u2
+
+# Products: userName,storeName,productId,name,category,description,quantity,price,type
+PRODUCT u2,Tech Paradise,electronics_001,iPhone 15,Electronics,Latest smartphone,50,999.99,REGULAR
+
+# Store Managers: storeName,managerUsername,appointerUsername,permissions
+MANAGER Tech Paradise,u3,u2,1,2
+
+# Store Owners: storeName,ownerUsername,appointerUsername
+OWNER Tech Paradise,u4,u2
+```
+
+### ✏️ **Customizing Demo Data**
+
+To modify the demo data:
+
+1. Edit `backend/src/main/resources/demo-data.txt`
+2. Restart the backend server
+3. New data will be loaded automatically
 
 ---
 
@@ -179,38 +208,42 @@ npm start
 
 ```
 BGU-Market/
-├── 🚀 Quick Start Files
-│   ├── populate_demo_data.sh      # ⭐ STARTUP DATA SCRIPT
-│   ├── DEMO_DATA_README.md        # Demo data documentation
-│   └── README.md                  # This file
+├── 📖 Documentation
+│   ├── README.md                   # This file
+│   ├── DEMO_DATA_README.md         # Demo data documentation
+│   └── Docs/                       # Additional documentation
 │
 ├── 🎨 Frontend (React App)
 │   ├── src/
-│   │   ├── components/            # React components
-│   │   ├── pages/                 # Page components
-│   │   ├── services/              # API service calls
-│   │   └── styles/                # CSS and styling
-│   ├── public/                    # Static assets
-│   ├── package.json               # Dependencies & scripts
+│   │   ├── components/             # React components
+│   │   ├── pages/                  # Page components
+│   │   ├── services/               # API service calls
+│   │   └── styles/                 # CSS and styling
+│   ├── public/                     # Static assets
+│   ├── package.json                # Dependencies & scripts
 │   └── package-lock.json
 │
 ├── ⚙️ Backend (Spring Boot)
 │   ├── src/main/java/market/
-│   │   ├── controllers/           # REST API endpoints
-│   │   ├── services/              # Business logic
-│   │   ├── models/                # Data models
-│   │   ├── repositories/          # Data access layer
-│   │   └── config/                # Configuration
+│   │   ├── controllers/            # REST API endpoints
+│   │   ├── services/               # Business logic
+│   │   ├── models/                 # Data models
+│   │   ├── repositories/           # Data access layer
+│   │   ├── application/Init/       # ⭐ Demo data system
+│   │   │   ├── DemoDataParser.java # Parses demo-data.txt
+│   │   │   └── DemoDataModels/     # Data models for demo
+│   │   └── config/                 # Configuration
 │   ├── src/main/resources/
-│   │   ├── application.properties # Main configuration
-│   │   └── config.properties.example
-│   ├── pom.xml                    # Maven dependencies
+│   │   ├── application.properties          # Main configuration  
+│   │   ├── application-mysql.properties    # MySQL settings
+│   │   └── demo-data.txt                   # ⭐ DEMO DATA FILE
+│   ├── pom.xml                     # Maven dependencies
 │   └── README_CONFIGURATION.md
 │
 └── 🧪 Testing & Scripts
-    ├── test_api.sh                # Basic API testing
-    ├── test_purchase_endpoints.sh # Purchase API tests
-    └── test_purchase_realistic.sh # Realistic scenarios
+    ├── test_api.sh                 # Basic API testing
+    ├── test_purchase_endpoints.sh  # Purchase API tests
+    └── test_purchase_realistic.sh  # Realistic scenarios
 ```
 
 ---
@@ -271,15 +304,10 @@ Our API is organized into 8 comprehensive controllers:
 
 **Authentication:**
 ```bash
-# Register new user
-curl -X POST "http://localhost:8080/api/users/register" \
-  -H "Content-Type: application/json" \
-  -d '{"username": "newuser", "password": "password123"}'
-
 # Login and get JWT token
 curl -X POST "http://localhost:8080/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"username": "alice", "password": "password123"}'
+  -d '{"username": "u2", "password": "password123"}'
 ```
 
 **Store Operations:**
@@ -291,7 +319,7 @@ curl -X GET "http://localhost:8080/api/stores/all"
 curl -X POST "http://localhost:8080/api/stores/create" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"storeName": "MyStore", "founderId": "alice"}'
+  -d '{"storeName": "MyStore", "founderId": "u2"}'
 ```
 
 **Product Search:**
@@ -303,11 +331,44 @@ curl -X GET "http://localhost:8080/api/products/search?query=iPhone"
 curl -X GET "http://localhost:8080/api/products/category/Electronics"
 ```
 
-### 📖 **Complete API Documentation**
+---
 
-For detailed API documentation with all endpoints, examples, and testing:
-- **[📁 Complete API Docs](backend/src/main/java/market/controllers/docs/README.md)**
-- **[🔧 Automated API Tests](backend/src/main/java/market/controllers/docs/test_all_apis.sh)**
+## 🗄️ Database Configuration
+
+### 🔧 **MySQL Setup (Production)**
+
+**Database Configuration:**
+```properties
+# Connection Settings
+spring.datasource.url=jdbc:mysql://localhost:3306/bgu_market
+spring.datasource.username=bgu
+spring.datasource.password=changeme
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA Settings
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+```
+
+**Required Database Setup:**
+```sql
+CREATE DATABASE bgu_market;
+CREATE USER 'bgu'@'localhost' IDENTIFIED BY 'changeme';
+GRANT ALL PRIVILEGES ON bgu_market.* TO 'bgu'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### 🧪 **Alternative: H2 for Development**
+
+To use H2 in-memory database for quick testing:
+
+```bash
+# Change application.properties
+echo "spring.profiles.active=h2" > backend/src/main/resources/application.properties
+
+# Restart backend
+mvn spring-boot:run
+```
 
 ---
 
@@ -330,26 +391,13 @@ chmod +x test_purchase_endpoints.sh && ./test_purchase_endpoints.sh
 chmod +x test_purchase_realistic.sh && ./test_purchase_realistic.sh
 ```
 
-### 🧪 **Testing Coverage**
-
-Our test scripts validate:
-- ✅ User registration and authentication
-- ✅ Store creation and management
-- ✅ Product listing and search
-- ✅ Shopping cart functionality
-- ✅ Purchase execution (direct and auction)
-- ✅ Bidding system operations
-- ✅ Admin management features
-- ✅ Notification system
-- ✅ Error handling and validation
-
 ### 🎯 **Manual Testing with Demo Data**
 
-After running the startup data script, test these scenarios:
+After startup, test these scenarios:
 
 1. **User Experience Testing:**
-   - Login as `alice` and browse her TechHub store
-   - Login as `bob` and add books to cart
+   - Login as `u2` and browse Tech Paradise store
+   - Login as `u3` and add products to cart
    - Test guest user functionality
 
 2. **Store Owner Testing:**
@@ -358,7 +406,7 @@ After running the startup data script, test these scenarios:
    - Manage inventory and pricing
 
 3. **Admin Testing:**
-   - Login as `admin`
+   - Login as `u1` (admin)
    - View all users and stores
    - Test suspension functionality
 
@@ -367,74 +415,27 @@ After running the startup data script, test these scenarios:
    - Execute purchases
    - Test auction/bidding features
 
-### 🗄️ **Database Access**
-
-**H2 Database Console:**
-- **URL**: `http://localhost:8080/h2-console`
-- **JDBC URL**: `jdbc:h2:mem:bgumarket`
-- **Username**: `sa`
-- **Password**: (leave empty)
-
----
-
-## ⚙️ Configuration
-
-### 🔧 **Backend Configuration**
-
-**Key Settings in `backend/src/main/resources/application.properties`:**
-
-```properties
-# Server Configuration
-server.port=8080
-
-# Database (H2 In-Memory)
-spring.datasource.url=jdbc:h2:mem:bgumarket
-spring.datasource.username=sa
-spring.datasource.password=
-
-# JWT Security
-jwt.secret=bguMarketSecretKey
-jwt.expiration=86400000
-
-# Admin User (Auto-created)
-admin.username=admin
-admin.password=admin
-
-# CORS Configuration
-cors.allowed-origins=http://localhost:3000
-```
-
-### 🎨 **Frontend Configuration**
-
-**API Proxy (in `frontend/package.json`):**
-```json
-{
-  "proxy": "http://localhost:8080",
-  "dependencies": {
-    "react": "^18.x",
-    "@mui/material": "^5.x",
-    "axios": "^1.x"
-  }
-}
-```
-
-### 🔧 **Custom Configuration**
-
-For advanced configuration:
-```bash
-# Copy example configuration
-cp backend/src/main/resources/config.properties.example \
-   backend/src/main/resources/config.properties
-
-# Edit as needed
-nano backend/src/main/resources/config.properties
-```
-
 ---
 
 ## 🛠️ Troubleshooting
 
 ### 🚨 **Common Issues & Solutions**
+
+#### **"MySQL Connection Failed"**
+```bash
+# Check MySQL is running
+sudo systemctl status mysql  # Linux
+brew services list | grep mysql  # macOS
+
+# Test connection
+mysql -u bgu -p'changeme' -e "SELECT 1;"
+
+# Recreate database if needed
+mysql -u root -p
+DROP DATABASE IF EXISTS bgu_market;
+CREATE DATABASE bgu_market;
+GRANT ALL PRIVILEGES ON bgu_market.* TO 'bgu'@'localhost';
+```
 
 #### **"Port 8080 already in use"**
 ```bash
@@ -456,40 +457,30 @@ mvn clean
 mvn clean install
 ```
 
-#### **"npm install fails"**
+#### **"Demo data not loading"**
 ```bash
-# Clear npm cache
-npm cache clean --force
+# Check application.properties
+grep "populate-demo-data" backend/src/main/resources/application.properties
 
-# Remove and reinstall
-rm -rf node_modules package-lock.json
-npm install
+# Should show: bgu.market.populate-demo-data=true
+
+# Check demo-data.txt exists
+ls -la backend/src/main/resources/demo-data.txt
 ```
 
 #### **"Frontend can't connect to backend"**
 ```bash
 # Verify backend is running
-curl http://localhost:8080/api/admin/verify/admin
+curl http://localhost:8080/api/admin/verify/u1
 
 # Check proxy in package.json
 grep -A 2 "proxy" frontend/package.json
 ```
 
-#### **"Demo data script fails"**
-```bash
-# Ensure backend is fully started
-# Look for "Started BguMarketApplication" in logs
-
-# Check backend connection
-curl -f http://localhost:8080/h2-console || echo "Backend not ready"
-
-# Restart backend and try again
-```
-
 ### 💡 **Development Tips**
 
 - **Hot Reload**: Both frontend and backend support hot reload
-- **Database Reset**: Restart backend to reset H2 database
+- **Database Reset**: Restart backend to reset and reload demo data
 - **Logs**: Check console output for detailed error messages
 - **CORS**: Backend configured for `localhost:3000`
 - **JWT Tokens**: Check browser dev tools for authentication issues
@@ -499,11 +490,18 @@ curl -f http://localhost:8080/h2-console || echo "Backend not ready"
 ## 🎯 **Quick Commands Cheat Sheet**
 
 ```bash
-# 🚀 COMPLETE SETUP (with demo data)
+# 🚀 COMPLETE SETUP
 git clone <repo> && cd BGU-Market
+
+# Setup MySQL database
+mysql -u root -p
+# Run: CREATE DATABASE bgu_market; CREATE USER 'bgu'@'localhost' IDENTIFIED BY 'changeme'; GRANT ALL PRIVILEGES ON bgu_market.* TO 'bgu'@'localhost'; FLUSH PRIVILEGES;
+
+# Start backend (demo data loads automatically)
 cd backend && mvn spring-boot:run &
-cd .. && chmod +x populate_demo_data.sh && ./populate_demo_data.sh
-cd frontend && npm install && npm start
+
+# Start frontend
+cd ../frontend && npm install && npm start
 
 # 🔄 RESTART EVERYTHING
 # Terminal 1: Backend
@@ -512,38 +510,41 @@ cd backend && mvn spring-boot:run
 # Terminal 2: Frontend  
 cd frontend && npm start
 
-# Terminal 3: Repopulate demo data
-./populate_demo_data.sh
-
 # 🧪 QUICK TESTING
 ./test_api.sh                          # Basic tests
 ./test_purchase_endpoints.sh           # Purchase API tests
 ./test_purchase_realistic.sh           # Realistic scenarios
 
+# 🛠️ DATABASE MANAGEMENT
+mysql -u bgu -p'changeme' bgu_market   # Connect to database
+# Reset: DROP DATABASE bgu_market; CREATE DATABASE bgu_market;
+
 # 🌐 ACCESS POINTS
 # Frontend:  http://localhost:3000
 # Backend:   http://localhost:8080
-# Database:  http://localhost:8080/h2-console
+# Database:  mysql://localhost:3306/bgu_market
 ```
 
 ---
 
 ## 📝 Additional Resources
 
-- **[📖 Detailed Backend Configuration](backend/README_CONFIGURATION.md)**
+- **[📖 Backend Configuration Guide](backend/README_CONFIGURATION.md)**
 - **[📊 Demo Data Details](DEMO_DATA_README.md)**
 - **[🔧 Complete API Documentation](backend/src/main/java/market/controllers/docs/README.md)**
 - **[📚 Spring Boot Documentation](https://spring.io/projects/spring-boot)**
 - **[⚛️ React Documentation](https://reactjs.org/docs)**
+- **[🗄️ MySQL Documentation](https://dev.mysql.com/doc/)**
 
 ---
 
 ## 🚀 **Ready to Start?**
 
 1. **📥 Clone the repository**
-2. **⚡ Run the quick start commands above**
-3. **🎮 Use demo login credentials to explore**
-4. **🛒 Start building your marketplace features!**
+2. **🗄️ Setup MySQL database**
+3. **⚡ Run backend (demo data loads automatically)**
+4. **🎨 Start frontend**
+5. **🎮 Login with demo credentials and explore!**
 
 **🎉 Happy coding and welcome to BGU Market!**
 
